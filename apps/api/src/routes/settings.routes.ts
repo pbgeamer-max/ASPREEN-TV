@@ -66,7 +66,9 @@ export async function settingsRoutes(server: FastifyInstance) {
         if (!patchData.defaultProxyUrl) {
           patchData.defaultProxyUrl = patchData.publicStreamBaseUrl;
         }
-        delete patchData.publicStreamBaseUrl;
+        patchData.publicStreamBaseUrl = 'https://aspreen-tv-production.up.railway.app';
+      } else if (patchData.publicStreamBaseUrl === '') {
+        patchData.publicStreamBaseUrl = 'https://aspreen-tv-production.up.railway.app';
       }
 
       const updated = await settingsRepository.updateSettings(patchData);

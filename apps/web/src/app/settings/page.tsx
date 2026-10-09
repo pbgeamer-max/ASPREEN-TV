@@ -88,7 +88,7 @@ export default function SettingsPage() {
     try {
       const updated = await api.updateSettings({
         appName,
-        publicStreamBaseUrl,
+        publicStreamBaseUrl: publicStreamBaseUrl.trim() || undefined,
         defaultTranscodingPreset,
         defaultSegmentDuration,
         defaultPlaylistWindow,
@@ -97,7 +97,7 @@ export default function SettingsPage() {
         sourceTimeoutSeconds,
         defaultTokenLifetime,
         outputRetentionHours,
-        defaultProxyUrl: defaultProxyUrl.trim() || undefined,
+        defaultProxyUrl: defaultProxyUrl.trim(),
       });
       setSettings(updated);
       setSavedSuccess(true);

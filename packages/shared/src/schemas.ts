@@ -48,7 +48,7 @@ export const StreamTokenCreateSchema = z.object({
 
 export const AdminSettingsUpdateSchema = z.object({
   appName: z.string().min(1).max(50).optional(),
-  publicStreamBaseUrl: z.string().url('Must be a valid base URL').optional(),
+  publicStreamBaseUrl: z.string().url('Must be a valid base URL').or(z.literal('')).optional(),
   defaultTranscodingPreset: TranscodingPresetEnum.optional(),
   defaultSegmentDuration: z.number().int().min(2).max(10).optional(),
   defaultPlaylistWindow: z.number().int().min(3).max(20).optional(),
