@@ -222,7 +222,9 @@ export async function createServer() {
     // Set appropriate MIME types and cache headers
     if (safeFile.endsWith('.m3u8')) {
       reply.header('Content-Type', 'application/vnd.apple.mpegurl');
-      reply.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+      reply.header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+      reply.header('Pragma', 'no-cache');
+      reply.header('Expires', '0');
       reply.header('Access-Control-Allow-Origin', '*');
       let content = await fs.promises.readFile(filePath, 'utf8');
       // For continuous live streaming, strip any transient #EXT-X-ENDLIST tags

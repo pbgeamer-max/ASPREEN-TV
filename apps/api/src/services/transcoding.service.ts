@@ -92,6 +92,16 @@ export class TranscodingService {
     const outputDir = path.resolve(config.streamStoragePath, outputDirectoryId);
     await fs.mkdir(outputDir, { recursive: true });
 
+    // Clean out any stale segments or old playlists from previous runs
+    try {
+      const existingFiles = await fs.readdir(outputDir);
+      for (const file of existingFiles) {
+        if (file.endsWith('.ts') || file.endsWith('.m3u8') || file.endsWith('.tmp')) {
+          await fs.unlink(path.join(outputDir, file)).catch(() => {});
+        }
+      }
+    } catch {}
+
     // 5. Decrypt input URL
     const rawInputUrl = decrypt(channel.encryptedInputUrl);
     if (!rawInputUrl) {
@@ -193,6 +203,8 @@ export class TranscodingService {
     const child = spawn('ffmpeg', ffmpegArgs, {
       windowsHide: true,
     });
+
+    child.stdin?.on('error', () => {});
 
     // If input is piped, start continuous stream feeder to transparently survive upstream refreshes
     let streamFeeder: StreamFeeder | undefined;

@@ -84,6 +84,7 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
   args.push('-err_detect', 'ignore_err');
 
   if (params.inputUrl === 'pipe:0') {
+    args.push('-f', 'mpegts');
     args.push('-i', 'pipe:0');
   } else {
     // Optional HTTP/SOCKS5 proxy for bypassing datacenter / geo-blocking
@@ -152,11 +153,15 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
     args.push('-ac', '2');
   }
 
-  // HLS Multiplexer settings
+  // HLS Multiplexer settings for true continuous 24/7 LIVE streaming:
+  // - delete_segments: automatically purges expired .ts files from disk
+  // - omit_endlist: NEVER writes #EXT-X-ENDLIST so players treat stream as perpetual live
+  // - temp_file: atomic playlist and segment writes via temporary files (prevents corrupt reads)
+  // - independent_segments: ensures each segment is independently decodable
   args.push('-f', 'hls');
   args.push('-hls_time', params.segmentDuration.toString());
   args.push('-hls_list_size', params.playlistWindow.toString());
-  args.push('-hls_flags', 'delete_segments+append_list+discont_start+independent_segments');
+  args.push('-hls_flags', 'delete_segments+omit_endlist+temp_file+independent_segments');
   args.push('-hls_segment_type', 'mpegts');
 
   // Normalized path separator for segments and playlist

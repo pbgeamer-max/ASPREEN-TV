@@ -16,12 +16,13 @@ export interface StreamFeederOptions {
  * Continuous Stream Feeder:
  * Pumps live MPEG-TS data directly into FFmpeg's stdin.
  * Transparently reconnects when upstream IPTV servers drop or refresh session (e.g. every 30-45 seconds),
- * preventing FFmpeg from reaching EOF and ensuring unbroken 24/7 live HLS output.
+ * preventing FFmpeg from reaching EOF and ensuring unbroken 24/7 live HLS output without loops or restarts.
  */
 export class StreamFeeder {
   private isDestroyed = false;
   private currentReq: http.ClientRequest | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
+  private inactivityWatchdog: NodeJS.Timeout | null = null;
 
   constructor(private options: StreamFeederOptions) {}
 
@@ -29,11 +30,23 @@ export class StreamFeeder {
     this.connect(this.options.url, 0);
   }
 
+  private resetWatchdog() {
+    if (this.inactivityWatchdog) {
+      clearTimeout(this.inactivityWatchdog);
+    }
+    if (this.isDestroyed) return;
+
+    // If no chunk is received for 15 seconds, assume stream frozen and reconnect
+    this.inactivityWatchdog = setTimeout(() => {
+      this.scheduleReconnect('Stream inactivity timeout (no data for 15s)', 500);
+    }, 15000);
+  }
+
   private connect(targetUrl: string, redirectCount: number) {
     if (this.isDestroyed || this.options.target.destroyed) return;
 
     if (redirectCount > 5) {
-      this.scheduleReconnect('Too many redirects');
+      this.scheduleReconnect('Too many redirects', 2000);
       return;
     }
 
@@ -41,7 +54,7 @@ export class StreamFeeder {
     try {
       parsedTarget = new URL(targetUrl);
     } catch (err: any) {
-      this.scheduleReconnect(`Invalid URL: ${err.message}`);
+      this.scheduleReconnect(`Invalid URL: ${err.message}`, 3000);
       return;
     }
 
@@ -70,10 +83,9 @@ export class StreamFeeder {
           port: parsedProxy.port || 80,
           path: targetUrl,
           headers: requestHeaders,
-          timeout: 15000,
         };
       } catch (err: any) {
-        this.scheduleReconnect(`Invalid proxy URL: ${err.message}`);
+        this.scheduleReconnect(`Invalid proxy URL: ${err.message}`, 3000);
         return;
       }
     } else {
@@ -84,11 +96,12 @@ export class StreamFeeder {
         port: parsedTarget.port || (isTargetHttps ? 443 : 80),
         path: parsedTarget.pathname + parsedTarget.search,
         headers: requestHeaders,
-        timeout: 15000,
       };
     }
 
     try {
+      this.resetWatchdog();
+
       const req = transport.request(reqOptions, (res) => {
         // Handle 301, 302, 303, 307, 308 redirects
         if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
@@ -99,38 +112,42 @@ export class StreamFeeder {
 
         if (res.statusCode !== 200 && res.statusCode !== 206) {
           res.resume();
-          this.scheduleReconnect(`Upstream returned HTTP ${res.statusCode}`);
+          this.scheduleReconnect(`Upstream returned HTTP ${res.statusCode}`, 2000);
           return;
         }
 
         res.on('data', (chunk: Buffer) => {
+          this.resetWatchdog();
+
           if (!this.isDestroyed && !this.options.target.destroyed) {
             try {
-              this.options.target.write(chunk);
+              const canWrite = this.options.target.write(chunk);
+              if (!canWrite) {
+                res.pause();
+                this.options.target.once('drain', () => {
+                  if (!this.isDestroyed) res.resume();
+                });
+              }
             } catch {
-              // Pipe closed
+              // Target stdin closed
             }
           }
         });
 
         res.on('end', () => {
           // Upstream refreshed/disconnected after session limit
-          this.scheduleReconnect('Upstream closed connection (session refresh)', 300);
+          this.scheduleReconnect('Upstream connection finished session (refreshing)', 150);
         });
 
         res.on('error', (err) => {
-          this.scheduleReconnect(`Upstream response error: ${err.message}`, 1000);
+          this.scheduleReconnect(`Upstream response error: ${err.message}`, 500);
         });
       });
 
       this.currentReq = req;
 
-      req.on('timeout', () => {
-        req.destroy(new Error('Connection timeout'));
-      });
-
       req.on('error', (err) => {
-        this.scheduleReconnect(`Upstream request error: ${err.message}`, 2000);
+        this.scheduleReconnect(`Upstream request error: ${err.message}`, 1500);
       });
 
       req.end();
@@ -162,6 +179,10 @@ export class StreamFeeder {
 
   destroy() {
     this.isDestroyed = true;
+    if (this.inactivityWatchdog) {
+      clearTimeout(this.inactivityWatchdog);
+      this.inactivityWatchdog = null;
+    }
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
