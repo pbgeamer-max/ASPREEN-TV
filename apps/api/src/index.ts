@@ -117,17 +117,18 @@ export async function createServer() {
       '-hide_banner',
       '-loglevel', 'warning',
       '-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls',
-      '-fflags', '+genpts+discardcorrupt+nobuffer',
+      '-fflags', '+genpts+discardcorrupt',
       '-err_detect', 'ignore_err',
     ];
 
     if (/^https?:\/\//i.test(inputUrl)) {
       ffmpegArgs.push(
+        '-user_agent', 'VLC/3.0.20 LibVLC/3.0.20',
         '-reconnect', '1',
         '-reconnect_at_eof', '1',
         '-reconnect_streamed', '1',
         '-reconnect_delay_max', '2',
-        '-rw_timeout', '10000000'
+        '-timeout', '10000000'
       );
     }
 

@@ -269,6 +269,9 @@ export class TranscodingService {
 
       if (attempts <= MAX_AUTO_RESTARTS) {
         console.warn(`[Stream Healing] Channel "${channel.name}" (${channel.id}) dropped (code ${code}). Auto-recovering in 2s (Attempt ${attempts}/${MAX_AUTO_RESTARTS})...`);
+        if (stderrData) {
+          console.error(`[Stream Error] FFmpeg stderr for "${channel.name}":\n${safeError || stderrData}`);
+        }
 
         // Keep channel status as RUNNING in DB so downstream clients remain attached to HLS
         await channelRepository.updateChannel(channel.id, {

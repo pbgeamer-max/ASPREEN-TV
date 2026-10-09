@@ -78,16 +78,18 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
   args.push('-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls');
 
   // Resilient stream input flags to prevent aborts on network jitter, stream resets, and corrupted frames
-  args.push('-fflags', '+genpts+discardcorrupt+nobuffer');
+  // Note: do NOT use +nobuffer here as it breaks H.264 B-frame packet reordering for MPEG-TS streams
+  args.push('-fflags', '+genpts+discardcorrupt');
   args.push('-err_detect', 'ignore_err');
 
-  // Input reconnect flags for resilient stream reading (only for network HTTP/HTTPS streams)
+  // Input reconnect flags and standard VLC User-Agent for network HTTP/HTTPS streams
   if (/^https?:\/\//i.test(params.inputUrl)) {
+    args.push('-user_agent', 'VLC/3.0.20 LibVLC/3.0.20');
     args.push('-reconnect', '1');
     args.push('-reconnect_at_eof', '1');
     args.push('-reconnect_streamed', '1');
     args.push('-reconnect_delay_max', '2');
-    args.push('-rw_timeout', '10000000');
+    args.push('-timeout', '10000000');
   }
 
   // Custom HTTP headers if provided
