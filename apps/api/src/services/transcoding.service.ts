@@ -136,6 +136,14 @@ export class TranscodingService {
         processId: child.pid,
       });
 
+      let stderrData = '';
+      child.stderr?.on('data', (chunk) => {
+        stderrData += chunk.toString();
+        if (stderrData.length > 5000) {
+          stderrData = stderrData.slice(-3000);
+        }
+      });
+
       // Handle process exit
       child.on('close', async (code) => {
         clearInterval(heartbeatInterval);
@@ -143,15 +151,17 @@ export class TranscodingService {
 
         const isNormalStop = code === 0 || code === 255;
         const finalStatus = isNormalStop ? 'STOPPED' : 'FAILED';
+        const safeError = stderrData ? stderrData.replace(/https?:\/\/[^\s]+/g, '[REDACTED_URL]').trim() : undefined;
 
         await jobRepository.updateJob(job.id, {
           status: finalStatus,
           stoppedAt: new Date().toISOString(),
           lastErrorCode: code !== null ? `EXIT_${code}` : 'KILLED',
+          sanitizedErrorMessage: isNormalStop ? undefined : (safeError?.slice(-500) || 'Stream input connection failed or closed'),
         });
 
         await channelRepository.updateChannel(channel.id, {
-          transcodingStatus: 'STOPPED',
+          transcodingStatus: finalStatus,
           activeJobId: undefined,
         });
 
@@ -165,6 +175,7 @@ export class TranscodingService {
             channelName: channel.name,
             exitCode: code,
             finalStatus,
+            errorMessage: safeError ? safeError.slice(-200) : undefined,
           },
         });
       });
