@@ -121,6 +121,8 @@ export class TranscodingService {
       preset: presetId,
     });
 
+    const proxyUrl = channel.proxyUrl || settings.defaultProxyUrl;
+
     // 8. Build FFmpeg arguments array
     const ffmpegArgs = buildFfmpegArgs({
       inputUrl: rawInputUrl,
@@ -128,6 +130,7 @@ export class TranscodingService {
       segmentDuration,
       playlistWindow,
       outputDir,
+      proxyUrl,
     });
 
     // 9. Spawn FFmpeg process with supervisor

@@ -41,6 +41,7 @@ export default function SettingsPage() {
   const [sourceTimeoutSeconds, setSourceTimeoutSeconds] = useState(15);
   const [defaultTokenLifetime, setDefaultTokenLifetime] = useState(0);
   const [outputRetentionHours, setOutputRetentionHours] = useState(24);
+  const [defaultProxyUrl, setDefaultProxyUrl] = useState('');
 
   const fetchSettingsAndHealth = async () => {
     try {
@@ -61,6 +62,7 @@ export default function SettingsPage() {
       setSourceTimeoutSeconds(settingsData.sourceTimeoutSeconds);
       setDefaultTokenLifetime(settingsData.defaultTokenLifetime);
       setOutputRetentionHours(settingsData.outputRetentionHours);
+      setDefaultProxyUrl(settingsData.defaultProxyUrl || '');
     } catch (err) {
       console.error('Failed to load settings:', err);
     } finally {
@@ -95,6 +97,7 @@ export default function SettingsPage() {
         sourceTimeoutSeconds,
         defaultTokenLifetime,
         outputRetentionHours,
+        defaultProxyUrl: defaultProxyUrl.trim() || undefined,
       });
       setSettings(updated);
       setSavedSuccess(true);
@@ -253,6 +256,21 @@ export default function SettingsPage() {
                       max={168}
                       className="form-input text-xs font-mono"
                     />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-medium text-[#A1A1AA] mb-1">
+                      Global Outbound Stream Proxy (HTTP / HTTPS / SOCKS5)
+                    </label>
+                    <input
+                      type="text"
+                      value={defaultProxyUrl}
+                      onChange={(e) => setDefaultProxyUrl(e.target.value)}
+                      placeholder="e.g. http://123.45.67.89:8080 or socks5://user:pass@proxy.example.com:1080"
+                      className="form-input text-xs font-mono"
+                    />
+                    <p className="text-[10px] text-[#71717A] mt-1">
+                      Optional: Used by FFmpeg to bypass datacenter blocking (Anti-Restream) or geo-restrictions from IPTV providers.
+                    </p>
                   </div>
                 </div>
               </div>

@@ -17,6 +17,7 @@ import { settingsRoutes } from './routes/settings.routes';
 import { hlsAuthRoutes } from './routes/hls-auth.routes';
 import { tokenRepository } from './repositories/token.repository';
 import { channelRepository } from './repositories/channel.repository';
+import { settingsRepository } from './repositories/settings.repository';
 import { hashStreamToken } from './security/token';
 import { decrypt } from './security/encryption';
 
@@ -120,6 +121,13 @@ export async function createServer() {
       '-fflags', '+genpts+discardcorrupt',
       '-err_detect', 'ignore_err',
     ];
+
+    const settings = await settingsRepository.getSettings();
+    const proxyUrl = channel.proxyUrl || settings.defaultProxyUrl;
+
+    if (proxyUrl) {
+      ffmpegArgs.push('-http_proxy', proxyUrl);
+    }
 
     if (/^https?:\/\//i.test(inputUrl)) {
       ffmpegArgs.push(

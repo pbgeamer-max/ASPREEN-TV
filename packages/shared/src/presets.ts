@@ -60,6 +60,7 @@ export interface HlsBuildParams {
   playlistWindow: number;
   outputDir: string;
   customHeaders?: Record<string, string>;
+  proxyUrl?: string;
 }
 
 /**
@@ -76,6 +77,11 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
 
   // Strict protocol whitelist to prevent SSRF/local file disclosure inside FFmpeg
   args.push('-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls');
+
+  // Optional HTTP/SOCKS5 proxy for bypassing datacenter / geo-blocking
+  if (params.proxyUrl) {
+    args.push('-http_proxy', params.proxyUrl);
+  }
 
   // Resilient stream input flags to prevent aborts on network jitter, stream resets, and corrupted frames
   // Note: do NOT use +nobuffer here as it breaks H.264 B-frame packet reordering for MPEG-TS streams

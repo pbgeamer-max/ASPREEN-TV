@@ -47,6 +47,7 @@ export interface AdminSettings {
   sourceTimeoutSeconds: number;
   defaultTokenLifetime: number; // in hours, 0 = indefinite
   outputRetentionHours: number;
+  defaultProxyUrl?: string;
   updatedAt: string; // ISO String
 }
 
@@ -86,6 +87,7 @@ export interface Channel {
   inputStatus: ChannelInputStatus;
   transcodingStatus: TranscodingStatus;
   preset: TranscodingPresetId;
+  proxyUrl?: string; // Optional HTTP/SOCKS5 proxy URL for bypassing geo/datacenter blocks
   activeJobId?: string;
   activeOutputId?: string; // Random public slug for HLS output path
   createdAt: string;
