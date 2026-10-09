@@ -311,8 +311,14 @@ export class TranscodingService {
       this.restartAttempts.set(channel.id, attempts);
       const MAX_AUTO_RESTARTS = 50;
 
+      const isRateLimited = !!(safeError && (safeError.includes('429') || safeError.includes('Connection limit reached')));
+      const delayMs = isRateLimited ? 5000 : 300;
+
       if (attempts <= MAX_AUTO_RESTARTS) {
-        console.warn(`[Stream Healing] Channel "${channel.name}" (${channel.id}) dropped (code ${code}). Auto-recovering in 2s (Attempt ${attempts}/${MAX_AUTO_RESTARTS})...`);
+        console.warn(`[Stream Healing] Channel "${channel.name}" (${channel.id}) dropped (code ${code}). Auto-recovering in ${delayMs}ms (Attempt ${attempts}/${MAX_AUTO_RESTARTS})...`);
+        if (isRateLimited) {
+          console.warn(`[Stream Warning] IPTV Provider returned HTTP 429 ("Connection limit reached"). Subscription credentials are in use by another connection. Waiting 5s before retrying...`);
+        }
         if (stderrData) {
           console.error(`[Stream Error] FFmpeg stderr for "${channel.name}":\n${safeError || stderrData}`);
         }
@@ -331,12 +337,14 @@ export class TranscodingService {
             channelId: channel.id,
             channelName: channel.name,
             exitCode: code,
-            note: `Stream refreshed or disconnected upstream. Auto-healing restart attempt ${attempts}/${MAX_AUTO_RESTARTS}...`,
+            note: isRateLimited 
+              ? `IPTV Provider returned 429 (Connection limit reached). Retrying in 5s (Attempt ${attempts}/${MAX_AUTO_RESTARTS})...`
+              : `Stream refreshed upstream. Auto-healing restart attempt ${attempts}/${MAX_AUTO_RESTARTS}...`,
             errorMessage: safeError ? safeError.slice(-150) : undefined,
           },
         });
 
-        // Delay 300ms before re-spawning so the network / upstream has time to reconnect cleanly
+        // Delay before re-spawning so the network / upstream has time to reconnect cleanly
         const timer = setTimeout(async () => {
           this.restartTimers.delete(channel.id);
           if (this.intentionalStops.has(channel.id)) return;
@@ -346,7 +354,7 @@ export class TranscodingService {
           } catch (err: any) {
             console.error(`[Stream Healing] Failed to auto-recover channel ${channel.id}:`, err.message);
           }
-        }, 300);
+        }, delayMs);
 
         this.restartTimers.set(channel.id, timer);
       } else {
