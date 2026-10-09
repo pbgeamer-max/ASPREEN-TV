@@ -83,6 +83,8 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
   args.push('-err_detect', 'ignore_err');
 
   if (params.inputUrl === 'pipe:0') {
+    args.push('-probesize', '2000000');
+    args.push('-analyzeduration', '3000000');
     args.push('-merge_pmt_versions', '1');
     args.push('-resync_size', '4194304');
     args.push('-f', 'mpegts');

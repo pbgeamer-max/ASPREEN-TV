@@ -14,23 +14,33 @@ export interface StreamFeederOptions {
 
 /**
  * Continuous Stream Feeder with In-Memory Jitter Buffer:
- * Pumps live MPEG-TS data directly into FFmpeg's stdin without stuttering.
+ * Pumps live MPEG-TS data directly into FFmpeg's stdin without stuttering or infinite reconnect loops.
  * Buffers data in memory so that when upstream IPTV servers refresh/reset connection (every 30-45s),
  * FFmpeg continues receiving data uninterrupted while the new upstream connection connects in the background.
  */
 export class StreamFeeder {
   private isDestroyed = false;
   private currentReq: http.ClientRequest | null = null;
+  private currentRes: http.IncomingMessage | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private inactivityWatchdog: NodeJS.Timeout | null = null;
   private queue: Buffer[] = [];
   private queuedBytes = 0;
   private isPumping = false;
-  private maxQueueBytes = 6 * 1024 * 1024; // 6 MB buffer (~15-20s of video)
+  private maxQueueBytes = 8 * 1024 * 1024; // 8 MB buffer (~20-25s of video)
+  private sessionBytesReceived = 0;
+  private sessionStartTime = 0;
+  private consecutiveFailures = 0;
 
   constructor(private options: StreamFeederOptions) {
     this.options.target.on('drain', () => {
       this.pump();
+    });
+    this.options.target.on('close', () => {
+      this.destroy();
+    });
+    this.options.target.on('error', () => {
+      this.destroy();
     });
   }
 
@@ -46,7 +56,7 @@ export class StreamFeeder {
 
     // If no chunk is received for 18 seconds, assume stream frozen and reconnect
     this.inactivityWatchdog = setTimeout(() => {
-      this.scheduleReconnect('Stream inactivity watchdog (no data for 18s)', 500);
+      this.scheduleReconnect('Stream inactivity watchdog (no data for 18s)', 1000);
     }, 18000);
   }
 
@@ -87,8 +97,31 @@ export class StreamFeeder {
     }
   }
 
+  private cleanupCurrentConnection() {
+    if (this.currentReq) {
+      this.currentReq.removeAllListeners();
+      try {
+        this.currentReq.destroy();
+      } catch {}
+      this.currentReq = null;
+    }
+    if (this.currentRes) {
+      this.currentRes.removeAllListeners();
+      try {
+        this.currentRes.destroy();
+      } catch {}
+      this.currentRes = null;
+    }
+  }
+
   private connect(targetUrl: string, redirectCount: number) {
     if (this.isDestroyed || this.options.target.destroyed) return;
+
+    if (redirectCount === 0) {
+      this.cleanupCurrentConnection();
+      this.sessionBytesReceived = 0;
+      this.sessionStartTime = Date.now();
+    }
 
     if (redirectCount > 5) {
       this.scheduleReconnect('Too many redirects', 2000);
@@ -152,74 +185,92 @@ export class StreamFeeder {
         // Handle 301, 302, 303, 307, 308 redirects
         if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           const redirectUrl = new URL(res.headers.location, targetUrl).toString();
+          res.removeAllListeners();
           res.resume();
           return this.connect(redirectUrl, redirectCount + 1);
         }
 
         if (res.statusCode !== 200 && res.statusCode !== 206) {
+          res.removeAllListeners();
           res.resume();
-          this.scheduleReconnect(`Upstream returned HTTP ${res.statusCode}`, 2000);
+          this.consecutiveFailures++;
+          const backoff = Math.min(1000 * Math.pow(1.5, this.consecutiveFailures), 5000);
+          this.scheduleReconnect(`Upstream returned HTTP ${res.statusCode}`, Math.round(backoff));
           return;
         }
 
+        this.currentRes = res;
+        this.consecutiveFailures = 0;
+
         res.on('data', (chunk: Buffer) => {
+          this.sessionBytesReceived += chunk.length;
           this.resetWatchdog();
           this.pushData(chunk);
         });
 
         res.on('end', () => {
-          // Upstream refreshed/finished session (typical 40s IPTV refresh).
-          // Reconnect IMMEDIATELY (0ms delay) so new connection starts while jitter buffer drains!
-          this.scheduleReconnect('Upstream session refresh', 0);
+          const sessionDuration = (Date.now() - this.sessionStartTime) / 1000;
+          if (this.sessionBytesReceived > 64 * 1024 || sessionDuration > 3) {
+            // Normal healthy upstream session refresh (common IPTV behavior)
+            this.consecutiveFailures = 0;
+            this.scheduleReconnect('Upstream session refresh', 50);
+          } else {
+            // Premature disconnect or 0 bytes: prevent tight infinite loop with backoff
+            this.consecutiveFailures++;
+            const backoff = Math.min(1000 * Math.pow(1.5, this.consecutiveFailures), 5000);
+            this.scheduleReconnect(
+              `Upstream ended prematurely (${(this.sessionBytesReceived / 1024).toFixed(0)} KB received)`,
+              Math.round(backoff)
+            );
+          }
         });
 
         res.on('error', (err) => {
-          this.scheduleReconnect(`Upstream response error: ${err.message}`, 500);
+          this.consecutiveFailures++;
+          const backoff = Math.min(1000 * Math.pow(1.5, this.consecutiveFailures), 5000);
+          this.scheduleReconnect(`Upstream response error: ${err.message}`, Math.round(backoff));
         });
       });
 
       this.currentReq = req;
 
       req.on('error', (err) => {
-        this.scheduleReconnect(`Upstream request error: ${err.message}`, 1500);
+        this.consecutiveFailures++;
+        const backoff = Math.min(1000 * Math.pow(1.5, this.consecutiveFailures), 5000);
+        this.scheduleReconnect(`Upstream request error: ${err.message}`, Math.round(backoff));
       });
 
       req.end();
     } catch (err: any) {
-      this.scheduleReconnect(`Failed to dispatch request: ${err.message}`, 2000);
+      this.consecutiveFailures++;
+      const backoff = Math.min(1000 * Math.pow(1.5, this.consecutiveFailures), 5000);
+      this.scheduleReconnect(`Failed to dispatch request: ${err.message}`, Math.round(backoff));
     }
   }
 
-  private scheduleReconnect(reason: string, delayMs = 0) {
+  private scheduleReconnect(reason: string, delayMs = 1000) {
     if (this.isDestroyed || this.options.target.destroyed) return;
-    if (this.reconnectTimer) return;
+    if (this.reconnectTimer) return; // Reconnect is already pending
+
+    const effectiveDelay = Math.max(50, delayMs);
 
     if (this.options.onLog) {
-      this.options.onLog(`[StreamFeeder] ${reason}. Reconnecting in ${delayMs}ms... (buffered: ${(this.queuedBytes / 1024).toFixed(0)} KB)`);
+      this.options.onLog(
+        `[StreamFeeder] ${reason}. Reconnecting in ${effectiveDelay}ms... (buffered: ${(this.queuedBytes / 1024).toFixed(0)} KB)`
+      );
     }
 
-    if (this.currentReq) {
-      try {
-        this.currentReq.destroy();
-      } catch {}
-      this.currentReq = null;
-    }
+    this.cleanupCurrentConnection();
 
-    if (delayMs <= 0) {
-      setImmediate(() => {
-        this.reconnectTimer = null;
-        this.connect(this.options.url, 0);
-      });
-    } else {
-      this.reconnectTimer = setTimeout(() => {
-        this.reconnectTimer = null;
-        this.connect(this.options.url, 0);
-      }, delayMs);
-    }
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.connect(this.options.url, 0);
+    }, effectiveDelay);
   }
 
   destroy() {
     this.isDestroyed = true;
+    this.cleanupCurrentConnection();
     this.queue = [];
     this.queuedBytes = 0;
     if (this.inactivityWatchdog) {
@@ -229,12 +280,6 @@ export class StreamFeeder {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
-    }
-    if (this.currentReq) {
-      try {
-        this.currentReq.destroy();
-      } catch {}
-      this.currentReq = null;
     }
   }
 }

@@ -41,7 +41,7 @@ export default function SettingsPage() {
   const [sourceTimeoutSeconds, setSourceTimeoutSeconds] = useState(15);
   const [defaultTokenLifetime, setDefaultTokenLifetime] = useState(0);
   const [outputRetentionHours, setOutputRetentionHours] = useState(24);
-  const [defaultProxyUrl, setDefaultProxyUrl] = useState('');
+  const [defaultProxyUrl, setDefaultProxyUrl] = useState('http://avxkxvqi:kfq49mj05vbr@31.59.20.176:6754');
 
   const fetchSettingsAndHealth = async () => {
     try {
@@ -62,7 +62,7 @@ export default function SettingsPage() {
       setSourceTimeoutSeconds(settingsData.sourceTimeoutSeconds);
       setDefaultTokenLifetime(settingsData.defaultTokenLifetime);
       setOutputRetentionHours(settingsData.outputRetentionHours);
-      setDefaultProxyUrl(settingsData.defaultProxyUrl || '');
+      setDefaultProxyUrl(settingsData.defaultProxyUrl || 'http://avxkxvqi:kfq49mj05vbr@31.59.20.176:6754');
     } catch (err) {
       console.error('Failed to load settings:', err);
     } finally {

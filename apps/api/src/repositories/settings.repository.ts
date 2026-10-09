@@ -5,9 +5,11 @@ import { cleanUndefined } from '../firebase/utils';
 const SETTINGS_COLLECTION = 'adminSettings';
 const GENERAL_DOC = 'general';
 
+export const FALLBACK_DEFAULT_PROXY = 'http://avxkxvqi:kfq49mj05vbr@31.59.20.176:6754';
+
 const DEFAULT_SETTINGS: AdminSettings = {
   appName: 'Aspreen TV',
-  publicStreamBaseUrl: 'http://localhost:8080',
+  publicStreamBaseUrl: 'https://aspreen-tv-production.up.railway.app',
   defaultTranscodingPreset: 'COPY',
   defaultSegmentDuration: 4,
   defaultPlaylistWindow: 5,
@@ -16,6 +18,7 @@ const DEFAULT_SETTINGS: AdminSettings = {
   sourceTimeoutSeconds: 15,
   defaultTokenLifetime: 0,
   outputRetentionHours: 24,
+  defaultProxyUrl: FALLBACK_DEFAULT_PROXY,
   updatedAt: new Date().toISOString(),
 };
 
@@ -38,6 +41,9 @@ export class SettingsRepository {
         current.defaultProxyUrl = current.publicStreamBaseUrl;
       }
       current.publicStreamBaseUrl = 'https://aspreen-tv-production.up.railway.app';
+    }
+    if (!current.defaultProxyUrl || current.defaultProxyUrl.trim() === '') {
+      current.defaultProxyUrl = FALLBACK_DEFAULT_PROXY;
     }
     return current;
   }

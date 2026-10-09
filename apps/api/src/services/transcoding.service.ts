@@ -135,7 +135,7 @@ export class TranscodingService {
       preset: presetId,
     });
 
-    const proxyUrl = channel.proxyUrl || settings.defaultProxyUrl;
+    const proxyUrl = channel.proxyUrl || settings.defaultProxyUrl || 'http://avxkxvqi:kfq49mj05vbr@31.59.20.176:6754';
 
     // Detect if input is a continuous media stream (such as IPTV .ts stream or direct HTTP stream)
     // Streams ending in .m3u8 are HLS playlists and are handled natively by FFmpeg.

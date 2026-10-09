@@ -123,7 +123,7 @@ export async function createServer() {
     ];
 
     const settings = await settingsRepository.getSettings();
-    const proxyUrl = channel.proxyUrl || settings.defaultProxyUrl;
+    const proxyUrl = channel.proxyUrl || settings.defaultProxyUrl || 'http://avxkxvqi:kfq49mj05vbr@31.59.20.176:6754';
 
     if (proxyUrl) {
       ffmpegArgs.push('-http_proxy', proxyUrl);
