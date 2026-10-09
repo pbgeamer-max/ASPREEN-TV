@@ -58,8 +58,15 @@ export async function tokenRoutes(server: FastifyInstance) {
       expiresAt,
     });
 
-    const playbackUrl = buildPlaybackUrl(settings.publicStreamBaseUrl, publicOutputId, rawToken);
-    const tsPlaybackUrl = buildTsPlaybackUrl(settings.publicStreamBaseUrl, publicOutputId, rawToken);
+    let effectiveBaseUrl = settings.publicStreamBaseUrl;
+    const reqHost = (request.headers['x-forwarded-host'] as string) || (request.headers.host as string);
+    const reqProto = (request.headers['x-forwarded-proto'] as string) || 'https';
+    if ((!effectiveBaseUrl || effectiveBaseUrl.includes('localhost')) && reqHost && !reqHost.includes('127.0.0.1')) {
+      effectiveBaseUrl = `${reqProto}://${reqHost}`;
+    }
+
+    const playbackUrl = buildPlaybackUrl(effectiveBaseUrl, publicOutputId, rawToken);
+    const tsPlaybackUrl = buildTsPlaybackUrl(effectiveBaseUrl, publicOutputId, rawToken);
 
     await logRepository.addLog({
       eventType: 'TOKEN_CREATED',
@@ -128,8 +135,15 @@ export async function tokenRoutes(server: FastifyInstance) {
       expiresAt: existing.expiresAt,
     });
 
-    const playbackUrl = buildPlaybackUrl(settings.publicStreamBaseUrl, existing.publicOutputId, rawToken);
-    const tsPlaybackUrl = buildTsPlaybackUrl(settings.publicStreamBaseUrl, existing.publicOutputId, rawToken);
+    let effectiveBaseUrl = settings.publicStreamBaseUrl;
+    const reqHost = (request.headers['x-forwarded-host'] as string) || (request.headers.host as string);
+    const reqProto = (request.headers['x-forwarded-proto'] as string) || 'https';
+    if ((!effectiveBaseUrl || effectiveBaseUrl.includes('localhost')) && reqHost && !reqHost.includes('127.0.0.1')) {
+      effectiveBaseUrl = `${reqProto}://${reqHost}`;
+    }
+
+    const playbackUrl = buildPlaybackUrl(effectiveBaseUrl, existing.publicOutputId, rawToken);
+    const tsPlaybackUrl = buildTsPlaybackUrl(effectiveBaseUrl, existing.publicOutputId, rawToken);
 
     return {
       token: newToken,
