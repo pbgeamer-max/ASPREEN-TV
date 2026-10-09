@@ -30,7 +30,7 @@ export async function createServer() {
 
   // Security & Plugins
   await server.register(cors, {
-    origin: [config.webBaseUrl, 'http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
