@@ -20,7 +20,7 @@ export class SourceService {
       rawContent = input.content || '';
     } else {
       if (!input.url) {
-        throw new Error('URL is required for M3U and M3U8 sources');
+        throw new Error('URL is required for M3U, M3U8, and TS sources');
       }
 
       // Perform strict SSRF validation
@@ -77,14 +77,14 @@ export class SourceService {
 
     let importedCount = 0;
 
-    if (input.type === 'M3U8') {
-      // Single M3U8 Direct Stream -> Create 1 Channel
+    if (input.type === 'M3U8' || input.type === 'TS') {
+      // Single Direct Stream (M3U8 HLS or MPEG-TS) -> Create 1 Channel
       await channelRepository.createChannel({
         sourceId: source.id,
         name: input.name,
         normalizedName: input.name.toLowerCase().trim(),
         groupTitle: 'Direct Streams',
-        inputType: 'HLS',
+        inputType: input.type === 'TS' ? 'TS_STREAM' : 'HLS',
         encryptedInputUrl: encryptedUrl,
         enabled: true,
         inputStatus: 'ONLINE',

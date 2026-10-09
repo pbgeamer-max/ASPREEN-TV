@@ -29,8 +29,12 @@ export default function StreamTokensPage() {
   const [loading, setLoading] = useState(true);
 
   // Rotation modal result
-  const [rotatedResult, setRotatedResult] = useState<{ rawToken: string; playbackUrl: string } | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [rotatedResult, setRotatedResult] = useState<{
+    rawToken: string;
+    playbackUrl: string;
+    tsPlaybackUrl?: string;
+  } | null>(null);
+  const [copiedType, setCopiedType] = useState<'hls' | 'ts' | null>(null);
 
   // Player preview
   const [playerModalOpen, setPlayerModalOpen] = useState(false);
@@ -80,6 +84,7 @@ export default function StreamTokensPage() {
       setRotatedResult({
         rawToken: res.rawToken,
         playbackUrl: res.playbackUrl,
+        tsPlaybackUrl: res.tsPlaybackUrl,
       });
       fetchTokens();
     } catch (err: any) {
@@ -218,34 +223,65 @@ export default function StreamTokensPage() {
               </div>
 
               <div className="p-5 space-y-4">
+                {/* HLS URL */}
                 <div className="p-3 bg-[#0A0A0A] border border-[#262626] rounded text-xs space-y-2">
-                  <div className="text-[10px] text-[#71717A] uppercase font-mono">Rotated Playback Link</div>
-                  <div className="font-mono text-xs text-[#F5F5F5] break-all select-all p-2 bg-[#141414] rounded border border-[#222]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-[#A1A1AA] uppercase font-mono font-medium">
+                      HLS Playback URL (.m3u8)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(rotatedResult.playbackUrl);
+                        setCopiedType('hls');
+                        setTimeout(() => setCopiedType(null), 2000);
+                      }}
+                      className="btn-secondary py-0.5 px-2 text-[10px] gap-1"
+                    >
+                      {copiedType === 'hls' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedType === 'hls' ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                  <div className="font-mono text-[11px] text-[#F5F5F5] break-all select-all p-2 bg-[#141414] rounded border border-[#222]">
                     {rotatedResult.playbackUrl}
                   </div>
                 </div>
 
-                <p className="text-[11px] text-[#A1A1AA]">
+                {/* Direct MPEG-TS URL */}
+                {rotatedResult.tsPlaybackUrl && (
+                  <div className="p-3 bg-[#0A0A0A] border border-[#262626] rounded text-xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-[#A1A1AA] uppercase font-mono font-medium">
+                        Direct MPEG-TS Stream URL (.ts)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(rotatedResult.tsPlaybackUrl!);
+                          setCopiedType('ts');
+                          setTimeout(() => setCopiedType(null), 2000);
+                        }}
+                        className="btn-secondary py-0.5 px-2 text-[10px] gap-1"
+                      >
+                        {copiedType === 'ts' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        <span>{copiedType === 'ts' ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+                    <div className="font-mono text-[11px] text-[#F5F5F5] break-all select-all p-2 bg-[#141414] rounded border border-[#222]">
+                      {rotatedResult.tsPlaybackUrl}
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-[11px] text-[#71717A]">
                   The old token was revoked. Copy this replacement link into your client application now.
                 </p>
 
-                <div className="pt-2 flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(rotatedResult.playbackUrl);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 2000);
-                    }}
-                    className="btn-primary py-1.5 px-4 text-xs gap-1.5"
-                  >
-                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copied ? 'Copied URL!' : 'Copy Playback URL'}</span>
-                  </button>
+                <div className="pt-2 flex justify-end">
                   <button
                     type="button"
                     onClick={() => setRotatedResult(null)}
-                    className="btn-secondary py-1.5 px-3 text-xs"
+                    className="btn-primary py-1.5 px-4 text-xs"
                   >
                     Done
                   </button>

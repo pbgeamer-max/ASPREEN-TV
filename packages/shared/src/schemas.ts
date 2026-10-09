@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const TranscodingPresetEnum = z.enum(['COPY', 'SOURCE_RES', '720P', '1080P']);
-export const SourceTypeEnum = z.enum(['M3U', 'M3U8', 'LOCAL_M3U']);
+export const SourceTypeEnum = z.enum(['M3U', 'M3U8', 'TS', 'LOCAL_M3U']);
 
 export const SourceCreateSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -17,7 +17,7 @@ export const SourceCreateSchema = z.object({
   }
   return !!data.url && data.url.trim().length > 0;
 }, {
-  message: 'URL is required for M3U/M3U8 sources, or content for Local M3U',
+  message: 'URL is required for M3U, M3U8, or TS sources, or content for Local M3U',
   path: ['url'],
 });
 

@@ -5,7 +5,7 @@ import { channelRepository } from '../repositories/channel.repository';
 import { settingsRepository } from '../repositories/settings.repository';
 import { logRepository } from '../repositories/log.repository';
 import { StreamTokenCreateSchema } from '@aspreen/shared';
-import { generateStreamToken, hashStreamToken, buildPlaybackUrl } from '../security/token';
+import { generateStreamToken, hashStreamToken, buildPlaybackUrl, buildTsPlaybackUrl } from '../security/token';
 
 export async function tokenRoutes(server: FastifyInstance) {
   server.addHook('preHandler', requireAdminAuth);
@@ -59,6 +59,7 @@ export async function tokenRoutes(server: FastifyInstance) {
     });
 
     const playbackUrl = buildPlaybackUrl(settings.publicStreamBaseUrl, publicOutputId, rawToken);
+    const tsPlaybackUrl = buildTsPlaybackUrl(settings.publicStreamBaseUrl, publicOutputId, rawToken);
 
     await logRepository.addLog({
       eventType: 'TOKEN_CREATED',
@@ -77,6 +78,7 @@ export async function tokenRoutes(server: FastifyInstance) {
       token: tokenDoc,
       rawToken, // Only returned at generation time!
       playbackUrl,
+      tsPlaybackUrl,
     });
   });
 
@@ -127,11 +129,13 @@ export async function tokenRoutes(server: FastifyInstance) {
     });
 
     const playbackUrl = buildPlaybackUrl(settings.publicStreamBaseUrl, existing.publicOutputId, rawToken);
+    const tsPlaybackUrl = buildTsPlaybackUrl(settings.publicStreamBaseUrl, existing.publicOutputId, rawToken);
 
     return {
       token: newToken,
       rawToken,
       playbackUrl,
+      tsPlaybackUrl,
     };
   });
 }

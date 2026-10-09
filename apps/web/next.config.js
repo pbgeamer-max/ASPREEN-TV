@@ -12,6 +12,10 @@ const nextConfig = {
         source: '/hls/:path*',
         destination: `${apiBase}/hls/:path*`,
       },
+      {
+        source: '/live/:path*',
+        destination: `${apiBase}/live/:path*`,
+      },
     ];
   },
 };

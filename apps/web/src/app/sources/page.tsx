@@ -31,7 +31,7 @@ export default function SourcesPage() {
 
   // Add Source Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'M3U8' | 'M3U' | 'LOCAL'>('M3U8');
+  const [activeTab, setActiveTab] = useState<'M3U8' | 'TS' | 'M3U' | 'LOCAL'>('M3U8');
   const [submitting, setSubmitting] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
 
@@ -109,6 +109,10 @@ export default function SourcesPage() {
 
       if (activeTab === 'M3U8') {
         payload.type = 'M3U8';
+        payload.url = sourceUrl;
+        if (credentials) payload.credentials = credentials;
+      } else if (activeTab === 'TS') {
+        payload.type = 'TS';
         payload.url = sourceUrl;
         if (credentials) payload.credentials = credentials;
       } else if (activeTab === 'M3U') {
@@ -328,7 +332,7 @@ export default function SourcesPage() {
               </div>
 
               {/* Tabs */}
-              <div className="grid grid-cols-3 border-b border-[#262626] bg-[#0A0A0A] text-xs font-medium">
+              <div className="grid grid-cols-4 border-b border-[#262626] bg-[#0A0A0A] text-xs font-medium">
                 <button
                   type="button"
                   onClick={() => setActiveTab('M3U8')}
@@ -343,11 +347,21 @@ export default function SourcesPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setActiveTab('TS')}
+                  className={`py-2.5 flex items-center justify-center gap-1.5 transition-colors ${
+                    activeTab === 'TS'
+                      ? 'border-b-2 border-white text-white bg-[#111111]'
+                      : 'text-[#71717A] hover:text-[#F5F5F5]'
+                  }`}
+                >
+                  <Radio className="w-3.5 h-3.5" />
+                  <span>Direct TS (.ts)</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => setActiveTab('M3U')}
                   className={`py-2.5 flex items-center justify-center gap-1.5 transition-colors ${
-                    activeTab === 'M3U8'
-                      ? 'text-[#71717A] hover:text-[#F5F5F5]'
-                      : activeTab === 'M3U'
+                    activeTab === 'M3U'
                       ? 'border-b-2 border-white text-white bg-[#111111]'
                       : 'text-[#71717A] hover:text-[#F5F5F5]'
                   }`}
@@ -392,14 +406,22 @@ export default function SourcesPage() {
                 {activeTab !== 'LOCAL' ? (
                   <div>
                     <label className="block text-xs font-medium text-[#A1A1AA] mb-1">
-                      {activeTab === 'M3U8' ? 'Direct Stream URL (.m3u8)' : 'Remote Playlist URL (.m3u / .m3u8)'}
+                      {activeTab === 'M3U8'
+                        ? 'Direct Stream URL (.m3u8)'
+                        : activeTab === 'TS'
+                        ? 'Direct MPEG-TS Stream URL (.ts)'
+                        : 'Remote Playlist URL (.m3u / .m3u8)'}
                     </label>
                     <input
                       type="url"
                       value={sourceUrl}
                       onChange={(e) => setSourceUrl(e.target.value)}
                       required
-                      placeholder="https://authorized-provider.com/live/index.m3u8"
+                      placeholder={
+                        activeTab === 'TS'
+                          ? 'https://authorized-provider.com/live/channel.ts'
+                          : 'https://authorized-provider.com/live/index.m3u8'
+                      }
                       className="form-input text-xs font-mono"
                     />
                     <p className="text-[10px] text-[#71717A] mt-1">
@@ -428,7 +450,7 @@ export default function SourcesPage() {
                   </div>
                 )}
 
-                {activeTab === 'M3U8' && (
+                {(activeTab === 'M3U8' || activeTab === 'TS') && (
                   <div>
                     <label className="block text-xs font-medium text-[#A1A1AA] mb-1">
                       Authorized Credentials / Bearer (Optional)
@@ -443,7 +465,7 @@ export default function SourcesPage() {
                   </div>
                 )}
 
-                {activeTab !== 'M3U8' && (
+                {activeTab !== 'M3U8' && activeTab !== 'TS' && (
                   <div>
                     <label className="block text-xs font-medium text-[#A1A1AA] mb-1">
                       Max Channel Import Limit

@@ -54,8 +54,12 @@ export default function ChannelsPage() {
   const [tokenChannelName, setTokenChannelName] = useState('');
   const [tokenName, setTokenName] = useState('');
   const [tokenLifetime, setTokenLifetime] = useState(0);
-  const [generatedResult, setGeneratedResult] = useState<{ rawToken: string; playbackUrl: string } | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [generatedResult, setGeneratedResult] = useState<{
+    rawToken: string;
+    playbackUrl: string;
+    tsPlaybackUrl?: string;
+  } | null>(null);
+  const [copiedType, setCopiedType] = useState<'hls' | 'ts' | null>(null);
 
   // Transcoding actions
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
@@ -140,7 +144,7 @@ export default function ChannelsPage() {
     setTokenName(`Token for ${channel.name}`);
     setTokenLifetime(0);
     setGeneratedResult(null);
-    setCopied(false);
+    setCopiedType(null);
     setTokenModalOpen(true);
   };
 
@@ -156,6 +160,7 @@ export default function ChannelsPage() {
       setGeneratedResult({
         rawToken: res.rawToken,
         playbackUrl: res.playbackUrl,
+        tsPlaybackUrl: res.tsPlaybackUrl,
       });
     } catch (err: any) {
       alert(`Token generation failed: ${err.message}`);
@@ -496,34 +501,65 @@ export default function ChannelsPage() {
                 </form>
               ) : (
                 <div className="p-5 space-y-4">
+                  {/* HLS URL */}
                   <div className="p-3 bg-[#0A0A0A] border border-[#262626] rounded text-xs space-y-2">
-                    <div className="text-[10px] text-[#71717A] uppercase font-mono">Protected HLS Playback URL</div>
-                    <div className="font-mono text-xs text-[#F5F5F5] break-all select-all p-2 bg-[#141414] rounded border border-[#222]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-[#A1A1AA] uppercase font-mono font-medium">
+                        HLS Playback URL (.m3u8)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(generatedResult.playbackUrl);
+                          setCopiedType('hls');
+                          setTimeout(() => setCopiedType(null), 2000);
+                        }}
+                        className="btn-secondary py-0.5 px-2 text-[10px] gap-1"
+                      >
+                        {copiedType === 'hls' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        <span>{copiedType === 'hls' ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+                    <div className="font-mono text-[11px] text-[#F5F5F5] break-all select-all p-2 bg-[#141414] rounded border border-[#222]">
                       {generatedResult.playbackUrl}
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-[#A1A1AA]">
-                    Important: Copy this bearer URL now. For security, raw tokens cannot be retrieved again from the database once closed.
+                  {/* Direct MPEG-TS URL */}
+                  {generatedResult.tsPlaybackUrl && (
+                    <div className="p-3 bg-[#0A0A0A] border border-[#262626] rounded text-xs space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-[#A1A1AA] uppercase font-mono font-medium">
+                          Direct MPEG-TS Stream URL (.ts)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(generatedResult.tsPlaybackUrl!);
+                            setCopiedType('ts');
+                            setTimeout(() => setCopiedType(null), 2000);
+                          }}
+                          className="btn-secondary py-0.5 px-2 text-[10px] gap-1"
+                        >
+                          {copiedType === 'ts' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedType === 'ts' ? 'Copied' : 'Copy'}</span>
+                        </button>
+                      </div>
+                      <div className="font-mono text-[11px] text-[#F5F5F5] break-all select-all p-2 bg-[#141414] rounded border border-[#222]">
+                        {generatedResult.tsPlaybackUrl}
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-[11px] text-[#71717A]">
+                    Important: Copy these bearer URLs now. For security, raw tokens cannot be retrieved again from the database once closed.
                   </p>
 
-                  <div className="pt-2 flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(generatedResult.playbackUrl);
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 2000);
-                      }}
-                      className="btn-primary py-1.5 px-4 text-xs gap-1.5"
-                    >
-                      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copied ? 'Copied URL!' : 'Copy Playback URL'}</span>
-                    </button>
+                  <div className="pt-2 flex justify-end">
                     <button
                       type="button"
                       onClick={() => setTokenModalOpen(false)}
-                      className="btn-secondary py-1.5 px-3 text-xs"
+                      className="btn-primary py-1.5 px-4 text-xs"
                     >
                       Done
                     </button>

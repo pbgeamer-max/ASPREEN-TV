@@ -195,7 +195,7 @@ class ApiClient {
   async createStreamToken(
     channelId: string,
     data: { name: string; lifetimeHours?: number }
-  ): Promise<{ token: StreamToken; rawToken: string; playbackUrl: string }> {
+  ): Promise<{ token: StreamToken; rawToken: string; playbackUrl: string; tsPlaybackUrl: string }> {
     return this.request(`/stream-tokens/channels/${channelId}/tokens`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -208,7 +208,7 @@ class ApiClient {
 
   async rotateStreamToken(
     id: string
-  ): Promise<{ token: StreamToken; rawToken: string; playbackUrl: string }> {
+  ): Promise<{ token: StreamToken; rawToken: string; playbackUrl: string; tsPlaybackUrl: string }> {
     return this.request(`/stream-tokens/${id}/rotate`, { method: 'POST' });
   }
 

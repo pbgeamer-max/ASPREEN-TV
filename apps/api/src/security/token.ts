@@ -41,3 +41,11 @@ export function buildPlaybackUrl(publicBaseUrl: string, publicOutputId: string, 
   const normalizedBase = publicBaseUrl.replace(/\/$/, '');
   return `${normalizedBase}/hls/${publicOutputId}/${rawToken}/index.m3u8`;
 }
+
+/**
+ * Constructs the full bearer MPEG-TS playback URL for an authorized client.
+ */
+export function buildTsPlaybackUrl(publicBaseUrl: string, publicOutputId: string, rawToken: string): string {
+  const normalizedBase = publicBaseUrl.replace(/\/$/, '');
+  return `${normalizedBase}/live/${publicOutputId}/${rawToken}.ts`;
+}

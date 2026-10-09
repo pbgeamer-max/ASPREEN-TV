@@ -2,7 +2,7 @@
  * Aspreen TV Domain Types & Firestore Entities
  */
 
-export type SourceType = 'M3U' | 'M3U8' | 'LOCAL_M3U';
+export type SourceType = 'M3U' | 'M3U8' | 'TS' | 'LOCAL_M3U';
 
 export type SourceConnectionStatus = 'ONLINE' | 'OFFLINE' | 'UNCHECKED' | 'ERROR';
 
