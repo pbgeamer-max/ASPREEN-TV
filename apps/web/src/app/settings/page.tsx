@@ -241,12 +241,12 @@ export default function SettingsPage() {
                     <input
                       type="number"
                       value={defaultPlaylistWindow}
-                      onChange={(e) => setDefaultPlaylistWindow(parseInt(e.target.value, 10) || 5)}
+                      onChange={(e) => setDefaultPlaylistWindow(parseInt(e.target.value, 10) || 8)}
                       min={3}
                       max={20}
                       className="form-input text-xs font-mono"
                     />
-                    <p className="text-[10px] text-[#71717A] mt-1">Number of live media segments kept in live playlist.</p>
+                    <p className="text-[10px] text-[#71717A] mt-1">Recommended: 8 segments (32s rolling server buffer) to prevent player jitter & stalls.</p>
                   </div>
                   <div>
                     <label className="block font-medium text-[#A1A1AA] mb-1">

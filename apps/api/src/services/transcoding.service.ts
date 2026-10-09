@@ -79,8 +79,8 @@ export class TranscodingService {
 
     // 3. Configure presets & HLS parameters
     const presetId = options.preset || channel.preset || settings.defaultTranscodingPreset;
-    const segmentDuration = options.segmentDuration || settings.defaultSegmentDuration;
-    const playlistWindow = options.playlistWindow || Math.max(7, settings.defaultPlaylistWindow);
+    const segmentDuration = options.segmentDuration || settings.defaultSegmentDuration || 4;
+    const playlistWindow = options.playlistWindow || Math.max(8, settings.defaultPlaylistWindow || 8);
     const presetConfig = TRANSCODING_PRESETS[presetId];
 
     // 4. Create unique public output ID and filesystem directory
@@ -180,18 +180,37 @@ export class TranscodingService {
   private async spawnFfmpegWorker(params: SpawnWorkerParams) {
     const { channel, job, outputDir, presetId, segmentDuration, playlistWindow, rawInputUrl, proxyUrl } = params;
 
-    // Scan output directory to continue segment numbering and sequence monotonically across auto-recovery restarts
-    let startNumber = 0;
+    // Clean any orphaned *.tmp files from previous killed run so they don't block new segments
     try {
       const files = await fs.readdir(outputDir);
       for (const f of files) {
-        const m = f.match(/segment_(\d+)\.ts/);
-        if (m) {
-          const num = parseInt(m[1], 10);
-          if (num >= startNumber) startNumber = num + 1;
+        if (f.endsWith('.tmp')) {
+          await fs.unlink(path.join(outputDir, f)).catch(() => {});
         }
       }
     } catch {}
+
+    // Check if index.m3u8 already exists on disk
+    const playlistPath = path.join(outputDir, 'index.m3u8');
+    const playlistExists = await fs.access(playlistPath).then(() => true).catch(() => false);
+
+    // When index.m3u8 exists, FFmpeg's append_list automatically resumes the segment sequence
+    // monotonically from the last segment in the playlist. Passing startNumber alongside append_list
+    // causes double-offsetting and segment skips. We only supply startNumber if index.m3u8 is missing
+    // but segments already exist on disk.
+    let startNumber: number | undefined = undefined;
+    if (!playlistExists) {
+      try {
+        const files = await fs.readdir(outputDir);
+        for (const f of files) {
+          const m = f.match(/segment_(\d+)\.ts/);
+          if (m) {
+            const num = parseInt(m[1], 10);
+            if (startNumber === undefined || num >= startNumber) startNumber = num + 1;
+          }
+        }
+      } catch {}
+    }
 
     const ffmpegArgs = buildFfmpegArgs({
       inputUrl: rawInputUrl,
@@ -317,7 +336,7 @@ export class TranscodingService {
           },
         });
 
-        // Delay 2s before re-spawning so the network / upstream has time to reconnect
+        // Delay 300ms before re-spawning so the network / upstream has time to reconnect cleanly
         const timer = setTimeout(async () => {
           this.restartTimers.delete(channel.id);
           if (this.intentionalStops.has(channel.id)) return;
@@ -327,7 +346,7 @@ export class TranscodingService {
           } catch (err: any) {
             console.error(`[Stream Healing] Failed to auto-recover channel ${channel.id}:`, err.message);
           }
-        }, 2000);
+        }, 300);
 
         this.restartTimers.set(channel.id, timer);
       } else {

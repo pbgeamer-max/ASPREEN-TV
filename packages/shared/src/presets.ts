@@ -109,7 +109,8 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
       args.push('-reconnect', '1');
       args.push('-reconnect_at_eof', '1');
       args.push('-reconnect_streamed', '1');
-      args.push('-reconnect_delay_max', '2');
+      args.push('-reconnect_delay_max', '1');
+      args.push('-rw_timeout', '15000000');
       args.push('-timeout', '10000000');
     } else if (params.customHeaders && Object.keys(params.customHeaders).length > 0) {
       const headersStr = Object.entries(params.customHeaders)

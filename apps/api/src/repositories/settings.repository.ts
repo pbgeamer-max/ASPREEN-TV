@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS: AdminSettings = {
   publicStreamBaseUrl: 'https://aspreen-tv-production.up.railway.app',
   defaultTranscodingPreset: 'COPY',
   defaultSegmentDuration: 4,
-  defaultPlaylistWindow: 5,
+  defaultPlaylistWindow: 8, // 8 segments * 4s = 32-second rolling buffer
   maxConcurrentJobs: 8,
   maxPlaylistChannels: 1000,
   sourceTimeoutSeconds: 15,
@@ -44,6 +44,9 @@ export class SettingsRepository {
     }
     if (!current.defaultProxyUrl || current.defaultProxyUrl.trim() === '') {
       current.defaultProxyUrl = FALLBACK_DEFAULT_PROXY;
+    }
+    if (!current.defaultPlaylistWindow || current.defaultPlaylistWindow < 8) {
+      current.defaultPlaylistWindow = 8;
     }
     return current;
   }
