@@ -61,6 +61,7 @@ export interface HlsBuildParams {
   outputDir: string;
   customHeaders?: Record<string, string>;
   proxyUrl?: string;
+  startNumber?: number;
 }
 
 /**
@@ -98,15 +99,19 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
     // Input reconnect flags and standard VLC User-Agent for network HTTP/HTTPS streams
     if (/^https?:\/\//i.test(params.inputUrl)) {
       args.push('-user_agent', 'VLC/3.0.20 LibVLC/3.0.20');
+      let headersStr = 'Connection: keep-alive\r\n';
+      if (params.customHeaders && Object.keys(params.customHeaders).length > 0) {
+        headersStr += Object.entries(params.customHeaders)
+          .map(([k, v]) => `${k}: ${v}\r\n`)
+          .join('');
+      }
+      args.push('-headers', headersStr);
       args.push('-reconnect', '1');
       args.push('-reconnect_at_eof', '1');
       args.push('-reconnect_streamed', '1');
       args.push('-reconnect_delay_max', '2');
       args.push('-timeout', '10000000');
-    }
-
-    // Custom HTTP headers if provided
-    if (params.customHeaders && Object.keys(params.customHeaders).length > 0) {
+    } else if (params.customHeaders && Object.keys(params.customHeaders).length > 0) {
       const headersStr = Object.entries(params.customHeaders)
         .map(([k, v]) => `${k}: ${v}\r\n`)
         .join('');
@@ -156,7 +161,12 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
     args.push('-ac', '2');
   }
 
+  if (params.startNumber && params.startNumber > 0) {
+    args.push('-start_number', params.startNumber.toString());
+  }
+
   // HLS Multiplexer settings for true continuous 24/7 LIVE streaming:
+  // - append_list: appends new segments to existing playlist upon auto-recovery without resetting sequence
   // - delete_segments: automatically purges expired .ts files from disk
   // - omit_endlist: NEVER writes #EXT-X-ENDLIST so players treat stream as perpetual live
   // - temp_file: atomic playlist and segment writes via temporary files (prevents corrupt reads)
@@ -164,7 +174,7 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
   args.push('-f', 'hls');
   args.push('-hls_time', params.segmentDuration.toString());
   args.push('-hls_list_size', params.playlistWindow.toString());
-  args.push('-hls_flags', 'delete_segments+omit_endlist+temp_file+independent_segments');
+  args.push('-hls_flags', 'append_list+delete_segments+omit_endlist+temp_file+independent_segments');
   args.push('-hls_segment_type', 'mpegts');
 
   // Normalized path separator for segments and playlist

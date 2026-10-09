@@ -14,7 +14,6 @@ import { settingsRepository } from '../repositories/settings.repository';
 import { logRepository } from '../repositories/log.repository';
 import { decrypt } from '../security/encryption';
 import { config } from '../config';
-import { StreamFeeder } from './stream-feeder';
 
 interface RunningProcess {
   process: ChildProcess;
@@ -22,20 +21,17 @@ interface RunningProcess {
   channelId: string;
   outputDir: string;
   heartbeatInterval: NodeJS.Timeout;
-  streamFeeder?: StreamFeeder;
 }
 
 interface SpawnWorkerParams {
   channel: any;
   job: TranscodingJob;
-  ffmpegArgs: string[];
   outputDir: string;
   outputDirectoryId: string;
   presetId: TranscodingPresetId;
   segmentDuration: number;
   playlistWindow: number;
   rawInputUrl: string;
-  isPipedStream: boolean;
   proxyUrl?: string;
 }
 
@@ -137,33 +133,17 @@ export class TranscodingService {
 
     const proxyUrl = channel.proxyUrl || settings.defaultProxyUrl || 'http://avxkxvqi:kfq49mj05vbr@31.59.20.176:6754';
 
-    // Detect if input is a continuous media stream (such as IPTV .ts stream or direct HTTP stream)
-    // Streams ending in .m3u8 are HLS playlists and are handled natively by FFmpeg.
-    const isPipedStream = /^https?:\/\//i.test(rawInputUrl) && !/\.m3u8(\?.*)?$/i.test(rawInputUrl);
-
-    // 8. Build FFmpeg arguments array
-    const ffmpegArgs = buildFfmpegArgs({
-      inputUrl: isPipedStream ? 'pipe:0' : rawInputUrl,
-      presetId,
-      segmentDuration,
-      playlistWindow,
-      outputDir,
-      proxyUrl,
-    });
-
-    // 9. Spawn FFmpeg process with supervisor
+    // 8. Spawn FFmpeg process with supervisor
     try {
       await this.spawnFfmpegWorker({
         channel,
         job,
-        ffmpegArgs,
         outputDir,
         outputDirectoryId,
         presetId,
         segmentDuration,
         playlistWindow,
         rawInputUrl,
-        isPipedStream,
         proxyUrl,
       });
 
@@ -198,26 +178,34 @@ export class TranscodingService {
    * Spawns an FFmpeg worker process with resilience, heartbeat, and auto-healing supervision.
    */
   private async spawnFfmpegWorker(params: SpawnWorkerParams) {
-    const { channel, job, ffmpegArgs, outputDir, outputDirectoryId, presetId, segmentDuration, playlistWindow, rawInputUrl } = params;
+    const { channel, job, outputDir, presetId, segmentDuration, playlistWindow, rawInputUrl, proxyUrl } = params;
+
+    // Scan output directory to continue segment numbering and sequence monotonically across auto-recovery restarts
+    let startNumber = 0;
+    try {
+      const files = await fs.readdir(outputDir);
+      for (const f of files) {
+        const m = f.match(/segment_(\d+)\.ts/);
+        if (m) {
+          const num = parseInt(m[1], 10);
+          if (num >= startNumber) startNumber = num + 1;
+        }
+      }
+    } catch {}
+
+    const ffmpegArgs = buildFfmpegArgs({
+      inputUrl: rawInputUrl,
+      presetId,
+      segmentDuration,
+      playlistWindow,
+      outputDir,
+      proxyUrl,
+      startNumber,
+    });
 
     const child = spawn('ffmpeg', ffmpegArgs, {
       windowsHide: true,
     });
-
-    child.stdin?.on('error', () => {});
-
-    // If input is piped, start continuous stream feeder to transparently survive upstream refreshes
-    let streamFeeder: StreamFeeder | undefined;
-    if (params.isPipedStream && child.stdin) {
-      streamFeeder = new StreamFeeder({
-        url: rawInputUrl,
-        proxyUrl: params.proxyUrl,
-        target: child.stdin,
-        userAgent: 'VLC/3.0.20 LibVLC/3.0.20',
-        onLog: (msg) => console.log(`[StreamFeeder] Channel "${channel.name}": ${msg}`),
-      });
-      streamFeeder.start();
-    }
 
     // Heartbeat updater to Firestore
     const heartbeatInterval = setInterval(async () => {
@@ -243,7 +231,6 @@ export class TranscodingService {
       channelId: channel.id,
       outputDir,
       heartbeatInterval,
-      streamFeeder,
     });
 
     await jobRepository.updateJob(job.id, {
@@ -263,9 +250,6 @@ export class TranscodingService {
     child.on('close', async (code) => {
       clearInterval(heartbeatInterval);
       clearTimeout(healthyTimer);
-      if (streamFeeder) {
-        streamFeeder.destroy();
-      }
       this.activeProcesses.delete(job.id);
 
       const isIntentional = this.intentionalStops.has(channel.id);
@@ -407,9 +391,6 @@ export class TranscodingService {
     const running = this.activeProcesses.get(activeJob.id);
     if (running) {
       clearInterval(running.heartbeatInterval);
-      if (running.streamFeeder) {
-        running.streamFeeder.destroy();
-      }
       try {
         if (running.process.stdin && !running.process.stdin.destroyed) {
           try {
