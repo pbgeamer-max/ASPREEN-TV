@@ -17,6 +17,8 @@ COPY apps/api ./apps/api
 COPY apps/web ./apps/web
 COPY services/worker ./services/worker
 
+RUN mkdir -p apps/web/public
+
 RUN npm run build --workspace=@aspreen/shared
 RUN npm run build --workspace=@aspreen/api
 RUN npm run build --prefix apps/web
