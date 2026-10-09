@@ -1,0 +1,25 @@
+{
+  "name": "@aspreen/api",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "node --test dist/**/*.test.js"
+  },
+  "dependencies": {
+    "@aspreen/shared": "file:../../packages/shared",
+    "@fastify/cors": "^10.0.1",
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/rate-limit": "^10.1.1",
+    "fastify": "^5.2.0",
+    "firebase-admin": "^13.0.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,20 @@
+rules_version = '2';
+
+/**
+ * Aspreen TV — Firestore Security Rules
+ * 
+ * Strict Single-Administrator Architecture:
+ * All database operations are mediated exclusively through the trusted Fastify backend
+ * using the Firebase Admin SDK (which executes with privileged server credentials).
+ * Direct, unmediated client read and write access is denied by default to eliminate
+ * any risk of unauthorized token leakage, URL decryption, or setting modification.
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny: Disallow all direct client reads and writes
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

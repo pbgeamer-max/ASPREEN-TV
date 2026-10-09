@@ -1,0 +1,25 @@
+{
+  "name": "aspreen-tv",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aspreen TV — Firebase + FFmpeg + M3U/M3U8 Private Stream Relay Platform",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "build": "npm run build --workspaces --if-present",
+    "test": "node scripts/test-runner.js",
+    "lint": "npm run lint --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

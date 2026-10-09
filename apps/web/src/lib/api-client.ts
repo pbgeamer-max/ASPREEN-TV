@@ -1,0 +1,236 @@
+import {
+  Source,
+  Channel,
+  TranscodingJob,
+  StreamToken,
+  ActivityLog,
+  AdminSettings,
+  DashboardSummary,
+  StreamProbeInfo,
+} from '@aspreen/shared';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+class ApiClient {
+  private token: string | null = null;
+
+  setToken(token: string | null) {
+    this.token = token;
+    if (typeof window !== 'undefined') {
+      if (token) {
+        localStorage.setItem('aspreen_auth_token', token);
+      } else {
+        localStorage.removeItem('aspreen_auth_token');
+      }
+    }
+  }
+
+  getToken(): string | null {
+    if (this.token) return this.token;
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('aspreen_auth_token');
+    }
+    return null;
+  }
+
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const url = `${API_BASE}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string>),
+    };
+
+    const token = this.getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status} ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch {}
+      throw new Error(errorMessage);
+    }
+
+    if (response.status === 204) {
+      return {} as T;
+    }
+
+    return response.json();
+  }
+
+  // Auth
+  async createSession(idToken: string) {
+    this.setToken(idToken);
+    return this.request<{ success: boolean; uid: string; email: string }>('/auth/session', {
+      method: 'POST',
+      body: JSON.stringify({ idToken }),
+    });
+  }
+
+  async logout() {
+    this.setToken(null);
+    return this.request<{ success: boolean }>('/auth/logout', { method: 'POST' });
+  }
+
+  async getSession() {
+    return this.request<{ authenticated: boolean; user: any }>('/auth/session');
+  }
+
+  // Dashboard
+  async getDashboardSummary(): Promise<DashboardSummary> {
+    return this.request<DashboardSummary>('/dashboard/summary');
+  }
+
+  async getRecentActivity(): Promise<ActivityLog[]> {
+    return this.request<ActivityLog[]>('/dashboard/activity');
+  }
+
+  // Sources
+  async getSources(): Promise<Source[]> {
+    return this.request<Source[]>('/sources');
+  }
+
+  async getSource(id: string): Promise<Source> {
+    return this.request<Source>(`/sources/${id}`);
+  }
+
+  async createSource(data: any): Promise<{ source: Source; importedChannels: number }> {
+    return this.request<{ source: Source; importedChannels: number }>('/sources', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateSource(id: string, data: Partial<Source>): Promise<Source> {
+    return this.request<Source>(`/sources/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteSource(id: string): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>(`/sources/${id}`, { method: 'DELETE' });
+  }
+
+  async validateSource(id: string): Promise<{ isValid: boolean; hostname?: string; error?: string }> {
+    return this.request(`/sources/${id}/validate`, { method: 'POST' });
+  }
+
+  async refreshSource(id: string): Promise<{ added: number; updated: number; total: number }> {
+    return this.request(`/sources/${id}/refresh`, { method: 'POST' });
+  }
+
+  // Channels
+  async getChannels(params?: { sourceId?: string; q?: string; group?: string }): Promise<Channel[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.sourceId) searchParams.set('sourceId', params.sourceId);
+    if (params?.q) searchParams.set('q', params.q);
+    if (params?.group) searchParams.set('group', params.group);
+    const qs = searchParams.toString();
+    return this.request<Channel[]>(`/channels${qs ? `?${qs}` : ''}`);
+  }
+
+  async getChannel(id: string): Promise<Channel> {
+    return this.request<Channel>(`/channels/${id}`);
+  }
+
+  async updateChannel(id: string, data: Partial<Channel>): Promise<Channel> {
+    return this.request<Channel>(`/channels/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteChannel(id: string): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>(`/channels/${id}`, { method: 'DELETE' });
+  }
+
+  async inspectChannel(id: string): Promise<{ success: boolean; probe: StreamProbeInfo }> {
+    return this.request(`/channels/${id}/inspect`, { method: 'POST' });
+  }
+
+  async startChannel(id: string, options?: any): Promise<{ success: boolean; job: TranscodingJob }> {
+    return this.request(`/channels/${id}/start`, {
+      method: 'POST',
+      body: JSON.stringify(options || {}),
+    });
+  }
+
+  async stopChannel(id: string): Promise<{ success: boolean }> {
+    return this.request(`/channels/${id}/stop`, { method: 'POST' });
+  }
+
+  async restartChannel(id: string): Promise<{ success: boolean; job: TranscodingJob }> {
+    return this.request(`/channels/${id}/restart`, { method: 'POST' });
+  }
+
+  // Transcoding Jobs
+  async getJobs(limit = 50): Promise<TranscodingJob[]> {
+    return this.request<TranscodingJob[]>(`/jobs?limit=${limit}`);
+  }
+
+  async stopJob(id: string): Promise<{ success: boolean }> {
+    return this.request(`/jobs/${id}/stop`, { method: 'POST' });
+  }
+
+  async retryJob(id: string): Promise<{ success: boolean; job: TranscodingJob }> {
+    return this.request(`/jobs/${id}/retry`, { method: 'POST' });
+  }
+
+  // Stream Tokens
+  async getStreamTokens(channelId?: string): Promise<StreamToken[]> {
+    const qs = channelId ? `?channelId=${channelId}` : '';
+    return this.request<StreamToken[]>(`/stream-tokens${qs}`);
+  }
+
+  async createStreamToken(
+    channelId: string,
+    data: { name: string; lifetimeHours?: number }
+  ): Promise<{ token: StreamToken; rawToken: string; playbackUrl: string }> {
+    return this.request(`/stream-tokens/channels/${channelId}/tokens`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async revokeStreamToken(id: string): Promise<{ success: boolean }> {
+    return this.request(`/stream-tokens/${id}`, { method: 'DELETE' });
+  }
+
+  async rotateStreamToken(
+    id: string
+  ): Promise<{ token: StreamToken; rawToken: string; playbackUrl: string }> {
+    return this.request(`/stream-tokens/${id}/rotate`, { method: 'POST' });
+  }
+
+  // Settings & System
+  async getSettings(): Promise<AdminSettings> {
+    return this.request<AdminSettings>('/settings');
+  }
+
+  async updateSettings(data: Partial<AdminSettings>): Promise<AdminSettings> {
+    return this.request<AdminSettings>('/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getActivityLogs(limit = 50): Promise<ActivityLog[]> {
+    return this.request<ActivityLog[]>(`/activity-logs?limit=${limit}`);
+  }
+
+  async getHealth(): Promise<any> {
+    return this.request('/health');
+  }
+}
+
+export const api = new ApiClient();
