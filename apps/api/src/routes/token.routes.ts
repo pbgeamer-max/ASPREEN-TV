@@ -61,7 +61,7 @@ export async function tokenRoutes(server: FastifyInstance) {
     let effectiveBaseUrl = settings.publicStreamBaseUrl;
     const reqHost = (request.headers['x-forwarded-host'] as string) || (request.headers.host as string);
     const reqProto = (request.headers['x-forwarded-proto'] as string) || 'https';
-    if ((!effectiveBaseUrl || effectiveBaseUrl.includes('localhost')) && reqHost && !reqHost.includes('127.0.0.1')) {
+    if ((!effectiveBaseUrl || effectiveBaseUrl.includes('localhost') || effectiveBaseUrl.includes('@')) && reqHost && !reqHost.includes('127.0.0.1')) {
       effectiveBaseUrl = `${reqProto}://${reqHost}`;
     }
 

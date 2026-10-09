@@ -32,7 +32,14 @@ export class SettingsRepository {
       return DEFAULT_SETTINGS;
     }
 
-    return { ...DEFAULT_SETTINGS, ...snap.data() } as AdminSettings;
+    const current = { ...DEFAULT_SETTINGS, ...snap.data() } as AdminSettings;
+    if (current.publicStreamBaseUrl && current.publicStreamBaseUrl.includes('@')) {
+      if (!current.defaultProxyUrl) {
+        current.defaultProxyUrl = current.publicStreamBaseUrl;
+      }
+      current.publicStreamBaseUrl = 'https://aspreen-tv-production.up.railway.app';
+    }
+    return current;
   }
 
   async updateSettings(data: Partial<AdminSettings>): Promise<AdminSettings> {

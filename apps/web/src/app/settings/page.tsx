@@ -167,18 +167,17 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <label className="block font-medium text-[#A1A1AA] mb-1">
-                      Public Streaming Base URL (Reverse Proxy Host)
+                      Public Streaming Base URL (Your Railway Web Domain)
                     </label>
                     <input
                       type="url"
                       value={publicStreamBaseUrl}
                       onChange={(e) => setPublicStreamBaseUrl(e.target.value)}
-                      required
-                      placeholder="https://stream.yourdomain.com"
+                      placeholder="https://aspreen-tv-production.up.railway.app"
                       className="form-input text-xs font-mono"
                     />
                     <p className="text-[10px] text-[#71717A] mt-1">
-                      Prepended to generated protected HLS stream tokens for playback in players.
+                      Your Railway domain. Keep empty or set to https://aspreen-tv-production.up.railway.app.
                     </p>
                   </div>
                   <div>
@@ -193,6 +192,24 @@ export default function SettingsPage() {
                       <option value="720P">H.264 + AAC — 720p (2500 kbps)</option>
                       <option value="1080P">H.264 + AAC — 1080p (5000 kbps)</option>
                     </select>
+                  </div>
+
+                  {/* Outbound Proxy in General tab */}
+                  <div className="md:col-span-2 p-3.5 bg-[#18181B] border border-[#3F3F46] rounded-md">
+                    <label className="block font-medium text-[#F5F5F5] mb-1 flex items-center justify-between">
+                      <span>Global Outbound Stream Proxy (HTTP / HTTPS / SOCKS5)</span>
+                      <span className="text-[10px] text-[#A1A1AA] font-normal">Optional</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={defaultProxyUrl}
+                      onChange={(e) => setDefaultProxyUrl(e.target.value)}
+                      placeholder="http://avxkxvqi:kfq49mj05vbr@31.59.20.176:6754"
+                      className="form-input text-xs font-mono text-[#F5F5F5] bg-[#09090B] border-[#52525B]"
+                    />
+                    <p className="text-[11px] text-[#A1A1AA] mt-1.5">
+                      Put your Webshare proxy URL here so FFmpeg connects through it to bypass IPTV datacenter and geo-blocking.
+                    </p>
                   </div>
                 </div>
               </div>

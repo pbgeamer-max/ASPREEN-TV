@@ -60,7 +60,16 @@ export async function settingsRoutes(server: FastifyInstance) {
         return reply.status(400).send({ error: 'Validation Error', details: parseResult.error.format() });
       }
 
-      const updated = await settingsRepository.updateSettings(parseResult.data);
+      const patchData = { ...parseResult.data };
+      // Self-healing: If user pasted a proxy URL (containing @) into publicStreamBaseUrl
+      if (patchData.publicStreamBaseUrl && patchData.publicStreamBaseUrl.includes('@')) {
+        if (!patchData.defaultProxyUrl) {
+          patchData.defaultProxyUrl = patchData.publicStreamBaseUrl;
+        }
+        delete patchData.publicStreamBaseUrl;
+      }
+
+      const updated = await settingsRepository.updateSettings(patchData);
 
       await logRepository.addLog({
         eventType: 'SETTINGS_UPDATED',
