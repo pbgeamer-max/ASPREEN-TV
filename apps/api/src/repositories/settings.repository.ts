@@ -1,5 +1,6 @@
 import { AdminSettings } from '@aspreen/shared';
 import { getFirestore } from '../firebase/admin';
+import { cleanUndefined } from '../firebase/utils';
 
 const SETTINGS_COLLECTION = 'adminSettings';
 const GENERAL_DOC = 'general';
@@ -27,7 +28,7 @@ export class SettingsRepository {
 
     if (!snap.exists) {
       // Initialize with default settings
-      await docRef.set(DEFAULT_SETTINGS);
+      await docRef.set(cleanUndefined(DEFAULT_SETTINGS));
       return DEFAULT_SETTINGS;
     }
 
@@ -44,7 +45,7 @@ export class SettingsRepository {
       updatedAt: new Date().toISOString(),
     };
 
-    await docRef.set(updated, { merge: true });
+    await docRef.set(cleanUndefined(updated), { merge: true });
     return updated;
   }
 }

@@ -144,6 +144,9 @@ export function initFirebaseAdmin(): { db: any; auth: any; isMock: boolean } {
   try {
     if (admin.apps.length > 0) {
       firestoreInstance = admin.firestore();
+      try {
+        firestoreInstance.settings({ ignoreUndefinedProperties: true });
+      } catch {}
       authInstance = admin.auth();
       isInitialized = true;
       isUsingMock = false;
@@ -168,6 +171,9 @@ export function initFirebaseAdmin(): { db: any; auth: any; isMock: boolean } {
       }
 
       firestoreInstance = admin.firestore();
+      try {
+        firestoreInstance.settings({ ignoreUndefinedProperties: true });
+      } catch {}
       authInstance = admin.auth();
       isInitialized = true;
       isUsingMock = false;
@@ -180,6 +186,9 @@ export function initFirebaseAdmin(): { db: any; auth: any; isMock: boolean } {
         projectId: 'aspreen-tv-local',
       });
       firestoreInstance = admin.firestore();
+      try {
+        firestoreInstance.settings({ ignoreUndefinedProperties: true });
+      } catch {}
       authInstance = admin.auth();
       isInitialized = true;
       isUsingMock = false;

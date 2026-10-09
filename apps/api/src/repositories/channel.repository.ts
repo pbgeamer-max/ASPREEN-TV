@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import { Channel } from '@aspreen/shared';
 import { getFirestore } from '../firebase/admin';
+import { cleanUndefined } from '../firebase/utils';
 
 const CHANNELS_COLLECTION = 'channels';
 
@@ -19,7 +20,7 @@ export class ChannelRepository {
     };
 
     const docRef = await this.db.collection(CHANNELS_COLLECTION).doc(id);
-    await docRef.set(channel);
+    await docRef.set(cleanUndefined(channel));
     return channel;
   }
 
@@ -54,7 +55,7 @@ export class ChannelRepository {
     };
 
     const docRef = await this.db.collection(CHANNELS_COLLECTION).doc(id);
-    await docRef.update(updated);
+    await docRef.update(cleanUndefined(updated));
     return updated;
   }
 

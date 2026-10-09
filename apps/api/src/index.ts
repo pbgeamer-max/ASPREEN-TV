@@ -46,6 +46,19 @@ export async function createServer() {
     timeWindow: '1 minute',
   });
 
+  // Gracefully handle empty JSON bodies from proxies/rewrites
+  server.addContentTypeParser('application/json', { parseAs: 'string' }, (_req, body, defaultDone) => {
+    if (!body || (typeof body === 'string' && body.trim() === '')) {
+      defaultDone(null, {});
+      return;
+    }
+    try {
+      defaultDone(null, JSON.parse(body as string));
+    } catch (err: any) {
+      defaultDone(err, null);
+    }
+  });
+
   // Initialize Firebase Admin
   initFirebaseAdmin();
 

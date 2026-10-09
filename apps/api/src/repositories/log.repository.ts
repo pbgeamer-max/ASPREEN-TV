@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import { ActivityLog, ActivityLogEntityType, ActivityLogResult } from '@aspreen/shared';
 import { getFirestore } from '../firebase/admin';
+import { cleanUndefined } from '../firebase/utils';
 
 const LOGS_COLLECTION = 'activityLogs';
 
@@ -58,7 +59,7 @@ export class LogRepository {
     };
 
     const docRef = await this.db.collection(LOGS_COLLECTION).doc(id);
-    await docRef.set(log);
+    await docRef.set(cleanUndefined(log));
     return log;
   }
 

@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import { StreamToken } from '@aspreen/shared';
 import { getFirestore } from '../firebase/admin';
+import { cleanUndefined } from '../firebase/utils';
 
 const TOKENS_COLLECTION = 'streamTokens';
 
@@ -18,7 +19,7 @@ export class TokenRepository {
     };
 
     const docRef = await this.db.collection(TOKENS_COLLECTION).doc(id);
-    await docRef.set(token);
+    await docRef.set(cleanUndefined(token));
     return token;
   }
 

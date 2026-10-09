@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import { Source } from '@aspreen/shared';
 import { getFirestore } from '../firebase/admin';
+import { cleanUndefined } from '../firebase/utils';
 
 const SOURCES_COLLECTION = 'sources';
 
@@ -19,7 +20,7 @@ export class SourceRepository {
     };
 
     const docRef = await this.db.collection(SOURCES_COLLECTION).doc(id);
-    await docRef.set(source);
+    await docRef.set(cleanUndefined(source));
     return source;
   }
 
@@ -47,7 +48,7 @@ export class SourceRepository {
     };
 
     const docRef = await this.db.collection(SOURCES_COLLECTION).doc(id);
-    await docRef.update(updated);
+    await docRef.update(cleanUndefined(updated));
     return updated;
   }
 

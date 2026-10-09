@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import { TranscodingJob, JobStatus } from '@aspreen/shared';
 import { getFirestore } from '../firebase/admin';
+import { cleanUndefined } from '../firebase/utils';
 
 const JOBS_COLLECTION = 'transcodingJobs';
 
@@ -19,7 +20,7 @@ export class JobRepository {
     };
 
     const docRef = await this.db.collection(JOBS_COLLECTION).doc(id);
-    await docRef.set(job);
+    await docRef.set(cleanUndefined(job));
     return job;
   }
 
@@ -69,7 +70,7 @@ export class JobRepository {
     };
 
     const docRef = await this.db.collection(JOBS_COLLECTION).doc(id);
-    await docRef.update(updated);
+    await docRef.update(cleanUndefined(updated));
     return updated;
   }
 }
