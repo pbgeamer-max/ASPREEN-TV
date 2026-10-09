@@ -77,12 +77,17 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
   // Strict protocol whitelist to prevent SSRF/local file disclosure inside FFmpeg
   args.push('-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls');
 
+  // Resilient stream input flags to prevent aborts on network jitter, stream resets, and corrupted frames
+  args.push('-fflags', '+genpts+discardcorrupt+nobuffer');
+  args.push('-err_detect', 'ignore_err');
+
   // Input reconnect flags for resilient stream reading (only for network HTTP/HTTPS streams)
   if (/^https?:\/\//i.test(params.inputUrl)) {
     args.push('-reconnect', '1');
     args.push('-reconnect_at_eof', '1');
     args.push('-reconnect_streamed', '1');
-    args.push('-reconnect_delay_max', '5');
+    args.push('-reconnect_delay_max', '2');
+    args.push('-rw_timeout', '10000000');
   }
 
   // Custom HTTP headers if provided
@@ -95,6 +100,9 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
 
   // Input file / stream URL
   args.push('-i', params.inputUrl);
+
+  // Avoid negative timestamps when upstream resets or refreshes
+  args.push('-avoid_negative_ts', 'make_zero');
 
   // Video & Audio Encoding parameters
   if (preset.id === 'COPY') {
@@ -127,6 +135,7 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
     if (preset.audioBitrate) {
       args.push('-b:a', preset.audioBitrate);
     }
+    args.push('-af', 'aresample=async=1000');
     args.push('-ar', '48000');
     args.push('-ac', '2');
   }
@@ -135,7 +144,7 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
   args.push('-f', 'hls');
   args.push('-hls_time', params.segmentDuration.toString());
   args.push('-hls_list_size', params.playlistWindow.toString());
-  args.push('-hls_flags', 'delete_segments+append_list');
+  args.push('-hls_flags', 'delete_segments+append_list+discont_start+independent_segments');
   args.push('-hls_segment_type', 'mpegts');
 
   // Normalized path separator for segments and playlist

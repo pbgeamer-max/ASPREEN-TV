@@ -23,8 +23,23 @@ interface RunningProcess {
   heartbeatInterval: NodeJS.Timeout;
 }
 
+interface SpawnWorkerParams {
+  channel: any;
+  job: TranscodingJob;
+  ffmpegArgs: string[];
+  outputDir: string;
+  outputDirectoryId: string;
+  presetId: TranscodingPresetId;
+  segmentDuration: number;
+  playlistWindow: number;
+  rawInputUrl: string;
+}
+
 export class TranscodingService {
   private activeProcesses: Map<string, RunningProcess> = new Map(); // jobId -> RunningProcess
+  private intentionalStops: Set<string> = new Set(); // channelId
+  private restartAttempts: Map<string, number> = new Map(); // channelId -> count
+  private restartTimers: Map<string, NodeJS.Timeout> = new Map(); // channelId -> timer
 
   /**
    * Starts transcoding for a channel.
@@ -51,6 +66,15 @@ export class TranscodingService {
     const activeJobs = await jobRepository.listActiveJobs();
     if (activeJobs.length >= settings.maxConcurrentJobs) {
       throw new Error(`Maximum concurrent transcoding jobs (${settings.maxConcurrentJobs}) reached.`);
+    }
+
+    // Clear any previous intentional stop or pending restart timer
+    this.intentionalStops.delete(channelId);
+    this.restartAttempts.delete(channelId);
+    const existingTimer = this.restartTimers.get(channelId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+      this.restartTimers.delete(channelId);
     }
 
     // 3. Configure presets & HLS parameters
@@ -106,78 +130,18 @@ export class TranscodingService {
       outputDir,
     });
 
-    // 9. Spawn FFmpeg process
+    // 9. Spawn FFmpeg process with supervisor
     try {
-      const child = spawn('ffmpeg', ffmpegArgs, {
-        windowsHide: true,
-      });
-
-      // Heartbeat updater to Firestore
-      const heartbeatInterval = setInterval(async () => {
-        try {
-          await jobRepository.updateJob(job.id, {
-            lastHeartbeatAt: new Date().toISOString(),
-          });
-        } catch {
-          // Ignore periodic heartbeat failure
-        }
-      }, 10000);
-
-      this.activeProcesses.set(job.id, {
-        process: child,
-        jobId: job.id,
-        channelId: channel.id,
+      await this.spawnFfmpegWorker({
+        channel,
+        job,
+        ffmpegArgs,
         outputDir,
-        heartbeatInterval,
-      });
-
-      await jobRepository.updateJob(job.id, {
-        status: 'RUNNING',
-        processId: child.pid,
-      });
-
-      let stderrData = '';
-      child.stderr?.on('data', (chunk) => {
-        stderrData += chunk.toString();
-        if (stderrData.length > 5000) {
-          stderrData = stderrData.slice(-3000);
-        }
-      });
-
-      // Handle process exit
-      child.on('close', async (code) => {
-        clearInterval(heartbeatInterval);
-        this.activeProcesses.delete(job.id);
-
-        const isNormalStop = code === 0 || code === 255;
-        const finalStatus = isNormalStop ? 'STOPPED' : 'FAILED';
-        const safeError = stderrData ? stderrData.replace(/https?:\/\/[^\s]+/g, '[REDACTED_URL]').trim() : undefined;
-
-        await jobRepository.updateJob(job.id, {
-          status: finalStatus,
-          stoppedAt: new Date().toISOString(),
-          lastErrorCode: code !== null ? `EXIT_${code}` : 'KILLED',
-          sanitizedErrorMessage: isNormalStop ? undefined : (safeError?.slice(-500) || 'Stream input connection failed or closed'),
-        });
-
-        await channelRepository.updateChannel(channel.id, {
-          transcodingStatus: finalStatus,
-          activeJobId: undefined,
-        });
-
-        await logRepository.addLog({
-          eventType: 'JOB_STOPPED',
-          entityType: 'JOB',
-          entityId: job.id,
-          result: isNormalStop ? 'SUCCESS' : 'WARNING',
-          safeDetails: {
-            channelId: channel.id,
-            channelName: channel.name,
-            exitCode: code,
-            finalStatus,
-            errorMessage: safeError ? safeError.slice(-200) : undefined,
-          },
-        });
+        outputDirectoryId,
+        presetId,
+        segmentDuration,
+        playlistWindow,
+        rawInputUrl,
       });
 
       await logRepository.addLog({
@@ -208,9 +172,182 @@ export class TranscodingService {
   }
 
   /**
+   * Spawns an FFmpeg worker process with resilience, heartbeat, and auto-healing supervision.
+   */
+  private async spawnFfmpegWorker(params: SpawnWorkerParams) {
+    const { channel, job, ffmpegArgs, outputDir, outputDirectoryId, presetId, segmentDuration, playlistWindow, rawInputUrl } = params;
+
+    const child = spawn('ffmpeg', ffmpegArgs, {
+      windowsHide: true,
+    });
+
+    // Heartbeat updater to Firestore
+    const heartbeatInterval = setInterval(async () => {
+      try {
+        await jobRepository.updateJob(job.id, {
+          lastHeartbeatAt: new Date().toISOString(),
+        });
+      } catch {
+        // Ignore periodic heartbeat failure
+      }
+    }, 10000);
+
+    // If stream runs stably for 25 seconds, reset restart attempt counter
+    const healthyTimer = setTimeout(() => {
+      if (this.activeProcesses.has(job.id)) {
+        this.restartAttempts.delete(channel.id);
+      }
+    }, 25000);
+
+    this.activeProcesses.set(job.id, {
+      process: child,
+      jobId: job.id,
+      channelId: channel.id,
+      outputDir,
+      heartbeatInterval,
+    });
+
+    await jobRepository.updateJob(job.id, {
+      status: 'RUNNING',
+      processId: child.pid,
+    });
+
+    let stderrData = '';
+    child.stderr?.on('data', (chunk) => {
+      stderrData += chunk.toString();
+      if (stderrData.length > 5000) {
+        stderrData = stderrData.slice(-3000);
+      }
+    });
+
+    // Handle process exit
+    child.on('close', async (code) => {
+      clearInterval(heartbeatInterval);
+      clearTimeout(healthyTimer);
+      this.activeProcesses.delete(job.id);
+
+      const isIntentional = this.intentionalStops.has(channel.id);
+      const isNormalStop = code === 0 || code === 255;
+      const safeError = stderrData ? stderrData.replace(/https?:\/\/[^\s]+/g, '[REDACTED_URL]').trim() : undefined;
+
+      if (isIntentional || isNormalStop) {
+        // Intentional stop or clean exit requested
+        this.intentionalStops.delete(channel.id);
+        this.restartAttempts.delete(channel.id);
+
+        await jobRepository.updateJob(job.id, {
+          status: 'STOPPED',
+          stoppedAt: new Date().toISOString(),
+          lastErrorCode: code !== null ? `EXIT_${code}` : 'KILLED',
+        });
+
+        await channelRepository.updateChannel(channel.id, {
+          transcodingStatus: 'STOPPED',
+          activeJobId: undefined,
+        });
+
+        await logRepository.addLog({
+          eventType: 'JOB_STOPPED',
+          entityType: 'JOB',
+          entityId: job.id,
+          result: 'SUCCESS',
+          safeDetails: {
+            channelId: channel.id,
+            channelName: channel.name,
+            exitCode: code,
+            finalStatus: 'STOPPED',
+          },
+        });
+        return;
+      }
+
+      // STREAM HEALING & AUTO-RECOVERY:
+      // Upstream stream refreshed, reset socket, or suffered network drop.
+      const attempts = (this.restartAttempts.get(channel.id) || 0) + 1;
+      this.restartAttempts.set(channel.id, attempts);
+      const MAX_AUTO_RESTARTS = 50;
+
+      if (attempts <= MAX_AUTO_RESTARTS) {
+        console.warn(`[Stream Healing] Channel "${channel.name}" (${channel.id}) dropped (code ${code}). Auto-recovering in 2s (Attempt ${attempts}/${MAX_AUTO_RESTARTS})...`);
+
+        // Keep channel status as RUNNING in DB so downstream clients remain attached to HLS
+        await channelRepository.updateChannel(channel.id, {
+          transcodingStatus: 'RUNNING',
+        });
+
+        await logRepository.addLog({
+          eventType: 'JOB_STOPPED',
+          entityType: 'JOB',
+          entityId: job.id,
+          result: 'WARNING',
+          safeDetails: {
+            channelId: channel.id,
+            channelName: channel.name,
+            exitCode: code,
+            note: `Stream refreshed or disconnected upstream. Auto-healing restart attempt ${attempts}/${MAX_AUTO_RESTARTS}...`,
+            errorMessage: safeError ? safeError.slice(-150) : undefined,
+          },
+        });
+
+        // Delay 2s before re-spawning so the network / upstream has time to reconnect
+        const timer = setTimeout(async () => {
+          this.restartTimers.delete(channel.id);
+          if (this.intentionalStops.has(channel.id)) return;
+
+          try {
+            await this.spawnFfmpegWorker(params);
+          } catch (err: any) {
+            console.error(`[Stream Healing] Failed to auto-recover channel ${channel.id}:`, err.message);
+          }
+        }, 2000);
+
+        this.restartTimers.set(channel.id, timer);
+      } else {
+        // Exceeded max recovery attempts
+        this.restartAttempts.delete(channel.id);
+
+        await jobRepository.updateJob(job.id, {
+          status: 'FAILED',
+          stoppedAt: new Date().toISOString(),
+          lastErrorCode: code !== null ? `EXIT_${code}` : 'KILLED',
+          sanitizedErrorMessage: safeError?.slice(-500) || 'Stream input connection failed or closed repeatedly',
+        });
+
+        await channelRepository.updateChannel(channel.id, {
+          transcodingStatus: 'FAILED',
+          activeJobId: undefined,
+        });
+
+        await logRepository.addLog({
+          eventType: 'JOB_STOPPED',
+          entityType: 'JOB',
+          entityId: job.id,
+          result: 'FAILURE',
+          safeDetails: {
+            channelId: channel.id,
+            channelName: channel.name,
+            exitCode: code,
+            finalStatus: 'FAILED',
+            note: 'Max auto-recovery attempts reached. Upstream stream appears permanently offline.',
+            errorMessage: safeError ? safeError.slice(-200) : undefined,
+          },
+        });
+      }
+    });
+  }
+
+  /**
    * Stops an active transcoding job.
    */
   async stopChannel(channelId: string): Promise<boolean> {
+    this.intentionalStops.add(channelId);
+    this.restartAttempts.delete(channelId);
+    const pendingTimer = this.restartTimers.get(channelId);
+    if (pendingTimer) {
+      clearTimeout(pendingTimer);
+      this.restartTimers.delete(channelId);
+    }
+
     const channel = await channelRepository.getChannel(channelId);
     if (!channel) return false;
 

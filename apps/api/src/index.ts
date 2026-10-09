@@ -117,13 +117,22 @@ export async function createServer() {
       '-hide_banner',
       '-loglevel', 'warning',
       '-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls',
+      '-fflags', '+genpts+discardcorrupt+nobuffer',
+      '-err_detect', 'ignore_err',
     ];
 
     if (/^https?:\/\//i.test(inputUrl)) {
-      ffmpegArgs.push('-reconnect', '1', '-reconnect_at_eof', '1', '-reconnect_streamed', '1', '-reconnect_delay_max', '5');
+      ffmpegArgs.push(
+        '-reconnect', '1',
+        '-reconnect_at_eof', '1',
+        '-reconnect_streamed', '1',
+        '-reconnect_delay_max', '2',
+        '-rw_timeout', '10000000'
+      );
     }
 
     ffmpegArgs.push('-i', inputUrl);
+    ffmpegArgs.push('-avoid_negative_ts', 'make_zero');
     ffmpegArgs.push('-c', 'copy', '-f', 'mpegts', 'pipe:1');
 
     const proc = spawn('ffmpeg', ffmpegArgs, { windowsHide: true });
