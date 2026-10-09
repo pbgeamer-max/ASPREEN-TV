@@ -84,7 +84,7 @@ export class TranscodingService {
     // 3. Configure presets & HLS parameters
     const presetId = options.preset || channel.preset || settings.defaultTranscodingPreset;
     const segmentDuration = options.segmentDuration || settings.defaultSegmentDuration;
-    const playlistWindow = options.playlistWindow || settings.defaultPlaylistWindow;
+    const playlistWindow = options.playlistWindow || Math.max(7, settings.defaultPlaylistWindow);
     const presetConfig = TRANSCODING_PRESETS[presetId];
 
     // 4. Create unique public output ID and filesystem directory

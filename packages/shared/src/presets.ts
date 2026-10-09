@@ -79,11 +79,12 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
   args.push('-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls,pipe');
 
   // Resilient stream input flags to prevent aborts on network jitter, stream resets, and corrupted frames
-  // Note: do NOT use +nobuffer here as it breaks H.264 B-frame packet reordering for MPEG-TS streams
-  args.push('-fflags', '+genpts+discardcorrupt');
+  args.push('-fflags', '+genpts+discardcorrupt+igndts');
   args.push('-err_detect', 'ignore_err');
 
   if (params.inputUrl === 'pipe:0') {
+    args.push('-merge_pmt_versions', '1');
+    args.push('-resync_size', '4194304');
     args.push('-f', 'mpegts');
     args.push('-i', 'pipe:0');
   } else {

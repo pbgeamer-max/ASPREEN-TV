@@ -13,18 +13,26 @@ export interface StreamFeederOptions {
 }
 
 /**
- * Continuous Stream Feeder:
- * Pumps live MPEG-TS data directly into FFmpeg's stdin.
- * Transparently reconnects when upstream IPTV servers drop or refresh session (e.g. every 30-45 seconds),
- * preventing FFmpeg from reaching EOF and ensuring unbroken 24/7 live HLS output without loops or restarts.
+ * Continuous Stream Feeder with In-Memory Jitter Buffer:
+ * Pumps live MPEG-TS data directly into FFmpeg's stdin without stuttering.
+ * Buffers data in memory so that when upstream IPTV servers refresh/reset connection (every 30-45s),
+ * FFmpeg continues receiving data uninterrupted while the new upstream connection connects in the background.
  */
 export class StreamFeeder {
   private isDestroyed = false;
   private currentReq: http.ClientRequest | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private inactivityWatchdog: NodeJS.Timeout | null = null;
+  private queue: Buffer[] = [];
+  private queuedBytes = 0;
+  private isPumping = false;
+  private maxQueueBytes = 6 * 1024 * 1024; // 6 MB buffer (~15-20s of video)
 
-  constructor(private options: StreamFeederOptions) {}
+  constructor(private options: StreamFeederOptions) {
+    this.options.target.on('drain', () => {
+      this.pump();
+    });
+  }
 
   start() {
     this.connect(this.options.url, 0);
@@ -36,10 +44,47 @@ export class StreamFeeder {
     }
     if (this.isDestroyed) return;
 
-    // If no chunk is received for 15 seconds, assume stream frozen and reconnect
+    // If no chunk is received for 18 seconds, assume stream frozen and reconnect
     this.inactivityWatchdog = setTimeout(() => {
-      this.scheduleReconnect('Stream inactivity timeout (no data for 15s)', 500);
-    }, 15000);
+      this.scheduleReconnect('Stream inactivity watchdog (no data for 18s)', 500);
+    }, 18000);
+  }
+
+  private pushData(chunk: Buffer) {
+    if (this.isDestroyed || this.options.target.destroyed) return;
+    this.queue.push(chunk);
+    this.queuedBytes += chunk.length;
+
+    // Cap maximum queue to prevent runaway memory usage
+    while (this.queuedBytes > this.maxQueueBytes && this.queue.length > 1) {
+      const dropped = this.queue.shift();
+      if (dropped) this.queuedBytes -= dropped.length;
+    }
+
+    this.pump();
+  }
+
+  private pump() {
+    if (this.isPumping || this.isDestroyed || this.options.target.destroyed) return;
+    this.isPumping = true;
+
+    try {
+      while (this.queue.length > 0) {
+        const chunk = this.queue[0];
+        const canWrite = this.options.target.write(chunk);
+        this.queue.shift();
+        this.queuedBytes -= chunk.length;
+
+        if (!canWrite) {
+          // Target buffer full, wait for 'drain' event
+          break;
+        }
+      }
+    } catch {
+      // Pipe closed
+    } finally {
+      this.isPumping = false;
+    }
   }
 
   private connect(targetUrl: string, redirectCount: number) {
@@ -67,6 +112,7 @@ export class StreamFeeder {
     const requestHeaders: Record<string, string> = {
       'User-Agent': this.options.userAgent || 'VLC/3.0.20 LibVLC/3.0.20',
       'Host': parsedTarget.host,
+      'Connection': 'keep-alive',
       ...(this.options.customHeaders || {}),
     };
 
@@ -118,25 +164,13 @@ export class StreamFeeder {
 
         res.on('data', (chunk: Buffer) => {
           this.resetWatchdog();
-
-          if (!this.isDestroyed && !this.options.target.destroyed) {
-            try {
-              const canWrite = this.options.target.write(chunk);
-              if (!canWrite) {
-                res.pause();
-                this.options.target.once('drain', () => {
-                  if (!this.isDestroyed) res.resume();
-                });
-              }
-            } catch {
-              // Target stdin closed
-            }
-          }
+          this.pushData(chunk);
         });
 
         res.on('end', () => {
-          // Upstream refreshed/disconnected after session limit
-          this.scheduleReconnect('Upstream connection finished session (refreshing)', 150);
+          // Upstream refreshed/finished session (typical 40s IPTV refresh).
+          // Reconnect IMMEDIATELY (0ms delay) so new connection starts while jitter buffer drains!
+          this.scheduleReconnect('Upstream session refresh', 0);
         });
 
         res.on('error', (err) => {
@@ -156,12 +190,12 @@ export class StreamFeeder {
     }
   }
 
-  private scheduleReconnect(reason: string, delayMs = 1500) {
+  private scheduleReconnect(reason: string, delayMs = 0) {
     if (this.isDestroyed || this.options.target.destroyed) return;
     if (this.reconnectTimer) return;
 
     if (this.options.onLog) {
-      this.options.onLog(`[StreamFeeder] ${reason}. Reconnecting in ${delayMs}ms...`);
+      this.options.onLog(`[StreamFeeder] ${reason}. Reconnecting in ${delayMs}ms... (buffered: ${(this.queuedBytes / 1024).toFixed(0)} KB)`);
     }
 
     if (this.currentReq) {
@@ -171,14 +205,23 @@ export class StreamFeeder {
       this.currentReq = null;
     }
 
-    this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = null;
-      this.connect(this.options.url, 0);
-    }, delayMs);
+    if (delayMs <= 0) {
+      setImmediate(() => {
+        this.reconnectTimer = null;
+        this.connect(this.options.url, 0);
+      });
+    } else {
+      this.reconnectTimer = setTimeout(() => {
+        this.reconnectTimer = null;
+        this.connect(this.options.url, 0);
+      }, delayMs);
+    }
   }
 
   destroy() {
     this.isDestroyed = true;
+    this.queue = [];
+    this.queuedBytes = 0;
     if (this.inactivityWatchdog) {
       clearTimeout(this.inactivityWatchdog);
       this.inactivityWatchdog = null;
