@@ -14,6 +14,7 @@ import { settingsRepository } from '../repositories/settings.repository';
 import { logRepository } from '../repositories/log.repository';
 import { decrypt } from '../security/encryption';
 import { config } from '../config';
+import { StreamFeeder } from './stream-feeder';
 
 interface RunningProcess {
   process: ChildProcess;
@@ -21,6 +22,7 @@ interface RunningProcess {
   channelId: string;
   outputDir: string;
   heartbeatInterval: NodeJS.Timeout;
+  streamFeeder?: StreamFeeder;
 }
 
 interface SpawnWorkerParams {
@@ -33,6 +35,8 @@ interface SpawnWorkerParams {
   segmentDuration: number;
   playlistWindow: number;
   rawInputUrl: string;
+  isPipedStream: boolean;
+  proxyUrl?: string;
 }
 
 export class TranscodingService {
@@ -123,9 +127,13 @@ export class TranscodingService {
 
     const proxyUrl = channel.proxyUrl || settings.defaultProxyUrl;
 
+    // Detect if input is a continuous media stream (such as IPTV .ts stream or direct HTTP stream)
+    // Streams ending in .m3u8 are HLS playlists and are handled natively by FFmpeg.
+    const isPipedStream = /^https?:\/\//i.test(rawInputUrl) && !/\.m3u8(\?.*)?$/i.test(rawInputUrl);
+
     // 8. Build FFmpeg arguments array
     const ffmpegArgs = buildFfmpegArgs({
-      inputUrl: rawInputUrl,
+      inputUrl: isPipedStream ? 'pipe:0' : rawInputUrl,
       presetId,
       segmentDuration,
       playlistWindow,
@@ -145,6 +153,8 @@ export class TranscodingService {
         segmentDuration,
         playlistWindow,
         rawInputUrl,
+        isPipedStream,
+        proxyUrl,
       });
 
       await logRepository.addLog({
@@ -184,6 +194,19 @@ export class TranscodingService {
       windowsHide: true,
     });
 
+    // If input is piped, start continuous stream feeder to transparently survive upstream refreshes
+    let streamFeeder: StreamFeeder | undefined;
+    if (params.isPipedStream && child.stdin) {
+      streamFeeder = new StreamFeeder({
+        url: rawInputUrl,
+        proxyUrl: params.proxyUrl,
+        target: child.stdin,
+        userAgent: 'VLC/3.0.20 LibVLC/3.0.20',
+        onLog: (msg) => console.log(`[StreamFeeder] Channel "${channel.name}": ${msg}`),
+      });
+      streamFeeder.start();
+    }
+
     // Heartbeat updater to Firestore
     const heartbeatInterval = setInterval(async () => {
       try {
@@ -208,6 +231,7 @@ export class TranscodingService {
       channelId: channel.id,
       outputDir,
       heartbeatInterval,
+      streamFeeder,
     });
 
     await jobRepository.updateJob(job.id, {
@@ -227,14 +251,16 @@ export class TranscodingService {
     child.on('close', async (code) => {
       clearInterval(heartbeatInterval);
       clearTimeout(healthyTimer);
+      if (streamFeeder) {
+        streamFeeder.destroy();
+      }
       this.activeProcesses.delete(job.id);
 
       const isIntentional = this.intentionalStops.has(channel.id);
-      const isNormalStop = code === 0 || code === 255;
       const safeError = stderrData ? stderrData.replace(/https?:\/\/[^\s]+/g, '[REDACTED_URL]').trim() : undefined;
 
-      if (isIntentional || isNormalStop) {
-        // Intentional stop or clean exit requested
+      if (isIntentional) {
+        // Intentional stop requested by user
         this.intentionalStops.delete(channel.id);
         this.restartAttempts.delete(channel.id);
 
@@ -369,7 +395,15 @@ export class TranscodingService {
     const running = this.activeProcesses.get(activeJob.id);
     if (running) {
       clearInterval(running.heartbeatInterval);
+      if (running.streamFeeder) {
+        running.streamFeeder.destroy();
+      }
       try {
+        if (running.process.stdin && !running.process.stdin.destroyed) {
+          try {
+            running.process.stdin.end();
+          } catch {}
+        }
         running.process.kill('SIGTERM');
         // Force kill after 4 seconds if not exited
         setTimeout(() => {

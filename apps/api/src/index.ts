@@ -223,14 +223,19 @@ export async function createServer() {
     if (safeFile.endsWith('.m3u8')) {
       reply.header('Content-Type', 'application/vnd.apple.mpegurl');
       reply.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+      reply.header('Access-Control-Allow-Origin', '*');
+      let content = await fs.promises.readFile(filePath, 'utf8');
+      // For continuous live streaming, strip any transient #EXT-X-ENDLIST tags
+      // so players (VLC, Safari, HLS.js, ExoPlayer) never stop, seek-limit, or loop the stream
+      content = content.replace(/#EXT-X-ENDLIST\r?\n?/g, '');
+      return reply.send(content);
     } else if (safeFile.endsWith('.ts')) {
       reply.header('Content-Type', 'video/mp2t');
       reply.header('Cache-Control', 'public, max-age=86400');
+      reply.header('Access-Control-Allow-Origin', '*');
+      const stream = fs.createReadStream(filePath);
+      return reply.send(stream);
     }
-
-    reply.header('Access-Control-Allow-Origin', '*');
-    const stream = fs.createReadStream(filePath);
-    return reply.send(stream);
   });
 
   return server;

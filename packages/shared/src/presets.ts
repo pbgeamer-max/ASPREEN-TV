@@ -76,38 +76,42 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
   args.push('-loglevel', 'warning');
 
   // Strict protocol whitelist to prevent SSRF/local file disclosure inside FFmpeg
-  args.push('-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls');
-
-  // Optional HTTP/SOCKS5 proxy for bypassing datacenter / geo-blocking
-  if (params.proxyUrl) {
-    args.push('-http_proxy', params.proxyUrl);
-  }
+  args.push('-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls,pipe');
 
   // Resilient stream input flags to prevent aborts on network jitter, stream resets, and corrupted frames
   // Note: do NOT use +nobuffer here as it breaks H.264 B-frame packet reordering for MPEG-TS streams
   args.push('-fflags', '+genpts+discardcorrupt');
   args.push('-err_detect', 'ignore_err');
 
-  // Input reconnect flags and standard VLC User-Agent for network HTTP/HTTPS streams
-  if (/^https?:\/\//i.test(params.inputUrl)) {
-    args.push('-user_agent', 'VLC/3.0.20 LibVLC/3.0.20');
-    args.push('-reconnect', '1');
-    args.push('-reconnect_at_eof', '1');
-    args.push('-reconnect_streamed', '1');
-    args.push('-reconnect_delay_max', '2');
-    args.push('-timeout', '10000000');
-  }
+  if (params.inputUrl === 'pipe:0') {
+    args.push('-i', 'pipe:0');
+  } else {
+    // Optional HTTP/SOCKS5 proxy for bypassing datacenter / geo-blocking
+    if (params.proxyUrl) {
+      args.push('-http_proxy', params.proxyUrl);
+    }
 
-  // Custom HTTP headers if provided
-  if (params.customHeaders && Object.keys(params.customHeaders).length > 0) {
-    const headersStr = Object.entries(params.customHeaders)
-      .map(([k, v]) => `${k}: ${v}\r\n`)
-      .join('');
-    args.push('-headers', headersStr);
-  }
+    // Input reconnect flags and standard VLC User-Agent for network HTTP/HTTPS streams
+    if (/^https?:\/\//i.test(params.inputUrl)) {
+      args.push('-user_agent', 'VLC/3.0.20 LibVLC/3.0.20');
+      args.push('-reconnect', '1');
+      args.push('-reconnect_at_eof', '1');
+      args.push('-reconnect_streamed', '1');
+      args.push('-reconnect_delay_max', '2');
+      args.push('-timeout', '10000000');
+    }
 
-  // Input file / stream URL
-  args.push('-i', params.inputUrl);
+    // Custom HTTP headers if provided
+    if (params.customHeaders && Object.keys(params.customHeaders).length > 0) {
+      const headersStr = Object.entries(params.customHeaders)
+        .map(([k, v]) => `${k}: ${v}\r\n`)
+        .join('');
+      args.push('-headers', headersStr);
+    }
+
+    // Input file / stream URL
+    args.push('-i', params.inputUrl);
+  }
 
   // Avoid negative timestamps when upstream resets or refreshes
   args.push('-avoid_negative_ts', 'make_zero');
