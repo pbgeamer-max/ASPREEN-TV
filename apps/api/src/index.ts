@@ -125,7 +125,8 @@ export async function createServer() {
     ];
 
     const settings = await settingsRepository.getSettings();
-    const proxyUrl = channel.proxyUrl || settings.defaultProxyUrl || 'http://avxkxvqi:kfq49mj05vbr@31.59.20.176:6754';
+    const rawProxy = channel.proxyUrl || settings.defaultProxyUrl;
+    const proxyUrl = rawProxy && !rawProxy.includes('31.59.20.176') ? rawProxy : undefined;
 
     if (proxyUrl) {
       ffmpegArgs.push('-http_proxy', proxyUrl);

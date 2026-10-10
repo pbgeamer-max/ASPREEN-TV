@@ -5,7 +5,7 @@ import { cleanUndefined } from '../firebase/utils';
 const SETTINGS_COLLECTION = 'adminSettings';
 const GENERAL_DOC = 'general';
 
-export const FALLBACK_DEFAULT_PROXY = 'http://avxkxvqi:kfq49mj05vbr@31.59.20.176:6754';
+export const FALLBACK_DEFAULT_PROXY = '';
 
 const DEFAULT_SETTINGS: AdminSettings = {
   appName: 'Aspreen TV',
@@ -18,7 +18,7 @@ const DEFAULT_SETTINGS: AdminSettings = {
   sourceTimeoutSeconds: 15,
   defaultTokenLifetime: 0,
   outputRetentionHours: 24,
-  defaultProxyUrl: FALLBACK_DEFAULT_PROXY,
+  defaultProxyUrl: '',
   updatedAt: new Date().toISOString(),
 };
 
@@ -37,13 +37,12 @@ export class SettingsRepository {
 
     const current = { ...DEFAULT_SETTINGS, ...snap.data() } as AdminSettings;
     if (current.publicStreamBaseUrl && current.publicStreamBaseUrl.includes('@')) {
-      if (!current.defaultProxyUrl) {
-        current.defaultProxyUrl = current.publicStreamBaseUrl;
-      }
       current.publicStreamBaseUrl = 'https://aspreen-tv-production.up.railway.app';
     }
-    if (!current.defaultProxyUrl || current.defaultProxyUrl.trim() === '') {
-      current.defaultProxyUrl = FALLBACK_DEFAULT_PROXY;
+    // Auto-clear exhausted Webshare proxy that causes HTTP 402 bandwidthlimit
+    if (current.defaultProxyUrl && current.defaultProxyUrl.includes('31.59.20.176')) {
+      current.defaultProxyUrl = '';
+      docRef.set({ defaultProxyUrl: '' }, { merge: true }).catch(() => {});
     }
     if (!current.defaultPlaylistWindow || current.defaultPlaylistWindow < 8) {
       current.defaultPlaylistWindow = 8;

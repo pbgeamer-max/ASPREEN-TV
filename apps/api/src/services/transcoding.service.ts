@@ -188,7 +188,8 @@ export class TranscodingService {
       preset: presetId,
     });
 
-    const proxyUrl = channel.proxyUrl || settings.defaultProxyUrl || 'http://avxkxvqi:kfq49mj05vbr@31.59.20.176:6754';
+    const rawProxy = channel.proxyUrl || settings.defaultProxyUrl;
+    const proxyUrl = rawProxy && !rawProxy.includes('31.59.20.176') ? rawProxy : undefined;
 
     // 8. Spawn FFmpeg process with supervisor
     try {

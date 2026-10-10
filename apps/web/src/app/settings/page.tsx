@@ -41,7 +41,7 @@ export default function SettingsPage() {
   const [sourceTimeoutSeconds, setSourceTimeoutSeconds] = useState(15);
   const [defaultTokenLifetime, setDefaultTokenLifetime] = useState(0);
   const [outputRetentionHours, setOutputRetentionHours] = useState(24);
-  const [defaultProxyUrl, setDefaultProxyUrl] = useState('http://avxkxvqi:kfq49mj05vbr@31.59.20.176:6754');
+  const [defaultProxyUrl, setDefaultProxyUrl] = useState('');
 
   const fetchSettingsAndHealth = async () => {
     try {
@@ -62,7 +62,7 @@ export default function SettingsPage() {
       setSourceTimeoutSeconds(settingsData.sourceTimeoutSeconds);
       setDefaultTokenLifetime(settingsData.defaultTokenLifetime);
       setOutputRetentionHours(settingsData.outputRetentionHours);
-      setDefaultProxyUrl(settingsData.defaultProxyUrl || 'http://avxkxvqi:kfq49mj05vbr@31.59.20.176:6754');
+      setDefaultProxyUrl(settingsData.defaultProxyUrl || '');
     } catch (err) {
       console.error('Failed to load settings:', err);
     } finally {
@@ -204,7 +204,7 @@ export default function SettingsPage() {
                       type="text"
                       value={defaultProxyUrl}
                       onChange={(e) => setDefaultProxyUrl(e.target.value)}
-                      placeholder="http://avxkxvqi:kfq49mj05vbr@31.59.20.176:6754"
+                      placeholder="http://user:pass@proxy-ip:port"
                       className="form-input text-xs font-mono text-[#F5F5F5] bg-[#09090B] border-[#52525B]"
                     />
                     <p className="text-[11px] text-[#A1A1AA] mt-1.5">
