@@ -19,6 +19,8 @@ export interface AppConfig {
   maxPlaylistChannels: number;
   sourceTimeoutSeconds: number;
   sourceConnectTimeout: number;
+  adminPassword?: string;
+  adminEmail?: string;
 }
 
 const defaultStoragePath = path.resolve(process.cwd(), '../../data/hls');
@@ -45,4 +47,6 @@ export const config: AppConfig = {
   maxPlaylistChannels: parseInt(process.env.MAX_PLAYLIST_CHANNELS || '10000', 10),
   sourceTimeoutSeconds: parseInt(process.env.SOURCE_TIMEOUT_SECONDS || '15', 10),
   sourceConnectTimeout: parseInt(process.env.SOURCE_CONNECT_TIMEOUT || '10', 10),
+  adminPassword: process.env.ADMIN_PASSWORD || 'admin123456',
+  adminEmail: process.env.ADMIN_EMAIL || 'admin@aspreen.tv',
 };

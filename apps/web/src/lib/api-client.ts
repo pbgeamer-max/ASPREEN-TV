@@ -74,6 +74,17 @@ class ApiClient {
   }
 
   // Auth
+  async loginWithPassword(password: string, email?: string) {
+    const res = await this.request<{ success: boolean; token: string; user: { uid: string; email: string } }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ password, email }),
+    });
+    if (res.token) {
+      this.setToken(res.token);
+    }
+    return res;
+  }
+
   async createSession(idToken: string) {
     this.setToken(idToken);
     return this.request<{ success: boolean; uid: string; email: string }>('/auth/session', {

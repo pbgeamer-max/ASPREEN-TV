@@ -103,31 +103,25 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {!isResetMode && (
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-medium text-[#A1A1AA]">Password</label>
-                  <button
-                    type="button"
-                    onClick={() => setIsResetMode(true)}
-                    className="text-[11px] text-[#71717A] hover:text-[#F5F5F5] transition-colors"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-[#71717A] absolute left-3 top-2.5" />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    placeholder="••••••••••••"
-                    className="form-input pl-9"
-                  />
-                </div>
+            <div>
+              <label className="block text-xs font-medium text-[#A1A1AA] mb-1.5">
+                Administrator Password / Access Code
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-[#71717A] absolute left-3 top-2.5" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="Enter ADMIN_PASSWORD"
+                  className="form-input pl-9"
+                />
               </div>
-            )}
+              <p className="text-[11px] text-[#71717A] mt-1">
+                Configured via <code className="text-[#A1A1AA]">ADMIN_PASSWORD</code> in Railway (default: <code className="text-[#A1A1AA]">admin123456</code>)
+              </p>
+            </div>
 
             {/* Primary Action Button: White with Black Text */}
             <button

@@ -71,20 +71,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const auth = getClientAuth();
-      if (!auth) {
-        // Fallback demo mode
-        api.setToken('mock-admin-token');
-        setUser({ uid: 'aspreen-admin-uid', email });
-        await api.createSession('mock-admin-token');
-        setLoading(false);
-        return;
+      // 1. Try direct Railway ADMIN_PASSWORD authentication first
+      try {
+        const res = await api.loginWithPassword(password, email);
+        if (res.success && res.user) {
+          setUser({ uid: res.user.uid, email: res.user.email });
+          return;
+        }
+      } catch (err: any) {
+        // If password login fails, check if client Firebase auth is configured
+        const auth = getClientAuth();
+        if (!auth) {
+          throw err;
+        }
+        try {
+          const cred = await signInWithEmailAndPassword(auth, email, password);
+          const idToken = await cred.user.getIdToken();
+          await api.createSession(idToken);
+          setUser(cred.user);
+        } catch {
+          throw err;
+        }
       }
-
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      const idToken = await cred.user.getIdToken();
-      await api.createSession(idToken);
-      setUser(cred.user);
     } finally {
       setLoading(false);
     }
@@ -93,6 +101,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginDemoAdmin = async () => {
     setLoading(true);
     try {
+      try {
+        const res = await api.loginWithPassword('admin123456');
+        if (res.success && res.user) {
+          setUser({ uid: res.user.uid, email: res.user.email });
+          return;
+        }
+      } catch {}
       api.setToken('mock-admin-token');
       setUser({ uid: 'aspreen-admin-uid', email: 'admin@aspreen.tv' });
       await api.createSession('mock-admin-token');
