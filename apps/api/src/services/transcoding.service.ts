@@ -86,6 +86,7 @@ export class TranscodingService {
       preset?: TranscodingPresetId;
       segmentDuration?: number;
       playlistWindow?: number;
+      ignoreConcurrencyLimit?: boolean;
     } = {}
   ): Promise<TranscodingJob> {
     const channel = await channelRepository.getChannel(channelId);
@@ -99,9 +100,13 @@ export class TranscodingService {
 
     // 2. Check concurrency limit
     const settings = await settingsRepository.getSettings();
+    const presetId = options.preset || channel.preset || settings.defaultTranscodingPreset;
+    const isCopyPreset = presetId === 'COPY';
+    const concurrencyLimit = isCopyPreset || options.ignoreConcurrencyLimit ? 2500 : (settings.maxConcurrentJobs || 1000);
+
     const activeJobs = await jobRepository.listActiveJobs();
-    if (activeJobs.length >= settings.maxConcurrentJobs) {
-      throw new Error(`Maximum concurrent transcoding jobs (${settings.maxConcurrentJobs}) reached.`);
+    if (activeJobs.length >= concurrencyLimit) {
+      throw new Error(`Maximum concurrent transcoding jobs (${concurrencyLimit}) reached.`);
     }
 
     // Clear any previous intentional stop or pending restart timer
@@ -114,7 +119,6 @@ export class TranscodingService {
     }
 
     // 3. Configure presets & HLS parameters
-    const presetId = options.preset || channel.preset || settings.defaultTranscodingPreset;
     const segmentDuration = options.segmentDuration || settings.defaultSegmentDuration || 4;
     const playlistWindow = options.playlistWindow || Math.max(8, settings.defaultPlaylistWindow || 8);
     const presetConfig = TRANSCODING_PRESETS[presetId];
@@ -501,7 +505,7 @@ export class TranscodingService {
     preset?: TranscodingPresetId;
     maxToStart?: number;
   } = {}): Promise<BulkStartResult> {
-    const limit = options.maxToStart || 1000;
+    const limit = options.maxToStart || 2500;
     const channels = await channelRepository.listChannels(options.sourceId, limit);
     const enabledChannels = channels.filter((c) => c.enabled !== false);
 
@@ -512,23 +516,24 @@ export class TranscodingService {
 
     const preset = options.preset || 'COPY';
 
-    for (const ch of enabledChannels) {
-      if (ch.transcodingStatus === 'RUNNING' && ch.activeJobId) {
-        alreadyRunningCount++;
-        continue;
-      }
-      try {
-        await this.startChannel(ch.id, { preset });
-        startedCount++;
-      } catch (err: any) {
-        if (err.message && err.message.includes('Maximum concurrent')) {
-          skippedCount++;
-          errors.push(`Reached concurrency limit while starting "${ch.name}"`);
-          break;
-        } else {
-          errors.push(`Channel "${ch.name}": ${err.message}`);
-        }
-      }
+    // Process in batches of 15 for fast parallel initialization
+    const BATCH_SIZE = 15;
+    for (let i = 0; i < enabledChannels.length; i += BATCH_SIZE) {
+      const batch = enabledChannels.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        batch.map(async (ch) => {
+          if (ch.transcodingStatus === 'RUNNING' && ch.activeJobId) {
+            alreadyRunningCount++;
+            return;
+          }
+          try {
+            await this.startChannel(ch.id, { preset, ignoreConcurrencyLimit: true });
+            startedCount++;
+          } catch (err: any) {
+            errors.push(`Channel "${ch.name}": ${err.message}`);
+          }
+        })
+      );
     }
 
     await logRepository.addLog({
@@ -561,11 +566,17 @@ export class TranscodingService {
     const channels = await channelRepository.listChannels(sourceId, 5000);
     let stoppedCount = 0;
 
-    for (const ch of channels) {
-      if (ch.transcodingStatus === 'RUNNING' || ch.activeJobId) {
-        const stopped = await this.stopChannel(ch.id);
-        if (stopped) stoppedCount++;
-      }
+    const BATCH_SIZE = 25;
+    for (let i = 0; i < channels.length; i += BATCH_SIZE) {
+      const batch = channels.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        batch.map(async (ch) => {
+          if (ch.transcodingStatus === 'RUNNING' || ch.activeJobId) {
+            const stopped = await this.stopChannel(ch.id);
+            if (stopped) stoppedCount++;
+          }
+        })
+      );
     }
 
     await logRepository.addLog({

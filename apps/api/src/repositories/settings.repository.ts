@@ -13,8 +13,8 @@ const DEFAULT_SETTINGS: AdminSettings = {
   defaultTranscodingPreset: 'COPY',
   defaultSegmentDuration: 4,
   defaultPlaylistWindow: 8, // 8 segments * 4s = 32-second rolling buffer
-  maxConcurrentJobs: 8,
-  maxPlaylistChannels: 1000,
+  maxConcurrentJobs: 2500,
+  maxPlaylistChannels: 5000,
   sourceTimeoutSeconds: 15,
   defaultTokenLifetime: 0,
   outputRetentionHours: 24,
@@ -47,6 +47,9 @@ export class SettingsRepository {
     }
     if (!current.defaultPlaylistWindow || current.defaultPlaylistWindow < 8) {
       current.defaultPlaylistWindow = 8;
+    }
+    if (!current.maxConcurrentJobs || current.maxConcurrentJobs < 1000) {
+      current.maxConcurrentJobs = 2500;
     }
     return current;
   }
