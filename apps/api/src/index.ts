@@ -85,8 +85,8 @@ export async function createServer() {
     const tokenHash = hashStreamToken(rawToken);
     const tokenDoc = await tokenRepository.getTokenByHash(tokenHash);
 
-    if (!tokenDoc || tokenDoc.publicOutputId !== outputId) {
-      return reply.status(403).send('Forbidden: Invalid stream token or output');
+    if (!tokenDoc) {
+      return reply.status(403).send('Forbidden: Invalid stream token');
     }
 
     if (tokenDoc.revokedAt) {
@@ -102,6 +102,14 @@ export async function createServer() {
     const channel = await channelRepository.getChannel(tokenDoc.channelId);
     if (!channel || !channel.enabled) {
       return reply.status(404).send('Channel not found or disabled');
+    }
+
+    if (
+      tokenDoc.publicOutputId !== outputId &&
+      channel.activeOutputId !== outputId &&
+      channel.id !== outputId
+    ) {
+      return reply.status(403).send('Forbidden: Invalid stream token or output');
     }
 
     const inputUrl = decrypt(channel.encryptedInputUrl);
@@ -201,8 +209,8 @@ export async function createServer() {
     const tokenHash = hashStreamToken(rawToken);
     const tokenDoc = await tokenRepository.getTokenByHash(tokenHash);
 
-    if (!tokenDoc || tokenDoc.publicOutputId !== outputId) {
-      return reply.status(403).send('Forbidden: Invalid stream token or output');
+    if (!tokenDoc) {
+      return reply.status(403).send('Forbidden: Invalid stream token');
     }
 
     if (tokenDoc.revokedAt) {
@@ -213,11 +221,32 @@ export async function createServer() {
       return reply.status(403).send('Forbidden: Token has expired');
     }
 
+    const channel = await channelRepository.getChannel(tokenDoc.channelId);
+    if (!channel || !channel.enabled) {
+      return reply.status(404).send('Channel not found or disabled');
+    }
+
+    if (
+      tokenDoc.publicOutputId !== outputId &&
+      channel.activeOutputId !== outputId &&
+      channel.id !== outputId
+    ) {
+      return reply.status(403).send('Forbidden: Invalid stream token or output');
+    }
+
     // Update last used asynchronously
     tokenRepository.updateLastUsed(tokenDoc.id).catch(() => {});
     transcodingService.touchChannelAccess(tokenDoc.channelId);
 
-    const filePath = path.resolve(config.streamStoragePath, outputId, safeFile);
+    // Look for file in active output directory or requested outputId
+    const effectiveDirId = channel.activeOutputId || outputId;
+    let filePath = path.resolve(config.streamStoragePath, effectiveDirId, safeFile);
+    if (!fs.existsSync(filePath) && outputId !== effectiveDirId) {
+      const fallbackPath = path.resolve(config.streamStoragePath, outputId, safeFile);
+      if (fs.existsSync(fallbackPath)) {
+        filePath = fallbackPath;
+      }
+    }
 
     // If playlist is requested and does not exist yet on disk, trigger on-demand HLS segmentation!
     if (!fs.existsSync(filePath) && safeFile.endsWith('.m3u8')) {
