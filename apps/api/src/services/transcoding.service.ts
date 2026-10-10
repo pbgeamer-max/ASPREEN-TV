@@ -45,6 +45,7 @@ export class TranscodingService {
   private restartAttempts: Map<string, number> = new Map(); // channelId -> count
   private restartTimers: Map<string, NodeJS.Timeout> = new Map(); // channelId -> timer
   private lastAccessTimestamps: Map<string, number> = new Map(); // channelId -> timestamp
+  private lastFailureTimestamps: Map<string, number> = new Map(); // channelId -> timestamp
   private idleCheckInterval: NodeJS.Timeout;
 
   constructor() {
@@ -72,6 +73,13 @@ export class TranscodingService {
 
   async ensureChannelRunning(channelId: string): Promise<TranscodingJob | null> {
     this.touchChannelAccess(channelId);
+
+    // If channel recently failed (e.g. 401 Unauthorized/line limit), enforce 25s cooldown against browser HLS polling
+    const lastFailure = this.lastFailureTimestamps.get(channelId);
+    if (lastFailure && Date.now() - lastFailure < 25000) {
+      return null;
+    }
+
     const existing = await jobRepository.getActiveJobForChannel(channelId);
     if (existing && (existing.status === 'RUNNING' || existing.status === 'STARTING')) {
       const running = this.activeProcesses.get(existing.id);
@@ -439,6 +447,7 @@ export class TranscodingService {
       } else {
         // Exceeded max recovery attempts
         this.restartAttempts.delete(channel.id);
+        this.lastFailureTimestamps.set(channel.id, Date.now());
 
         const failMessage = isAuthOrLimitExceeded
           ? 'Upstream IPTV provider rejected connection: 403 Forbidden / Access Denied (single-line limit reached or expired credentials). Auto-recovery stopped.'

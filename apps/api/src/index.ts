@@ -198,7 +198,9 @@ export async function createServer() {
               });
 
               upstreamRes.on('error', (err) => {
-                console.error('[Stream Relay] Upstream socket error:', err.message);
+                if (err && err.message !== 'aborted') {
+                  console.error('[Stream Relay] Upstream socket error:', err.message);
+                }
                 try { reply.raw.end(); } catch {}
                 done();
               });
