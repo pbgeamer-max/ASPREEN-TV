@@ -22,6 +22,7 @@ import { jobRepository } from './repositories/job.repository';
 import { hashStreamToken } from './security/token';
 import { decrypt } from './security/encryption';
 import { transcodingService } from './services/transcoding.service';
+import { initDatabase } from './db';
 
 export async function createServer() {
   const server = Fastify({
@@ -62,6 +63,9 @@ export async function createServer() {
       defaultDone(err, null);
     }
   });
+
+  // Initialize Database (PostgreSQL if DATABASE_URL is set, or in-memory fallback)
+  await initDatabase();
 
   // Initialize Firebase Admin
   initFirebaseAdmin();

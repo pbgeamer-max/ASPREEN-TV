@@ -1,8 +1,21 @@
 import * as os from 'os';
 import { SystemMetrics } from '@aspreen/shared';
 import { getFirestore } from '../firebase/admin';
+import { getPool } from '../db';
 
 const METRICS_COLLECTION = 'systemMetrics';
+
+function mapMetricRow(row: any): SystemMetrics {
+  return {
+    timestamp: row.timestamp instanceof Date ? row.timestamp.toISOString() : String(row.timestamp || new Date().toISOString()),
+    cpuUsage: Number(row.cpu_usage || 0),
+    memoryUsage: Number(row.memory_usage || 0),
+    diskUsage: Number(row.disk_usage || 0),
+    activeJobs: Number(row.active_jobs || 0),
+    queuedJobs: Number(row.queued_jobs || 0),
+    outboundBandwidthMbps: row.outbound_bandwidth_mbps ? Number(row.outbound_bandwidth_mbps) : undefined,
+  };
+}
 
 export class MetricsRepository {
   private db = getFirestore();
@@ -14,14 +27,40 @@ export class MetricsRepository {
       timestamp,
     };
 
-    // Stable ID based on timestamp
     const id = `metric_${Date.now()}`;
+    const pool = getPool();
+    if (pool) {
+      await pool.query(
+        `INSERT INTO system_metrics (
+          id, timestamp, cpu_usage, memory_usage, disk_usage, active_jobs, queued_jobs, outbound_bandwidth_mbps
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [
+          id,
+          entry.timestamp,
+          entry.cpuUsage,
+          entry.memoryUsage,
+          entry.diskUsage,
+          entry.activeJobs,
+          entry.queuedJobs,
+          entry.outboundBandwidthMbps || null,
+        ]
+      );
+      return entry;
+    }
+
     const docRef = await this.db.collection(METRICS_COLLECTION).doc(id);
     await docRef.set(entry);
     return entry;
   }
 
   async getLatestMetrics(): Promise<SystemMetrics | null> {
+    const pool = getPool();
+    if (pool) {
+      const res = await pool.query('SELECT * FROM system_metrics ORDER BY timestamp DESC LIMIT 1');
+      if (res.rows.length === 0) return null;
+      return mapMetricRow(res.rows[0]);
+    }
+
     const colRef = this.db.collection(METRICS_COLLECTION);
     const snap = await colRef.limit(1).get();
     if (snap.empty || snap.docs.length === 0) return null;

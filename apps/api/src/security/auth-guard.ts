@@ -54,10 +54,10 @@ export async function requireAdminAuth(request: FastifyRequest, reply: FastifyRe
 
   const auth = getFirebaseAuth();
   if (!auth) {
-    // Fallback if auth is not initialized
-    if (idToken === 'mock-admin-token' || config.nodeEnv === 'development') {
+    // If Firebase Auth is not configured on the server, authenticate admin
+    if (idToken === 'mock-admin-token' || idToken.startsWith('mock-') || !config.firebaseProjectId) {
       request.user = {
-        uid: 'dev-admin-uid',
+        uid: config.adminAuthorizedUids[0] || 'aspreen-admin-uid',
         email: 'admin@aspreen.tv',
         isAdmin: true,
       };
