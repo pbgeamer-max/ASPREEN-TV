@@ -14,6 +14,8 @@ import { channelRepository } from '../repositories/channel.repository';
 import { jobRepository } from '../repositories/job.repository';
 import { settingsRepository } from '../repositories/settings.repository';
 import { logRepository } from '../repositories/log.repository';
+import { tokenRepository } from '../repositories/token.repository';
+import { generateStreamToken, hashStreamToken } from '../security/token';
 import { decrypt } from '../security/encryption';
 import { config } from '../config';
 
@@ -60,6 +62,10 @@ export class TranscodingService {
     this.idleCheckInterval.unref();
   }
 
+  isJobActive(jobId: string): boolean {
+    return this.activeProcesses.has(jobId);
+  }
+
   touchChannelAccess(channelId: string) {
     this.lastAccessTimestamps.set(channelId, Date.now());
   }
@@ -68,7 +74,10 @@ export class TranscodingService {
     this.touchChannelAccess(channelId);
     const existing = await jobRepository.getActiveJobForChannel(channelId);
     if (existing && (existing.status === 'RUNNING' || existing.status === 'STARTING')) {
-      return existing;
+      const running = this.activeProcesses.get(existing.id);
+      if (running) {
+        return existing;
+      }
     }
     try {
       return await this.startChannel(channelId, { preset: 'COPY' });
@@ -92,10 +101,18 @@ export class TranscodingService {
     const channel = await channelRepository.getChannel(channelId);
     if (!channel) throw new Error('Channel not found');
 
-    // 1. Prevent duplicate active jobs for the same channel
+    // 1. Prevent duplicate active jobs for the same channel, clean stale jobs if process exited
     const existingJob = await jobRepository.getActiveJobForChannel(channelId);
     if (existingJob) {
-      return existingJob;
+      const isProcessAlive = this.activeProcesses.has(existingJob.id);
+      if (isProcessAlive) {
+        return existingJob;
+      }
+      // Process not alive in memory (e.g. server restarted or container reset), mark stale job stopped
+      await jobRepository.updateJob(existingJob.id, {
+        status: 'STOPPED',
+        stoppedAt: new Date().toISOString(),
+      });
     }
 
     // 2. Check concurrency limit
@@ -498,7 +515,8 @@ export class TranscodingService {
   }
 
   /**
-   * Starts all enabled channels (or filtered by sourceId) using COPY preset.
+   * Activates all enabled channels (or filtered by sourceId) for instant on-demand streaming.
+   * Ensures output directories and stream tokens exist, and marks channels as RUNNING.
    */
   async bulkStartChannels(options: {
     sourceId?: string;
@@ -516,19 +534,39 @@ export class TranscodingService {
 
     const preset = options.preset || 'COPY';
 
-    // Process in batches of 15 for fast parallel initialization
-    const BATCH_SIZE = 15;
+    // Batch activate all channels in Firestore and file system safely
+    const BATCH_SIZE = 25;
     for (let i = 0; i < enabledChannels.length; i += BATCH_SIZE) {
       const batch = enabledChannels.slice(i, i + BATCH_SIZE);
       await Promise.all(
         batch.map(async (ch) => {
-          if (ch.transcodingStatus === 'RUNNING' && ch.activeJobId) {
-            alreadyRunningCount++;
-            return;
-          }
           try {
-            await this.startChannel(ch.id, { preset, ignoreConcurrencyLimit: true });
-            startedCount++;
+            const outputDirectoryId = ch.activeOutputId || crypto.randomBytes(8).toString('hex');
+            const outputDir = path.resolve(config.streamStoragePath, outputDirectoryId);
+            await fs.mkdir(outputDir, { recursive: true });
+
+            // Ensure a stream token exists for this channel so it can be streamed immediately
+            const existingTokens = await tokenRepository.listTokens(ch.id, 1);
+            if (existingTokens.length === 0) {
+              const rawToken = generateStreamToken();
+              await tokenRepository.createToken({
+                channelId: ch.id,
+                name: `Default Token - ${ch.name}`,
+                tokenHash: hashStreamToken(rawToken),
+                publicOutputId: outputDirectoryId,
+              });
+            }
+
+            if (ch.transcodingStatus === 'RUNNING' && ch.activeOutputId) {
+              alreadyRunningCount++;
+            } else {
+              await channelRepository.updateChannel(ch.id, {
+                transcodingStatus: 'RUNNING',
+                activeOutputId: outputDirectoryId,
+                preset,
+              });
+              startedCount++;
+            }
           } catch (err: any) {
             errors.push(`Channel "${ch.name}": ${err.message}`);
           }
@@ -566,14 +604,26 @@ export class TranscodingService {
     const channels = await channelRepository.listChannels(sourceId, 5000);
     let stoppedCount = 0;
 
+    // First stop any active in-memory processes
+    for (const [jobId, running] of this.activeProcesses.entries()) {
+      try {
+        clearInterval(running.heartbeatInterval);
+        running.process.kill('SIGTERM');
+      } catch {}
+    }
+    this.activeProcesses.clear();
+
     const BATCH_SIZE = 25;
     for (let i = 0; i < channels.length; i += BATCH_SIZE) {
       const batch = channels.slice(i, i + BATCH_SIZE);
       await Promise.all(
         batch.map(async (ch) => {
           if (ch.transcodingStatus === 'RUNNING' || ch.activeJobId) {
-            const stopped = await this.stopChannel(ch.id);
-            if (stopped) stoppedCount++;
+            await channelRepository.updateChannel(ch.id, {
+              transcodingStatus: 'STOPPED',
+              activeJobId: undefined,
+            });
+            stoppedCount++;
           }
         })
       );

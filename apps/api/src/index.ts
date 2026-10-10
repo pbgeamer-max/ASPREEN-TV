@@ -18,6 +18,7 @@ import { hlsAuthRoutes } from './routes/hls-auth.routes';
 import { tokenRepository } from './repositories/token.repository';
 import { channelRepository } from './repositories/channel.repository';
 import { settingsRepository } from './repositories/settings.repository';
+import { jobRepository } from './repositories/job.repository';
 import { hashStreamToken } from './security/token';
 import { decrypt } from './security/encryption';
 import { transcodingService } from './services/transcoding.service';
@@ -262,6 +263,19 @@ export async function createServer() {
 async function start() {
   const server = await createServer();
   try {
+    // Reset any stale jobs from previous container crash or restart
+    try {
+      const activeJobs = await jobRepository.listActiveJobs();
+      for (const job of activeJobs) {
+        if (!transcodingService.isJobActive(job.id)) {
+          await jobRepository.updateJob(job.id, {
+            status: 'STOPPED',
+            stoppedAt: new Date().toISOString(),
+          });
+        }
+      }
+    } catch {}
+
     await server.listen({ port: config.port, host: config.host });
     console.log(`[Aspreen TV API] Server running at http://${config.host}:${config.port}`);
   } catch (err) {
