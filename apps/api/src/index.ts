@@ -120,7 +120,7 @@ export async function createServer() {
       '-hide_banner',
       '-loglevel', 'warning',
       '-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls',
-      '-fflags', '+genpts+discardcorrupt',
+      '-fflags', '+genpts+discardcorrupt+nobuffer',
       '-err_detect', 'ignore_err',
     ];
 
@@ -144,7 +144,7 @@ export async function createServer() {
 
     ffmpegArgs.push('-i', inputUrl);
     ffmpegArgs.push('-avoid_negative_ts', 'make_zero');
-    ffmpegArgs.push('-c', 'copy', '-f', 'mpegts', 'pipe:1');
+    ffmpegArgs.push('-c', 'copy', '-f', 'mpegts', '-flush_packets', '1', '-muxdelay', '0.1', 'pipe:1');
 
     const proc = spawn('ffmpeg', ffmpegArgs, { windowsHide: true });
     proc.stdout.pipe(reply.raw);
