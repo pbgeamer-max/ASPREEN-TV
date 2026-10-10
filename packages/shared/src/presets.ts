@@ -119,6 +119,10 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
       args.push('-headers', headersStr);
     }
 
+    // Optimize probe size and analyze duration for fast live stream startup
+    args.push('-probesize', '1000000');
+    args.push('-analyzeduration', '1000000');
+
     // Input file / stream URL
     args.push('-i', params.inputUrl);
   }

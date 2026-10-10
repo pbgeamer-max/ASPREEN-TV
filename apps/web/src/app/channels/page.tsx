@@ -187,8 +187,10 @@ export default function ChannelsPage() {
   };
 
   const handlePlayPreview = async (channel: Channel) => {
-    // Generate a temporary inspection token if none exists, or prompt
     try {
+      if (channel.transcodingStatus !== 'RUNNING') {
+        await api.startChannel(channel.id);
+      }
       const res = await api.createStreamToken(channel.id, {
         name: 'Console Preview Temporary Token',
         lifetimeHours: 1,
@@ -196,6 +198,7 @@ export default function ChannelsPage() {
       setActivePlayerUrl(res.playbackUrl);
       setActivePlayerName(channel.name);
       setPlayerModalOpen(true);
+      fetchChannels();
     } catch (err: any) {
       alert(`Failed to prepare preview link: ${err.message}`);
     }

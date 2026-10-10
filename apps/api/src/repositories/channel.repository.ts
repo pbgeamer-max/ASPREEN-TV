@@ -24,6 +24,7 @@ function mapChannelRow(row: any): Channel {
     proxyUrl: row.proxy_url ?? undefined,
     activeJobId: row.active_job_id ?? undefined,
     activeOutputId: row.active_output_id ?? undefined,
+    orderIndex: row.order_index !== null && row.order_index !== undefined ? Number(row.order_index) : 0,
     createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at || new Date().toISOString()),
     updatedAt: row.updated_at instanceof Date ? row.updated_at.toISOString() : String(row.updated_at || new Date().toISOString()),
   };
@@ -39,6 +40,7 @@ export class ChannelRepository {
     const channel: Channel = {
       ...channelData,
       id,
+      orderIndex: channelData.orderIndex ?? 0,
       createdAt: now,
       updatedAt: now,
     };
@@ -49,8 +51,8 @@ export class ChannelRepository {
         `INSERT INTO channels (
           id, source_id, external_identifier, name, normalized_name, group_title, logo_url,
           input_type, encrypted_input_url, enabled, input_status, transcoding_status,
-          preset, proxy_url, active_job_id, active_output_id, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+          preset, proxy_url, active_job_id, active_output_id, order_index, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
         [
           channel.id,
           channel.sourceId,
@@ -68,6 +70,7 @@ export class ChannelRepository {
           channel.proxyUrl || null,
           channel.activeJobId || null,
           channel.activeOutputId || null,
+          channel.orderIndex || 0,
           channel.createdAt,
           channel.updatedAt,
         ]
@@ -100,11 +103,11 @@ export class ChannelRepository {
       let res;
       if (sourceId) {
         res = await pool.query(
-          'SELECT * FROM channels WHERE source_id = $1 ORDER BY created_at ASC LIMIT $2',
+          'SELECT * FROM channels WHERE source_id = $1 ORDER BY order_index ASC, created_at ASC, id ASC LIMIT $2',
           [sourceId, limitCount]
         );
       } else {
-        res = await pool.query('SELECT * FROM channels ORDER BY created_at ASC LIMIT $1', [limitCount]);
+        res = await pool.query('SELECT * FROM channels ORDER BY order_index ASC, created_at ASC, id ASC LIMIT $1', [limitCount]);
       }
       return res.rows.map(mapChannelRow);
     }
@@ -198,9 +201,10 @@ export class ChannelRepository {
 
           chunk.forEach((item, index) => {
             const id = crypto.randomUUID();
-            const offset = index * 18;
+            const orderIndex = item.orderIndex !== undefined ? item.orderIndex : (i + index);
+            const offset = index * 19;
             placeholders.push(
-              `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11}, $${offset + 12}, $${offset + 13}, $${offset + 14}, $${offset + 15}, $${offset + 16}, $${offset + 17}, $${offset + 18})`
+              `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11}, $${offset + 12}, $${offset + 13}, $${offset + 14}, $${offset + 15}, $${offset + 16}, $${offset + 17}, $${offset + 18}, $${offset + 19})`
             );
             values.push(
               id,
@@ -219,6 +223,7 @@ export class ChannelRepository {
               item.proxyUrl || null,
               item.activeJobId || null,
               item.activeOutputId || null,
+              orderIndex,
               now,
               now
             );
@@ -228,7 +233,7 @@ export class ChannelRepository {
             `INSERT INTO channels (
               id, source_id, external_identifier, name, normalized_name, group_title, logo_url,
               input_type, encrypted_input_url, enabled, input_status, transcoding_status,
-              preset, proxy_url, active_job_id, active_output_id, created_at, updated_at
+              preset, proxy_url, active_job_id, active_output_id, order_index, created_at, updated_at
             ) VALUES ${placeholders.join(', ')}`,
             values
           );

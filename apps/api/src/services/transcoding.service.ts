@@ -135,6 +135,17 @@ export class TranscodingService {
       this.restartTimers.delete(channelId);
     }
 
+    // Release single-connection IPTV line by stopping other channels on the same source
+    for (const [_, activeProc] of this.activeProcesses) {
+      if (activeProc.channelId !== channelId) {
+        const otherCh = await channelRepository.getChannel(activeProc.channelId);
+        if (otherCh && otherCh.sourceId === channel.sourceId) {
+          console.log(`[Source Limit] Stopping previous channel "${otherCh.name}" to release IPTV connection for "${channel.name}"`);
+          await this.stopChannel(activeProc.channelId).catch(() => {});
+        }
+      }
+    }
+
     // 3. Configure presets & HLS parameters
     const segmentDuration = options.segmentDuration || settings.defaultSegmentDuration || 4;
     const playlistWindow = options.playlistWindow || Math.max(8, settings.defaultPlaylistWindow || 8);
@@ -364,18 +375,28 @@ export class TranscodingService {
       }
 
       // STREAM HEALING & AUTO-RECOVERY:
-      // Upstream stream refreshed, reset socket, or suffered network drop.
       const attempts = (this.restartAttempts.get(channel.id) || 0) + 1;
       this.restartAttempts.set(channel.id, attempts);
-      const MAX_AUTO_RESTARTS = 50;
 
-      const isRateLimited = !!(safeError && (safeError.includes('429') || safeError.includes('Connection limit reached')));
-      const delayMs = isRateLimited ? 5000 : 300;
+      const isAuthOrLimitExceeded = !!(
+        safeError && (
+          safeError.includes('403') ||
+          safeError.includes('401') ||
+          safeError.includes('access denied') ||
+          safeError.includes('Forbidden') ||
+          safeError.includes('Unauthorized') ||
+          safeError.includes('Connection limit reached') ||
+          safeError.includes('429')
+        )
+      );
+
+      const MAX_AUTO_RESTARTS = isAuthOrLimitExceeded ? 3 : 20;
+      const delayMs = isAuthOrLimitExceeded ? 10000 : 1000;
 
       if (attempts <= MAX_AUTO_RESTARTS) {
         console.warn(`[Stream Healing] Channel "${channel.name}" (${channel.id}) dropped (code ${code}). Auto-recovering in ${delayMs}ms (Attempt ${attempts}/${MAX_AUTO_RESTARTS})...`);
-        if (isRateLimited) {
-          console.warn(`[Stream Warning] IPTV Provider returned HTTP 429 ("Connection limit reached"). Subscription credentials are in use by another connection. Waiting 5s before retrying...`);
+        if (isAuthOrLimitExceeded) {
+          console.warn(`[Stream Warning] IPTV Provider returned HTTP 403/401/429 ("access denied" / "Forbidden"). Upstream single-connection limit reached or line expired. Waiting ${delayMs}ms before attempt ${attempts}/${MAX_AUTO_RESTARTS}...`);
         }
         if (stderrData) {
           console.error(`[Stream Error] FFmpeg stderr for "${channel.name}":\n${safeError || stderrData}`);
@@ -395,8 +416,8 @@ export class TranscodingService {
             channelId: channel.id,
             channelName: channel.name,
             exitCode: code,
-            note: isRateLimited 
-              ? `IPTV Provider returned 429 (Connection limit reached). Retrying in 5s (Attempt ${attempts}/${MAX_AUTO_RESTARTS})...`
+            note: isAuthOrLimitExceeded 
+              ? `IPTV Provider returned 403/401 (Access denied / connection in use). Retrying in ${delayMs / 1000}s (Attempt ${attempts}/${MAX_AUTO_RESTARTS})...`
               : `Stream refreshed upstream. Auto-healing restart attempt ${attempts}/${MAX_AUTO_RESTARTS}...`,
             errorMessage: safeError ? safeError.slice(-150) : undefined,
           },
@@ -419,11 +440,15 @@ export class TranscodingService {
         // Exceeded max recovery attempts
         this.restartAttempts.delete(channel.id);
 
+        const failMessage = isAuthOrLimitExceeded
+          ? 'Upstream IPTV provider rejected connection: 403 Forbidden / Access Denied (single-line limit reached or expired credentials). Auto-recovery stopped.'
+          : (safeError?.slice(-500) || 'Stream input connection failed or closed repeatedly');
+
         await jobRepository.updateJob(job.id, {
           status: 'FAILED',
           stoppedAt: new Date().toISOString(),
           lastErrorCode: code !== null ? `EXIT_${code}` : 'KILLED',
-          sanitizedErrorMessage: safeError?.slice(-500) || 'Stream input connection failed or closed repeatedly',
+          sanitizedErrorMessage: failMessage,
         });
 
         await channelRepository.updateChannel(channel.id, {
@@ -441,7 +466,9 @@ export class TranscodingService {
             channelName: channel.name,
             exitCode: code,
             finalStatus: 'FAILED',
-            note: 'Max auto-recovery attempts reached. Upstream stream appears permanently offline.',
+            note: isAuthOrLimitExceeded
+              ? 'Upstream IPTV provider returned 403/401 Forbidden. Auto-recovery stopped to protect account.'
+              : 'Max auto-recovery attempts reached. Upstream stream appears permanently offline.',
             errorMessage: safeError ? safeError.slice(-200) : undefined,
           },
         });
@@ -513,6 +540,21 @@ export class TranscodingService {
     const job = await jobRepository.getJob(jobId);
     if (!job) return false;
     return this.stopChannel(job.channelId);
+  }
+
+  /**
+   * Stops any other running channels from the same source to release single-connection IPTV lines.
+   */
+  async stopOtherChannelsOnSource(sourceId: string, exceptChannelId?: string): Promise<void> {
+    for (const [_, activeProc] of this.activeProcesses) {
+      if (activeProc.channelId !== exceptChannelId) {
+        const otherCh = await channelRepository.getChannel(activeProc.channelId);
+        if (otherCh && otherCh.sourceId === sourceId) {
+          console.log(`[Source Limit] Stopping competing channel "${otherCh.name}" to release IPTV connection`);
+          await this.stopChannel(activeProc.channelId).catch(() => {});
+        }
+      }
+    }
   }
 
   /**

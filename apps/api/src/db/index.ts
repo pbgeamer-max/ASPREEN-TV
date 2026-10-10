@@ -95,13 +95,24 @@ export async function initDatabase(): Promise<boolean> {
           proxy_url TEXT,
           active_job_id TEXT,
           active_output_id TEXT,
+          order_index INTEGER DEFAULT 0,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
 
+        ALTER TABLE channels ADD COLUMN IF NOT EXISTS order_index INTEGER DEFAULT 0;
         CREATE INDEX IF NOT EXISTS idx_channels_source_id ON channels(source_id);
         CREATE INDEX IF NOT EXISTS idx_channels_active_output_id ON channels(active_output_id);
         CREATE INDEX IF NOT EXISTS idx_channels_enabled ON channels(enabled);
+        CREATE INDEX IF NOT EXISTS idx_channels_order ON channels(order_index ASC, id ASC);
+
+        -- Deterministic ordering migration for channels
+        UPDATE channels SET order_index = sub.rn
+        FROM (
+          SELECT id, (ROW_NUMBER() OVER (ORDER BY created_at ASC, id ASC) - 1)::integer as rn
+          FROM channels
+        ) sub
+        WHERE channels.id = sub.id AND (channels.order_index IS NULL OR channels.order_index = 0);
 
         -- 3. Stream Tokens Table
         CREATE TABLE IF NOT EXISTS stream_tokens (

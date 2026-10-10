@@ -133,6 +133,7 @@ export class SourceService {
           inputStatus: 'UNKNOWN',
           transcodingStatus: 'STOPPED',
           preset: 'COPY',
+          orderIndex: channelsToCreate.length,
         });
       }
 

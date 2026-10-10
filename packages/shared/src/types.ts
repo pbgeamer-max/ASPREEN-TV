@@ -90,6 +90,7 @@ export interface Channel {
   proxyUrl?: string; // Optional HTTP/SOCKS5 proxy URL for bypassing geo/datacenter blocks
   activeJobId?: string;
   activeOutputId?: string; // Random public slug for HLS output path
+  orderIndex?: number;
   createdAt: string;
   updatedAt: string;
 }
