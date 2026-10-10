@@ -4,7 +4,7 @@ import { tokenRepository } from '../repositories/token.repository';
 import { channelRepository } from '../repositories/channel.repository';
 import { settingsRepository } from '../repositories/settings.repository';
 import { logRepository } from '../repositories/log.repository';
-import { StreamTokenCreateSchema } from '@aspreen/shared';
+import { StreamTokenCreateSchema, ExportLinksSchema, ExportedChannelItem, ExportLinksResult } from '@aspreen/shared';
 import { generateStreamToken, hashStreamToken, buildPlaybackUrl, buildTsPlaybackUrl } from '../security/token';
 
 export async function tokenRoutes(server: FastifyInstance) {
@@ -152,4 +152,148 @@ export async function tokenRoutes(server: FastifyInstance) {
       tsPlaybackUrl,
     };
   });
+
+  /**
+   * POST /api/stream-tokens/export-links
+   * Generates valid playback tokens and formats all enabled channels for TXT / M3U export.
+   */
+  server.post('/export-links', async (request: FastifyRequest, reply: FastifyReply) => {
+    const parseResult = ExportLinksSchema.safeParse(request.body || {});
+    if (!parseResult.success) {
+      return reply.status(400).send({ error: 'Validation Error', details: parseResult.error.format() });
+    }
+
+    const { sourceId, tokenLifetimeHours } = parseResult.data;
+    const settings = await settingsRepository.getSettings();
+
+    let effectiveBaseUrl = settings.publicStreamBaseUrl;
+    const reqHost = (request.headers['x-forwarded-host'] as string) || (request.headers.host as string);
+    const reqProto = (request.headers['x-forwarded-proto'] as string) || 'https';
+    if ((!effectiveBaseUrl || effectiveBaseUrl.includes('localhost') || effectiveBaseUrl.includes('@')) && reqHost && !reqHost.includes('127.0.0.1')) {
+      effectiveBaseUrl = `${reqProto}://${reqHost}`;
+    }
+
+    const channels = await channelRepository.listChannels(sourceId, 5000);
+    const enabledChannels = channels.filter((c) => c.enabled !== false);
+
+    const exportedItems: ExportedChannelItem[] = [];
+
+    let expiresAt: string | undefined;
+    const lifetime = tokenLifetimeHours || settings.defaultTokenLifetime;
+    if (lifetime > 0) {
+      const expDate = new Date();
+      expDate.setHours(expDate.getHours() + lifetime);
+      expiresAt = expDate.toISOString();
+    }
+
+    for (const channel of enabledChannels) {
+      const publicOutputId = channel.activeOutputId || channel.id;
+      const rawToken = generateStreamToken();
+      const tokenHash = hashStreamToken(rawToken);
+
+      await tokenRepository.createToken({
+        channelId: channel.id,
+        name: `Export Token - ${channel.name}`,
+        tokenHash,
+        publicOutputId,
+        expiresAt,
+      });
+
+      const playbackUrl = buildPlaybackUrl(effectiveBaseUrl, publicOutputId, rawToken);
+      const tsPlaybackUrl = buildTsPlaybackUrl(effectiveBaseUrl, publicOutputId, rawToken);
+
+      exportedItems.push({
+        id: channel.id,
+        name: channel.name,
+        groupTitle: channel.groupTitle || 'General',
+        logoUrl: channel.logoUrl,
+        playbackUrl,
+        tsPlaybackUrl,
+      });
+    }
+
+    // Generate formatted TXT file
+    const now = new Date().toISOString();
+    let txtContent = `================================================================================\n`;
+    txtContent += `  ASPREEN TV — WORKING CHANNELS EXPORT\n`;
+    txtContent += `  Generated: ${now}\n`;
+    txtContent += `  Total Channels: ${exportedItems.length}\n`;
+    txtContent += `  Streaming Server: ${effectiveBaseUrl}\n`;
+    txtContent += `================================================================================\n\n`;
+
+    exportedItems.forEach((item, index) => {
+      txtContent += `[${index + 1}] ${item.name}\n`;
+      if (item.groupTitle) txtContent += `Category: ${item.groupTitle}\n`;
+      txtContent += `Live MPEG-TS Stream: ${item.tsPlaybackUrl}\n`;
+      txtContent += `HLS Playback (m3u8): ${item.playbackUrl}\n`;
+      txtContent += `--------------------------------------------------------------------------------\n`;
+    });
+
+    // Generate standard M3U playlist file
+    let m3uContent = `#EXTM3U\n`;
+    exportedItems.forEach((item) => {
+      const tvgLogo = item.logoUrl ? ` tvg-logo="${item.logoUrl}"` : '';
+      const groupTitle = item.groupTitle ? ` group-title="${item.groupTitle}"` : '';
+      m3uContent += `#EXTINF:-1 tvg-id="" tvg-name="${item.name}"${tvgLogo}${groupTitle},${item.name}\n`;
+      m3uContent += `${item.tsPlaybackUrl}\n`;
+    });
+
+    await logRepository.addLog({
+      eventType: 'CHANNELS_EXPORTED',
+      entityType: 'STREAM_TOKEN',
+      result: 'SUCCESS',
+      safeDetails: {
+        sourceId,
+        channelCount: exportedItems.length,
+      },
+    });
+
+    const result: ExportLinksResult = {
+      totalChannels: exportedItems.length,
+      channels: exportedItems,
+      txtContent,
+      m3uContent,
+    };
+
+    return result;
+  });
+
+  /**
+   * GET /api/stream-tokens/download-export
+   * Direct download endpoint for TXT and M3U files.
+   */
+  server.get('/download-export', async (request: FastifyRequest<{
+    Querystring: { format?: 'txt' | 'm3u'; sourceId?: string };
+  }>, reply: FastifyReply) => {
+    const format = request.query.format === 'm3u' ? 'm3u' : 'txt';
+    const sourceId = request.query.sourceId;
+
+    const res = await (server as any).inject({
+      method: 'POST',
+      url: '/api/stream-tokens/export-links',
+      headers: {
+        authorization: request.headers.authorization,
+        cookie: request.headers.cookie,
+      },
+      payload: { sourceId },
+    });
+
+    if (res.statusCode !== 200) {
+      return reply.status(res.statusCode).send(res.body);
+    }
+
+    const data: ExportLinksResult = JSON.parse(res.body);
+    const filename = `aspreen_channels_${new Date().toISOString().slice(0, 10)}.${format}`;
+
+    if (format === 'm3u') {
+      reply.header('Content-Type', 'audio/x-mpegurl; charset=utf-8');
+      reply.header('Content-Disposition', `attachment; filename="${filename}"`);
+      return reply.send(data.m3uContent);
+    } else {
+      reply.header('Content-Type', 'text/plain; charset=utf-8');
+      reply.header('Content-Disposition', `attachment; filename="${filename}"`);
+      return reply.send(data.txtContent);
+    }
+  });
 }
+

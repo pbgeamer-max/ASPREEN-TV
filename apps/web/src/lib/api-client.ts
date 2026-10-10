@@ -7,6 +7,9 @@ import {
   AdminSettings,
   DashboardSummary,
   StreamProbeInfo,
+  BulkStartResult,
+  BulkStopResult,
+  ExportLinksResult,
 } from '@aspreen/shared';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
@@ -176,6 +179,24 @@ class ApiClient {
     return this.request(`/channels/${id}/restart`, { method: 'POST' });
   }
 
+  async bulkStartChannels(options?: {
+    sourceId?: string;
+    preset?: string;
+    maxToStart?: number;
+  }): Promise<BulkStartResult> {
+    return this.request<BulkStartResult>('/channels/bulk/start', {
+      method: 'POST',
+      body: JSON.stringify(options || {}),
+    });
+  }
+
+  async bulkStopChannels(sourceId?: string): Promise<BulkStopResult> {
+    return this.request<BulkStopResult>('/channels/bulk/stop', {
+      method: 'POST',
+      body: JSON.stringify({ sourceId }),
+    });
+  }
+
   // Transcoding Jobs
   async getJobs(limit = 50): Promise<TranscodingJob[]> {
     return this.request<TranscodingJob[]>(`/jobs?limit=${limit}`);
@@ -213,6 +234,16 @@ class ApiClient {
     id: string
   ): Promise<{ token: StreamToken; rawToken: string; playbackUrl: string; tsPlaybackUrl: string }> {
     return this.request(`/stream-tokens/${id}/rotate`, { method: 'POST' });
+  }
+
+  async exportChannelLinks(options?: {
+    sourceId?: string;
+    tokenLifetimeHours?: number;
+  }): Promise<ExportLinksResult> {
+    return this.request<ExportLinksResult>('/stream-tokens/export-links', {
+      method: 'POST',
+      body: JSON.stringify(options || {}),
+    });
   }
 
   // Settings & System

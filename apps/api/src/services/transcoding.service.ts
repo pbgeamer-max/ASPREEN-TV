@@ -7,6 +7,8 @@ import {
   TranscodingPresetId,
   buildFfmpegArgs,
   TRANSCODING_PRESETS,
+  BulkStartResult,
+  BulkStopResult,
 } from '@aspreen/shared';
 import { channelRepository } from '../repositories/channel.repository';
 import { jobRepository } from '../repositories/job.repository';
@@ -455,6 +457,94 @@ export class TranscodingService {
     const job = await jobRepository.getJob(jobId);
     if (!job) return false;
     return this.stopChannel(job.channelId);
+  }
+
+  /**
+   * Starts all enabled channels (or filtered by sourceId) using COPY preset.
+   */
+  async bulkStartChannels(options: {
+    sourceId?: string;
+    preset?: TranscodingPresetId;
+    maxToStart?: number;
+  } = {}): Promise<BulkStartResult> {
+    const limit = options.maxToStart || 1000;
+    const channels = await channelRepository.listChannels(options.sourceId, limit);
+    const enabledChannels = channels.filter((c) => c.enabled !== false);
+
+    let startedCount = 0;
+    let alreadyRunningCount = 0;
+    let skippedCount = 0;
+    const errors: string[] = [];
+
+    const preset = options.preset || 'COPY';
+
+    for (const ch of enabledChannels) {
+      if (ch.transcodingStatus === 'RUNNING' && ch.activeJobId) {
+        alreadyRunningCount++;
+        continue;
+      }
+      try {
+        await this.startChannel(ch.id, { preset });
+        startedCount++;
+      } catch (err: any) {
+        if (err.message && err.message.includes('Maximum concurrent')) {
+          skippedCount++;
+          errors.push(`Reached concurrency limit while starting "${ch.name}"`);
+          break;
+        } else {
+          errors.push(`Channel "${ch.name}": ${err.message}`);
+        }
+      }
+    }
+
+    await logRepository.addLog({
+      eventType: 'BULK_CHANNELS_STARTED',
+      entityType: 'CHANNEL',
+      result: errors.length > 0 && startedCount === 0 ? 'FAILURE' : 'SUCCESS',
+      safeDetails: {
+        sourceId: options.sourceId,
+        totalTargeted: enabledChannels.length,
+        startedCount,
+        alreadyRunningCount,
+        skippedCount,
+        preset,
+      },
+    });
+
+    return {
+      totalTargeted: enabledChannels.length,
+      startedCount,
+      alreadyRunningCount,
+      skippedCount,
+      errors: errors.slice(0, 10),
+    };
+  }
+
+  /**
+   * Stops all active transcoding channels (or filtered by sourceId).
+   */
+  async bulkStopChannels(sourceId?: string): Promise<BulkStopResult> {
+    const channels = await channelRepository.listChannels(sourceId, 5000);
+    let stoppedCount = 0;
+
+    for (const ch of channels) {
+      if (ch.transcodingStatus === 'RUNNING' || ch.activeJobId) {
+        const stopped = await this.stopChannel(ch.id);
+        if (stopped) stoppedCount++;
+      }
+    }
+
+    await logRepository.addLog({
+      eventType: 'BULK_CHANNELS_STOPPED',
+      entityType: 'CHANNEL',
+      result: 'SUCCESS',
+      safeDetails: {
+        sourceId,
+        stoppedCount,
+      },
+    });
+
+    return { stoppedCount };
   }
 }
 

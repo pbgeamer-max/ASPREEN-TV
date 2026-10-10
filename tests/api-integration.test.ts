@@ -120,6 +120,42 @@ https://example.com/test1.m3u8`;
   });
   assert.equal(revokedSubreqRes.statusCode, 403);
 
+  // 9. Test Bulk Start Channels
+  const bulkStartRes = await server.inject({
+    method: 'POST',
+    url: '/api/channels/bulk/start',
+    headers: authHeader,
+    payload: { sourceId },
+  });
+  assert.equal(bulkStartRes.statusCode, 200);
+  const bulkStartData = JSON.parse(bulkStartRes.body);
+  assert.ok(bulkStartData.totalTargeted >= 1);
+
+  // 10. Test Bulk Stop Channels
+  const bulkStopRes = await server.inject({
+    method: 'POST',
+    url: '/api/channels/bulk/stop',
+    headers: authHeader,
+    payload: { sourceId },
+  });
+  assert.equal(bulkStopRes.statusCode, 200);
+
+  // 11. Test Export Links (TXT and M3U formats)
+  const exportLinksRes = await server.inject({
+    method: 'POST',
+    url: '/api/stream-tokens/export-links',
+    headers: authHeader,
+    payload: { sourceId },
+  });
+  assert.equal(exportLinksRes.statusCode, 200);
+  const exportData = JSON.parse(exportLinksRes.body);
+  assert.equal(exportData.totalChannels, 1);
+  assert.ok(exportData.txtContent.includes('ASPREEN TV — WORKING CHANNELS EXPORT'));
+  assert.ok(exportData.txtContent.includes('Test Channel 1'));
+  assert.ok(exportData.m3uContent.startsWith('#EXTM3U'));
+  assert.ok(exportData.m3uContent.includes('Test Channel 1'));
+
   // Cleanup
   await server.close();
 });
+

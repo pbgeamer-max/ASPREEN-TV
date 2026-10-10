@@ -3,7 +3,7 @@ import { requireAdminAuth } from '../security/auth-guard';
 import { channelRepository } from '../repositories/channel.repository';
 import { transcodingService } from '../services/transcoding.service';
 import { probeStream } from '../services/probe.service';
-import { ChannelUpdateSchema, StartTranscodingSchema } from '@aspreen/shared';
+import { ChannelUpdateSchema, StartTranscodingSchema, BulkStartChannelsSchema } from '@aspreen/shared';
 import { decrypt } from '../security/encryption';
 
 export async function channelRoutes(server: FastifyInstance) {
@@ -39,6 +39,38 @@ export async function channelRoutes(server: FastifyInstance) {
     }
 
     return channels.map(sanitizeChannel);
+  });
+
+  /**
+   * POST /api/channels/bulk/start
+   * Starts all channels (or filtered by sourceId) using COPY preset.
+   */
+  server.post('/bulk/start', async (request: FastifyRequest, reply: FastifyReply) => {
+    const parseResult = BulkStartChannelsSchema.safeParse(request.body || {});
+    if (!parseResult.success) {
+      return reply.status(400).send({ error: 'Validation Error', details: parseResult.error.format() });
+    }
+
+    try {
+      const result = await transcodingService.bulkStartChannels(parseResult.data);
+      return result;
+    } catch (err: any) {
+      return reply.status(500).send({ error: 'Bulk start failed', message: err.message });
+    }
+  });
+
+  /**
+   * POST /api/channels/bulk/stop
+   * Stops all active transcoding jobs (or filtered by sourceId).
+   */
+  server.post('/bulk/stop', async (request: FastifyRequest<{ Body: { sourceId?: string } }>, reply: FastifyReply) => {
+    try {
+      const sourceId = (request.body as any)?.sourceId;
+      const result = await transcodingService.bulkStopChannels(sourceId);
+      return result;
+    } catch (err: any) {
+      return reply.status(500).send({ error: 'Bulk stop failed', message: err.message });
+    }
   });
 
   /**

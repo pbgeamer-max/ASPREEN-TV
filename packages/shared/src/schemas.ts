@@ -41,6 +41,17 @@ export const StartTranscodingSchema = z.object({
   playlistWindow: z.number().int().min(3).max(20).optional(),
 });
 
+export const BulkStartChannelsSchema = z.object({
+  sourceId: z.string().optional(),
+  preset: TranscodingPresetEnum.optional(),
+  maxToStart: z.number().int().min(1).max(2000).optional(),
+});
+
+export const ExportLinksSchema = z.object({
+  sourceId: z.string().optional(),
+  tokenLifetimeHours: z.number().int().min(0).max(8760).default(0),
+});
+
 export const StreamTokenCreateSchema = z.object({
   name: z.string().min(1, 'Token name is required').max(100),
   lifetimeHours: z.number().int().min(0).max(8760).default(0), // 0 = indefinite
@@ -52,8 +63,8 @@ export const AdminSettingsUpdateSchema = z.object({
   defaultTranscodingPreset: TranscodingPresetEnum.optional(),
   defaultSegmentDuration: z.number().int().min(2).max(10).optional(),
   defaultPlaylistWindow: z.number().int().min(3).max(20).optional(),
-  maxConcurrentJobs: z.number().int().min(1).max(32).optional(),
-  maxPlaylistChannels: z.number().int().min(10).max(5000).optional(),
+  maxConcurrentJobs: z.number().int().min(1).max(500).optional(),
+  maxPlaylistChannels: z.number().int().min(10).max(10000).optional(),
   sourceTimeoutSeconds: z.number().int().min(3).max(60).optional(),
   defaultTokenLifetime: z.number().int().min(0).max(8760).optional(),
   outputRetentionHours: z.number().int().min(1).max(168).optional(),
@@ -69,6 +80,8 @@ export type SourceCreateInput = z.infer<typeof SourceCreateSchema>;
 export type SourceUpdateInput = z.infer<typeof SourceUpdateSchema>;
 export type ChannelUpdateInput = z.infer<typeof ChannelUpdateSchema>;
 export type StartTranscodingInput = z.infer<typeof StartTranscodingSchema>;
+export type BulkStartChannelsInput = z.infer<typeof BulkStartChannelsSchema>;
+export type ExportLinksInput = z.infer<typeof ExportLinksSchema>;
 export type StreamTokenCreateInput = z.infer<typeof StreamTokenCreateSchema>;
 export type AdminSettingsUpdateInput = z.infer<typeof AdminSettingsUpdateSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;

@@ -7,7 +7,7 @@ import { Header } from '@/components/layout/header';
 import { HlsPlayerModal } from '@/components/player/hls-player';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api-client';
-import { Channel, Source, TranscodingPresetId, StreamProbeInfo } from '@aspreen/shared';
+import { Channel, Source, TranscodingPresetId, StreamProbeInfo, ExportLinksResult } from '@aspreen/shared';
 import {
   Tv,
   Search,
@@ -22,6 +22,8 @@ import {
   X,
   AlertCircle,
   Radio,
+  Download,
+  FileText,
 } from 'lucide-react';
 
 export default function ChannelsPage() {
@@ -63,6 +65,23 @@ export default function ChannelsPage() {
 
   // Transcoding actions
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+
+  // Bulk operations state
+  const [bulkStarting, setBulkStarting] = useState(false);
+  const [bulkStopping, setBulkStopping] = useState(false);
+  const [bulkResultModal, setBulkResultModal] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    details?: string[];
+  }>({ open: false, title: '', message: '' });
+
+  // Export links state
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportResult, setExportResult] = useState<ExportLinksResult | null>(null);
+  const [activeExportTab, setActiveExportTab] = useState<'TXT' | 'M3U'>('TXT');
+  const [copiedExport, setCopiedExport] = useState(false);
 
   const fetchChannels = async () => {
     try {
@@ -182,6 +201,80 @@ export default function ChannelsPage() {
     }
   };
 
+  const handleBulkStart = async () => {
+    const targetDesc = selectedSourceId ? 'all channels in selected source' : 'ALL channels';
+    if (!confirm(`Are you sure you want to start ${targetDesc} using Compatible Stream Copy mode?`)) {
+      return;
+    }
+    setBulkStarting(true);
+    try {
+      const res = await api.bulkStartChannels({
+        sourceId: selectedSourceId || undefined,
+        preset: 'COPY',
+      });
+      setBulkResultModal({
+        open: true,
+        title: 'Bulk Transcoding Initiated',
+        message: `Processed ${res.totalTargeted} channels:\n• Newly Started: ${res.startedCount}\n• Already Running: ${res.alreadyRunningCount}\n• Skipped (Limit): ${res.skippedCount}`,
+        details: res.errors && res.errors.length > 0 ? res.errors : undefined,
+      });
+      fetchChannels();
+    } catch (err: any) {
+      alert(`Bulk start failed: ${err.message}`);
+    } finally {
+      setBulkStarting(false);
+    }
+  };
+
+  const handleBulkStop = async () => {
+    const targetDesc = selectedSourceId ? 'all channels in selected source' : 'ALL channels';
+    if (!confirm(`Are you sure you want to STOP ${targetDesc}? Active stream processes will be terminated.`)) {
+      return;
+    }
+    setBulkStopping(true);
+    try {
+      const res = await api.bulkStopChannels(selectedSourceId || undefined);
+      setBulkResultModal({
+        open: true,
+        title: 'Channels Stopped',
+        message: `Successfully stopped ${res.stoppedCount} active transcoding processes.`,
+      });
+      fetchChannels();
+    } catch (err: any) {
+      alert(`Bulk stop failed: ${err.message}`);
+    } finally {
+      setBulkStopping(false);
+    }
+  };
+
+  const handleExportLinks = async () => {
+    setExportLoading(true);
+    setExportModalOpen(true);
+    try {
+      const res = await api.exportChannelLinks({
+        sourceId: selectedSourceId || undefined,
+      });
+      setExportResult(res);
+    } catch (err: any) {
+      alert(`Export failed: ${err.message}`);
+      setExportModalOpen(false);
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const downloadFile = (content: string, filename: string, mime: string) => {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   // Extract distinct groups for filter
   const distinctGroups = Array.from(new Set(channels.map((c) => c.groupTitle).filter(Boolean)));
 
@@ -193,6 +286,39 @@ export default function ChannelsPage() {
         <Header
           title="Imported Channels"
           subtitle="Configure transcoding presets, inspect audio/video codecs, and issue protected tokens"
+          action={
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={handleBulkStart}
+                disabled={bulkStarting || loading || channels.length === 0}
+                className="btn-primary py-1.5 px-3 text-xs gap-1.5 shadow-sm"
+                title="Start all channels with low-CPU Stream Copy mode"
+              >
+                <Play className={`w-3.5 h-3.5 fill-current ${bulkStarting ? 'animate-pulse' : ''}`} />
+                <span>{bulkStarting ? 'Starting All...' : 'Start All Channels'}</span>
+              </button>
+
+              <button
+                onClick={handleBulkStop}
+                disabled={bulkStopping || loading}
+                className="btn-secondary py-1.5 px-3 text-xs gap-1.5 hover:text-red-400"
+                title="Stop all active stream processes"
+              >
+                <Square className={`w-3.5 h-3.5 ${bulkStopping ? 'animate-spin' : ''}`} />
+                <span>{bulkStopping ? 'Stopping...' : 'Stop All'}</span>
+              </button>
+
+              <button
+                onClick={handleExportLinks}
+                disabled={exportLoading || loading || channels.length === 0}
+                className="btn-secondary py-1.5 px-3 text-xs gap-1.5 bg-[#171717] hover:bg-[#222222] border-neutral-700"
+                title="Export all working channel links to TXT and M3U formats"
+              >
+                <Download className={`w-3.5 h-3.5 ${exportLoading ? 'animate-bounce' : ''}`} />
+                <span>{exportLoading ? 'Exporting...' : 'Export All Links (TXT/M3U)'}</span>
+              </button>
+            </div>
+          }
         />
 
         <div className="p-8 space-y-6 flex-1">
@@ -566,6 +692,160 @@ export default function ChannelsPage() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Action Result Modal */}
+        {bulkResultModal.open && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#111111] border border-[#262626] rounded-xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-[#222] pb-3">
+                <h3 className="text-sm font-bold text-[#F5F5F5]">{bulkResultModal.title}</h3>
+                <button
+                  onClick={() => setBulkResultModal({ open: false, title: '', message: '' })}
+                  className="text-[#71717A] hover:text-[#F5F5F5]"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="whitespace-pre-wrap font-mono text-xs text-[#D4D4D8] bg-[#161616] p-3 rounded border border-[#262626]">
+                {bulkResultModal.message}
+              </div>
+
+              {bulkResultModal.details && bulkResultModal.details.length > 0 && (
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-mono text-[#A1A1AA]">Details / Warnings:</span>
+                  <div className="max-h-28 overflow-auto bg-[#141414] p-2 rounded text-[11px] text-[#A1A1AA] font-mono space-y-1 border border-[#222]">
+                    {bulkResultModal.details.map((d, i) => (
+                      <div key={i}>• {d}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setBulkResultModal({ open: false, title: '', message: '' })}
+                  className="btn-primary py-1.5 px-4 text-xs"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Export Links Modal */}
+        {exportModalOpen && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#111111] border border-[#262626] rounded-xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+              <div className="flex items-center justify-between p-5 border-b border-[#262626]">
+                <div className="flex items-center gap-2.5">
+                  <FileText className="w-5 h-5 text-white" />
+                  <div>
+                    <h3 className="text-sm font-bold text-[#F5F5F5]">Export Working Channel Links</h3>
+                    <p className="text-[11px] text-[#71717A]">
+                      {exportResult
+                        ? `${exportResult.totalChannels} channels exported with secure playback tokens`
+                        : 'Generating tokens and links...'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setExportModalOpen(false)}
+                  className="text-[#71717A] hover:text-[#F5F5F5] transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {exportLoading ? (
+                <div className="p-16 text-center text-xs text-[#71717A] space-y-3">
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                  <p>Generating cryptographically signed playback tokens for all channels...</p>
+                </div>
+              ) : exportResult ? (
+                <div className="flex-1 flex flex-col p-5 overflow-hidden space-y-4">
+                  {/* Format Tabs & Download Buttons */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#222] pb-3">
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setActiveExportTab('TXT')}
+                        className={`py-1 px-3 text-xs rounded transition-colors ${
+                          activeExportTab === 'TXT'
+                            ? 'bg-white text-black font-semibold'
+                            : 'bg-[#181818] text-[#A1A1AA] hover:text-white'
+                        }`}
+                      >
+                        TXT Format (List)
+                      </button>
+                      <button
+                        onClick={() => setActiveExportTab('M3U')}
+                        className={`py-1 px-3 text-xs rounded transition-colors ${
+                          activeExportTab === 'M3U'
+                            ? 'bg-white text-black font-semibold'
+                            : 'bg-[#181818] text-[#A1A1AA] hover:text-white'
+                        }`}
+                      >
+                        M3U Playlist (IPTV)
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        onClick={() => {
+                          const content = activeExportTab === 'TXT' ? exportResult.txtContent : exportResult.m3uContent;
+                          navigator.clipboard.writeText(content);
+                          setCopiedExport(true);
+                          setTimeout(() => setCopiedExport(false), 2000);
+                        }}
+                        className="btn-secondary py-1 px-2.5 text-xs gap-1"
+                      >
+                        {copiedExport ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedExport ? 'Copied!' : 'Copy'}</span>
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          downloadFile(
+                            exportResult.txtContent,
+                            `aspreen_channels_${new Date().toISOString().slice(0, 10)}.txt`,
+                            'text/plain'
+                          )
+                        }
+                        className="btn-primary py-1 px-3 text-xs gap-1"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download .TXT</span>
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          downloadFile(
+                            exportResult.m3uContent,
+                            `aspreen_playlist_${new Date().toISOString().slice(0, 10)}.m3u`,
+                            'audio/x-mpegurl'
+                          )
+                        }
+                        className="btn-secondary py-1 px-3 text-xs gap-1 border-neutral-600"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download .M3U</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Code / Text Preview */}
+                  <div className="flex-1 overflow-auto bg-[#0A0A0A] border border-[#222] rounded-lg p-3 max-h-96">
+                    <pre className="font-mono text-[11px] text-[#D4D4D8] leading-relaxed whitespace-pre-wrap select-all">
+                      {activeExportTab === 'TXT' ? exportResult.txtContent : exportResult.m3uContent}
+                    </pre>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         )}

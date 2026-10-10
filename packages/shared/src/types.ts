@@ -230,3 +230,34 @@ export interface DashboardSummary {
   recentJobs: TranscodingJob[];
   recentActivity: ActivityLog[];
 }
+
+/**
+ * Bulk Operation Types
+ */
+export interface BulkStartResult {
+  totalTargeted: number;
+  startedCount: number;
+  alreadyRunningCount: number;
+  skippedCount: number;
+  errors: string[];
+}
+
+export interface BulkStopResult {
+  stoppedCount: number;
+}
+
+export interface ExportedChannelItem {
+  id: string;
+  name: string;
+  groupTitle?: string;
+  logoUrl?: string;
+  playbackUrl: string;
+  tsPlaybackUrl: string;
+}
+
+export interface ExportLinksResult {
+  totalChannels: number;
+  channels: ExportedChannelItem[];
+  txtContent: string;
+  m3uContent: string;
+}
