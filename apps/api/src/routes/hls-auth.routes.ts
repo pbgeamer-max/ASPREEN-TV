@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { tokenRepository } from '../repositories/token.repository';
 import { hashStreamToken } from '../security/token';
+import { transcodingService } from '../services/transcoding.service';
 
 export async function hlsAuthRoutes(server: FastifyInstance) {
   /**
@@ -62,7 +63,14 @@ export async function hlsAuthRoutes(server: FastifyInstance) {
 
     // 7. Update last used in background (do not block media streaming response)
     tokenRepository.updateLastUsed(token.id).catch(() => {});
+    transcodingService.touchChannelAccess(token.channelId);
+
+    // Auto-trigger on-demand segmentation if playlist is requested
+    if (originalUri.includes('.m3u8')) {
+      transcodingService.ensureChannelRunning(token.channelId).catch(() => {});
+    }
 
     return reply.status(200).send('OK');
   });
 }
+

@@ -20,6 +20,7 @@ import { channelRepository } from './repositories/channel.repository';
 import { settingsRepository } from './repositories/settings.repository';
 import { hashStreamToken } from './security/token';
 import { decrypt } from './security/encryption';
+import { transcodingService } from './services/transcoding.service';
 
 export async function createServer() {
   const server = Fastify({
@@ -212,8 +213,23 @@ export async function createServer() {
 
     // Update last used asynchronously
     tokenRepository.updateLastUsed(tokenDoc.id).catch(() => {});
+    transcodingService.touchChannelAccess(tokenDoc.channelId);
 
     const filePath = path.resolve(config.streamStoragePath, outputId, safeFile);
+
+    // If playlist is requested and does not exist yet on disk, trigger on-demand HLS segmentation!
+    if (!fs.existsSync(filePath) && safeFile.endsWith('.m3u8')) {
+      transcodingService.ensureChannelRunning(tokenDoc.channelId).catch(() => {});
+
+      // Wait up to 6 seconds for FFmpeg to produce the initial index.m3u8
+      const maxWaitMs = 6000;
+      const intervalMs = 250;
+      let waited = 0;
+      while (!fs.existsSync(filePath) && waited < maxWaitMs) {
+        await new Promise((r) => setTimeout(r, intervalMs));
+        waited += intervalMs;
+      }
+    }
 
     if (!fs.existsSync(filePath)) {
       return reply.status(404).send('Stream file not found or not yet generated');

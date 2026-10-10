@@ -42,6 +42,40 @@ export class TranscodingService {
   private intentionalStops: Set<string> = new Set(); // channelId
   private restartAttempts: Map<string, number> = new Map(); // channelId -> count
   private restartTimers: Map<string, NodeJS.Timeout> = new Map(); // channelId -> timer
+  private lastAccessTimestamps: Map<string, number> = new Map(); // channelId -> timestamp
+  private idleCheckInterval: NodeJS.Timeout;
+
+  constructor() {
+    this.idleCheckInterval = setInterval(() => {
+      const now = Date.now();
+      const IDLE_TIMEOUT_MS = 90000; // 90 seconds of inactivity
+      for (const [_, running] of this.activeProcesses) {
+        const lastAccess = this.lastAccessTimestamps.get(running.channelId);
+        if (lastAccess && now - lastAccess > IDLE_TIMEOUT_MS) {
+          console.log(`[Auto-Idle] Stopping inactive channel "${running.channelId}" after 90s idle.`);
+          this.stopChannel(running.channelId).catch(() => {});
+        }
+      }
+    }, 30000);
+    this.idleCheckInterval.unref();
+  }
+
+  touchChannelAccess(channelId: string) {
+    this.lastAccessTimestamps.set(channelId, Date.now());
+  }
+
+  async ensureChannelRunning(channelId: string): Promise<TranscodingJob | null> {
+    this.touchChannelAccess(channelId);
+    const existing = await jobRepository.getActiveJobForChannel(channelId);
+    if (existing && (existing.status === 'RUNNING' || existing.status === 'STARTING')) {
+      return existing;
+    }
+    try {
+      return await this.startChannel(channelId, { preset: 'COPY' });
+    } catch {
+      return null;
+    }
+  }
 
   /**
    * Starts transcoding for a channel.
