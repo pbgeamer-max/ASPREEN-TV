@@ -59,6 +59,39 @@ export class ChannelRepository {
     return updated;
   }
 
+  async createChannelsBatch(
+    channelsData: Omit<Channel, 'id' | 'createdAt' | 'updatedAt'>[]
+  ): Promise<number> {
+    if (channelsData.length === 0) return 0;
+
+    const now = new Date().toISOString();
+    let totalCreated = 0;
+
+    // Firestore batch limit is 500 operations per batch
+    const BATCH_SIZE = 400;
+    for (let i = 0; i < channelsData.length; i += BATCH_SIZE) {
+      const chunk = channelsData.slice(i, i + BATCH_SIZE);
+      const batch = this.db.batch();
+
+      for (const item of chunk) {
+        const id = crypto.randomUUID();
+        const channel: Channel = {
+          ...item,
+          id,
+          createdAt: now,
+          updatedAt: now,
+        };
+        const docRef = this.db.collection(CHANNELS_COLLECTION).doc(id);
+        batch.set(docRef, cleanUndefined(channel));
+      }
+
+      await batch.commit();
+      totalCreated += chunk.length;
+    }
+
+    return totalCreated;
+  }
+
   async deleteChannel(id: string): Promise<boolean> {
     const docRef = await this.db.collection(CHANNELS_COLLECTION).doc(id);
     const snap = await docRef.get();
@@ -70,12 +103,22 @@ export class ChannelRepository {
   async deleteChannelsBySourceId(sourceId: string): Promise<number> {
     const colRef = this.db.collection(CHANNELS_COLLECTION);
     const snap = await colRef.where('sourceId', '==', sourceId).get();
+    if (snap.empty) return 0;
+
+    const BATCH_SIZE = 400;
+    const docs = snap.docs;
     let count = 0;
-    for (const doc of snap.docs) {
-      const docRef = await this.db.collection(CHANNELS_COLLECTION).doc(doc.id);
-      await docRef.delete();
-      count++;
+
+    for (let i = 0; i < docs.length; i += BATCH_SIZE) {
+      const chunk = docs.slice(i, i + BATCH_SIZE);
+      const batch = this.db.batch();
+      for (const doc of chunk) {
+        batch.delete(doc.ref);
+      }
+      await batch.commit();
+      count += chunk.length;
     }
+
     return count;
   }
 }

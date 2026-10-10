@@ -39,7 +39,7 @@ export default function SourcesPage() {
   const [sourceName, setSourceName] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
   const [credentials, setCredentials] = useState('');
-  const [maxChannels, setMaxChannels] = useState(500);
+  const [maxChannels, setMaxChannels] = useState(5000);
   const [localFileContent, setLocalFileContent] = useState('');
   const [fileName, setFileName] = useState('');
 
@@ -473,9 +473,9 @@ export default function SourcesPage() {
                     <input
                       type="number"
                       value={maxChannels}
-                      onChange={(e) => setMaxChannels(parseInt(e.target.value, 10) || 500)}
+                      onChange={(e) => setMaxChannels(parseInt(e.target.value, 10) || 5000)}
                       min={1}
-                      max={2000}
+                      max={10000}
                       className="form-input text-xs font-mono"
                     />
                   </div>

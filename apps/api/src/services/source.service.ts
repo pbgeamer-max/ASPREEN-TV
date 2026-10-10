@@ -95,19 +95,32 @@ export class SourceService {
     } else if (rawContent) {
       // Parse M3U channel collection
       const parsed = parseM3UPlaylist(rawContent, {
-        maxEntries: input.maxChannels,
+        maxEntries: input.maxChannels || 10000,
         baseUrl: input.url,
       });
 
+      const hostCache = new Map<string, boolean>();
+      const channelsToCreate: any[] = [];
+
       for (const ch of parsed.channels) {
-        // Enforce SSRF validation on individual channel URLs
-        const chSsrf = await validateUrlSsrf(ch.url);
-        if (!chSsrf.isValid) {
-          // Skip internal/loopback channel URLs
+        if (!ch.url) continue;
+
+        // Fast host cache for SSRF to avoid hundreds of redundant DNS lookups
+        try {
+          const u = new URL(ch.url);
+          const host = u.hostname.toLowerCase();
+          let isValid = hostCache.get(host);
+          if (isValid === undefined) {
+            const ssrf = await validateUrlSsrf(ch.url);
+            isValid = ssrf.isValid;
+            hostCache.set(host, isValid);
+          }
+          if (!isValid) continue;
+        } catch {
           continue;
         }
 
-        await channelRepository.createChannel({
+        channelsToCreate.push({
           sourceId: source.id,
           externalIdentifier: ch.tvgId,
           name: ch.displayName,
@@ -121,8 +134,9 @@ export class SourceService {
           transcodingStatus: 'STOPPED',
           preset: 'COPY',
         });
-        importedCount++;
       }
+
+      importedCount = await channelRepository.createChannelsBatch(channelsToCreate);
     }
 
     // Update channelCount in source

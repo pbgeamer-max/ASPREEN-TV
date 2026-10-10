@@ -129,6 +129,41 @@ class MockFirestore {
     }
     return this.collections.get(name)!;
   }
+
+  batch() {
+    const ops: Array<() => Promise<void>> = [];
+    return {
+      set: (docRef: any, data: any, options?: any) => {
+        ops.push(async () => {
+          const doc = docRef && typeof docRef.then === 'function' ? await docRef : docRef;
+          if (doc?.set) {
+            await doc.set(data, options);
+          }
+        });
+      },
+      update: (docRef: any, data: any) => {
+        ops.push(async () => {
+          const doc = docRef && typeof docRef.then === 'function' ? await docRef : docRef;
+          if (doc?.update) {
+            await doc.update(data);
+          }
+        });
+      },
+      delete: (docRef: any) => {
+        ops.push(async () => {
+          const doc = docRef && typeof docRef.then === 'function' ? await docRef : docRef;
+          if (doc?.delete) {
+            await doc.delete();
+          }
+        });
+      },
+      commit: async () => {
+        for (const op of ops) {
+          await op();
+        }
+      },
+    };
+  }
 }
 
 const mockDb = new MockFirestore();

@@ -10,7 +10,7 @@ export const SourceCreateSchema = z.object({
   content: z.string().optional(), // For raw M3U upload
   credentials: z.string().max(500).optional(),
   customHeaders: z.record(z.string()).optional(),
-  maxChannels: z.number().int().min(1).max(2000).default(500),
+  maxChannels: z.number().int().min(1).max(10000).default(5000),
 }).refine((data) => {
   if (data.type === 'LOCAL_M3U') {
     return !!data.content && data.content.trim().length > 0;

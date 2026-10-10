@@ -29,6 +29,7 @@ export async function createServer() {
       level: config.nodeEnv === 'production' ? 'info' : 'warn',
     },
     trustProxy: true,
+    bodyLimit: 50 * 1024 * 1024, // 50MB for large M3U playlist uploads
   });
 
   // Security & Plugins
@@ -45,12 +46,12 @@ export async function createServer() {
   });
 
   await server.register(rateLimit, {
-    max: 200,
+    max: 1000,
     timeWindow: '1 minute',
   });
 
-  // Gracefully handle empty JSON bodies from proxies/rewrites
-  server.addContentTypeParser('application/json', { parseAs: 'string' }, (_req, body, defaultDone) => {
+  // Gracefully handle empty JSON bodies from proxies/rewrites, allow up to 50MB
+  server.addContentTypeParser('application/json', { parseAs: 'string', bodyLimit: 50 * 1024 * 1024 }, (_req, body, defaultDone) => {
     if (!body || (typeof body === 'string' && body.trim() === '')) {
       defaultDone(null, {});
       return;
