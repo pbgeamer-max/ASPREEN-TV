@@ -170,6 +170,7 @@ class TelegramService {
           `🔹 <code>/sniff &lt;رابط_صفحة&gt; [الاسم]</code> - قنص واستخراج رابط البث المخفي من أي موقع\n` +
           `🔹 <code>/sync_sports</code> - استكشاف ومزامنة قنوات beIN والرياضة تلقائياً\n` +
           `🔹 <code>/check</code> - فحص صحة القنوات وسرعتها\n` +
+          `🔹 <code>/repair_db</code> - إعادة تهيئة وبناء جداول قاعدة البيانات إذا تم مسحها\n` +
           `🔹 <code>/app</code> - رابط الـ API لتطبيق الأندرويد`;
 
         await this.sendMessage(chatId, welcome);
@@ -382,9 +383,31 @@ class TelegramService {
         }
 
         await this.sendMessage(chatId, replyMsg);
+      } else if (command === '/repair_db' || command === '/init_db') {
+        await this.sendMessage(chatId, '🛠️ جاري فحص وإعادة بناء جداول قاعدة البيانات...');
+        const { initDatabase } = await import('../db');
+        const ok = await initDatabase(true);
+        if (ok) {
+          await this.sendMessage(chatId, '✅ تم تهيئة وإعادة بناء جميع جداول قاعدة البيانات بنجاح! يمكنك الآن استخدام البوت بشكل طبيعي.');
+        } else {
+          await this.sendMessage(chatId, '❌ فشل الاتصال بقاعدة البيانات. تأكد من أن سيرفر Postgres يعمل في Railway.');
+        }
       }
     } catch (err: any) {
       console.error('[Telegram Bot] Error processing command:', err.message);
+      if (err.message && (err.message.includes('does not exist') || err.message.includes('42P01'))) {
+        try {
+          const { initDatabase } = await import('../db');
+          await initDatabase(true);
+          await this.sendMessage(
+            chatId,
+            `⚠️ تم اكتشاف أن جداول قاعدة البيانات ممسوحة حديثاً.\n` +
+            `🛠️ <b>تمت إعادة بناء الجداول تلقائياً بنجاح!</b>\n\n` +
+            `أعد إرسال أمر <code>${command}</code> الآن وسيعمل مباشرة!`
+          );
+          return;
+        } catch {}
+      }
       await this.sendMessage(chatId, `⚠️ حدث خطأ أثناء المعالجة: ${err.message}`);
     }
   }

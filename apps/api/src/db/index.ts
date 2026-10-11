@@ -43,14 +43,14 @@ export function getPool(): Pool | null {
 /**
  * Automatically creates all tables and indexes if they do not exist.
  */
-export async function initDatabase(): Promise<boolean> {
+export async function initDatabase(force = false): Promise<boolean> {
   const p = getPool();
   if (!p) {
     console.log('[PostgreSQL] DATABASE_URL not set; using local in-memory fallback.');
     return false;
   }
 
-  if (isInitialized) {
+  if (isInitialized && !force) {
     return true;
   }
 
