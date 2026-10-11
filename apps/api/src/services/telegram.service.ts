@@ -165,8 +165,9 @@ class TelegramService {
           `🔹 <code>/scan_all</code> - الفحص الشامل والسريع (عراقية + beIN + عربية + أخبار)\n` +
           `🔹 <code>/scan_iraq</code> - فحص وجلب جميع القنوات العراقية النشطة\n` +
           `🔹 <code>/scan_sports</code> - فحص ومزامنة قنوات beIN Sports والرياضة\n` +
-          `🔹 <code>/topcinema_sync</code> - زحف وسحب كل الأفلام والمسلسلات والحلقات من TopCinema\n` +
-          `🔹 <code>/vod_sync</code> - جلب ومزامنة الأفلام والمسلسلات مع الحلقات بدون تكرار\n` +
+          `🔹 <code>/fivetv_sync</code> - سحب مكتبة الأفلام والمسلسلات 1080p من FiveTV\n` +
+          `🔹 <code>/topcinema_sync</code> - زحف مكتبة توب سينما (OK.ru/HD) بدون حظر إطارات\n` +
+          `🔹 <code>/vod_sync</code> - مزامنة شاملة عملاقة لمكتبي FiveTV و TopCinema بدون تكرار\n` +
           `🔹 <code>/movies</code> - عرض أحدث الأفلام المتوفرة\n` +
           `🔹 <code>/series</code> - عرض أحدث المسلسلات والحلقات\n` +
           `🔹 <code>/clean</code> - تنظيف وترتيب القنوات في باقات مخصصة وحذف العشوائيات\n` +
@@ -438,38 +439,71 @@ class TelegramService {
           `تم عزل القنوات الأجنبية غير المرغوبة، وتقسيم القنوات ذات الأرقام (1, 2, 3) إلى باقات منظمة في موقعك وتطبيقك!`
         );
       } else if (command === '/topcinema_sync' || command === '/topcinema') {
+        const isDeep = args.includes('deep') || args.includes('عميق') || args.includes('كامل');
         await this.sendMessage(
           chatId,
-          '🎬 <b>جاري زحف موقع TopCinema وسحب الأفلام والمسلسلات...</b>\n' +
-          'نقوم باستخراج البوسترات والأوصاف وترتيب الحلقات مع روابط المشاهدة الشغالة ومنع أي تكرار!'
+          `🎬 <b>جاري زحف موقع TopCinema وسحب مكتبة الأفلام والمسلسلات...</b>\n` +
+          `⚡ النمط: <b>${isDeep ? 'زحف شامل عميق (Deep Crawl)' : 'زحف سريع ذكي'}</b>\n` +
+          `🛡️ نقوم باختيار أفضل سيرفرات المشاهدة الشغالة (OK.ru / StreamWish) وتجنب السيرفرات المعطلة، وترتيب الحلقات ومنع أي تكرار!`
         );
         const { topCinemaService } = await import('./topcinema.service');
         const report = await topCinemaService.syncTopCinema({
-          maxMoviePages: 3,
-          maxSeries: 15,
-          recentLimit: 40,
+          deep: isDeep,
+          maxMoviePages: isDeep ? 15 : 6,
+          maxSeries: isDeep ? 40 : 20,
+          recentLimit: isDeep ? 60 : 35,
         });
         await this.sendMessage(
           chatId,
           `🍿 <b>تمت مزامنة موقع TopCinema (web.topcinema.io) بنجاح!</b>\n\n` +
-          `🎬 <b>الأفلام المستخرجة:</b> ${report.moviesAdded} فيلم شغّال\n` +
-          `📺 <b>المسلسلات المستخرجة:</b> ${report.seriesAdded} مسلسل كامل\n` +
+          `🎬 <b>الأفلام المضافة/المحدثة:</b> ${report.moviesAdded} فيلم\n` +
+          `📺 <b>المسلسلات المضافة/المحدثة:</b> ${report.seriesAdded} مسلسل كامل\n` +
           `🎞️ <b>الحلقات المرتبة:</b> ${report.episodesAdded} حلقة (1، 2، 3...)\n\n` +
-          `📊 <b>المكتبة الحالية:</b> ${report.totalMovies} فيلم | ${report.totalSeries} مسلسل\n` +
-          `✅ روابط المشاهدة تعمل مباشرة على مشغل موقعك وتطبيقك بدون تقطيع!\n` +
+          `📊 <b>إجمالي المكتبة:</b> ${report.totalMovies} فيلم | ${report.totalSeries} مسلسل\n` +
+          `✅ تم اختيار سيرفرات HD عالية السرعة شغالة 100% بدون حظر الإطارات!\n` +
           `تصفحها الآن في موقعك في قسم <b>الأفلام</b> وقسم <b>المسلسلات</b>.`
         );
+      } else if (command === '/fivetv_sync' || command === '/5tv_sync' || command === '/fivetv') {
+        const isDeep = args.includes('deep') || args.includes('عميق') || args.includes('كامل');
+        await this.sendMessage(
+          chatId,
+          `🎬 <b>جاري زحف موقع فايف تي في FiveTV (new61.5tv.lol)...</b>\n` +
+          `⚡ النمط: <b>${isDeep ? 'زحف شامل عميق' : 'زحف سريع'}</b>\n` +
+          `🎥 نقوم بسحب أحدث الأفلام والمسلسلات بدقة 1080p وروابط التشغيل المباشرة المنظمة بدون أي تكرار!`
+        );
+        const { fiveTvService } = await import('./fivetv.service');
+        const report = await fiveTvService.syncFiveTv({
+          deep: isDeep,
+          maxMoviePages: isDeep ? 15 : 6,
+          maxSeriesPages: isDeep ? 10 : 4,
+          recentLimit: isDeep ? 60 : 35,
+        });
+        await this.sendMessage(
+          chatId,
+          `🍿 <b>تمت مزامنة موقع FiveTV بنجاح!</b>\n\n` +
+          `🎬 <b>الأفلام المستخرجة:</b> ${report.moviesAdded} فيلم\n` +
+          `📺 <b>المسلسلات المستخرجة:</b> ${report.seriesAdded} مسلسل كامل\n` +
+          `🎞️ <b>الحلقات المرتبة:</b> ${report.episodesAdded} حلقة\n\n` +
+          `📊 <b>المكتبة الكلية الحالية:</b> ${report.totalMovies} فيلم | ${report.totalSeries} مسلسل\n` +
+          `✅ روابط التشغيل جاهزة وبأعلى دقة بدون تقطيع في موقعك وتطبيقك!`
+        );
       } else if (command === '/vod_sync' || command === '/sync_vod') {
-        await this.sendMessage(chatId, '🎬 <b>جاري فحص ومزامنة مكتبة الأفلام والمسلسلات...</b>\nنقوم بجلب البوسترات والأوصاف وترتيب الحلقات مع منع التكرار تماماً.');
+        const isDeep = args.includes('deep') || args.includes('عميق') || args.includes('كامل');
+        await this.sendMessage(
+          chatId,
+          `🎬 <b>جاري المزامنة الشاملة لمكتبات الأفلام والمسلسلات...</b>\n` +
+          `🌐 نسحب من المصادر المعتمدة: <b>TopCinema + FiveTV</b>\n` +
+          `🛡️ دمج ذكي بدون تكرار العناوين + ترتيب الحلقات تصاعدياً + أفضل سيرفرات المشاهدة الشغالة!`
+        );
         const { vodService } = await import('./vod.service');
         const report = await vodService.syncAllVod();
         await this.sendMessage(
           chatId,
-          `🍿 <b>تمت مزامنة مكتبة الأفلام والمسلسلات بنجاح!</b>\n\n` +
-          `🎬 <b>إجمالي الأفلام:</b> ${report.totalMovies} فيلم\n` +
-          `📺 <b>إجمالي المسلسلات:</b> ${report.totalSeries} مسلسل\n` +
-          `🎞️ <b>إجمالي الحلقات المنظمة:</b> ${report.episodesAdded} حلقة\n\n` +
-          `✅ تم تنظيم الحلقات حسب المواسم (1, 2, 3...) وربط البوسترات والأوصاف ومنع أي تكرار!\n` +
+          `🍿 <b>تمت المزامنة الشاملة لجميع المصادر بنجاح!</b>\n\n` +
+          `🎬 <b>إجمالي الأفلام في موقعك:</b> ${report.totalMovies} فيلم\n` +
+          `📺 <b>إجمالي المسلسلات في موقعك:</b> ${report.totalSeries} مسلسل\n` +
+          `🎞️ <b>الحلقات المنظمة حديثاً:</b> ${report.episodesAdded} حلقة\n\n` +
+          `✅ روابط التشغيل فحصت وتعمل على مشغل الموقع وتطبيقك بسلاسة!\n` +
           `تصفحها الآن في موقعك في قسم <b>الأفلام</b> وقسم <b>المسلسلات</b>.`
         );
       } else if (command === '/movies') {

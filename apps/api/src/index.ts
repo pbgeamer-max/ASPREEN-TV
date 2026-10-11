@@ -22,6 +22,7 @@ import { vodRoutes } from './routes/vod.routes';
 import { telegramService } from './services/telegram.service';
 import { feederService } from './services/feeder.service';
 import { topCinemaService } from './services/topcinema.service';
+import { fiveTvService } from './services/fivetv.service';
 import { tokenRepository } from './repositories/token.repository';
 import { channelRepository } from './repositories/channel.repository';
 import { settingsRepository } from './repositories/settings.repository';
@@ -454,6 +455,7 @@ async function start() {
       telegramService.init();
       feederService.start();
       topCinemaService.startAutoUpdater(30);
+      fiveTvService.startAutoUpdater(30);
     } catch (e: any) {
       console.warn('[Services] Service init warning:', e.message);
     }

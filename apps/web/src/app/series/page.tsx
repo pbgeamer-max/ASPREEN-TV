@@ -91,13 +91,18 @@ export default function SeriesPage() {
     loadSeries();
   };
 
-  const handleTopCinemaSync = async () => {
+  const handleTopCinemaSync = async (deep = false) => {
     setSyncing(true);
     try {
-      const res = await api.syncTopCinema({ maxMoviePages: 3, maxSeries: 15, recentLimit: 40 });
+      const res = await api.syncTopCinema({
+        deep,
+        maxMoviePages: deep ? 15 : 6,
+        maxSeries: deep ? 40 : 20,
+        recentLimit: deep ? 60 : 35,
+      });
       alert(
         `🍿 تمت مزامنة موقع TopCinema بنجاح!\n` +
-        `المسلسلات المضافة: ${res.report?.seriesAdded || 0}\n` +
+        `المسلسلات المضافة/المحدثة: ${res.report?.seriesAdded || 0}\n` +
         `الحلقات المرتبة: ${res.report?.episodesAdded || 0}\n` +
         `الأفلام المضافة: ${res.report?.moviesAdded || 0}`
       );
@@ -109,11 +114,39 @@ export default function SeriesPage() {
     }
   };
 
+  const handleFiveTvSync = async (deep = false) => {
+    setSyncing(true);
+    try {
+      const res = await api.syncFiveTv({
+        deep,
+        maxMoviePages: deep ? 15 : 6,
+        maxSeriesPages: deep ? 10 : 4,
+        recentLimit: deep ? 60 : 35,
+      });
+      alert(
+        `🍿 تمت مزامنة موقع FiveTV بنجاح!\n` +
+        `المسلسلات المضافة: ${res.report?.seriesAdded || 0}\n` +
+        `الحلقات المنظمة: ${res.report?.episodesAdded || 0}\n` +
+        `الأفلام المضافة: ${res.report?.moviesAdded || 0}`
+      );
+      await loadSeries();
+    } catch (err: any) {
+      alert(`فشل التحديث من FiveTV: ${err.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const res = await api.syncVod();
-      alert(`تمت مزامنة المسلسلات بنجاح!\nالمسلسلات المحدثة: ${res.report?.totalSeries || 0}\nالحلقات المنظمة: ${res.report?.episodesAdded || 0}`);
+      const res = await api.fullSyncVod({ deep: true });
+      alert(
+        `🍿 تمت المزامنة الشاملة لجميع المصادر بنجاح!\n` +
+        `إجمالي المسلسلات: ${res.report?.totalSeries || 0}\n` +
+        `إجمالي الأفلام: ${res.report?.totalMovies || 0}\n` +
+        `إجمالي الحلقات: ${res.report?.totalEpisodes || 0}`
+      );
       await loadSeries();
     } catch (err: any) {
       alert(`فشل التحديث: ${err.message}`);
@@ -157,23 +190,32 @@ export default function SeriesPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
-              onClick={handleTopCinemaSync}
+              onClick={() => handleFiveTvSync(false)}
               disabled={syncing}
-              className="px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-semibold rounded-lg flex items-center gap-2 shadow-lg shadow-orange-950/20 transition-all disabled:opacity-50"
+              className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-lg flex items-center gap-2 shadow-lg shadow-blue-950/20 transition-all disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-              <span>{syncing ? 'جاري الزحف...' : 'مزامنة TopCinema'}</span>
+              <span>مزامنة FiveTV (1080p)</span>
+            </button>
+
+            <button
+              onClick={() => handleTopCinemaSync(false)}
+              disabled={syncing}
+              className="px-3.5 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-semibold rounded-lg flex items-center gap-2 shadow-lg shadow-orange-950/20 transition-all disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              <span>مزامنة TopCinema</span>
             </button>
 
             <button
               onClick={handleSync}
               disabled={syncing}
-              className="px-4 py-2 bg-[#222222] hover:bg-[#2c2c2c] border border-[#333333] text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-all disabled:opacity-50"
+              className="px-3.5 py-2 bg-[#222222] hover:bg-[#2c2c2c] border border-[#333333] text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-all disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-              <span>مزامنة شاملة</span>
+              <span>مزامنة شاملة (الكل)</span>
             </button>
           </div>
         </div>

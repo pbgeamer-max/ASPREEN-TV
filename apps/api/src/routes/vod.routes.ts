@@ -1,6 +1,8 @@
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import { vodRepository } from '../repositories/vod.repository';
 import { vodService } from '../services/vod.service';
+import { topCinemaService } from '../services/topcinema.service';
+import { fiveTvService } from '../services/fivetv.service';
 
 export async function vodRoutes(server: FastifyInstance) {
   /**
@@ -109,11 +111,10 @@ export async function vodRoutes(server: FastifyInstance) {
       }>
     ) => {
       const { maxMoviePages, maxSeries, recentLimit } = request.body || {};
-      const { topCinemaService } = await import('../services/topcinema.service');
       const report = await topCinemaService.syncTopCinema({
-        maxMoviePages: maxMoviePages || 3,
-        maxSeries: maxSeries || 15,
-        recentLimit: recentLimit || 40,
+        maxMoviePages: maxMoviePages || 8,
+        maxSeries: maxSeries || 30,
+        recentLimit: recentLimit || 50,
       });
       return {
         success: true,
@@ -121,4 +122,66 @@ export async function vodRoutes(server: FastifyInstance) {
       };
     }
   );
+
+  /**
+   * POST /api/vod/fivetv-sync
+   * Dedicated FiveTV crawler trigger
+   */
+  server.post(
+    '/fivetv-sync',
+    async (
+      request: FastifyRequest<{
+        Body?: { maxMoviePages?: number; maxSeriesPages?: number; recentLimit?: number; deep?: boolean };
+      }>
+    ) => {
+      const { maxMoviePages, maxSeriesPages, recentLimit, deep } = request.body || {};
+      const report = await fiveTvService.syncFiveTv({
+        deep: !!deep,
+        maxMoviePages: maxMoviePages || (deep ? 15 : 6),
+        maxSeriesPages: maxSeriesPages || (deep ? 10 : 4),
+        recentLimit: recentLimit || (deep ? 60 : 30),
+      });
+      return {
+        success: true,
+        report,
+      };
+    }
+  );
+
+  /**
+   * POST /api/vod/full-sync
+   * Deep multi-provider sync across FiveTV and TopCinema
+   */
+  server.post(
+    '/full-sync',
+    async (
+      request: FastifyRequest<{
+        Body?: { deep?: boolean };
+      }>
+    ) => {
+      const { deep } = request.body || {};
+      const fivetvReport = await fiveTvService.syncFiveTv({ deep: !!deep });
+      const topcinemaReport = await topCinemaService.syncTopCinema({ deep: !!deep });
+      const stats = await vodRepository.getStats();
+
+      return {
+        success: true,
+        report: {
+          fivetv: fivetvReport,
+          topcinema: topcinemaReport,
+          totalMovies: stats.totalMovies,
+          totalSeries: stats.totalSeries,
+          totalEpisodes: stats.totalEpisodes,
+        },
+      };
+    }
+  );
+
+  /**
+   * GET /api/vod/stats
+   * Returns current VOD stats
+   */
+  server.get('/stats', async () => {
+    return await vodRepository.getStats();
+  });
 }

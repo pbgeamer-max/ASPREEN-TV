@@ -2,6 +2,7 @@ import http from 'http';
 import https from 'https';
 import { vodRepository, Movie, Series, Episode } from '../repositories/vod.repository';
 import { topCinemaService } from './topcinema.service';
+import { fiveTvService } from './fivetv.service';
 
 export interface VodSyncReport {
   moviesAdded: number;
@@ -204,12 +205,26 @@ export class VodService {
     let seriesAdded = 0;
     let episodesAdded = 0;
 
-    // 1. Sync from TopCinema (The user's primary requested source!)
+    // 1. Sync from FiveTV (https://new61.5tv.lol/ - high-resolution, fast streams, pristine embeds)
+    try {
+      const fivetvReport = await fiveTvService.syncFiveTv({
+        maxMoviePages: 6,
+        maxSeriesPages: 4,
+        recentLimit: 40,
+      });
+      moviesAdded += fivetvReport.moviesAdded;
+      seriesAdded += fivetvReport.seriesAdded;
+      episodesAdded += fivetvReport.episodesAdded;
+    } catch (err: any) {
+      console.warn('[VOD Service] FiveTV sync warning:', err.message);
+    }
+
+    // 2. Sync from TopCinema (https://web.topcinema.io/ - massive catalog with working servers)
     try {
       const topcinemaReport = await topCinemaService.syncTopCinema({
-        maxMoviePages: 2,
-        maxSeries: 10,
-        recentLimit: 30,
+        maxMoviePages: 6,
+        maxSeries: 25,
+        recentLimit: 40,
       });
       moviesAdded += topcinemaReport.moviesAdded;
       seriesAdded += topcinemaReport.seriesAdded;
@@ -218,7 +233,7 @@ export class VodService {
       console.warn('[VOD Service] TopCinema sync warning:', err.message);
     }
 
-    // 2. Sync Verified Seed Movies
+    // 3. Sync Verified Seed Movies
     for (const m of this.VERIFIED_MOVIES) {
       await vodRepository.upsertMovie(m);
       moviesAdded++;

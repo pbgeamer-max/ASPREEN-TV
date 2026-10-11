@@ -78,6 +78,36 @@ export class TopCinemaService {
   }
 
   /**
+   * Fetch specific server iframe via Single/Server.php
+   */
+  private fetchServer(id: string, sIndex: string): Promise<string | null> {
+    return new Promise((resolve) => {
+      const postData = new URLSearchParams({ id, i: String(sIndex) }).toString();
+      const req = https.request('https://web.topcinema.io/wp-content/themes/movies2023/Ajaxat/Single/Server.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'Content-Length': Buffer.byteLength(postData),
+          'User-Agent': this.USER_AGENT,
+          'Referer': this.BASE_URL + '/',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          const iframeMatch = data.match(/<iframe[^>]+src="([^"]+)"/i);
+          resolve(iframeMatch ? iframeMatch[1] : null);
+        });
+      });
+      req.on('error', () => resolve(null));
+      req.setTimeout(8000, () => { req.destroy(); resolve(null); });
+      req.write(postData);
+      req.end();
+    });
+  }
+
+  /**
    * Extract working stream iframe and details from a watch page
    */
   private async extractWatchDetails(watchUrl: string): Promise<{
@@ -88,7 +118,6 @@ export class TopCinemaService {
   }> {
     try {
       const html = await this.fetchHtml(watchUrl);
-      const iframeMatch = html.match(/<iframe[^>]+src="([^"]+)"/i);
       const descMatch = html.match(/<meta property="og:description" content="([^"]+)"/i)
         || html.match(/<div class="story"[^>]*>([\s\S]*?)<\/div>/i);
       const posterMatch = html.match(/<meta property="og:image" content="([^"]+)"/i);
@@ -100,8 +129,56 @@ export class TopCinemaService {
         cleanDesc = descMatch[1].replace(/<[^>]+>/g, '').trim();
       }
 
+      // Extract all server items from HTML
+      const serverItems = [...html.matchAll(/<li[^>]+data-id="([^"]+)"[^>]+data-server="([^"]+)"[^>]*>([\s\S]*?)<\/li>/gi)].map(m => ({
+        id: m[1],
+        sIndex: m[2],
+        name: m[3].replace(/<[^>]+>/g, '').trim().toLowerCase()
+      }));
+
+      let chosenStream: string | null = null;
+
+      if (serverItems.length > 0) {
+        // Preference ranking: OK.ru (rock-solid, 1080p, no embed restrictions) > StreamWish > Streamtape > Upstream > Updown > others
+        const getRank = (item: { name: string; sIndex: string }) => {
+          if (item.name.includes('ok')) return 1;
+          if (item.name.includes('streamwish')) return 2;
+          if (item.name.includes('streamtape')) return 3;
+          if (item.name.includes('upstream')) return 4;
+          if (item.name.includes('updown')) return 5;
+          if (item.name.includes('dood')) return 6;
+          if (item.name.includes('filelion') || item.name.includes('earnvids')) return 7;
+          if (item.name.includes('tube') || item.sIndex === '0') return 10; // VidTube disables embeds!
+          return 8;
+        };
+
+        serverItems.sort((a, b) => getRank(a) - getRank(b));
+
+        for (const item of serverItems) {
+          if (getRank(item) >= 10 && serverItems.length > 1) {
+            // Skip VidTube unless it's strictly the only server available
+            continue;
+          }
+          const stream = await this.fetchServer(item.id, item.sIndex);
+          if (stream && !stream.includes('vidtube') && !stream.includes('videotube')) {
+            chosenStream = stream;
+            break;
+          }
+        }
+
+        if (!chosenStream && serverItems[0]) {
+          chosenStream = await this.fetchServer(serverItems[0].id, serverItems[0].sIndex);
+        }
+      }
+
+      // Fallback to iframe in HTML if Server.php didn't respond
+      if (!chosenStream) {
+        const iframeMatch = html.match(/<iframe[^>]+src="([^"]+)"/i);
+        chosenStream = iframeMatch ? iframeMatch[1] : null;
+      }
+
       return {
-        streamUrl: iframeMatch ? iframeMatch[1] : null,
+        streamUrl: chosenStream,
         posterUrl: posterMatch ? posterMatch[1] : null,
         description: cleanDesc,
         rating: ratingMatch ? parseFloat(ratingMatch[1]) : null,
@@ -137,7 +214,7 @@ export class TopCinemaService {
   /**
    * Normalize title string for strict deduplication
    */
-  private normalizeTitle(title: string): string {
+  public normalizeTitle(title: string): string {
     return title
       .toLowerCase()
       .replace(/^(فيلم|مسلسل|انمي)\s+/i, '')
@@ -150,7 +227,7 @@ export class TopCinemaService {
   /**
    * Crawl movies from TopCinema
    */
-  async scrapeMovies(maxPages = 2): Promise<number> {
+  async scrapeMovies(maxPages = 6): Promise<number> {
     let totalAdded = 0;
 
     for (let page = 1; page <= maxPages; page++) {
@@ -161,7 +238,7 @@ export class TopCinemaService {
 
         if (movieBoxes.length === 0) break;
 
-        // Process in chunks of 5 for speed and etiquette
+        // Process in chunks of 5 for speed and stability
         const chunkSize = 5;
         for (let i = 0; i < movieBoxes.length; i += chunkSize) {
           const chunk = movieBoxes.slice(i, i + chunkSize);
@@ -186,7 +263,6 @@ export class TopCinemaService {
             const watchUrl = pageUrl.replace(/\/$/, '') + '/watch/';
             const details = await this.extractWatchDetails(watchUrl);
 
-            // If watch page didn't have iframe, fallback to watchUrl itself so user can always open it
             const streamUrl = details.streamUrl || watchUrl;
 
             await vodRepository.upsertMovie({
@@ -213,9 +289,9 @@ export class TopCinemaService {
   }
 
   /**
-   * Crawl TV Series and all their ordered seasons & episodes
+   * Crawl TV Series and all their ordered seasons & episodes with category pagination
    */
-  async scrapeSeries(maxSeries = 15): Promise<{ seriesAdded: number; episodesAdded: number }> {
+  async scrapeSeries(maxSeries = 30, maxCatPages = 3): Promise<{ seriesAdded: number; episodesAdded: number }> {
     let seriesAdded = 0;
     let episodesAdded = 0;
 
@@ -223,101 +299,115 @@ export class TopCinemaService {
       `${this.BASE_URL}/category/%d9%85%d8%b3%d9%84%d8%b3%d9%84%d8%a7%d8%aa-%d8%a7%d8%ac%d9%86%d8%a8%d9%8a/`,
       `${this.BASE_URL}/category/%d9%85%d8%b3%d9%84%d8%b3%d9%84%d8%a7%d8%aa-%d8%a7%d8%b3%d9%8a%d9%88%d9%8a%d8%a9/`,
       `${this.BASE_URL}/category/%d9%85%d8%b3%d9%84%d8%b3%d9%84%d8%a7%d8%aa-%d8%a7%d9%86%d9%85%d9%8a/`,
+      `${this.BASE_URL}/category/%d9%85%d8%b3%d9%84%d8%b3%d9%84%d8%a7%d8%aa-%d8%aa%d8%b1%d9%83%d9%8a%d8%a9/`,
+      `${this.BASE_URL}/category/%d9%85%d8%b3%d9%84%d8%b3%d9%84%d8%a7%d8%aa-%d8%b9%d8%b1%d8%a8%d9%8a%d8%a9/`,
     ];
 
-    for (const catUrl of categories) {
+    for (const catBase of categories) {
       if (seriesAdded >= maxSeries) break;
 
-      try {
-        const catHtml = await this.fetchHtml(catUrl);
-        const seriesBoxes = [...catHtml.matchAll(/<div class="Small--Box">\s*<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)];
+      for (let p = 1; p <= maxCatPages; p++) {
+        if (seriesAdded >= maxSeries) break;
 
-        for (const sBox of seriesBoxes) {
-          if (seriesAdded >= maxSeries) break;
+        const catUrl = p === 1 ? catBase : `${catBase}page/${p}/`;
 
-          const seriesUrl = sBox[1];
-          const sTitleMatch = sBox[2].match(/<h3 class="title">([^<]+)<\/h3>/i);
-          const rawTitle = sTitleMatch ? sTitleMatch[1].trim() : 'Unknown';
-          const defaultPosterMatch = sBox[2].match(/data-src="([^"]+)"/i) || sBox[2].match(/src="([^"]+)"/i);
-          const defaultPoster = defaultPosterMatch ? defaultPosterMatch[1] : undefined;
+        try {
+          const catHtml = await this.fetchHtml(catUrl);
+          const seriesBoxes = [...catHtml.matchAll(/<div class="Small--Box">\s*<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)];
+          if (seriesBoxes.length === 0) break;
 
-          // Fetch series page to discover seasons and details
-          try {
-            const seriesHtml = await this.fetchHtml(seriesUrl);
-            const descMatch = seriesHtml.match(/<div class="story"[^>]*>([\s\S]*?)<\/div>/i);
-            const posterMatch = seriesHtml.match(/<meta property="og:image" content="([^"]+)"/i);
-            const ratingMatch = seriesHtml.match(/<div class="imdbBox">[\s\S]*?<span>([\d.]+)<\/span>/i);
+          for (const sBox of seriesBoxes) {
+            if (seriesAdded >= maxSeries) break;
 
-            // Find all season boxes
-            const seasonBoxes = [...seriesHtml.matchAll(/<div class="Small--Box Season">\s*<a href="([^"]+)"[\s\S]*?<div class="epnum"><span>الموسم<\/span>([^<]+)<\/div>[\s\S]*?<\/a>/gi)];
-            const totalSeasons = Math.max(1, seasonBoxes.length);
+            const seriesUrl = sBox[1];
+            const sTitleMatch = sBox[2].match(/<h3 class="title">([^<]+)<\/h3>/i);
+            const rawTitle = sTitleMatch ? sTitleMatch[1].trim() : 'Unknown';
+            const defaultPosterMatch = sBox[2].match(/data-src="([^"]+)"/i) || sBox[2].match(/src="([^"]+)"/i);
+            const defaultPoster = defaultPosterMatch ? defaultPosterMatch[1] : undefined;
 
-            const yearMatch = rawTitle.match(/\b(19\d{2}|20\d{2})\b/);
-            const releaseYear = yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear();
+            // Fetch series page to discover seasons and details
+            try {
+              const seriesHtml = await this.fetchHtml(seriesUrl);
+              const descMatch = seriesHtml.match(/<div class="story"[^>]*>([\s\S]*?)<\/div>/i);
+              const posterMatch = seriesHtml.match(/<meta property="og:image" content="([^"]+)"/i);
+              const ratingMatch = seriesHtml.match(/<div class="imdbBox">[\s\S]*?<span>([\d.]+)<\/span>/i);
 
-            // Upsert the series (deduplicated by normalized_title)
-            const createdSeries = await vodRepository.upsertSeries({
-              title: rawTitle,
-              normalizedTitle: this.normalizeTitle(rawTitle),
-              category: catUrl.includes('انمي') ? 'مسلسلات أنمي' : catUrl.includes('اسيوي') ? 'مسلسلات آسيوية' : 'مسلسلات أجنبية',
-              posterUrl: posterMatch ? posterMatch[1] : defaultPoster,
-              description: descMatch ? descMatch[1].replace(/<[^>]+>/g, '').trim() : `مسلسل ${rawTitle} كامل المواسم والحلقات بدون تكرار.`,
-              releaseYear,
-              rating: ratingMatch ? parseFloat(ratingMatch[1]) : 8.0,
-              totalSeasons,
-            });
+              // Find all season boxes
+              const seasonBoxes = [...seriesHtml.matchAll(/<div class="Small--Box Season">\s*<a href="([^"]+)"[\s\S]*?<div class="epnum"><span>الموسم<\/span>([^<]+)<\/div>[\s\S]*?<\/a>/gi)];
+              const totalSeasons = Math.max(1, seasonBoxes.length);
 
-            seriesAdded++;
+              const yearMatch = rawTitle.match(/\b(19\d{2}|20\d{2})\b/);
+              const releaseYear = yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear();
 
-            // Process each season and its episodes
-            for (const seasonBox of seasonBoxes) {
-              const seasonUrl = seasonBox[1];
-              const seasonNum = this.parseArabicOrdinal(seasonBox[2]);
+              const categoryName = catBase.includes('انمي') ? 'مسلسلات أنمي' :
+                                   catBase.includes('اسيوي') ? 'مسلسلات آسيوية' :
+                                   catBase.includes('تركي') ? 'مسلسلات تركية' :
+                                   catBase.includes('عربي') ? 'مسلسلات عربية' : 'مسلسلات أجنبية';
 
-              try {
-                const seasonHtml = await this.fetchHtml(seasonUrl);
-                // Extract all episodes in this season
-                const epMatches = [...seasonHtml.matchAll(/<a[^>]+href="([^"]+)"[^>]*title="([^"]*الحلقة[^"]*)"/gi)];
+              // Upsert the series (deduplicated by normalized_title)
+              const createdSeries = await vodRepository.upsertSeries({
+                title: rawTitle,
+                normalizedTitle: this.normalizeTitle(rawTitle),
+                category: categoryName,
+                posterUrl: posterMatch ? posterMatch[1] : defaultPoster,
+                description: descMatch ? descMatch[1].replace(/<[^>]+>/g, '').trim() : `مسلسل ${rawTitle} كامل المواسم والحلقات بدون تكرار.`,
+                releaseYear,
+                rating: ratingMatch ? parseFloat(ratingMatch[1]) : 8.0,
+                totalSeasons,
+              });
 
-                // Process episodes in chunks of 4
-                const epChunkSize = 4;
-                for (let j = 0; j < epMatches.length; j += epChunkSize) {
-                  const epChunk = epMatches.slice(j, j + epChunkSize);
-                  await Promise.all(epChunk.map(async (epMatch) => {
-                    const epUrl = epMatch[1];
-                    const epTitle = epMatch[2].replace(/- توب سينما/g, '').trim();
-                    const numMatch = epTitle.match(/الحلقة\s*(\d+)/i);
-                    const epNum = numMatch ? parseInt(numMatch[1], 10) : 1;
+              seriesAdded++;
 
-                    // Fetch episode watch stream
-                    const epWatchUrl = epUrl.replace(/\/$/, '') + '/watch/';
-                    const epDetails = await this.extractWatchDetails(epWatchUrl);
-                    const streamUrl = epDetails.streamUrl || epWatchUrl;
+              // Process each season and its episodes
+              for (const seasonBox of seasonBoxes) {
+                const seasonUrl = seasonBox[1];
+                const seasonNum = this.parseArabicOrdinal(seasonBox[2]);
 
-                    await vodRepository.upsertEpisode({
-                      seriesId: createdSeries.id,
-                      seasonNum,
-                      episodeNum: epNum,
-                      title: `الموسم ${seasonNum} - الحلقة ${epNum}`,
-                      posterUrl: epDetails.posterUrl || createdSeries.posterUrl,
-                      description: epDetails.description || `${rawTitle} - الموسم ${seasonNum} الحلقة ${epNum}`,
-                      streamUrl,
-                      containerExtension: 'html',
-                    });
+                try {
+                  const seasonHtml = await this.fetchHtml(seasonUrl);
+                  // Extract all episodes in this season
+                  const epMatches = [...seasonHtml.matchAll(/<a[^>]+href="([^"]+)"[^>]*title="([^"]*الحلقة[^"]*)"/gi)];
 
-                    episodesAdded++;
-                  }));
+                  // Process episodes in chunks of 4
+                  const epChunkSize = 4;
+                  for (let j = 0; j < epMatches.length; j += epChunkSize) {
+                    const epChunk = epMatches.slice(j, j + epChunkSize);
+                    await Promise.all(epChunk.map(async (epMatch) => {
+                      const epUrl = epMatch[1];
+                      const epTitle = epMatch[2].replace(/- توب سينما/g, '').trim();
+                      const numMatch = epTitle.match(/الحلقة\s*(\d+)/i);
+                      const epNum = numMatch ? parseInt(numMatch[1], 10) : 1;
+
+                      // Fetch episode watch stream
+                      const epWatchUrl = epUrl.replace(/\/$/, '') + '/watch/';
+                      const epDetails = await this.extractWatchDetails(epWatchUrl);
+                      const streamUrl = epDetails.streamUrl || epWatchUrl;
+
+                      await vodRepository.upsertEpisode({
+                        seriesId: createdSeries.id,
+                        seasonNum,
+                        episodeNum: epNum,
+                        title: `الموسم ${seasonNum} - الحلقة ${epNum}`,
+                        posterUrl: epDetails.posterUrl || createdSeries.posterUrl,
+                        description: epDetails.description || `${rawTitle} - الموسم ${seasonNum} الحلقة ${epNum}`,
+                        streamUrl,
+                        containerExtension: 'html',
+                      });
+
+                      episodesAdded++;
+                    }));
+                  }
+                } catch (err: any) {
+                  console.error(`Error scraping season ${seasonNum} for ${rawTitle}:`, err.message);
                 }
-              } catch (err: any) {
-                console.error(`Error scraping season ${seasonNum} for ${rawTitle}:`, err.message);
               }
+            } catch (err: any) {
+              console.error(`Error scraping series page ${seriesUrl}:`, err.message);
             }
-          } catch (err: any) {
-            console.error(`Error scraping series page ${seriesUrl}:`, err.message);
           }
+        } catch (err: any) {
+          console.error(`Error scraping series category ${catUrl}:`, err.message);
         }
-      } catch (err: any) {
-        console.error(`Error scraping series category ${catUrl}:`, err.message);
       }
     }
 
@@ -427,7 +517,7 @@ export class TopCinemaService {
   /**
    * Complete topcinema synchronization
    */
-  async syncTopCinema(options: { maxMoviePages?: number; maxSeries?: number; recentLimit?: number } = {}): Promise<TopCinemaSyncReport> {
+  async syncTopCinema(options: { deep?: boolean; maxMoviePages?: number; maxSeries?: number; recentLimit?: number } = {}): Promise<TopCinemaSyncReport> {
     if (this.isSyncing) {
       const stats = await vodRepository.getStats();
       return {
@@ -444,19 +534,23 @@ export class TopCinemaService {
     this.isSyncing = true;
     const startTime = Date.now();
 
+    const maxMoviePages = options.maxMoviePages || (options.deep ? 20 : 8);
+    const maxSeries = options.maxSeries || (options.deep ? 50 : 25);
+    const recentLimit = options.recentLimit || (options.deep ? 80 : 40);
+
     try {
-      console.log('--- Starting TopCinema VOD Sync ---');
+      console.log(`--- Starting TopCinema VOD Sync (deep: ${!!options.deep}, moviePages: ${maxMoviePages}, series: ${maxSeries}) ---`);
 
       // 1. Scrape latest additions first (fastest, freshest content)
-      const recentStats = await this.scrapeRecent(options.recentLimit || 30);
+      const recentStats = await this.scrapeRecent(recentLimit);
       console.log(`[TopCinema] Recent ingested: ${recentStats.newMovies} movies, ${recentStats.newEpisodes} episodes`);
 
       // 2. Scrape movies catalog (pages)
-      const moviesAdded = await this.scrapeMovies(options.maxMoviePages || 2);
+      const moviesAdded = await this.scrapeMovies(maxMoviePages);
       console.log(`[TopCinema] Movie catalog ingested: ${moviesAdded} movies`);
 
       // 3. Scrape series catalog with full seasons & episodes
-      const seriesStats = await this.scrapeSeries(options.maxSeries || 10);
+      const seriesStats = await this.scrapeSeries(maxSeries, options.deep ? 4 : 2);
       console.log(`[TopCinema] Series ingested: ${seriesStats.seriesAdded} series, ${seriesStats.episodesAdded} episodes`);
 
       const totalStats = await vodRepository.getStats();
