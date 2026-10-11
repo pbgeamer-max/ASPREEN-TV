@@ -14,6 +14,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/sidebar';
+import { VodPlayer } from '@/components/player/vod-player';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api-client';
 
@@ -412,68 +413,12 @@ export default function MoviesPage() {
                 {/* Player Section */}
                 <div className="mt-6 pt-5 border-t border-[#262626]">
                   {playingStream ? (
-                    <div className="space-y-3">
-                      {/* Player Mode Switcher */}
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-[#A1A1AA] flex items-center gap-1.5 font-medium">
-                          <Play className="w-3.5 h-3.5 text-red-500 fill-red-500" />
-                          المشغل النشط
-                        </span>
-                        <div className="flex items-center gap-1 bg-[#1A1A1A] p-1 rounded-lg border border-[#2E2E2E]">
-                          <button
-                            onClick={() => setPlayerMode('auto')}
-                            className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors ${
-                              playerMode === 'auto' ? 'bg-red-600 text-white' : 'text-[#A1A1AA] hover:text-white'
-                            }`}
-                          >
-                            مشغل السيرفر (Embed)
-                          </button>
-                          <button
-                            onClick={() => setPlayerMode('direct')}
-                            className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors ${
-                              playerMode === 'direct' ? 'bg-red-600 text-white' : 'text-[#A1A1AA] hover:text-white'
-                            }`}
-                          >
-                            مشغل فيديو مباشر
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Video Player Display */}
-                      <div className="relative aspect-video bg-black rounded-xl overflow-hidden border border-[#2E2E2E]">
-                        {playerMode === 'direct' ? (
-                          <video
-                            src={directStreamUrl || playingStream}
-                            controls
-                            autoPlay
-                            className="w-full h-full object-contain"
-                          />
-                        ) : (
-                          <iframe
-                            src={playingStream}
-                            className="w-full h-full border-0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                            allowFullScreen
-                            referrerPolicy="no-referrer"
-                            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-fullscreen"
-                          />
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between text-[11px] text-[#A1A1AA]">
-                        <span className="truncate max-w-md font-mono text-[10px] text-emerald-400">
-                          ✓ جاري التشغيل على مشغل أسبيرين TV الداخلي
-                        </span>
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => setPlayingStream(null)}
-                            className="text-gray-400 hover:text-white text-xs"
-                          >
-                            إغلاق المشغل
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                    <VodPlayer
+                      title={selectedMovie.title}
+                      streamUrl={playingStream}
+                      posterUrl={selectedMovie.posterUrl || selectedMovie.backdropUrl}
+                      onClose={() => setPlayingStream(null)}
+                    />
                   ) : (
                     <div className="flex items-center gap-3">
                       <button

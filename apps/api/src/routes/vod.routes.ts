@@ -3,6 +3,7 @@ import { vodRepository } from '../repositories/vod.repository';
 import { vodService } from '../services/vod.service';
 import { topCinemaService } from '../services/topcinema.service';
 import { fiveTvService } from '../services/fivetv.service';
+import { streamResolverService } from '../services/stream-resolver.service';
 
 export async function vodRoutes(server: FastifyInstance) {
   /**
@@ -227,8 +228,8 @@ export async function vodRoutes(server: FastifyInstance) {
         return reply.status(400).send({ error: 'URL parameter is required' });
       }
 
-      if (url.includes('71stream.one')) {
-        const resolved = await fiveTvService.resolve71Stream(url);
+      const resolved = await streamResolverService.resolveDirectStream(url);
+      if (resolved.directUrl) {
         return {
           directUrl: resolved.directUrl,
           title: resolved.title,

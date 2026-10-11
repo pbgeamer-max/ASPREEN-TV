@@ -252,34 +252,38 @@ export class VodRepository {
   async listSeries(category?: string, query?: string, limit = 50, offset = 0): Promise<{ items: Series[]; total: number }> {
     const pool = getPool();
     if (pool) {
-      const conditions: string[] = [];
-      const values: any[] = [];
-      let idx = 1;
+      try {
+        const conditions: string[] = [];
+        const values: any[] = [];
+        let idx = 1;
 
-      if (category && category !== 'all') {
-        conditions.push(`category = $${idx++}`);
-        values.push(category);
+        if (category && category !== 'all') {
+          conditions.push(`category = $${idx++}`);
+          values.push(category);
+        }
+        if (query) {
+          conditions.push(`(title ILIKE $${idx} OR description ILIKE $${idx})`);
+          values.push(`%${query}%`);
+          idx++;
+        }
+
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+        const countRes = await pool.query(`SELECT COUNT(*)::int as count FROM series ${whereClause}`, values);
+        const total = countRes.rows[0]?.count || 0;
+
+        values.push(limit, offset);
+        const rowsRes = await pool.query(
+          `SELECT * FROM series ${whereClause} ORDER BY created_at DESC LIMIT $${idx++} OFFSET $${idx++}`,
+          values
+        );
+
+        return {
+          items: rowsRes.rows.map((r) => this.mapSeriesRow(r)),
+          total,
+        };
+      } catch (err: any) {
+        console.error('[VodRepository] Error in listSeries:', err.message);
       }
-      if (query) {
-        conditions.push(`(title ILIKE $${idx} OR description ILIKE $${idx})`);
-        values.push(`%${query}%`);
-        idx++;
-      }
-
-      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-      const countRes = await pool.query(`SELECT COUNT(*)::int as count FROM series ${whereClause}`, values);
-      const total = countRes.rows[0]?.count || 0;
-
-      values.push(limit, offset);
-      const rowsRes = await pool.query(
-        `SELECT * FROM series ${whereClause} ORDER BY created_at DESC LIMIT $${idx++} OFFSET $${idx++}`,
-        values
-      );
-
-      return {
-        items: rowsRes.rows.map(this.mapSeriesRow),
-        total,
-      };
     }
 
     let items = Array.from(inMemorySeries.values());
@@ -292,16 +296,20 @@ export class VodRepository {
   async getSeriesWithEpisodes(seriesId: string): Promise<Series | null> {
     const pool = getPool();
     if (pool) {
-      const seriesRes = await pool.query('SELECT * FROM series WHERE id = $1', [seriesId]);
-      if (seriesRes.rows.length === 0) return null;
+      try {
+        const seriesRes = await pool.query('SELECT * FROM series WHERE id = $1', [seriesId]);
+        if (seriesRes.rows.length === 0) return null;
 
-      const series = this.mapSeriesRow(seriesRes.rows[0]);
-      const episodesRes = await pool.query(
-        'SELECT * FROM episodes WHERE series_id = $1 ORDER BY season_num ASC, episode_num ASC',
-        [seriesId]
-      );
-      series.episodes = episodesRes.rows.map(this.mapEpisodeRow);
-      return series;
+        const series = this.mapSeriesRow(seriesRes.rows[0]);
+        const episodesRes = await pool.query(
+          'SELECT * FROM episodes WHERE series_id = $1 ORDER BY season_num ASC, episode_num ASC',
+          [seriesId]
+        );
+        series.episodes = episodesRes.rows.map((r) => this.mapEpisodeRow(r));
+        return series;
+      } catch (err: any) {
+        console.error('[VodRepository] Error in getSeriesWithEpisodes:', err.message);
+      }
     }
 
     const series = Array.from(inMemorySeries.values()).find((s) => s.id === seriesId);
@@ -315,8 +323,12 @@ export class VodRepository {
   async getDistinctMovieCategories(): Promise<string[]> {
     const pool = getPool();
     if (pool) {
-      const res = await pool.query('SELECT DISTINCT category FROM movies ORDER BY category ASC');
-      return res.rows.map((r) => r.category).filter(Boolean);
+      try {
+        const res = await pool.query('SELECT DISTINCT category FROM movies ORDER BY category ASC');
+        return res.rows.map((r) => r.category).filter(Boolean);
+      } catch (err: any) {
+        console.error('[VodRepository] Error in getDistinctMovieCategories:', err.message);
+      }
     }
     return Array.from(new Set(Array.from(inMemoryMovies.values()).map((m) => m.category)));
   }
@@ -324,8 +336,12 @@ export class VodRepository {
   async getDistinctSeriesCategories(): Promise<string[]> {
     const pool = getPool();
     if (pool) {
-      const res = await pool.query('SELECT DISTINCT category FROM series ORDER BY category ASC');
-      return res.rows.map((r) => r.category).filter(Boolean);
+      try {
+        const res = await pool.query('SELECT DISTINCT category FROM series ORDER BY category ASC');
+        return res.rows.map((r) => r.category).filter(Boolean);
+      } catch (err: any) {
+        console.error('[VodRepository] Error in getDistinctSeriesCategories:', err.message);
+      }
     }
     return Array.from(new Set(Array.from(inMemorySeries.values()).map((s) => s.category)));
   }

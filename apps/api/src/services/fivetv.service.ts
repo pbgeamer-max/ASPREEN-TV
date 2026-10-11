@@ -177,6 +177,16 @@ export class FiveTvService {
         }
       }
 
+      // Automatically resolve 71stream.one into direct high-speed MP4 link
+      if (chosenStream && chosenStream.includes('71stream.one')) {
+        try {
+          const resolved = await this.resolve71Stream(chosenStream);
+          if (resolved.directUrl) {
+            chosenStream = resolved.directUrl;
+          }
+        } catch {}
+      }
+
       return {
         title: titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : null,
         streamUrl: chosenStream,

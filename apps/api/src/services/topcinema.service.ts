@@ -2,6 +2,7 @@ import https from 'https';
 import http from 'http';
 import { vodRepository, Movie, Series, Episode } from '../repositories/vod.repository';
 import { isValidStreamEmbed } from './fivetv.service';
+import { streamResolverService } from './stream-resolver.service';
 
 export interface TopCinemaSyncReport {
   moviesAdded: number;
@@ -183,6 +184,16 @@ export class TopCinemaService {
         if (iframeMatch && isValidStreamEmbed(iframeMatch[1])) {
           chosenStream = iframeMatch[1];
         }
+      }
+
+      // Automatically extract direct video stream URL if available
+      if (chosenStream) {
+        try {
+          const direct = await streamResolverService.resolveDirectStream(chosenStream);
+          if (direct.directUrl) {
+            chosenStream = direct.directUrl;
+          }
+        } catch {}
       }
 
       return {

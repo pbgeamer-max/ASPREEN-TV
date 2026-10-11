@@ -181,20 +181,26 @@ class TelegramService {
           `🔹 <code>/app</code> - رابط الـ API لتطبيق الأندرويد`;
 
         await this.sendMessage(chatId, welcome);
-      } else if (command === '/status') {
-        const channels = await channelRepository.listChannels();
+      } else if (command === '/status' || command === '/stats') {
+        const { vodRepository } = await import('../repositories/vod.repository');
+        const [channels, vodStats] = await Promise.all([
+          channelRepository.listChannels(),
+          vodRepository.getStats(),
+        ]);
         const enabled = channels.filter((c) => c.enabled !== false).length;
         const memoryMB = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
         const uptimeH = Math.round(process.uptime() / 3600);
 
         const statusMsg =
-          `📊 <b>تقرير حالة السيرفر:</b>\n\n` +
+          `📊 <b>تقرير حالة السيرفر والمكتبات (Stats):</b>\n\n` +
           `✅ <b>حالة النظام:</b> متصل وشغال (Online)\n` +
-          `📺 <b>إجمالي القنوات:</b> ${channels.length.toLocaleString()}\n` +
-          `🟢 <b>القنوات المفعلة:</b> ${enabled.toLocaleString()}\n` +
+          `📺 <b>قنوات البث المباشر:</b> ${channels.length.toLocaleString()} (المفعلة: ${enabled})\n` +
+          `🎬 <b>مكتبة الأفلام:</b> ${vodStats.totalMovies.toLocaleString()} فيلم\n` +
+          `🍿 <b>مكتبة المسلسلات:</b> ${vodStats.totalSeries.toLocaleString()} مسلسل كامل\n` +
+          `🎞️ <b>إجمالي الحلقات المنظمة:</b> ${vodStats.totalEpisodes.toLocaleString()} حلقة مرتبة\n` +
           `⚡ <b>استهلاك الذاكرة:</b> ${memoryMB} MB\n` +
           `⏱️ <b>مدة التشغيل:</b> ${uptimeH} ساعة\n` +
-          `🌐 <b>رابط السيرفر:</b> <code>${process.env.PUBLIC_STREAM_BASE_URL || 'https://aspreen-tv-production.up.railway.app'}</code>`;
+          `🌐 <b>رابط موقعك:</b> <code>${process.env.PUBLIC_STREAM_BASE_URL || 'https://aspreen-tv-production.up.railway.app'}</code>`;
 
         await this.sendMessage(chatId, statusMsg);
       } else if (command === '/playlist') {

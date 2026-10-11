@@ -15,6 +15,7 @@ import {
   Tv,
 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/sidebar';
+import { VodPlayer } from '@/components/player/vod-player';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api-client';
 
@@ -426,69 +427,13 @@ export default function SeriesPage() {
 
               {/* Active Player View (if playing an episode) */}
               {activeEpisode && (
-                <div className="p-6 bg-black border-b border-[#262626] space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-400 flex items-center gap-2">
-                      <Play className="w-3.5 h-3.5 fill-amber-400" />
-                      جاري تشغيل: {activeEpisode.title}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 bg-[#1A1A1A] p-0.5 rounded-lg border border-[#2E2E2E]">
-                        <button
-                          onClick={() => setPlayerMode('auto')}
-                          className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
-                            playerMode === 'auto' ? 'bg-amber-600 text-white' : 'text-[#A1A1AA] hover:text-white'
-                          }`}
-                        >
-                          مشغل السيرفر (Embed)
-                        </button>
-                        <button
-                          onClick={() => setPlayerMode('direct')}
-                          className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
-                            playerMode === 'direct' ? 'bg-amber-600 text-white' : 'text-[#A1A1AA] hover:text-white'
-                          }`}
-                        >
-                          مشغل مباشر
-                        </button>
-                      </div>
-                      <button
-                        onClick={() => setActiveEpisode(null)}
-                        className="text-xs text-[#A1A1AA] hover:text-white mr-2"
-                      >
-                        إغلاق المشغل
-                      </button>
-                    </div>
-                  </div>
-                  <div className="relative aspect-video max-h-[420px] bg-black rounded-xl overflow-hidden border border-[#2E2E2E] mx-auto">
-                    {playerMode === 'direct' ? (
-                      <video
-                        src={directStreamUrl || activeEpisode.streamUrl}
-                        controls
-                        autoPlay
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <iframe
-                        src={activeEpisode.streamUrl}
-                        className="w-full h-full border-0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                        allowFullScreen
-                        referrerPolicy="no-referrer"
-                        sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-fullscreen"
-                      />
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#A1A1AA]">
-                    <span className="truncate max-w-md font-mono text-[10px] text-emerald-400">
-                      ✓ جاري التشغيل على مشغل أسبيرين TV الداخلي
-                    </span>
-                    <button
-                      onClick={() => setActiveEpisode(null)}
-                      className="text-xs text-[#A1A1AA] hover:text-white"
-                    >
-                      إغلاق المشغل
-                    </button>
-                  </div>
+                <div className="p-4 bg-black border-b border-[#262626]">
+                  <VodPlayer
+                    title={`${selectedSeries.title} — ${activeEpisode.title}`}
+                    streamUrl={activeEpisode.streamUrl}
+                    posterUrl={activeEpisode.posterUrl || selectedSeries.posterUrl}
+                    onClose={() => setActiveEpisode(null)}
+                  />
                 </div>
               )}
 
