@@ -24,6 +24,8 @@ import {
   Radio,
   Download,
   FileText,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 export default function ChannelsPage() {
@@ -33,6 +35,10 @@ export default function ChannelsPage() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(100);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -281,6 +287,12 @@ export default function ChannelsPage() {
   // Extract distinct groups for filter
   const distinctGroups = Array.from(new Set(channels.map((c) => c.groupTitle).filter(Boolean)));
 
+  const totalChannels = channels.length;
+  const totalPages = pageSize === 0 ? 1 : Math.max(1, Math.ceil(totalChannels / pageSize));
+  const paginatedChannels = pageSize === 0
+    ? channels
+    : channels.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   return (
     <div className="min-h-screen bg-[#080808] flex">
       <Sidebar />
@@ -372,7 +384,7 @@ export default function ChannelsPage() {
             </div>
 
             <span className="text-xs font-mono text-[#71717A] shrink-0">
-              CHANNELS: {channels.length}
+              CHANNELS: {channels.length.toLocaleString()}
             </span>
           </div>
 
@@ -402,7 +414,7 @@ export default function ChannelsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#1A1A1A]">
-                    {channels.map((ch) => (
+                    {paginatedChannels.map((ch) => (
                       <tr key={ch.id} className="hover:bg-[#141414] transition-colors">
                         <td className="py-3 px-4 font-medium text-[#F5F5F5]">
                           <div className="flex items-center gap-2">
@@ -495,6 +507,62 @@ export default function ChannelsPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {totalChannels > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-[#0D0D0D] border-t border-[#262626] text-xs text-[#A1A1AA]">
+                <div className="flex items-center gap-2">
+                  <span>
+                    Showing {pageSize === 0 ? 1 : Math.min((currentPage - 1) * pageSize + 1, totalChannels)} to {pageSize === 0 ? totalChannels : Math.min(currentPage * pageSize, totalChannels)} of {totalChannels.toLocaleString()} channels
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[#71717A]">Per page:</span>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="form-input text-xs py-1 px-2 bg-[#171717] border-[#333333]"
+                    >
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                      <option value={250}>250</option>
+                      <option value={500}>500</option>
+                      <option value={1000}>1,000</option>
+                      <option value={0}>All ({totalChannels.toLocaleString()})</option>
+                    </select>
+                  </div>
+
+                  {pageSize > 0 && totalPages > 1 && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage <= 1}
+                        className="p-1 rounded border border-[#262626] bg-[#141414] hover:bg-[#202020] disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Previous page"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span className="px-2 font-mono text-[#D4D4D8]">
+                        {currentPage} / {totalPages}
+                      </span>
+                      <button
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage >= totalPages}
+                        className="p-1 rounded border border-[#262626] bg-[#141414] hover:bg-[#202020] disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Next page"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

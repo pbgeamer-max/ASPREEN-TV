@@ -21,7 +21,7 @@ export async function channelRoutes(server: FastifyInstance) {
     Querystring: { sourceId?: string; q?: string; group?: string; limit?: string };
   }>) => {
     const { sourceId, q, group, limit } = request.query;
-    const limitNum = limit ? parseInt(limit, 10) : 500;
+    const limitNum = limit && parseInt(limit, 10) > 0 ? parseInt(limit, 10) : undefined;
     let channels = await channelRepository.listChannels(sourceId, limitNum);
 
     if (group) {

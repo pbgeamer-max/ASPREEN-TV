@@ -13,7 +13,7 @@ export interface ParseOptions {
 }
 
 export function parseM3UPlaylist(content: string, options: ParseOptions = {}): PlaylistParseResult {
-  const maxEntries = options.maxEntries ?? 2000;
+  const maxEntries = options.maxEntries ?? 200000;
 
   // Strip UTF-8 Byte Order Mark (BOM) if present
   let cleanContent = content;

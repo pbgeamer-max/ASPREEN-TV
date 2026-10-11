@@ -44,7 +44,7 @@ export const config: AppConfig = {
     .map((s) => s.trim())
     .filter(Boolean),
   maxConcurrentJobs: parseInt(process.env.MAX_CONCURRENT_JOBS || '2500', 10),
-  maxPlaylistChannels: parseInt(process.env.MAX_PLAYLIST_CHANNELS || '10000', 10),
+  maxPlaylistChannels: parseInt(process.env.MAX_PLAYLIST_CHANNELS || '200000', 10),
   sourceTimeoutSeconds: parseInt(process.env.SOURCE_TIMEOUT_SECONDS || '15', 10),
   sourceConnectTimeout: parseInt(process.env.SOURCE_CONNECT_TIMEOUT || '10', 10),
   adminPassword: process.env.ADMIN_PASSWORD || 'admin123456',

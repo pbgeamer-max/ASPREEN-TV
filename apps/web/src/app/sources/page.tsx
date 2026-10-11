@@ -39,7 +39,7 @@ export default function SourcesPage() {
   const [sourceName, setSourceName] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
   const [credentials, setCredentials] = useState('');
-  const [maxChannels, setMaxChannels] = useState(5000);
+  const [maxChannels, setMaxChannels] = useState(200000);
   const [localFileContent, setLocalFileContent] = useState('');
   const [fileName, setFileName] = useState('');
 

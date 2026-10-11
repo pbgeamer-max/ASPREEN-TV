@@ -147,11 +147,12 @@ class ApiClient {
   }
 
   // Channels
-  async getChannels(params?: { sourceId?: string; q?: string; group?: string }): Promise<Channel[]> {
+  async getChannels(params?: { sourceId?: string; q?: string; group?: string; limit?: number }): Promise<Channel[]> {
     const searchParams = new URLSearchParams();
     if (params?.sourceId) searchParams.set('sourceId', params.sourceId);
     if (params?.q) searchParams.set('q', params.q);
     if (params?.group) searchParams.set('group', params.group);
+    if (params?.limit) searchParams.set('limit', String(params.limit));
     const qs = searchParams.toString();
     return this.request<Channel[]>(`/channels${qs ? `?${qs}` : ''}`);
   }

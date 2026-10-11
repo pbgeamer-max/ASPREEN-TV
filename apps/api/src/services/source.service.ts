@@ -95,7 +95,7 @@ export class SourceService {
     } else if (rawContent) {
       // Parse M3U channel collection
       const parsed = parseM3UPlaylist(rawContent, {
-        maxEntries: input.maxChannels || 10000,
+        maxEntries: input.maxChannels || 200000,
         baseUrl: input.url,
       });
 
@@ -203,7 +203,7 @@ export class SourceService {
       baseUrl: decryptedUrl,
     });
 
-    const existingChannels = await channelRepository.listChannels(sourceId, 2000);
+    const existingChannels = await channelRepository.listChannels(sourceId);
     const existingByName = new Map(existingChannels.map((c) => [c.normalizedName, c]));
 
     let added = 0;

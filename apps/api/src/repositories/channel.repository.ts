@@ -97,17 +97,28 @@ export class ChannelRepository {
     return snap.data() as Channel;
   }
 
-  async listChannels(sourceId?: string, limitCount: number = 200): Promise<Channel[]> {
+  async listChannels(sourceId?: string, limitCount?: number): Promise<Channel[]> {
     const pool = getPool();
     if (pool) {
       let res;
       if (sourceId) {
-        res = await pool.query(
-          'SELECT * FROM channels WHERE source_id = $1 ORDER BY order_index ASC, created_at ASC, id ASC LIMIT $2',
-          [sourceId, limitCount]
-        );
+        if (limitCount && limitCount > 0) {
+          res = await pool.query(
+            'SELECT * FROM channels WHERE source_id = $1 ORDER BY order_index ASC, created_at ASC, id ASC LIMIT $2',
+            [sourceId, limitCount]
+          );
+        } else {
+          res = await pool.query(
+            'SELECT * FROM channels WHERE source_id = $1 ORDER BY order_index ASC, created_at ASC, id ASC',
+            [sourceId]
+          );
+        }
       } else {
-        res = await pool.query('SELECT * FROM channels ORDER BY order_index ASC, created_at ASC, id ASC LIMIT $1', [limitCount]);
+        if (limitCount && limitCount > 0) {
+          res = await pool.query('SELECT * FROM channels ORDER BY order_index ASC, created_at ASC, id ASC LIMIT $1', [limitCount]);
+        } else {
+          res = await pool.query('SELECT * FROM channels ORDER BY order_index ASC, created_at ASC, id ASC');
+        }
       }
       return res.rows.map(mapChannelRow);
     }
@@ -115,9 +126,17 @@ export class ChannelRepository {
     const colRef = this.db.collection(CHANNELS_COLLECTION);
     let snap: any;
     if (sourceId) {
-      snap = await colRef.where('sourceId', '==', sourceId).limit(limitCount).get();
+      if (limitCount && limitCount > 0) {
+        snap = await colRef.where('sourceId', '==', sourceId).limit(limitCount).get();
+      } else {
+        snap = await colRef.where('sourceId', '==', sourceId).get();
+      }
     } else {
-      snap = await colRef.limit(limitCount).get();
+      if (limitCount && limitCount > 0) {
+        snap = await colRef.limit(limitCount).get();
+      } else {
+        snap = await colRef.get();
+      }
     }
     return snap.docs.map((d: any) => d.data() as Channel);
   }
