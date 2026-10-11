@@ -132,4 +132,62 @@ export async function appRoutes(server: FastifyInstance) {
 
     return { received: true };
   });
+
+  /**
+   * POST /api/app/sniff
+   * Extracts hidden m3u8 stream from any live match page URL
+   */
+  server.post(
+    '/sniff',
+    async (request: FastifyRequest<{ Body: { pageUrl: string; channelName?: string; autoSave?: boolean } }>, reply) => {
+      const { pageUrl, channelName, autoSave } = (request.body as any) || {};
+      if (!pageUrl || !/^https?:\/\//i.test(pageUrl)) {
+        return reply.status(400).send({ error: 'pageUrl is required and must start with http:// or https://' });
+      }
+
+      const { snifferService } = await import('../services/sniffer.service');
+      const sniffResult = await snifferService.sniffWebpage(pageUrl);
+
+      if (!sniffResult.success || !sniffResult.streamUrl) {
+        return reply.status(422).send({ success: false, error: sniffResult.error || 'No stream found' });
+      }
+
+      let createdChannel = null;
+      if (autoSave && channelName) {
+        const { encrypt } = await import('../security/encryption');
+        createdChannel = await channelRepository.createChannel({
+          sourceId: 'web-sniffed',
+          name: channelName,
+          normalizedName: channelName.trim().toLowerCase(),
+          inputType: 'HLS',
+          inputStatus: 'ONLINE',
+          transcodingStatus: 'STOPPED',
+          encryptedInputUrl: encrypt(sniffResult.streamUrl),
+          groupTitle: 'Sniffed Streams',
+          enabled: true,
+          preset: 'COPY',
+        });
+      }
+
+      return {
+        success: true,
+        streamUrl: sniffResult.streamUrl,
+        headers: sniffResult.headers,
+        channel: createdChannel,
+      };
+    }
+  );
+
+  /**
+   * POST /api/app/sync-sports
+   * Scans live sports index and synchronizes active sports/beIN channels
+   */
+  server.post('/sync-sports', async (_request, reply) => {
+    const { snifferService } = await import('../services/sniffer.service');
+    const result = await snifferService.syncLiveSports();
+    return {
+      success: true,
+      ...result,
+    };
+  });
 }

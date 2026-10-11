@@ -166,7 +166,9 @@ class TelegramService {
           `🔹 <code>/status</code> - فحص حالة السيرفر والقنوات\n` +
           `🔹 <code>/playlist</code> - تحميل ملف الـ M3U المحدث لتطبيقك\n` +
           `🔹 <code>/channels</code> - عرض قائمة بأهم القنوات الشغالة\n` +
-          `🔹 <code>/add &lt;الاسم&gt; &lt;الرابط&gt;</code> - إضافة قناة جديدة فوراً\n` +
+          `🔹 <code>/add &lt;الاسم&gt; &lt;الرابط&gt;</code> - إضافة قناة برابط مباشر\n` +
+          `🔹 <code>/sniff &lt;رابط_صفحة&gt; [الاسم]</code> - قنص واستخراج رابط البث المخفي من أي موقع\n` +
+          `🔹 <code>/sync_sports</code> - استكشاف ومزامنة قنوات beIN والرياضة تلقائياً\n` +
           `🔹 <code>/check</code> - فحص صحة القنوات وسرعتها\n` +
           `🔹 <code>/app</code> - رابط الـ API لتطبيق الأندرويد`;
 
@@ -305,6 +307,81 @@ class TelegramService {
           `القنوات المفحوصة: ${sample.length}\n` +
           `القنوات الجاهزة للبث: ${okCount}`
         );
+      } else if (command === '/sniff') {
+        const parts = args.split(/\s+/);
+        const targetUrl = parts[0];
+        const rawName = parts.slice(1).join(' ').trim() || `قناة بث ${new Date().toLocaleTimeString('ar-EG')}`;
+
+        if (!targetUrl || !/^https?:\/\//i.test(targetUrl)) {
+          await this.sendMessage(
+            chatId,
+            `⚠️ <b>طريقة استخدام القنّاص:</b>\n\n` +
+            `أرسل رابط صفحة المباراة أو البث وسيقوم السكربت بتفكيكها واستخراج رابط الـ m3u8 وإضافته تلقائياً لموقعك:\n` +
+            `<code>/sniff &lt;رابط_الصفحة&gt; [اسم_القناة]</code>\n\n` +
+            `مثال:\n` +
+            `<code>/sniff https://example.com/match-live beIN_1</code>`
+          );
+          return;
+        }
+
+        await this.sendMessage(chatId, `🕵️‍♂️ <b>جاري قنص الرابط...</b>\nنقوم بفحص الصفحة والمشغلات لاستخراج رابط البث المباشر.`);
+
+        const { snifferService } = await import('./sniffer.service');
+        const result = await snifferService.sniffWebpage(targetUrl);
+
+        if (!result.success || !result.streamUrl) {
+          await this.sendMessage(chatId, `❌ <b>فشل القنص:</b>\n${result.error || 'لم يتم العثور على رابط بث مباشر صالح.'}`);
+          return;
+        }
+
+        const channelName = rawName.replace(/_/g, ' ');
+        const createdChannel = await channelRepository.createChannel({
+          sourceId: 'telegram-sniff',
+          name: channelName,
+          normalizedName: channelName.toLowerCase(),
+          inputType: 'HLS',
+          inputStatus: 'ONLINE',
+          transcodingStatus: 'STOPPED',
+          encryptedInputUrl: encrypt(result.streamUrl),
+          groupTitle: 'Sniffed Live',
+          enabled: true,
+          preset: 'COPY',
+        });
+
+        await this.sendMessage(
+          chatId,
+          `🎯 <b>تم قنص واستخراج البث بنجاح!</b>\n\n` +
+          `📺 القناة: <b>${createdChannel.name}</b>\n` +
+          `🔗 رابط البث الخام: <code>${result.streamUrl.slice(0, 70)}...</code>\n` +
+          `🆔 المعرف في موقعك: <code>${createdChannel.id}</code>\n\n` +
+          `✅ أصبحت القناة جاهزة للبث في موقعك وتطبيق الأندرويد فوراً!`
+        );
+      } else if (command === '/sync_sports' || command === '/sports') {
+        await this.sendMessage(
+          chatId,
+          `⚡ <b>جاري استكشاف ومزامنة القنوات الرياضية...</b>\nنقوم بفحص مستودعات البث والتأكد من القنوات النشطة.`
+        );
+
+        const { snifferService } = await import('./sniffer.service');
+        const syncRes = await snifferService.syncLiveSports();
+
+        let replyMsg =
+          `🏆 <b>تقرير مزامنة القنوات الرياضية:</b>\n\n` +
+          `📊 تم فحص: ${syncRes.totalScanned} قناة\n` +
+          `🟢 قنوات نشطة ومضافة: ${syncRes.addedCount}\n` +
+          `🔄 قنوات تم تحديث روابطها: ${syncRes.updatedCount}\n\n`;
+
+        if (syncRes.activeChannels.length > 0) {
+          replyMsg += `<b>أهم القنوات المتوفرة الآن:</b>\n`;
+          syncRes.activeChannels.slice(0, 8).forEach((c, idx) => {
+            replyMsg += `${idx + 1}. ⚽ ${c.name}\n`;
+          });
+          replyMsg += `\nلتحميل قائمة القنوات كاملة أرسل: <code>/playlist</code>`;
+        } else {
+          replyMsg += `⚠️ لم يتم العثور على روابط بث نشطة حالياً، يمكنك إضافة رابط يدوي عبر: <code>/add</code> أو <code>/sniff</code>`;
+        }
+
+        await this.sendMessage(chatId, replyMsg);
       }
     } catch (err: any) {
       console.error('[Telegram Bot] Error processing command:', err.message);

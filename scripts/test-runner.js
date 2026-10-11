@@ -13,6 +13,7 @@ const testFiles = [
   'tests/ffmpeg-builder.test.ts',
   'tests/transcoding-e2e.test.ts',
   'tests/api-integration.test.ts',
+  'tests/sniffer.test.ts',
 ];
 
 const cmd = `node --experimental-strip-types --test ${testFiles.join(' ')}`;
