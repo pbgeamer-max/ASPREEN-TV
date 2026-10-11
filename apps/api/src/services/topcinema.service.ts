@@ -141,17 +141,19 @@ export class TopCinemaService {
       let chosenStream: string | null = null;
 
       if (serverItems.length > 0) {
-        // Preference ranking: OK.ru (Server 5, rock-solid, 1080p, no embed restrictions) > StreamWish (Server 2) > Streamtape > Upstream > Updown
+        // Preference ranking: OK.ru (Server 5, rock-solid, 1080p, no restrictions) > Streamtape > LuluStream > Mixdrop > Firestream > UpStream > StreamWish (demoted due to domain block) > VidTube (blocked)
         const getRank = (item: { name: string; sIndex: string }) => {
-          if (item.name.includes('ok') || item.sIndex === '5') return 1;
-          if (item.name.includes('streamwish') || item.sIndex === '2') return 2;
-          if (item.name.includes('streamtape') || item.sIndex === '6') return 3;
-          if (item.name.includes('upstream') || item.sIndex === '7') return 4;
-          if (item.name.includes('updown') || item.sIndex === '1') return 5;
-          if (item.name.includes('dood')) return 6;
-          if (item.name.includes('filelion') || item.name.includes('earnvids')) return 7;
+          if (item.name.includes('ok')) return 1;
+          if (item.name.includes('streamtape')) return 2;
+          if (item.name.includes('lulu')) return 3;
+          if (item.name.includes('mixdrop')) return 4;
+          if (item.name.includes('firestream')) return 5;
+          if (item.name.includes('upstream')) return 6;
+          if (item.name.includes('dood')) return 7;
+          if (item.name.includes('streamwish') || item.name.includes('streamhg') || item.sIndex === '2') return 8; // Demote StreamWish due to domain restrictions
+          if (item.name.includes('filelion') || item.name.includes('earnvids')) return 9;
           if (item.name.includes('tube') || item.sIndex === '0') return 10; // VidTube disables embeds!
-          return 8;
+          return 7;
         };
 
         serverItems.sort((a, b) => getRank(a) - getRank(b));
