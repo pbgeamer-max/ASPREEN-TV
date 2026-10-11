@@ -408,6 +408,28 @@ export class VodRepository {
       totalEpisodes: inMemoryEpisodes.size,
     };
   }
+
+  async purgeInvalidStreams(): Promise<{ moviesDeleted: number; episodesDeleted: number }> {
+    const pool = getPool();
+    if (pool) {
+      try {
+        const epRes = await pool.query(
+          `DELETE FROM episodes WHERE stream_url ILIKE '%5tv.lol%' OR stream_url ILIKE '%topcinema.io%'`
+        );
+        const mRes = await pool.query(
+          `DELETE FROM movies WHERE stream_url ILIKE '%5tv.lol%' OR stream_url ILIKE '%topcinema.io%'`
+        );
+        return {
+          moviesDeleted: mRes.rowCount || 0,
+          episodesDeleted: epRes.rowCount || 0,
+        };
+      } catch (err: any) {
+        console.error('Error in purgeInvalidStreams:', err.message);
+        return { moviesDeleted: 0, episodesDeleted: 0 };
+      }
+    }
+    return { moviesDeleted: 0, episodesDeleted: 0 };
+  }
 }
 
 export const vodRepository = new VodRepository();

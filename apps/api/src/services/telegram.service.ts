@@ -165,9 +165,10 @@ class TelegramService {
           `🔹 <code>/scan_all</code> - الفحص الشامل والسريع (عراقية + beIN + عربية + أخبار)\n` +
           `🔹 <code>/scan_iraq</code> - فحص وجلب جميع القنوات العراقية النشطة\n` +
           `🔹 <code>/scan_sports</code> - فحص ومزامنة قنوات beIN Sports والرياضة\n` +
+          `🔹 <code>/deep_sync</code> - 🚀 سحب شامل وعميق للمكتبات من الألف إلى الياء (A-Z) بالخلفية\n` +
           `🔹 <code>/fivetv_sync</code> - سحب مكتبة الأفلام والمسلسلات 1080p من FiveTV\n` +
           `🔹 <code>/topcinema_sync</code> - زحف مكتبة توب سينما (OK.ru/HD) بدون حظر إطارات\n` +
-          `🔹 <code>/vod_sync</code> - مزامنة شاملة عملاقة لمكتبي FiveTV و TopCinema بدون تكرار\n` +
+          `🔹 <code>/vod_sync</code> - مزامنة سريعة لمكتبي FiveTV و TopCinema بدون تكرار\n` +
           `🔹 <code>/movies</code> - عرض أحدث الأفلام المتوفرة\n` +
           `🔹 <code>/series</code> - عرض أحدث المسلسلات والحلقات\n` +
           `🔹 <code>/clean</code> - تنظيف وترتيب القنوات في باقات مخصصة وحذف العشوائيات\n` +
@@ -506,6 +507,41 @@ class TelegramService {
           `✅ روابط التشغيل فحصت وتعمل على مشغل الموقع وتطبيقك بسلاسة!\n` +
           `تصفحها الآن في موقعك في قسم <b>الأفلام</b> وقسم <b>المسلسلات</b>.`
         );
+      } else if (command === '/deep_sync' || command === '/full_crawl' || command === '/crawl_all') {
+        await this.sendMessage(
+          chatId,
+          `🚀 <b>بدأ السحب الشامل والعميق للمكتبات بالكامل (من الألف إلى الياء)!</b>\n\n` +
+          `🔍 <b>ما الذي يقوم به السكربت الآن:</b>\n` +
+          `1. تنظيف أي روابط صفحات خارجية لضمان بقاء روابط التشغيل النظيفة فقط على مشغلك.\n` +
+          `2. الزحف عبر جميع صفحات FiveTV و TopCinema صفحة صفحة بدون سقف وبدون توقف.\n` +
+          `3. استخراج سيرفرات الفيديو المباشرة فقط (71stream / OK.ru / StreamWish) بدون إعلانات أو تحويلات.\n` +
+          `4. منع أي تكرار وترتيب الحلقات تصاعدياً.\n\n` +
+          `⏳ سيعمل الزاحف في الخلفية بشكل آمن، ويمكنك كتابة <code>/stats</code> لمعرفة الأعداد الحالية!`
+        );
+
+        const { vodRepository } = await import('../repositories/vod.repository');
+        const { fiveTvService } = await import('./fivetv.service');
+        const { topCinemaService } = await import('./topcinema.service');
+
+        // Execute background crawl
+        (async () => {
+          try {
+            await vodRepository.purgeInvalidStreams();
+            await fiveTvService.syncFiveTv({ unlimited: true });
+            await topCinemaService.syncTopCinema({ unlimited: true });
+            const stats = await vodRepository.getStats();
+            await this.sendMessage(
+              chatId,
+              `🎉 <b>اكتمل السحب الشامل والعميق للمكتبات بنجاح!</b>\n\n` +
+              `🎬 <b>إجمالي الأفلام:</b> ${stats.totalMovies} فيلم\n` +
+              `📺 <b>إجمالي المسلسلات:</b> ${stats.totalSeries} مسلسل\n` +
+              `🎞️ <b>إجمالي الحلقات:</b> ${stats.totalEpisodes} حلقة\n\n` +
+              `✅ جميع المواد تعمل بروابط المشغل الداخلي وبأعلى جودة!`
+            );
+          } catch (e: any) {
+            console.error('[DeepSync Background Error]:', e.message);
+          }
+        })();
       } else if (command === '/movies') {
         const { vodRepository } = await import('../repositories/vod.repository');
         const { items, total } = await vodRepository.listMovies('all', undefined, 10, 0);

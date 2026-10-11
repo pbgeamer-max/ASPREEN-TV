@@ -1,6 +1,7 @@
 import https from 'https';
 import http from 'http';
 import { vodRepository, Movie, Series, Episode } from '../repositories/vod.repository';
+import { isValidStreamEmbed } from './fivetv.service';
 
 export interface TopCinemaSyncReport {
   moviesAdded: number;
@@ -66,7 +67,7 @@ export class TopCinemaService {
         }
       });
 
-      req.setTimeout(12000, () => {
+      req.setTimeout(14000, () => {
         req.destroy();
         if (retries > 0) {
           this.fetchHtml(url, retries - 1).then(resolve).catch(reject);
@@ -109,6 +110,7 @@ export class TopCinemaService {
 
   /**
    * Extract working stream iframe and details from a watch page
+   * STRICT: NEVER returns website URL as streamUrl!
    */
   private async extractWatchDetails(watchUrl: string): Promise<{
     streamUrl: string | null;
@@ -139,13 +141,13 @@ export class TopCinemaService {
       let chosenStream: string | null = null;
 
       if (serverItems.length > 0) {
-        // Preference ranking: OK.ru (rock-solid, 1080p, no embed restrictions) > StreamWish > Streamtape > Upstream > Updown > others
+        // Preference ranking: OK.ru (Server 5, rock-solid, 1080p, no embed restrictions) > StreamWish (Server 2) > Streamtape > Upstream > Updown
         const getRank = (item: { name: string; sIndex: string }) => {
-          if (item.name.includes('ok')) return 1;
-          if (item.name.includes('streamwish')) return 2;
-          if (item.name.includes('streamtape')) return 3;
-          if (item.name.includes('upstream')) return 4;
-          if (item.name.includes('updown')) return 5;
+          if (item.name.includes('ok') || item.sIndex === '5') return 1;
+          if (item.name.includes('streamwish') || item.sIndex === '2') return 2;
+          if (item.name.includes('streamtape') || item.sIndex === '6') return 3;
+          if (item.name.includes('upstream') || item.sIndex === '7') return 4;
+          if (item.name.includes('updown') || item.sIndex === '1') return 5;
           if (item.name.includes('dood')) return 6;
           if (item.name.includes('filelion') || item.name.includes('earnvids')) return 7;
           if (item.name.includes('tube') || item.sIndex === '0') return 10; // VidTube disables embeds!
@@ -156,25 +158,29 @@ export class TopCinemaService {
 
         for (const item of serverItems) {
           if (getRank(item) >= 10 && serverItems.length > 1) {
-            // Skip VidTube unless it's strictly the only server available
-            continue;
+            continue; // Skip VidTube
           }
           const stream = await this.fetchServer(item.id, item.sIndex);
-          if (stream && !stream.includes('vidtube') && !stream.includes('videotube')) {
+          if (stream && isValidStreamEmbed(stream) && !stream.includes('vidtube') && !stream.includes('videotube')) {
             chosenStream = stream;
             break;
           }
         }
 
         if (!chosenStream && serverItems[0]) {
-          chosenStream = await this.fetchServer(serverItems[0].id, serverItems[0].sIndex);
+          const fallbackStream = await this.fetchServer(serverItems[0].id, serverItems[0].sIndex);
+          if (fallbackStream && isValidStreamEmbed(fallbackStream)) {
+            chosenStream = fallbackStream;
+          }
         }
       }
 
       // Fallback to iframe in HTML if Server.php didn't respond
       if (!chosenStream) {
         const iframeMatch = html.match(/<iframe[^>]+src="([^"]+)"/i);
-        chosenStream = iframeMatch ? iframeMatch[1] : null;
+        if (iframeMatch && isValidStreamEmbed(iframeMatch[1])) {
+          chosenStream = iframeMatch[1];
+        }
       }
 
       return {
@@ -225,20 +231,23 @@ export class TopCinemaService {
   }
 
   /**
-   * Crawl movies from TopCinema
+   * Crawl movies from TopCinema (crawls all pages from page 1 to end when maxPages is 0)
    */
-  async scrapeMovies(maxPages = 6): Promise<number> {
+  async scrapeMovies(maxPages = 0): Promise<number> {
     let totalAdded = 0;
+    let page = 1;
 
-    for (let page = 1; page <= maxPages; page++) {
+    while (true) {
+      if (maxPages > 0 && page > maxPages) break;
       const pageUrl = page === 1 ? `${this.BASE_URL}/movies/` : `${this.BASE_URL}/movies/page/${page}/`;
+
       try {
         const html = await this.fetchHtml(pageUrl);
         const movieBoxes = [...html.matchAll(/<div class="Small--Box[^"]*">\s*<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)];
 
         if (movieBoxes.length === 0) break;
 
-        // Process in chunks of 5 for speed and stability
+        // Process in chunks of 5
         const chunkSize = 5;
         for (let i = 0; i < movieBoxes.length; i += chunkSize) {
           const chunk = movieBoxes.slice(i, i + chunkSize);
@@ -251,11 +260,9 @@ export class TopCinemaService {
             const posterMatch = box[2].match(/data-src="([^"]+)"/i) || box[2].match(/src="([^"]+)"/i);
             const defaultPoster = posterMatch ? posterMatch[1] : undefined;
 
-            // Extract year
             const yearMatch = title.match(/\b(19\d{2}|20\d{2})\b/);
             const releaseYear = yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear();
 
-            // Extract genres/category
             const genreMatches = [...box[2].matchAll(/<li>([^<]+)<\/li>/gi)].map(m => m[1].trim());
             const category = genreMatches.length > 0 ? `أفلام ${genreMatches.join(' - ')}` : 'أفلام توب سينما';
 
@@ -263,7 +270,10 @@ export class TopCinemaService {
             const watchUrl = pageUrl.replace(/\/$/, '') + '/watch/';
             const details = await this.extractWatchDetails(watchUrl);
 
-            const streamUrl = details.streamUrl || watchUrl;
+            // STRICT: Must be a pure stream embed! NEVER save website URL!
+            if (!isValidStreamEmbed(details.streamUrl)) {
+              return;
+            }
 
             await vodRepository.upsertMovie({
               title,
@@ -273,15 +283,18 @@ export class TopCinemaService {
               description: details.description || `مشاهدة وتحميل ${title} بجودة عالية وبدون تقطيع على أسبيرين TV.`,
               releaseYear,
               rating: details.rating || 7.5,
-              streamUrl,
+              streamUrl: details.streamUrl!,
               containerExtension: 'html',
             });
 
             totalAdded++;
           }));
         }
+
+        page++;
       } catch (err: any) {
         console.error(`Error scraping TopCinema movies page ${page}:`, err.message);
+        break;
       }
     }
 
@@ -290,8 +303,9 @@ export class TopCinemaService {
 
   /**
    * Crawl TV Series and all their ordered seasons & episodes with category pagination
+   * Extracts pure embed streams for each episode (no website links!)
    */
-  async scrapeSeries(maxSeries = 30, maxCatPages = 3): Promise<{ seriesAdded: number; episodesAdded: number }> {
+  async scrapeSeries(maxSeries = 0, maxCatPages = 0): Promise<{ seriesAdded: number; episodesAdded: number }> {
     let seriesAdded = 0;
     let episodesAdded = 0;
 
@@ -304,10 +318,12 @@ export class TopCinemaService {
     ];
 
     for (const catBase of categories) {
-      if (seriesAdded >= maxSeries) break;
+      if (maxSeries > 0 && seriesAdded >= maxSeries) break;
 
-      for (let p = 1; p <= maxCatPages; p++) {
-        if (seriesAdded >= maxSeries) break;
+      let p = 1;
+      while (true) {
+        if (maxCatPages > 0 && p > maxCatPages) break;
+        if (maxSeries > 0 && seriesAdded >= maxSeries) break;
 
         const catUrl = p === 1 ? catBase : `${catBase}page/${p}/`;
 
@@ -317,7 +333,7 @@ export class TopCinemaService {
           if (seriesBoxes.length === 0) break;
 
           for (const sBox of seriesBoxes) {
-            if (seriesAdded >= maxSeries) break;
+            if (maxSeries > 0 && seriesAdded >= maxSeries) break;
 
             const seriesUrl = sBox[1];
             const sTitleMatch = sBox[2].match(/<h3 class="title">([^<]+)<\/h3>/i);
@@ -325,14 +341,12 @@ export class TopCinemaService {
             const defaultPosterMatch = sBox[2].match(/data-src="([^"]+)"/i) || sBox[2].match(/src="([^"]+)"/i);
             const defaultPoster = defaultPosterMatch ? defaultPosterMatch[1] : undefined;
 
-            // Fetch series page to discover seasons and details
             try {
               const seriesHtml = await this.fetchHtml(seriesUrl);
               const descMatch = seriesHtml.match(/<div class="story"[^>]*>([\s\S]*?)<\/div>/i);
               const posterMatch = seriesHtml.match(/<meta property="og:image" content="([^"]+)"/i);
               const ratingMatch = seriesHtml.match(/<div class="imdbBox">[\s\S]*?<span>([\d.]+)<\/span>/i);
 
-              // Find all season boxes
               const seasonBoxes = [...seriesHtml.matchAll(/<div class="Small--Box Season">\s*<a href="([^"]+)"[\s\S]*?<div class="epnum"><span>الموسم<\/span>([^<]+)<\/div>[\s\S]*?<\/a>/gi)];
               const totalSeasons = Math.max(1, seasonBoxes.length);
 
@@ -344,7 +358,6 @@ export class TopCinemaService {
                                    catBase.includes('تركي') ? 'مسلسلات تركية' :
                                    catBase.includes('عربي') ? 'مسلسلات عربية' : 'مسلسلات أجنبية';
 
-              // Upsert the series (deduplicated by normalized_title)
               const createdSeries = await vodRepository.upsertSeries({
                 title: rawTitle,
                 normalizedTitle: this.normalizeTitle(rawTitle),
@@ -365,7 +378,6 @@ export class TopCinemaService {
 
                 try {
                   const seasonHtml = await this.fetchHtml(seasonUrl);
-                  // Extract all episodes in this season
                   const epMatches = [...seasonHtml.matchAll(/<a[^>]+href="([^"]+)"[^>]*title="([^"]*الحلقة[^"]*)"/gi)];
 
                   // Process episodes in chunks of 4
@@ -381,7 +393,11 @@ export class TopCinemaService {
                       // Fetch episode watch stream
                       const epWatchUrl = epUrl.replace(/\/$/, '') + '/watch/';
                       const epDetails = await this.extractWatchDetails(epWatchUrl);
-                      const streamUrl = epDetails.streamUrl || epWatchUrl;
+
+                      // STRICT: Must be a pure stream embed! NEVER save epWatchUrl or website URL!
+                      if (!isValidStreamEmbed(epDetails.streamUrl)) {
+                        return;
+                      }
 
                       await vodRepository.upsertEpisode({
                         seriesId: createdSeries.id,
@@ -390,7 +406,7 @@ export class TopCinemaService {
                         title: `الموسم ${seasonNum} - الحلقة ${epNum}`,
                         posterUrl: epDetails.posterUrl || createdSeries.posterUrl,
                         description: epDetails.description || `${rawTitle} - الموسم ${seasonNum} الحلقة ${epNum}`,
-                        streamUrl,
+                        streamUrl: epDetails.streamUrl!,
                         containerExtension: 'html',
                       });
 
@@ -405,8 +421,11 @@ export class TopCinemaService {
               console.error(`Error scraping series page ${seriesUrl}:`, err.message);
             }
           }
+
+          p++;
         } catch (err: any) {
           console.error(`Error scraping series category ${catUrl}:`, err.message);
+          break;
         }
       }
     }
@@ -415,8 +434,7 @@ export class TopCinemaService {
   }
 
   /**
-   * Crawl the /recent/ page for the newest releases (movies & series episodes)
-   * This is the auto-healing and continuous updater mechanism!
+   * Crawl the /recent/ page for the newest releases
    */
   async scrapeRecent(limit = 40): Promise<{ newMovies: number; newEpisodes: number }> {
     let newMovies = 0;
@@ -439,8 +457,6 @@ export class TopCinemaService {
         const isEpisode = title.includes('الحلقة') || itemUrl.includes('الحلقة');
 
         if (isEpisode) {
-          // It's a new TV Episode!
-          // Extract series title
           let seriesTitle = title
             .replace(/الموسم\s+[^]+$/i, '')
             .replace(/الحلقة\s+[^]+$/i, '')
@@ -449,14 +465,18 @@ export class TopCinemaService {
             seriesTitle = `مسلسل ${seriesTitle}`;
           }
 
-          // Extract season & episode numbers
           const seasonMatch = title.match(/الموسم\s+([^\s]+)/i);
           const seasonNum = seasonMatch ? this.parseArabicOrdinal(seasonMatch[1]) : 1;
 
           const epNumMatch = title.match(/الحلقة\s*(\d+)/i);
           const episodeNum = epNumMatch ? parseInt(epNumMatch[1], 10) : 1;
 
-          // Ensure parent series exists
+          const watchUrl = itemUrl.replace(/\/$/, '') + '/watch/';
+          const details = await this.extractWatchDetails(watchUrl);
+
+          // STRICT: NEVER save website URL!
+          if (!isValidStreamEmbed(details.streamUrl)) continue;
+
           const series = await vodRepository.upsertSeries({
             title: seriesTitle,
             normalizedTitle: this.normalizeTitle(seriesTitle),
@@ -466,11 +486,6 @@ export class TopCinemaService {
             totalSeasons: seasonNum,
           });
 
-          // Fetch watch stream
-          const watchUrl = itemUrl.replace(/\/$/, '') + '/watch/';
-          const details = await this.extractWatchDetails(watchUrl);
-          const streamUrl = details.streamUrl || watchUrl;
-
           await vodRepository.upsertEpisode({
             seriesId: series.id,
             seasonNum,
@@ -478,19 +493,20 @@ export class TopCinemaService {
             title: `الموسم ${seasonNum} - الحلقة ${episodeNum}`,
             posterUrl: details.posterUrl || defaultPoster,
             description: details.description || `${seriesTitle} - الموسم ${seasonNum} الحلقة ${episodeNum}`,
-            streamUrl,
+            streamUrl: details.streamUrl!,
             containerExtension: 'html',
           });
 
           newEpisodes++;
         } else {
-          // It's a Movie!
           const yearMatch = title.match(/\b(19\d{2}|20\d{2})\b/);
           const releaseYear = yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear();
 
           const watchUrl = itemUrl.replace(/\/$/, '') + '/watch/';
           const details = await this.extractWatchDetails(watchUrl);
-          const streamUrl = details.streamUrl || watchUrl;
+
+          // STRICT: NEVER save website URL!
+          if (!isValidStreamEmbed(details.streamUrl)) continue;
 
           await vodRepository.upsertMovie({
             title,
@@ -500,7 +516,7 @@ export class TopCinemaService {
             description: details.description || `مشاهدة وتحميل ${title} بجودة عالية.`,
             releaseYear,
             rating: details.rating || 7.5,
-            streamUrl,
+            streamUrl: details.streamUrl!,
             containerExtension: 'html',
           });
 
@@ -515,9 +531,9 @@ export class TopCinemaService {
   }
 
   /**
-   * Complete topcinema synchronization
+   * Complete topcinema synchronization (with full unlimited deep crawl support)
    */
-  async syncTopCinema(options: { deep?: boolean; maxMoviePages?: number; maxSeries?: number; recentLimit?: number } = {}): Promise<TopCinemaSyncReport> {
+  async syncTopCinema(options: { deep?: boolean; unlimited?: boolean; maxMoviePages?: number; maxSeries?: number; recentLimit?: number } = {}): Promise<TopCinemaSyncReport> {
     if (this.isSyncing) {
       const stats = await vodRepository.getStats();
       return {
@@ -534,23 +550,23 @@ export class TopCinemaService {
     this.isSyncing = true;
     const startTime = Date.now();
 
-    const maxMoviePages = options.maxMoviePages || (options.deep ? 20 : 8);
-    const maxSeries = options.maxSeries || (options.deep ? 50 : 25);
+    const maxMoviePages = options.unlimited ? 0 : (options.maxMoviePages || (options.deep ? 25 : 8));
+    const maxSeries = options.unlimited ? 0 : (options.maxSeries || (options.deep ? 60 : 25));
     const recentLimit = options.recentLimit || (options.deep ? 80 : 40);
 
     try {
-      console.log(`--- Starting TopCinema VOD Sync (deep: ${!!options.deep}, moviePages: ${maxMoviePages}, series: ${maxSeries}) ---`);
+      console.log(`--- Starting TopCinema VOD Sync (unlimited: ${!!options.unlimited}, deep: ${!!options.deep}, moviePages: ${maxMoviePages || 'ALL'}, series: ${maxSeries || 'ALL'}) ---`);
 
-      // 1. Scrape latest additions first (fastest, freshest content)
+      // 1. Scrape latest additions first
       const recentStats = await this.scrapeRecent(recentLimit);
       console.log(`[TopCinema] Recent ingested: ${recentStats.newMovies} movies, ${recentStats.newEpisodes} episodes`);
 
-      // 2. Scrape movies catalog (pages)
+      // 2. Scrape movies catalog
       const moviesAdded = await this.scrapeMovies(maxMoviePages);
       console.log(`[TopCinema] Movie catalog ingested: ${moviesAdded} movies`);
 
-      // 3. Scrape series catalog with full seasons & episodes
-      const seriesStats = await this.scrapeSeries(maxSeries, options.deep ? 4 : 2);
+      // 3. Scrape series catalog
+      const seriesStats = await this.scrapeSeries(maxSeries, options.unlimited ? 0 : (options.deep ? 6 : 2));
       console.log(`[TopCinema] Series ingested: ${seriesStats.seriesAdded} series, ${seriesStats.episodesAdded} episodes`);
 
       const totalStats = await vodRepository.getStats();

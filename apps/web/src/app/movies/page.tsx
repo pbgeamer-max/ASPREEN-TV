@@ -32,6 +32,20 @@ export default function MoviesPage() {
   const [selectedMovie, setSelectedMovie] = useState<any | null>(null);
   const [playingStream, setPlayingStream] = useState<string | null>(null);
   const [playerMode, setPlayerMode] = useState<'auto' | 'embed' | 'direct'>('auto');
+  const [directStreamUrl, setDirectStreamUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (playingStream) {
+      setDirectStreamUrl(null);
+      if (playingStream.includes('71stream.one')) {
+        api.resolveStream(playingStream)
+          .then((res) => {
+            if (res.directUrl) setDirectStreamUrl(res.directUrl);
+          })
+          .catch(() => {});
+      }
+    }
+  }, [playingStream]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -129,6 +143,18 @@ export default function MoviesPage() {
     }
   };
 
+  const handleDeepSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await api.deepSyncVod();
+      alert(res.message || '🚀 بدأ سحب المكتبات بالكامل من الألف إلى الياء في الخلفية!');
+    } catch (err: any) {
+      alert(`فشل بدء السحب العميق: ${err.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#080808] flex text-[#F5F5F5]">
       <Sidebar />
@@ -154,12 +180,22 @@ export default function MoviesPage() {
 
           <div className="flex flex-wrap items-center gap-2.5">
             <button
+              onClick={handleDeepSync}
+              disabled={syncing}
+              className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-lg flex items-center gap-2 shadow-lg shadow-emerald-950/20 transition-all disabled:opacity-50"
+              title="سحب كافة صفحات الموقعين من الألف إلى الياء في الخلفية بدون حدود"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              <span>🚀 سحب شامل (A-Z)</span>
+            </button>
+
+            <button
               onClick={() => handleFiveTvSync(false)}
               disabled={syncing}
               className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-lg flex items-center gap-2 shadow-lg shadow-blue-950/20 transition-all disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-              <span>مزامنة FiveTV (1080p)</span>
+              <span>FiveTV (1080p)</span>
             </button>
 
             <button
@@ -168,7 +204,7 @@ export default function MoviesPage() {
               className="px-3.5 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-semibold rounded-lg flex items-center gap-2 shadow-lg shadow-orange-950/20 transition-all disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-              <span>مزامنة TopCinema</span>
+              <span>TopCinema</span>
             </button>
 
             <button
@@ -177,7 +213,7 @@ export default function MoviesPage() {
               className="px-3.5 py-2 bg-[#222222] hover:bg-[#2c2c2c] border border-[#333333] text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-all disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-              <span>مزامنة شاملة (الكل)</span>
+              <span>تحديث سريع</span>
             </button>
           </div>
         </div>
@@ -407,7 +443,7 @@ export default function MoviesPage() {
                       <div className="relative aspect-video bg-black rounded-xl overflow-hidden border border-[#2E2E2E]">
                         {playerMode === 'direct' ? (
                           <video
-                            src={playingStream}
+                            src={directStreamUrl || playingStream}
                             controls
                             autoPlay
                             className="w-full h-full object-contain"
@@ -419,13 +455,14 @@ export default function MoviesPage() {
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                             allowFullScreen
                             referrerPolicy="no-referrer"
+                            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-fullscreen"
                           />
                         )}
                       </div>
 
                       <div className="flex items-center justify-between text-[11px] text-[#A1A1AA]">
-                        <span className="truncate max-w-md font-mono text-[10px]">
-                          الرابط: {playingStream}
+                        <span className="truncate max-w-md font-mono text-[10px] text-emerald-400">
+                          ✓ جاري التشغيل على مشغل أسبيرين TV الداخلي
                         </span>
                         <div className="flex items-center gap-3">
                           <button
@@ -434,14 +471,6 @@ export default function MoviesPage() {
                           >
                             إغلاق المشغل
                           </button>
-                          <a
-                            href={playingStream}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-red-400 hover:underline flex items-center gap-1 text-xs"
-                          >
-                            فتح في نافذة مستقلة <ExternalLink className="w-3 h-3" />
-                          </a>
                         </div>
                       </div>
                     </div>
@@ -452,18 +481,8 @@ export default function MoviesPage() {
                         className="flex-1 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-red-950/30 transition-all"
                       >
                         <Play className="w-4 h-4 fill-white" />
-                        <span>تشغيل الفيلم الآن</span>
+                        <span>تشغيل الفيلم الآن على المشغل الداخلي</span>
                       </button>
-
-                      <a
-                        href={selectedMovie.streamUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-4 py-2.5 bg-[#1E1E1E] hover:bg-[#282828] text-white text-xs font-semibold rounded-xl flex items-center gap-2 border border-[#333333] transition-colors"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        <span>رابط المشاهدة</span>
-                      </a>
                     </div>
                   )}
                 </div>

@@ -178,6 +178,68 @@ export async function vodRoutes(server: FastifyInstance) {
   );
 
   /**
+   * POST /api/vod/deep-sync
+   * True unlimited background crawl from A to Z across all pages of FiveTV & TopCinema
+   */
+  server.post(
+    '/deep-sync',
+    async (request: FastifyRequest<{ Body?: { unlimited?: boolean } }>, reply) => {
+      // First clean any bad links in background
+      vodRepository.purgeInvalidStreams().then(async (cleanRes) => {
+        console.log(`[DeepSync] Cleaned invalid links: ${cleanRes.moviesDeleted} movies, ${cleanRes.episodesDeleted} episodes`);
+        console.log('[DeepSync] Starting unlimited FiveTV crawl...');
+        await fiveTvService.syncFiveTv({ unlimited: true });
+        console.log('[DeepSync] Starting unlimited TopCinema crawl...');
+        await topCinemaService.syncTopCinema({ unlimited: true });
+        console.log('[DeepSync] Completed full deep ingestion!');
+      }).catch(err => {
+        console.error('[DeepSync] Error during background ingestion:', err.message);
+      });
+
+      return reply.send({
+        success: true,
+        message: '🚀 بدأ سحب المكتبات بالكامل من الألف إلى الياء في الخلفية (بدون حدود صفحات)! يتم استخراج روابط التشغيل النظيفة فقط وحذف روابط المواقع.',
+      });
+    }
+  );
+
+  /**
+   * POST /api/vod/clean
+   * Delete any broken or website-page stream links so they get re-ingested cleanly
+   */
+  server.post('/clean', async () => {
+    const result = await vodRepository.purgeInvalidStreams();
+    return {
+      success: true,
+      result,
+    };
+  });
+
+  /**
+   * GET /api/vod/resolve-stream
+   * Resolve embed URLs (like 71stream) to direct media file for direct HTML5 player
+   */
+  server.get(
+    '/resolve-stream',
+    async (request: FastifyRequest<{ Querystring: { url: string } }>, reply) => {
+      const { url } = request.query;
+      if (!url) {
+        return reply.status(400).send({ error: 'URL parameter is required' });
+      }
+
+      if (url.includes('71stream.one')) {
+        const resolved = await fiveTvService.resolve71Stream(url);
+        return {
+          directUrl: resolved.directUrl,
+          title: resolved.title,
+        };
+      }
+
+      return { directUrl: url };
+    }
+  );
+
+  /**
    * GET /api/vod/stats
    * Returns current VOD stats
    */
@@ -185,3 +247,4 @@ export async function vodRoutes(server: FastifyInstance) {
     return await vodRepository.getStats();
   });
 }
+

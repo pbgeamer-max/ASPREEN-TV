@@ -325,6 +325,17 @@ class ApiClient {
       body: JSON.stringify(params || {}),
     });
   }
+
+  async deepSyncVod() {
+    return this.request<{ success: boolean; message: string }>('/vod/deep-sync', {
+      method: 'POST',
+      body: JSON.stringify({ unlimited: true }),
+    });
+  }
+
+  async resolveStream(url: string) {
+    return this.request<{ directUrl: string; title?: string }>(`/vod/resolve-stream?url=${encodeURIComponent(url)}`);
+  }
 }
 
 export const api = new ApiClient();

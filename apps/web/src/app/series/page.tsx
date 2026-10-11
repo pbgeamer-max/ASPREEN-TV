@@ -35,6 +35,20 @@ export default function SeriesPage() {
   const [activeEpisode, setActiveEpisode] = useState<any | null>(null);
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
   const [playerMode, setPlayerMode] = useState<'auto' | 'embed' | 'direct'>('auto');
+  const [directStreamUrl, setDirectStreamUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeEpisode?.streamUrl) {
+      setDirectStreamUrl(null);
+      if (activeEpisode.streamUrl.includes('71stream.one')) {
+        api.resolveStream(activeEpisode.streamUrl)
+          .then((res) => {
+            if (res.directUrl) setDirectStreamUrl(res.directUrl);
+          })
+          .catch(() => {});
+      }
+    }
+  }, [activeEpisode]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -155,6 +169,18 @@ export default function SeriesPage() {
     }
   };
 
+  const handleDeepSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await api.deepSyncVod();
+      alert(res.message || '🚀 بدأ سحب المكتبات بالكامل من الألف إلى الياء في الخلفية!');
+    } catch (err: any) {
+      alert(`فشل بدء السحب العميق: ${err.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   // Filter episodes for the currently selected season
   const currentSeasonEpisodes = (selectedSeries?.episodes || []).filter(
     (ep: any) => ep.seasonNum === selectedSeason
@@ -192,12 +218,22 @@ export default function SeriesPage() {
 
           <div className="flex flex-wrap items-center gap-2.5">
             <button
+              onClick={handleDeepSync}
+              disabled={syncing}
+              className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-lg flex items-center gap-2 shadow-lg shadow-emerald-950/20 transition-all disabled:opacity-50"
+              title="سحب كافة صفحات الموقعين من الألف إلى الياء في الخلفية بدون حدود"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              <span>🚀 سحب شامل (A-Z)</span>
+            </button>
+
+            <button
               onClick={() => handleFiveTvSync(false)}
               disabled={syncing}
               className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-lg flex items-center gap-2 shadow-lg shadow-blue-950/20 transition-all disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-              <span>مزامنة FiveTV (1080p)</span>
+              <span>FiveTV (1080p)</span>
             </button>
 
             <button
@@ -206,7 +242,7 @@ export default function SeriesPage() {
               className="px-3.5 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-semibold rounded-lg flex items-center gap-2 shadow-lg shadow-orange-950/20 transition-all disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-              <span>مزامنة TopCinema</span>
+              <span>TopCinema</span>
             </button>
 
             <button
@@ -215,7 +251,7 @@ export default function SeriesPage() {
               className="px-3.5 py-2 bg-[#222222] hover:bg-[#2c2c2c] border border-[#333333] text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-all disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-              <span>مزامنة شاملة (الكل)</span>
+              <span>تحديث سريع</span>
             </button>
           </div>
         </div>
@@ -426,7 +462,7 @@ export default function SeriesPage() {
                   <div className="relative aspect-video max-h-[420px] bg-black rounded-xl overflow-hidden border border-[#2E2E2E] mx-auto">
                     {playerMode === 'direct' ? (
                       <video
-                        src={activeEpisode.streamUrl}
+                        src={directStreamUrl || activeEpisode.streamUrl}
                         controls
                         autoPlay
                         className="w-full h-full object-contain"
@@ -438,21 +474,20 @@ export default function SeriesPage() {
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                         allowFullScreen
                         referrerPolicy="no-referrer"
+                        sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-fullscreen"
                       />
                     )}
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-[#A1A1AA]">
-                    <span className="truncate max-w-md font-mono text-[10px]">
-                      الرابط: {activeEpisode.streamUrl}
+                    <span className="truncate max-w-md font-mono text-[10px] text-emerald-400">
+                      ✓ جاري التشغيل على مشغل أسبيرين TV الداخلي
                     </span>
-                    <a
-                      href={activeEpisode.streamUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-amber-400 hover:underline flex items-center gap-1 text-xs"
+                    <button
+                      onClick={() => setActiveEpisode(null)}
+                      className="text-xs text-[#A1A1AA] hover:text-white"
                     >
-                      فتح في نافذة مستقلة <ExternalLink className="w-3 h-3" />
-                    </a>
+                      إغلاق المشغل
+                    </button>
                   </div>
                 </div>
               )}
@@ -499,7 +534,8 @@ export default function SeriesPage() {
                   currentSeasonEpisodes.map((ep: any) => (
                     <div
                       key={ep.id}
-                      className="p-3 bg-[#181818] hover:bg-[#222222] border border-[#2A2A2A] rounded-xl flex items-center justify-between gap-4 transition-colors group"
+                      onClick={() => setActiveEpisode(ep)}
+                      className="p-3 bg-[#181818] hover:bg-[#222222] border border-[#2A2A2A] rounded-xl flex items-center justify-between gap-4 transition-colors group cursor-pointer"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-8 h-8 rounded-lg bg-amber-600/10 border border-amber-500/20 text-amber-400 font-bold text-xs flex items-center justify-center shrink-0">
@@ -519,21 +555,15 @@ export default function SeriesPage() {
 
                       <div className="flex items-center gap-2 shrink-0">
                         <button
-                          onClick={() => setActiveEpisode(ep)}
-                          className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveEpisode(ep);
+                          }}
+                          className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow transition-colors"
                         >
                           <Play className="w-3 h-3 fill-white" />
-                          <span>تشغيل</span>
+                          <span>تشغيل الآن</span>
                         </button>
-                        <a
-                          href={ep.streamUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-1.5 bg-[#262626] hover:bg-[#333333] text-[#A1A1AA] hover:text-white rounded-lg transition-colors"
-                          title="فتح الرابط المباشر"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
                       </div>
                     </div>
                   ))

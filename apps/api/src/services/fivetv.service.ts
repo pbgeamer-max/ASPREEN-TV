@@ -1,6 +1,14 @@
 import https from 'https';
 import http from 'http';
+import dns from 'dns';
 import { vodRepository, Movie, Series, Episode } from '../repositories/vod.repository';
+
+// Set resilient DNS for resolving domains like 5tv.lol
+try {
+  dns.setServers(['1.1.1.1', '8.8.8.8', '1.0.0.1']);
+} catch {
+  // Ignore in environments where setServers is restricted
+}
 
 export interface FiveTvSyncReport {
   moviesAdded: number;
@@ -12,11 +20,44 @@ export interface FiveTvSyncReport {
   durationMs: number;
 }
 
+export function isValidStreamEmbed(url: string | null | undefined): boolean {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  if (
+    lower.includes('topcinema.io') ||
+    lower.includes('5tv.lol') ||
+    lower.includes('new61.5tv') ||
+    lower.includes('wp-json') ||
+    lower.includes('wp-content') ||
+    lower.includes('/episode/') ||
+    lower.includes('/series/') ||
+    lower.includes('/movie/')
+  ) {
+    return false;
+  }
+  return (
+    lower.includes('71stream.one') ||
+    lower.includes('ok.ru') ||
+    lower.includes('streamwish') ||
+    lower.includes('streamtape') ||
+    lower.includes('upstream') ||
+    lower.includes('updown') ||
+    lower.includes('ult4vid') ||
+    lower.includes('vidmoly') ||
+    lower.includes('morencius') ||
+    lower.includes('.m3u8') ||
+    lower.includes('.mp4') ||
+    lower.includes('/embed') ||
+    lower.includes('videoembed')
+  );
+}
+
 export class FiveTvService {
   private readonly BASE_URL = 'https://new61.5tv.lol';
   private readonly USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
   private autoUpdateInterval: NodeJS.Timeout | null = null;
   private isSyncing = false;
+  private isDeepSyncing = false;
 
   /**
    * Resilient HTTP GET request with redirect following
@@ -67,7 +108,7 @@ export class FiveTvService {
         }
       });
 
-      req.setTimeout(12000, () => {
+      req.setTimeout(14000, () => {
         req.destroy();
         if (retries > 0) {
           this.fetchHtml(url, retries - 1).then(resolve).catch(reject);
@@ -94,7 +135,7 @@ export class FiveTvService {
   /**
    * Extract working stream and metadata from a 5tv page
    */
-  private async extractWatchDetails(pageUrl: string): Promise<{
+  public async extractWatchDetails(pageUrl: string): Promise<{
     title: string | null;
     streamUrl: string | null;
     posterUrl: string | null;
@@ -104,7 +145,6 @@ export class FiveTvService {
     try {
       const html = await this.fetchHtml(pageUrl);
       const titleMatch = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-      const iframeMatch = html.match(/<iframe[^>]+src="([^"]+)"/i);
       const posterMatch = html.match(/<meta property="og:image" content="([^"]+)"/i);
       const descMatch = html.match(/<meta property="og:description" content="([^"]+)"/i)
         || html.match(/<div class="[^"]*entry-content[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
@@ -115,9 +155,31 @@ export class FiveTvService {
         cleanDesc = descMatch[1].replace(/<[^>]+>/g, '').trim();
       }
 
+      // Priority 1: Primary iframe
+      const iframeMatches = [...html.matchAll(/<iframe[^>]+src="([^"]+)"/gi)].map(m => m[1]);
+      let chosenStream: string | null = null;
+
+      for (const ifr of iframeMatches) {
+        if (isValidStreamEmbed(ifr)) {
+          chosenStream = ifr;
+          break;
+        }
+      }
+
+      // Priority 2: Alternative embed servers in HTML (71stream, ult4vid, morencius, vidmoly)
+      if (!chosenStream) {
+        const embedCandidates = [...html.matchAll(/https?:\/\/[^\s"'<>]*(?:71stream|ult4vid|morencius|vidmoly)[^\s"'<>]*/gi)].map(m => m[0]);
+        for (const candidate of embedCandidates) {
+          if (isValidStreamEmbed(candidate)) {
+            chosenStream = candidate;
+            break;
+          }
+        }
+      }
+
       return {
         title: titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : null,
-        streamUrl: iframeMatch ? iframeMatch[1] : null,
+        streamUrl: chosenStream,
         posterUrl: posterMatch ? posterMatch[1] : null,
         description: cleanDesc,
         rating: ratingMatch ? parseFloat(ratingMatch[1]) : null,
@@ -128,19 +190,46 @@ export class FiveTvService {
   }
 
   /**
-   * Crawl movies from FiveTV catalog
+   * Resolve a 71stream embed URL directly to the underlying MP4 media link
    */
-  async scrapeMovies(maxPages = 6): Promise<number> {
-    let totalAdded = 0;
+  public async resolve71Stream(embedUrl: string): Promise<{ directUrl: string | null; title?: string }> {
+    try {
+      const html = await this.fetchHtml(embedUrl);
+      const dataPageMatch = html.match(/data-page="([^"]+)"/i);
+      if (dataPageMatch) {
+        const decoded = JSON.parse(dataPageMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
+        if (decoded?.props?.url) {
+          return {
+            directUrl: decoded.props.url,
+            title: decoded.props.title,
+          };
+        }
+      }
+      return { directUrl: null };
+    } catch {
+      return { directUrl: null };
+    }
+  }
 
-    for (let page = 1; page <= maxPages; page++) {
+  /**
+   * Crawl movies from FiveTV catalog (full pagination support from page 1 to end)
+   */
+  async scrapeMovies(maxPages = 0): Promise<number> {
+    let totalAdded = 0;
+    let page = 1;
+
+    while (true) {
+      if (maxPages > 0 && page > maxPages) break;
       const pageUrl = page === 1 ? `${this.BASE_URL}/latest-movies/` : `${this.BASE_URL}/latest-movies/page/${page}/`;
+
       try {
         const html = await this.fetchHtml(pageUrl);
-        // Find movie cards
         const movieLinks = [...new Set([...html.matchAll(/href="([^"]*\/movie\/[^"]*)"/gi)].map(m => m[1]))];
 
-        if (movieLinks.length === 0) break;
+        if (movieLinks.length === 0) {
+          // End of catalog reached
+          break;
+        }
 
         // Process in chunks of 5
         const chunkSize = 5;
@@ -152,10 +241,13 @@ export class FiveTvService {
               const rawTitle = details.title || '';
               if (!rawTitle) return;
 
+              // STRICT CHECK: Must be a pure stream embed! NEVER save website URL!
+              if (!isValidStreamEmbed(details.streamUrl)) {
+                return;
+              }
+
               const yearMatch = rawTitle.match(/\b(19\d{2}|20\d{2})\b/);
               const releaseYear = yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear();
-
-              const streamUrl = details.streamUrl || mUrl;
 
               await vodRepository.upsertMovie({
                 title: rawTitle,
@@ -165,7 +257,7 @@ export class FiveTvService {
                 description: details.description || `مشاهدة وتحميل ${rawTitle} أون لاين على أسبيرين TV.`,
                 releaseYear,
                 rating: details.rating || 8.0,
-                streamUrl,
+                streamUrl: details.streamUrl!,
                 containerExtension: 'html',
               });
 
@@ -175,8 +267,11 @@ export class FiveTvService {
             }
           }));
         }
+
+        page++;
       } catch (err: any) {
         console.error(`Error scraping 5tv movies page ${page}:`, err.message);
+        break;
       }
     }
 
@@ -185,14 +280,19 @@ export class FiveTvService {
 
   /**
    * Crawl TV Series and all their ordered seasons & episodes from FiveTV
+   * Extracts pure embed streams for each episode (no website links!)
    */
-  async scrapeSeries(maxPages = 4, maxSeries = 30): Promise<{ seriesAdded: number; episodesAdded: number }> {
+  async scrapeSeries(maxPages = 0, maxSeries = 0): Promise<{ seriesAdded: number; episodesAdded: number }> {
     let seriesAdded = 0;
     let episodesAdded = 0;
+    let page = 1;
 
-    for (let page = 1; page <= maxPages; page++) {
-      if (seriesAdded >= maxSeries) break;
+    while (true) {
+      if (maxPages > 0 && page > maxPages) break;
+      if (maxSeries > 0 && seriesAdded >= maxSeries) break;
+
       const pageUrl = page === 1 ? `${this.BASE_URL}/latest-series/` : `${this.BASE_URL}/latest-series/page/${page}/`;
+
       try {
         const html = await this.fetchHtml(pageUrl);
         const seriesLinks = [...new Set([...html.matchAll(/href="([^"]*\/series\/[^"]*)"/gi)].map(m => m[1]))];
@@ -200,7 +300,8 @@ export class FiveTvService {
         if (seriesLinks.length === 0) break;
 
         for (const sUrl of seriesLinks) {
-          if (seriesAdded >= maxSeries) break;
+          if (maxSeries > 0 && seriesAdded >= maxSeries) break;
+
           try {
             const sHtml = await this.fetchHtml(sUrl);
             const titleMatch = sHtml.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
@@ -212,7 +313,7 @@ export class FiveTvService {
             const yearMatch = rawTitle.match(/\b(19\d{2}|20\d{2})\b/);
             const releaseYear = yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear();
 
-            // Extract episodes from series page
+            // Extract episode links
             const epMatches = [...sHtml.matchAll(/<a[^>]*href="([^"]*\/episode\/[^"]*)"[^>]*>([\s\S]*?)<\/a>/gi)];
             const seenEpUrls = new Set<string>();
             const epList: Array<{ epUrl: string; seasonNum: number; episodeNum: number; epTitle: string }> = [];
@@ -227,7 +328,6 @@ export class FiveTvService {
               let seasonNum = 1;
               let episodeNum = 1;
 
-              // Check for Season x Episode patterns e.g. 2x1, S02E01
               const sxMatch = epUrl.match(/(\d+)x(\d+)/i) || text.match(/(\d+)x(\d+)/i);
               const seMatch = epUrl.match(/s(\d+)e(\d+)/i) || text.match(/s(\d+)e(\d+)/i);
 
@@ -269,26 +369,44 @@ export class FiveTvService {
 
             seriesAdded++;
 
-            // High-throughput episode ingestion: all episodes are immediately registered with their embed watch URL
-            for (const ep of epList) {
-              await vodRepository.upsertEpisode({
-                seriesId: series.id,
-                seasonNum: ep.seasonNum,
-                episodeNum: ep.episodeNum,
-                title: ep.epTitle,
-                posterUrl: posterMatch ? posterMatch[1] : series.posterUrl,
-                description: `${rawTitle} - ${ep.epTitle}`,
-                streamUrl: ep.epUrl,
-                containerExtension: 'html',
-              });
-              episodesAdded++;
+            // Extract pure stream for each episode in chunks of 5
+            const epChunkSize = 5;
+            for (let i = 0; i < epList.length; i += epChunkSize) {
+              const chunk = epList.slice(i, i + epChunkSize);
+              await Promise.all(chunk.map(async (ep) => {
+                try {
+                  const epDetails = await this.extractWatchDetails(ep.epUrl);
+                  // STRICT: NEVER save ep.epUrl! Only save pure stream embed!
+                  if (!isValidStreamEmbed(epDetails.streamUrl)) {
+                    return;
+                  }
+
+                  await vodRepository.upsertEpisode({
+                    seriesId: series.id,
+                    seasonNum: ep.seasonNum,
+                    episodeNum: ep.episodeNum,
+                    title: ep.epTitle,
+                    posterUrl: epDetails.posterUrl || posterMatch?.[1] || series.posterUrl,
+                    description: epDetails.description || `${rawTitle} - ${ep.epTitle}`,
+                    streamUrl: epDetails.streamUrl!,
+                    containerExtension: 'html',
+                  });
+
+                  episodesAdded++;
+                } catch (err: any) {
+                  console.error(`Error extracting stream for 5tv episode ${ep.epUrl}:`, err.message);
+                }
+              }));
             }
           } catch (err: any) {
             console.error(`Error processing 5tv series ${sUrl}:`, err.message);
           }
         }
+
+        page++;
       } catch (err: any) {
         console.error(`Error scraping 5tv series page ${page}:`, err.message);
+        break;
       }
     }
 
@@ -313,9 +431,8 @@ export class FiveTvService {
           try {
             const epDetails = await this.extractWatchDetails(epUrl);
             const rawTitle = epDetails.title || '';
-            if (!rawTitle) return;
+            if (!rawTitle || !isValidStreamEmbed(epDetails.streamUrl)) return;
 
-            // Extract series title and episode info
             let seriesTitle = rawTitle.replace(/—\s*الحلقة.*$/i, '').replace(/الموسم.*$/i, '').trim();
             if (!seriesTitle) seriesTitle = rawTitle;
 
@@ -342,8 +459,6 @@ export class FiveTvService {
               totalSeasons: seasonNum,
             });
 
-            const streamUrl = epDetails.streamUrl || epUrl;
-
             await vodRepository.upsertEpisode({
               seriesId: series.id,
               seasonNum,
@@ -351,7 +466,7 @@ export class FiveTvService {
               title: `الموسم ${seasonNum} - الحلقة ${episodeNum}`,
               posterUrl: epDetails.posterUrl || series.posterUrl,
               description: epDetails.description || `${seriesTitle} - الحلقة ${episodeNum}`,
-              streamUrl,
+              streamUrl: epDetails.streamUrl!,
               containerExtension: 'html',
             });
 
@@ -369,9 +484,9 @@ export class FiveTvService {
   }
 
   /**
-   * Complete FiveTV synchronization
+   * Complete FiveTV synchronization (with full unlimited deep crawl support)
    */
-  async syncFiveTv(options: { deep?: boolean; maxMoviePages?: number; maxSeriesPages?: number; recentLimit?: number } = {}): Promise<FiveTvSyncReport> {
+  async syncFiveTv(options: { deep?: boolean; unlimited?: boolean; maxMoviePages?: number; maxSeriesPages?: number; recentLimit?: number } = {}): Promise<FiveTvSyncReport> {
     if (this.isSyncing) {
       const stats = await vodRepository.getStats();
       return {
@@ -388,12 +503,13 @@ export class FiveTvService {
     this.isSyncing = true;
     const startTime = Date.now();
 
-    const maxMoviePages = options.maxMoviePages || (options.deep ? 15 : 6);
-    const maxSeriesPages = options.maxSeriesPages || (options.deep ? 10 : 4);
-    const recentLimit = options.recentLimit || (options.deep ? 60 : 30);
+    // If unlimited is set, maxPages = 0 (crawls all pages until catalog ends)
+    const maxMoviePages = options.unlimited ? 0 : (options.maxMoviePages || (options.deep ? 25 : 8));
+    const maxSeriesPages = options.unlimited ? 0 : (options.maxSeriesPages || (options.deep ? 20 : 6));
+    const recentLimit = options.recentLimit || (options.deep ? 80 : 40);
 
     try {
-      console.log(`--- Starting FiveTV VOD Sync (deep: ${!!options.deep}, moviePages: ${maxMoviePages}, seriesPages: ${maxSeriesPages}) ---`);
+      console.log(`--- Starting FiveTV VOD Sync (unlimited: ${!!options.unlimited}, deep: ${!!options.deep}, moviePages: ${maxMoviePages || 'ALL'}, seriesPages: ${maxSeriesPages || 'ALL'}) ---`);
 
       // 1. Scrape latest episode updates
       const recentStats = await this.scrapeRecent(recentLimit);
@@ -404,7 +520,7 @@ export class FiveTvService {
       console.log(`[FiveTV] Movie catalog ingested: ${moviesAdded} movies`);
 
       // 3. Scrape series catalog
-      const seriesStats = await this.scrapeSeries(maxSeriesPages, options.deep ? 50 : 25);
+      const seriesStats = await this.scrapeSeries(maxSeriesPages, options.unlimited ? 0 : (options.deep ? 100 : 35));
       console.log(`[FiveTV] Series catalog ingested: ${seriesStats.seriesAdded} series, ${seriesStats.episodesAdded} episodes`);
 
       const totalStats = await vodRepository.getStats();
