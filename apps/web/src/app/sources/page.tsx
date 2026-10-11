@@ -473,9 +473,9 @@ export default function SourcesPage() {
                     <input
                       type="number"
                       value={maxChannels}
-                      onChange={(e) => setMaxChannels(parseInt(e.target.value, 10) || 5000)}
+                      onChange={(e) => setMaxChannels(parseInt(e.target.value, 10) || 50000)}
                       min={1}
-                      max={10000}
+                      max={200000}
                       className="form-input text-xs font-mono"
                     />
                   </div>
