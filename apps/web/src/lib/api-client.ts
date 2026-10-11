@@ -277,6 +277,33 @@ class ApiClient {
   async getHealth(): Promise<any> {
     return this.request('/health');
   }
+
+  // VOD Movies & Series
+  async getMovies(params: { category?: string; q?: string; limit?: number; offset?: number } = {}) {
+    const q = new URLSearchParams();
+    if (params.category) q.set('category', params.category);
+    if (params.q) q.set('q', params.q);
+    if (params.limit) q.set('limit', String(params.limit));
+    if (params.offset) q.set('offset', String(params.offset));
+    return this.request<{ total: number; categories: string[]; items: any[] }>(`/vod/movies?${q.toString()}`);
+  }
+
+  async getSeries(params: { category?: string; q?: string; limit?: number; offset?: number } = {}) {
+    const q = new URLSearchParams();
+    if (params.category) q.set('category', params.category);
+    if (params.q) q.set('q', params.q);
+    if (params.limit) q.set('limit', String(params.limit));
+    if (params.offset) q.set('offset', String(params.offset));
+    return this.request<{ total: number; categories: string[]; items: any[] }>(`/vod/series?${q.toString()}`);
+  }
+
+  async getSeriesDetails(id: string) {
+    return this.request<any>(`/vod/series/${id}`);
+  }
+
+  async syncVod() {
+    return this.request<{ success: boolean; report: any }>('/vod/sync', { method: 'POST' });
+  }
 }
 
 export const api = new ApiClient();

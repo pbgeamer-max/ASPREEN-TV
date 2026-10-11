@@ -187,6 +187,61 @@ export async function initDatabase(force = false): Promise<boolean> {
         );
 
         CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON system_metrics(timestamp DESC);
+
+        -- 8. Movies (VOD) Table (No Duplicates)
+        CREATE TABLE IF NOT EXISTS movies (
+          id VARCHAR(64) PRIMARY KEY,
+          title TEXT NOT NULL,
+          normalized_title TEXT NOT NULL UNIQUE,
+          category TEXT NOT NULL DEFAULT 'أفلام عامة',
+          poster_url TEXT,
+          backdrop_url TEXT,
+          description TEXT,
+          release_year INTEGER,
+          rating REAL,
+          stream_url TEXT NOT NULL,
+          container_extension VARCHAR(16) DEFAULT 'mp4',
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_movies_category ON movies(category);
+        CREATE INDEX IF NOT EXISTS idx_movies_year ON movies(release_year DESC);
+
+        -- 9. Series (TV Shows) Table (No Duplicates)
+        CREATE TABLE IF NOT EXISTS series (
+          id VARCHAR(64) PRIMARY KEY,
+          title TEXT NOT NULL,
+          normalized_title TEXT NOT NULL UNIQUE,
+          category TEXT NOT NULL DEFAULT 'مسلسلات عامة',
+          poster_url TEXT,
+          backdrop_url TEXT,
+          description TEXT,
+          release_year INTEGER,
+          rating REAL,
+          total_seasons INTEGER DEFAULT 1,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_series_category ON series(category);
+
+        -- 10. Episodes Table (Strictly NO Duplicate Episodes)
+        CREATE TABLE IF NOT EXISTS episodes (
+          id VARCHAR(64) PRIMARY KEY,
+          series_id VARCHAR(64) NOT NULL REFERENCES series(id) ON DELETE CASCADE,
+          season_num INTEGER NOT NULL DEFAULT 1,
+          episode_num INTEGER NOT NULL DEFAULT 1,
+          title TEXT NOT NULL,
+          poster_url TEXT,
+          description TEXT,
+          stream_url TEXT NOT NULL,
+          container_extension VARCHAR(16) DEFAULT 'mp4',
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          CONSTRAINT unique_series_season_episode UNIQUE (series_id, season_num, episode_num)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_episodes_series_id ON episodes(series_id, season_num ASC, episode_num ASC);
       `);
 
       isInitialized = true;

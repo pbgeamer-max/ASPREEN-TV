@@ -166,7 +166,10 @@ class TelegramService {
           `🔹 <code>/scan_iraq</code> - فحص وجلب جميع القنوات العراقية النشطة\n` +
           `🔹 <code>/scan_sports</code> - فحص ومزامنة قنوات beIN Sports والرياضة\n` +
           `🔹 <code>/scan_arabic</code> - فحص وجلب القنوات العربية والمنوعة\n` +
-          `🔹 <code>/clean</code> - تنظيف القنوات وترتيب الباقات (1, 2, 3) وحذف القنوات الأجنبية\n` +
+          `🔹 <code>/vod_sync</code> - جلب ومزامنة الأفلام والمسلسلات مع الحلقات بدون تكرار\n` +
+          `🔹 <code>/movies</code> - عرض أحدث الأفلام المتوفرة\n` +
+          `🔹 <code>/series</code> - عرض أحدث المسلسلات والحلقات\n` +
+          `🔹 <code>/clean</code> - تنظيف وترتيب القنوات في باقات مخصصة وحذف العشوائيات\n` +
           `🔹 <code>/sniff &lt;رابط_صفحة&gt; [الاسم]</code> - قنص واستخراج رابط البث المخفي من أي موقع\n` +
           `🔹 <code>/playlist</code> - تحميل ملف الـ M3U المحدث لتطبيقك\n` +
           `🔹 <code>/channels</code> - عرض قائمة بأهم القنوات الشغالة\n` +
@@ -434,6 +437,45 @@ class TelegramService {
           `تم تنظيف وترتيب: <b>${cleaned}</b> قناة.\n` +
           `تم عزل القنوات الأجنبية غير المرغوبة، وتقسيم القنوات ذات الأرقام (1, 2, 3) إلى باقات منظمة في موقعك وتطبيقك!`
         );
+      } else if (command === '/vod_sync' || command === '/sync_vod') {
+        await this.sendMessage(chatId, '🎬 <b>جاري فحص ومزامنة مكتبة الأفلام والمسلسلات...</b>\nنقوم بجلب البوسترات والأوصاف وترتيب الحلقات مع منع التكرار تماماً.');
+        const { vodService } = await import('./vod.service');
+        const report = await vodService.syncAllVod();
+        await this.sendMessage(
+          chatId,
+          `🍿 <b>تمت مزامنة مكتبة الأفلام والمسلسلات بنجاح!</b>\n\n` +
+          `🎬 <b>إجمالي الأفلام:</b> ${report.totalMovies} فيلم\n` +
+          `📺 <b>إجمالي المسلسلات:</b> ${report.totalSeries} مسلسل\n` +
+          `🎞️ <b>إجمالي الحلقات المنظمة:</b> ${report.episodesAdded} حلقة\n\n` +
+          `✅ تم تنظيم الحلقات حسب المواسم (1, 2, 3...) وربط البوسترات والأوصاف ومنع أي تكرار!\n` +
+          `تصفحها الآن في موقعك في قسم <b>الأفلام</b> وقسم <b>المسلسلات</b>.`
+        );
+      } else if (command === '/movies') {
+        const { vodRepository } = await import('../repositories/vod.repository');
+        const { items, total } = await vodRepository.listMovies('all', undefined, 10, 0);
+        if (total === 0) {
+          await this.sendMessage(chatId, '⚠️ لا توجد أفلام حالياً. أرسل <code>/vod_sync</code> لجلبها فوراً.');
+          return;
+        }
+        let msg = `🎬 <b>مكتبة الأفلام (${total} فيلم متوفر):</b>\n\n`;
+        items.forEach((m, idx) => {
+          msg += `<b>${idx + 1}.</b> 🎥 ${m.title} <i>(${m.category})</i> ⭐ ${m.rating || '8.0'}\n`;
+        });
+        msg += `\nلمزامنة المزيد أرسل: <code>/vod_sync</code>`;
+        await this.sendMessage(chatId, msg);
+      } else if (command === '/series') {
+        const { vodRepository } = await import('../repositories/vod.repository');
+        const { items, total } = await vodRepository.listSeries('all', undefined, 10, 0);
+        if (total === 0) {
+          await this.sendMessage(chatId, '⚠️ لا توجد مسلسلات حالياً. أرسل <code>/vod_sync</code> لجلبها فوراً.');
+          return;
+        }
+        let msg = `📺 <b>مكتبة المسلسلات (${total} مسلسل متوفر):</b>\n\n`;
+        items.forEach((s, idx) => {
+          msg += `<b>${idx + 1}.</b> 🍿 ${s.title} <i>(${s.totalSeasons} مواسم)</i> ⭐ ${s.rating || '8.5'}\n`;
+        });
+        msg += `\nلمزامنة المزيد والحلقات أرسل: <code>/vod_sync</code>`;
+        await this.sendMessage(chatId, msg);
       }
     } catch (err: any) {
       console.error('[Telegram Bot] Error processing command:', err.message);
