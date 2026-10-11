@@ -60,6 +60,81 @@ export class TokenRepository {
     return token;
   }
 
+  async createTokensBatch(
+    tokensData: Omit<StreamToken, 'id' | 'createdAt'>[]
+  ): Promise<number> {
+    if (tokensData.length === 0) return 0;
+    const now = new Date().toISOString();
+    const pool = getPool();
+
+    if (pool) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        const CHUNK_SIZE = 200;
+        for (let i = 0; i < tokensData.length; i += CHUNK_SIZE) {
+          const chunk = tokensData.slice(i, i + CHUNK_SIZE);
+          const values: any[] = [];
+          const placeholders: string[] = [];
+
+          chunk.forEach((item, index) => {
+            const id = crypto.randomUUID();
+            const offset = index * 9;
+            placeholders.push(
+              `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9})`
+            );
+            values.push(
+              id,
+              item.channelId,
+              item.name,
+              item.tokenHash,
+              item.publicOutputId,
+              now,
+              item.expiresAt || null,
+              item.revokedAt || null,
+              item.lastUsedAt || null
+            );
+          });
+
+          await client.query(
+            `INSERT INTO stream_tokens (
+              id, channel_id, name, token_hash, public_output_id, created_at,
+              expires_at, revoked_at, last_used_at
+            ) VALUES ${placeholders.join(', ')}`,
+            values
+          );
+        }
+        await client.query('COMMIT');
+        return tokensData.length;
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      } finally {
+        client.release();
+      }
+    }
+
+    let total = 0;
+    const BATCH_SIZE = 400;
+    for (let i = 0; i < tokensData.length; i += BATCH_SIZE) {
+      const chunk = tokensData.slice(i, i + BATCH_SIZE);
+      const batch = this.db.batch();
+      for (const item of chunk) {
+        const id = crypto.randomUUID();
+        const token: StreamToken = {
+          ...item,
+          id,
+          createdAt: now,
+        };
+        const docRef = this.db.collection(TOKENS_COLLECTION).doc(id);
+        batch.set(docRef, cleanUndefined(token));
+      }
+      await batch.commit();
+      total += chunk.length;
+    }
+    return total;
+  }
+
   async getTokenByHash(tokenHash: string): Promise<StreamToken | null> {
     const pool = getPool();
     if (pool) {

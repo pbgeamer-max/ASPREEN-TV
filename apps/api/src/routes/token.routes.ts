@@ -186,12 +186,14 @@ export async function tokenRoutes(server: FastifyInstance) {
       expiresAt = expDate.toISOString();
     }
 
+    const tokensToCreate: any[] = [];
+
     for (const channel of enabledChannels) {
       const publicOutputId = channel.activeOutputId || channel.id;
       const rawToken = generateStreamToken();
       const tokenHash = hashStreamToken(rawToken);
 
-      await tokenRepository.createToken({
+      tokensToCreate.push({
         channelId: channel.id,
         name: `Export Token - ${channel.name}`,
         tokenHash,
@@ -212,31 +214,39 @@ export async function tokenRoutes(server: FastifyInstance) {
       });
     }
 
+    // High-performance batch insertion into PostgreSQL / Firestore
+    await tokenRepository.createTokensBatch(tokensToCreate);
+
     // Generate formatted TXT file
     const now = new Date().toISOString();
-    let txtContent = `================================================================================\n`;
-    txtContent += `  ASPREEN TV — WORKING CHANNELS EXPORT\n`;
-    txtContent += `  Generated: ${now}\n`;
-    txtContent += `  Total Channels: ${exportedItems.length}\n`;
-    txtContent += `  Streaming Server: ${effectiveBaseUrl}\n`;
-    txtContent += `================================================================================\n\n`;
+    const txtLines: string[] = [
+      '================================================================================',
+      '  ASPREEN TV — WORKING CHANNELS EXPORT',
+      `  Generated: ${now}`,
+      `  Total Channels: ${exportedItems.length}`,
+      `  Streaming Server: ${effectiveBaseUrl}`,
+      '================================================================================\n',
+    ];
 
-    exportedItems.forEach((item, index) => {
-      txtContent += `[${index + 1}] ${item.name}\n`;
-      if (item.groupTitle) txtContent += `Category: ${item.groupTitle}\n`;
-      txtContent += `Live MPEG-TS Stream: ${item.tsPlaybackUrl}\n`;
-      txtContent += `HLS Playback (m3u8): ${item.playbackUrl}\n`;
-      txtContent += `--------------------------------------------------------------------------------\n`;
-    });
+    for (let index = 0; index < exportedItems.length; index++) {
+      const item = exportedItems[index];
+      txtLines.push(`[${index + 1}] ${item.name}`);
+      if (item.groupTitle) txtLines.push(`Category: ${item.groupTitle}`);
+      txtLines.push(`Live MPEG-TS Stream: ${item.tsPlaybackUrl}`);
+      txtLines.push(`HLS Playback (m3u8): ${item.playbackUrl}`);
+      txtLines.push('--------------------------------------------------------------------------------');
+    }
+    const txtContent = txtLines.join('\n');
 
     // Generate standard M3U playlist file
-    let m3uContent = `#EXTM3U\n`;
-    exportedItems.forEach((item) => {
+    const m3uLines: string[] = ['#EXTM3U'];
+    for (const item of exportedItems) {
       const tvgLogo = item.logoUrl ? ` tvg-logo="${item.logoUrl}"` : '';
-      const groupTitle = item.groupTitle ? ` group-title="${item.groupTitle}"` : '';
-      m3uContent += `#EXTINF:-1 tvg-id="" tvg-name="${item.name}"${tvgLogo}${groupTitle},${item.name}\n`;
-      m3uContent += `${item.tsPlaybackUrl}\n`;
-    });
+      const groupTitle = item.groupTitle ? ` group-title="${item.groupTitle.replace(/"/g, "'")}"` : '';
+      m3uLines.push(`#EXTINF:-1 tvg-id="" tvg-name="${item.name.replace(/"/g, "'")}"${tvgLogo}${groupTitle},${item.name}`);
+      m3uLines.push(item.tsPlaybackUrl);
+    }
+    const m3uContent = m3uLines.join('\n');
 
     await logRepository.addLog({
       eventType: 'CHANNELS_EXPORTED',

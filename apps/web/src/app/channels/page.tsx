@@ -124,11 +124,16 @@ export default function ChannelsPage() {
 
   const handleStart = async (channelId: string) => {
     setActionInProgress(channelId);
+    setChannels((prev) =>
+      prev.map((c) => (c.id === channelId ? { ...c, transcodingStatus: 'RUNNING' } : c))
+    );
     try {
       await api.startChannel(channelId);
-      await fetchChannels();
     } catch (err: any) {
       alert(`Start failed: ${err.message}`);
+      setChannels((prev) =>
+        prev.map((c) => (c.id === channelId ? { ...c, transcodingStatus: 'STOPPED' } : c))
+      );
     } finally {
       setActionInProgress(null);
     }
@@ -136,9 +141,11 @@ export default function ChannelsPage() {
 
   const handleStop = async (channelId: string) => {
     setActionInProgress(channelId);
+    setChannels((prev) =>
+      prev.map((c) => (c.id === channelId ? { ...c, transcodingStatus: 'STOPPED' } : c))
+    );
     try {
       await api.stopChannel(channelId);
-      await fetchChannels();
     } catch (err: any) {
       alert(`Stop failed: ${err.message}`);
     } finally {
@@ -216,6 +223,14 @@ export default function ChannelsPage() {
       return;
     }
     setBulkStarting(true);
+    // Instantly update UI status so user sees change without refresh!
+    setChannels((prev) =>
+      prev.map((c) =>
+        !selectedSourceId || c.sourceId === selectedSourceId
+          ? { ...c, transcodingStatus: 'RUNNING' }
+          : c
+      )
+    );
     try {
       const res = await api.bulkStartChannels({
         sourceId: selectedSourceId || undefined,
@@ -227,9 +242,9 @@ export default function ChannelsPage() {
         message: `Processed ${res.totalTargeted} channels:\n• Newly Started: ${res.startedCount}\n• Already Running: ${res.alreadyRunningCount}\n• Skipped (Limit): ${res.skippedCount}`,
         details: res.errors && res.errors.length > 0 ? res.errors : undefined,
       });
-      fetchChannels();
     } catch (err: any) {
       alert(`Bulk start failed: ${err.message}`);
+      fetchChannels();
     } finally {
       setBulkStarting(false);
     }
@@ -241,6 +256,14 @@ export default function ChannelsPage() {
       return;
     }
     setBulkStopping(true);
+    // Instantly update UI status so user sees change without refresh!
+    setChannels((prev) =>
+      prev.map((c) =>
+        !selectedSourceId || c.sourceId === selectedSourceId
+          ? { ...c, transcodingStatus: 'STOPPED' }
+          : c
+      )
+    );
     try {
       const res = await api.bulkStopChannels(selectedSourceId || undefined);
       setBulkResultModal({
@@ -248,9 +271,9 @@ export default function ChannelsPage() {
         title: 'Channels Stopped',
         message: `Successfully stopped ${res.stoppedCount} active transcoding processes.`,
       });
-      fetchChannels();
     } catch (err: any) {
       alert(`Bulk stop failed: ${err.message}`);
+      fetchChannels();
     } finally {
       setBulkStopping(false);
     }
@@ -912,7 +935,13 @@ export default function ChannelsPage() {
                   {/* Code / Text Preview */}
                   <div className="flex-1 overflow-auto bg-[#0A0A0A] border border-[#222] rounded-lg p-3 max-h-96">
                     <pre className="font-mono text-[11px] text-[#D4D4D8] leading-relaxed whitespace-pre-wrap select-all">
-                      {activeExportTab === 'TXT' ? exportResult.txtContent : exportResult.m3uContent}
+                      {(() => {
+                        const content = activeExportTab === 'TXT' ? exportResult.txtContent : exportResult.m3uContent;
+                        if (content.length > 50000) {
+                          return content.slice(0, 50000) + `\n\n... [Preview truncated in view: ${exportResult.totalChannels.toLocaleString()} total channels. Click "Download .M3U" or "Copy" above for the complete file.]`;
+                        }
+                        return content;
+                      })()}
                     </pre>
                   </div>
                 </div>
