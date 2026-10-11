@@ -44,7 +44,7 @@ export const StartTranscodingSchema = z.object({
 export const BulkStartChannelsSchema = z.object({
   sourceId: z.string().optional(),
   preset: TranscodingPresetEnum.optional(),
-  maxToStart: z.number().int().min(1).max(2000).optional(),
+  maxToStart: z.number().int().min(1).max(200000).optional(),
 });
 
 export const ExportLinksSchema = z.object({

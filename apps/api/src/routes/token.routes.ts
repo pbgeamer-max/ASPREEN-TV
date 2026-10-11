@@ -173,7 +173,7 @@ export async function tokenRoutes(server: FastifyInstance) {
       effectiveBaseUrl = `${reqProto}://${reqHost}`;
     }
 
-    const channels = await channelRepository.listChannels(sourceId, 5000);
+    const channels = await channelRepository.listChannels(sourceId);
     const enabledChannels = channels.filter((c) => c.enabled !== false);
 
     const exportedItems: ExportedChannelItem[] = [];

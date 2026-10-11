@@ -127,7 +127,7 @@ export class TranscodingService {
     const settings = await settingsRepository.getSettings();
     const presetId = options.preset || channel.preset || settings.defaultTranscodingPreset;
     const isCopyPreset = presetId === 'COPY';
-    const concurrencyLimit = isCopyPreset || options.ignoreConcurrencyLimit ? 2500 : (settings.maxConcurrentJobs || 1000);
+    const concurrencyLimit = isCopyPreset || options.ignoreConcurrencyLimit ? 200000 : (settings.maxConcurrentJobs || 200000);
 
     const activeJobs = await jobRepository.listActiveJobs();
     if (activeJobs.length >= concurrencyLimit) {
@@ -575,7 +575,7 @@ export class TranscodingService {
     preset?: TranscodingPresetId;
     maxToStart?: number;
   } = {}): Promise<BulkStartResult> {
-    const limit = options.maxToStart || 2500;
+    const limit = options.maxToStart || 200000;
     const channels = await channelRepository.listChannels(options.sourceId, limit);
     const enabledChannels = channels.filter((c) => c.enabled !== false);
 
@@ -653,7 +653,7 @@ export class TranscodingService {
    * Stops all active transcoding channels (or filtered by sourceId).
    */
   async bulkStopChannels(sourceId?: string): Promise<BulkStopResult> {
-    const channels = await channelRepository.listChannels(sourceId, 5000);
+    const channels = await channelRepository.listChannels(sourceId);
     let stoppedCount = 0;
 
     // First stop any active in-memory processes
