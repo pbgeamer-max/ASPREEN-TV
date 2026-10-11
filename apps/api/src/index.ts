@@ -17,6 +17,9 @@ import { jobRoutes } from './routes/job.routes';
 import { tokenRoutes } from './routes/token.routes';
 import { settingsRoutes } from './routes/settings.routes';
 import { hlsAuthRoutes } from './routes/hls-auth.routes';
+import { appRoutes } from './routes/app.routes';
+import { telegramService } from './services/telegram.service';
+import { feederService } from './services/feeder.service';
 import { tokenRepository } from './repositories/token.repository';
 import { channelRepository } from './repositories/channel.repository';
 import { settingsRepository } from './repositories/settings.repository';
@@ -81,6 +84,7 @@ export async function createServer() {
   await server.register(tokenRoutes, { prefix: '/api/stream-tokens' });
   await server.register(settingsRoutes, { prefix: '/api' });
   await server.register(hlsAuthRoutes, { prefix: '/api' });
+  await server.register(appRoutes, { prefix: '/api/app' });
 
   // Helper function to stream live MPEG-TS relay using FFmpeg
   async function streamLiveMpegTs(
@@ -441,6 +445,14 @@ async function start() {
 
     await server.listen({ port: config.port, host: config.host });
     console.log(`[Aspreen TV API] Server running at http://${config.host}:${config.port}`);
+
+    // Initialize Telegram Bot and Background Health Feeder
+    try {
+      telegramService.init();
+      feederService.start();
+    } catch (e: any) {
+      console.warn('[Services] Service init warning:', e.message);
+    }
   } catch (err) {
     server.log.error(err);
     process.exit(1);
