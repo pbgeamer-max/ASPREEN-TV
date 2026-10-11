@@ -162,15 +162,16 @@ class TelegramService {
         const welcome =
           `📺 <b>أهلاً بك في بوت إدارة وبث Aspreen TV!</b>\n\n` +
           `هذا البوت مربوط بسيرفرك لتزويدك بالروابط وفحص القنوات وإرسال التنبيهات.\n\n` +
-          `<b>الأوامر المتاحة:</b>\n` +
-          `🔹 <code>/status</code> - فحص حالة السيرفر والقنوات\n` +
+          `🔹 <code>/scan_all</code> - الفحص الشامل والسريع (عراقية + beIN + عربية + أخبار)\n` +
+          `🔹 <code>/scan_iraq</code> - فحص وجلب جميع القنوات العراقية النشطة\n` +
+          `🔹 <code>/scan_sports</code> - فحص ومزامنة قنوات beIN Sports والرياضة\n` +
+          `🔹 <code>/scan_arabic</code> - فحص وجلب القنوات العربية والمنوعة\n` +
+          `🔹 <code>/sniff &lt;رابط_صفحة&gt; [الاسم]</code> - قنص واستخراج رابط البث المخفي من أي موقع\n` +
           `🔹 <code>/playlist</code> - تحميل ملف الـ M3U المحدث لتطبيقك\n` +
           `🔹 <code>/channels</code> - عرض قائمة بأهم القنوات الشغالة\n` +
           `🔹 <code>/add &lt;الاسم&gt; &lt;الرابط&gt;</code> - إضافة قناة برابط مباشر\n` +
-          `🔹 <code>/sniff &lt;رابط_صفحة&gt; [الاسم]</code> - قنص واستخراج رابط البث المخفي من أي موقع\n` +
-          `🔹 <code>/sync_sports</code> - استكشاف ومزامنة قنوات beIN والرياضة تلقائياً\n` +
-          `🔹 <code>/check</code> - فحص صحة القنوات وسرعتها\n` +
-          `🔹 <code>/repair_db</code> - إعادة تهيئة وبناء جداول قاعدة البيانات إذا تم مسحها\n` +
+          `🔹 <code>/status</code> - فحص حالة السيرفر والذاكرة\n` +
+          `🔹 <code>/repair_db</code> - إعادة تهيئة جداول قاعدة البيانات\n` +
           `🔹 <code>/app</code> - رابط الـ API لتطبيق الأندرويد`;
 
         await this.sendMessage(chatId, welcome);
@@ -357,29 +358,59 @@ class TelegramService {
           `🆔 المعرف في موقعك: <code>${createdChannel.id}</code>\n\n` +
           `✅ أصبحت القناة جاهزة للبث في موقعك وتطبيق الأندرويد فوراً!`
         );
-      } else if (command === '/sync_sports' || command === '/sports') {
+      } else if (
+        command === '/scan_all' ||
+        command === '/scan_sports' ||
+        command === '/scan_iraq' ||
+        command === '/scan_arabic' ||
+        command === '/sync_sports' ||
+        command === '/sports'
+      ) {
+        let category: 'all' | 'sports' | 'iraq' | 'arabic' = 'all';
+        let titleDesc = 'الشامل (عراقية + beIN + عربية + أخبار)';
+
+        if (command === '/scan_iraq') {
+          category = 'iraq';
+          titleDesc = 'القنوات العراقية';
+        } else if (command === '/scan_sports' || command === '/sync_sports' || command === '/sports') {
+          category = 'sports';
+          titleDesc = 'قنوات beIN Sports والرياضة';
+        } else if (command === '/scan_arabic') {
+          category = 'arabic';
+          titleDesc = 'القنوات العربية والمنوعة';
+        }
+
         await this.sendMessage(
           chatId,
-          `⚡ <b>جاري استكشاف ومزامنة القنوات الرياضية...</b>\nنقوم بفحص مستودعات البث والتأكد من القنوات النشطة.`
+          `🚀 <b>بدء الفحص السريع الذكي: ${titleDesc}</b>\n` +
+          `⚡ نقوم الآن بفحص الروابط بالتوازي والتأكد من البثوث الشغالة وتصفيتها...`
         );
 
         const { snifferService } = await import('./sniffer.service');
-        const syncRes = await snifferService.syncLiveSports();
+        const syncRes = await snifferService.superScan(category, 60);
 
         let replyMsg =
-          `🏆 <b>تقرير مزامنة القنوات الرياضية:</b>\n\n` +
-          `📊 تم فحص: ${syncRes.totalScanned} قناة\n` +
-          `🟢 قنوات نشطة ومضافة: ${syncRes.addedCount}\n` +
-          `🔄 قنوات تم تحديث روابطها: ${syncRes.updatedCount}\n\n`;
+          `🏆 <b>تقرير الفحص والمزامنة (${titleDesc}):</b>\n\n` +
+          `📊 تم مسح وفحص: <b>${syncRes.totalScanned}</b> قناة\n` +
+          `🟢 قنوات نشطة ومضافة: <b>${syncRes.addedCount}</b>\n` +
+          `🔄 قنوات تم تحديثها: <b>${syncRes.updatedCount}</b>\n\n`;
+
+        if (syncRes.byCategory && Object.keys(syncRes.byCategory).length > 0) {
+          replyMsg += `<b>التصنيفات المكتشفة:</b>\n`;
+          for (const [catName, count] of Object.entries(syncRes.byCategory)) {
+            replyMsg += `• ${catName}: ${count} قناة\n`;
+          }
+          replyMsg += `\n`;
+        }
 
         if (syncRes.activeChannels.length > 0) {
-          replyMsg += `<b>أهم القنوات المتوفرة الآن:</b>\n`;
-          syncRes.activeChannels.slice(0, 8).forEach((c, idx) => {
-            replyMsg += `${idx + 1}. ⚽ ${c.name}\n`;
+          replyMsg += `<b>أهم القنوات المتوفرة حالياً:</b>\n`;
+          syncRes.activeChannels.slice(0, 10).forEach((c, idx) => {
+            replyMsg += `${idx + 1}. 📺 ${c.name} <i>(${c.category})</i>\n`;
           });
-          replyMsg += `\nلتحميل قائمة القنوات كاملة أرسل: <code>/playlist</code>`;
+          replyMsg += `\n📥 لتحميل ملف القنوات الكامل لتطبيقك أرسل: <code>/playlist</code>`;
         } else {
-          replyMsg += `⚠️ لم يتم العثور على روابط بث نشطة حالياً، يمكنك إضافة رابط يدوي عبر: <code>/add</code> أو <code>/sniff</code>`;
+          replyMsg += `⚠️ لم يتم العثور على روابط بث نشطة حالياً. يمكنك استخدام <code>/sniff</code> لقنص رابط مباشر.`;
         }
 
         await this.sendMessage(chatId, replyMsg);

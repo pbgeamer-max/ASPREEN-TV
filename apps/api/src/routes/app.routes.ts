@@ -184,7 +184,21 @@ export async function appRoutes(server: FastifyInstance) {
    */
   server.post('/sync-sports', async (_request, reply) => {
     const { snifferService } = await import('../services/sniffer.service');
-    const result = await snifferService.syncLiveSports();
+    const result = await snifferService.superScan('sports', 60);
+    return {
+      success: true,
+      ...result,
+    };
+  });
+
+  /**
+   * POST /api/app/scan
+   * Full super scanner for iraqi, arabic, and sports channels
+   */
+  server.post('/scan', async (request: FastifyRequest<{ Body: { category?: 'all' | 'sports' | 'iraq' | 'arabic'; limit?: number } }>, reply) => {
+    const { category, limit } = (request.body as any) || {};
+    const { snifferService } = await import('../services/sniffer.service');
+    const result = await snifferService.superScan(category || 'all', limit || 60);
     return {
       success: true,
       ...result,
