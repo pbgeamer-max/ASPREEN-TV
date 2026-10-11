@@ -166,6 +166,7 @@ class TelegramService {
           `🔹 <code>/scan_iraq</code> - فحص وجلب جميع القنوات العراقية النشطة\n` +
           `🔹 <code>/scan_sports</code> - فحص ومزامنة قنوات beIN Sports والرياضة\n` +
           `🔹 <code>/scan_arabic</code> - فحص وجلب القنوات العربية والمنوعة\n` +
+          `🔹 <code>/clean</code> - تنظيف القنوات وترتيب الباقات (1, 2, 3) وحذف القنوات الأجنبية\n` +
           `🔹 <code>/sniff &lt;رابط_صفحة&gt; [الاسم]</code> - قنص واستخراج رابط البث المخفي من أي موقع\n` +
           `🔹 <code>/playlist</code> - تحميل ملف الـ M3U المحدث لتطبيقك\n` +
           `🔹 <code>/channels</code> - عرض قائمة بأهم القنوات الشغالة\n` +
@@ -423,6 +424,16 @@ class TelegramService {
         } else {
           await this.sendMessage(chatId, '❌ فشل الاتصال بقاعدة البيانات. تأكد من أن سيرفر Postgres يعمل في Railway.');
         }
+      } else if (command === '/clean' || command === '/purge') {
+        await this.sendMessage(chatId, '🧹 جاري تنظيف القنوات وترتيب الباقات وحذف القنوات الأجنبية غير المرغوبة...');
+        const { snifferService } = await import('./sniffer.service');
+        const cleaned = await snifferService.purgeForeignSpam();
+        await this.sendMessage(
+          chatId,
+          `✨ <b>تم التنظيف والترتيب بنجاح!</b>\n\n` +
+          `تم تنظيف وترتيب: <b>${cleaned}</b> قناة.\n` +
+          `تم عزل القنوات الأجنبية غير المرغوبة، وتقسيم القنوات ذات الأرقام (1, 2, 3) إلى باقات منظمة في موقعك وتطبيقك!`
+        );
       }
     } catch (err: any) {
       console.error('[Telegram Bot] Error processing command:', err.message);

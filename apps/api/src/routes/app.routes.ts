@@ -204,4 +204,17 @@ export async function appRoutes(server: FastifyInstance) {
       ...result,
     };
   });
+
+  /**
+   * POST /api/app/clean
+   * Cleans foreign spam channels and reorganizes channels into clean packages (1, 2, 3...)
+   */
+  server.post('/clean', async (_request, reply) => {
+    const { snifferService } = await import('../services/sniffer.service');
+    const cleaned = await snifferService.purgeForeignSpam();
+    return {
+      success: true,
+      cleanedCount: cleaned,
+    };
+  });
 }
