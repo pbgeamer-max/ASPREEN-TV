@@ -21,6 +21,7 @@ import { appRoutes } from './routes/app.routes';
 import { vodRoutes } from './routes/vod.routes';
 import { telegramService } from './services/telegram.service';
 import { feederService } from './services/feeder.service';
+import { topCinemaService } from './services/topcinema.service';
 import { tokenRepository } from './repositories/token.repository';
 import { channelRepository } from './repositories/channel.repository';
 import { settingsRepository } from './repositories/settings.repository';
@@ -448,10 +449,11 @@ async function start() {
     await server.listen({ port: config.port, host: config.host });
     console.log(`[Aspreen TV API] Server running at http://${config.host}:${config.port}`);
 
-    // Initialize Telegram Bot and Background Health Feeder
+    // Initialize Telegram Bot, Background Health Feeder, and TopCinema Auto-Updater
     try {
       telegramService.init();
       feederService.start();
+      topCinemaService.startAutoUpdater(30);
     } catch (e: any) {
       console.warn('[Services] Service init warning:', e.message);
     }

@@ -379,6 +379,35 @@ export class VodRepository {
       createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at),
     };
   }
+
+  async getStats(): Promise<{ totalMovies: number; totalSeries: number; totalEpisodes: number }> {
+    const pool = getPool();
+    if (pool) {
+      try {
+        const [mRes, sRes, eRes] = await Promise.all([
+          pool.query('SELECT COUNT(*)::int as count FROM movies'),
+          pool.query('SELECT COUNT(*)::int as count FROM series'),
+          pool.query('SELECT COUNT(*)::int as count FROM episodes'),
+        ]);
+        return {
+          totalMovies: mRes.rows[0]?.count || 0,
+          totalSeries: sRes.rows[0]?.count || 0,
+          totalEpisodes: eRes.rows[0]?.count || 0,
+        };
+      } catch {
+        return {
+          totalMovies: inMemoryMovies.size,
+          totalSeries: inMemorySeries.size,
+          totalEpisodes: inMemoryEpisodes.size,
+        };
+      }
+    }
+    return {
+      totalMovies: inMemoryMovies.size,
+      totalSeries: inMemorySeries.size,
+      totalEpisodes: inMemoryEpisodes.size,
+    };
+  }
 }
 
 export const vodRepository = new VodRepository();

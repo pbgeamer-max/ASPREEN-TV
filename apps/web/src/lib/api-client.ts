@@ -304,6 +304,13 @@ class ApiClient {
   async syncVod() {
     return this.request<{ success: boolean; report: any }>('/vod/sync', { method: 'POST' });
   }
+
+  async syncTopCinema(params?: { maxMoviePages?: number; maxSeries?: number; recentLimit?: number }) {
+    return this.request<{ success: boolean; report: any }>('/vod/topcinema-sync', {
+      method: 'POST',
+      body: JSON.stringify(params || {}),
+    });
+  }
 }
 
 export const api = new ApiClient();

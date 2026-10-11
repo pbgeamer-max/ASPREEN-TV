@@ -165,7 +165,7 @@ class TelegramService {
           `🔹 <code>/scan_all</code> - الفحص الشامل والسريع (عراقية + beIN + عربية + أخبار)\n` +
           `🔹 <code>/scan_iraq</code> - فحص وجلب جميع القنوات العراقية النشطة\n` +
           `🔹 <code>/scan_sports</code> - فحص ومزامنة قنوات beIN Sports والرياضة\n` +
-          `🔹 <code>/scan_arabic</code> - فحص وجلب القنوات العربية والمنوعة\n` +
+          `🔹 <code>/topcinema_sync</code> - زحف وسحب كل الأفلام والمسلسلات والحلقات من TopCinema\n` +
           `🔹 <code>/vod_sync</code> - جلب ومزامنة الأفلام والمسلسلات مع الحلقات بدون تكرار\n` +
           `🔹 <code>/movies</code> - عرض أحدث الأفلام المتوفرة\n` +
           `🔹 <code>/series</code> - عرض أحدث المسلسلات والحلقات\n` +
@@ -436,6 +436,28 @@ class TelegramService {
           `✨ <b>تم التنظيف والترتيب بنجاح!</b>\n\n` +
           `تم تنظيف وترتيب: <b>${cleaned}</b> قناة.\n` +
           `تم عزل القنوات الأجنبية غير المرغوبة، وتقسيم القنوات ذات الأرقام (1, 2, 3) إلى باقات منظمة في موقعك وتطبيقك!`
+        );
+      } else if (command === '/topcinema_sync' || command === '/topcinema') {
+        await this.sendMessage(
+          chatId,
+          '🎬 <b>جاري زحف موقع TopCinema وسحب الأفلام والمسلسلات...</b>\n' +
+          'نقوم باستخراج البوسترات والأوصاف وترتيب الحلقات مع روابط المشاهدة الشغالة ومنع أي تكرار!'
+        );
+        const { topCinemaService } = await import('./topcinema.service');
+        const report = await topCinemaService.syncTopCinema({
+          maxMoviePages: 3,
+          maxSeries: 15,
+          recentLimit: 40,
+        });
+        await this.sendMessage(
+          chatId,
+          `🍿 <b>تمت مزامنة موقع TopCinema (web.topcinema.io) بنجاح!</b>\n\n` +
+          `🎬 <b>الأفلام المستخرجة:</b> ${report.moviesAdded} فيلم شغّال\n` +
+          `📺 <b>المسلسلات المستخرجة:</b> ${report.seriesAdded} مسلسل كامل\n` +
+          `🎞️ <b>الحلقات المرتبة:</b> ${report.episodesAdded} حلقة (1، 2، 3...)\n\n` +
+          `📊 <b>المكتبة الحالية:</b> ${report.totalMovies} فيلم | ${report.totalSeries} مسلسل\n` +
+          `✅ روابط المشاهدة تعمل مباشرة على مشغل موقعك وتطبيقك بدون تقطيع!\n` +
+          `تصفحها الآن في موقعك في قسم <b>الأفلام</b> وقسم <b>المسلسلات</b>.`
         );
       } else if (command === '/vod_sync' || command === '/sync_vod') {
         await this.sendMessage(chatId, '🎬 <b>جاري فحص ومزامنة مكتبة الأفلام والمسلسلات...</b>\nنقوم بجلب البوسترات والأوصاف وترتيب الحلقات مع منع التكرار تماماً.');

@@ -96,4 +96,29 @@ export async function vodRoutes(server: FastifyInstance) {
       report,
     };
   });
+
+  /**
+   * POST /api/vod/topcinema-sync
+   * Dedicated TopCinema crawler trigger
+   */
+  server.post(
+    '/topcinema-sync',
+    async (
+      request: FastifyRequest<{
+        Body?: { maxMoviePages?: number; maxSeries?: number; recentLimit?: number };
+      }>
+    ) => {
+      const { maxMoviePages, maxSeries, recentLimit } = request.body || {};
+      const { topCinemaService } = await import('../services/topcinema.service');
+      const report = await topCinemaService.syncTopCinema({
+        maxMoviePages: maxMoviePages || 3,
+        maxSeries: maxSeries || 15,
+        recentLimit: recentLimit || 40,
+      });
+      return {
+        success: true,
+        report,
+      };
+    }
+  );
 }

@@ -1,6 +1,7 @@
 import http from 'http';
 import https from 'https';
 import { vodRepository, Movie, Series, Episode } from '../repositories/vod.repository';
+import { topCinemaService } from './topcinema.service';
 
 export interface VodSyncReport {
   moviesAdded: number;
@@ -203,13 +204,27 @@ export class VodService {
     let seriesAdded = 0;
     let episodesAdded = 0;
 
-    // 1. Sync Verified Seed Movies
+    // 1. Sync from TopCinema (The user's primary requested source!)
+    try {
+      const topcinemaReport = await topCinemaService.syncTopCinema({
+        maxMoviePages: 2,
+        maxSeries: 10,
+        recentLimit: 30,
+      });
+      moviesAdded += topcinemaReport.moviesAdded;
+      seriesAdded += topcinemaReport.seriesAdded;
+      episodesAdded += topcinemaReport.episodesAdded;
+    } catch (err: any) {
+      console.warn('[VOD Service] TopCinema sync warning:', err.message);
+    }
+
+    // 2. Sync Verified Seed Movies
     for (const m of this.VERIFIED_MOVIES) {
       await vodRepository.upsertMovie(m);
       moviesAdded++;
     }
 
-    // 2. Sync Verified Seed Series & Episodes in numerical order
+    // 3. Sync Verified Seed Series & Episodes in numerical order
     for (const item of this.VERIFIED_SERIES) {
       const savedSeries = await vodRepository.upsertSeries(item.series);
       seriesAdded++;
