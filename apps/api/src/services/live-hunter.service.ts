@@ -110,7 +110,7 @@ export class LiveHunterService {
               'Sec-Fetch-User': '?1',
               'Upgrade-Insecure-Requests': '1',
             },
-            timeout: 10000,
+            timeout: 4500,
           },
           (res) => {
             const statusCode = res.statusCode || 0;
@@ -189,7 +189,16 @@ export class LiveHunterService {
   ): Promise<{ body: string; finalUrl: string } | null> {
     if (depth > 5) return null;
 
-    // 1. Try Direct request
+    // Fast-path: aflam4you.net is protected by Cloudflare WAF against datacenter IPs.
+    // Bypass immediately through residential scraper proxy without wasting 10s on doomed direct request!
+    if (url.includes('aflam4you.net')) {
+      const proxiedBody = await this.fetchViaProxy(url);
+      if (proxiedBody && proxiedBody.length > 200) {
+        return { body: proxiedBody, finalUrl: url };
+      }
+    }
+
+    // 1. Try Direct request (for lastvelvet.net, alokalive.com, stream CDNs)
     const direct = await this.fetchDirect(url, referer, depth);
     const isCloudflareBlocked =
       !direct ||
@@ -203,7 +212,7 @@ export class LiveHunterService {
       return { body: direct.body, finalUrl: direct.finalUrl };
     }
 
-    // 2. Fallback to Cloudflare Bypass Proxy (Jina residential scraper)
+    // 2. Fallback to Cloudflare Bypass Proxy
     console.log(`[LiveHunter] 🛡️ تفعيل تجاوز Cloudflare لـ: ${url}`);
     const proxiedBody = await this.fetchViaProxy(url);
     if (proxiedBody && proxiedBody.length > 200) {
@@ -231,7 +240,7 @@ export class LiveHunterService {
           Accept: '*/*',
         };
 
-        if (/awqb0f40a9yo|7odxv0l067ka|lastvelvet/i.test(cleanUrl)) {
+        if (/awqb0f40a9yo|7odxv0l067ka|lastvelvet|cuttingfame/i.test(cleanUrl) || referer?.includes('lastvelvet')) {
           headers['Referer'] = 'https://lastvelvet.net/';
           headers['Origin'] = 'https://lastvelvet.net';
           headers['Sec-Fetch-Dest'] = 'empty';
@@ -251,7 +260,7 @@ export class LiveHunterService {
             method: 'GET',
             rejectUnauthorized: false,
             headers,
-            timeout: 7000,
+            timeout: 6000,
           },
           (res) => {
             const sc = res.statusCode || 0;
