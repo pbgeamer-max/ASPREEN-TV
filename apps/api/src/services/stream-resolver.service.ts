@@ -100,11 +100,10 @@ export class StreamResolverService {
       } catch {}
     }
 
-    // 3. Packed JS host (updown, vidmoly, etc.)
+    // 3. Packed JS host (updown, vidmoly, morencius, etc.)
     if (
       url.includes('updown') ||
       url.includes('vidmoly') ||
-      url.includes('ult4vid') ||
       url.includes('morencius')
     ) {
       try {
@@ -167,17 +166,22 @@ export class StreamResolverService {
       } catch {}
     }
 
-    // 5. Generic HTML5 <video> or <source> or file: "..." extraction for any host
+    // 6. Generic HTML5 <video>, <source>, data-link, or file: "..." extraction for any host (including ult4vid)
     try {
       const html = await this.fetchHtml(url);
-      const videoSrcMatch =
+      const match =
+        html.match(/data-link=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
+        html.match(/data-src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
         html.match(/<video[^>]+src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
         html.match(/<source[^>]+src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
+        html.match(/https?:\/\/[^\s"'<>]*(?:r2\.cloudflarestorage|gamescdn|workers\.dev|storage\.googleapis)[^\s"'<>]+\.(?:mp4|m3u8)[^\s"'<>]*/i) ||
         html.match(/file\s*:\s*["'](https?:\/\/[^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
         html.match(/source\s*:\s*["'](https?:\/\/[^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
-        html.match(/["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/i);
-      if (videoSrcMatch) {
-        return { directUrl: videoSrcMatch[1] };
+        html.match(/["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/i) ||
+        html.match(/["'](https?:\/\/[^"']+\.mp4[^"']*)["']/i);
+      if (match) {
+        const extracted = (match[1] || match[0]).replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+        return { directUrl: extracted };
       }
     } catch {}
 

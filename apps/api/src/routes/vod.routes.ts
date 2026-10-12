@@ -405,6 +405,47 @@ export async function vodRoutes(server: FastifyInstance) {
       return reply.status(204).send();
     }
 
+    // Handle HEAD requests: Cloudflare R2 / S3 presigned URLs reject HEAD with 403 Forbidden.
+    // We simulate HEAD using GET with Range: bytes=0-0 to retrieve content headers & total size instantly without downloading the video.
+    if (request.method === 'HEAD') {
+      headers['Range'] = 'bytes=0-0';
+      return new Promise<void>((resolve, reject) => {
+        const req = client.get(targetUrl, { headers, rejectUnauthorized: false }, (res) => {
+          if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+            let nextUrl = res.headers.location;
+            if (!nextUrl.startsWith('http')) {
+              nextUrl = new URL(nextUrl, targetUrl).toString();
+            }
+            return relayVideoStream(nextUrl, request, reply, redirectCount + 1).then(resolve).catch(reject);
+          }
+
+          let totalLength: string | undefined;
+          const contentRange = res.headers['content-range'];
+          if (contentRange) {
+            const match = contentRange.match(/\/(\d+)/);
+            if (match) totalLength = match[1];
+          }
+
+          reply.status(200);
+          reply.header('Content-Type', res.headers['content-type'] || 'video/mp4');
+          if (totalLength) {
+            reply.header('Content-Length', totalLength);
+          } else if (res.headers['content-length']) {
+            reply.header('Content-Length', res.headers['content-length']);
+          }
+          reply.header('Accept-Ranges', 'bytes');
+          res.destroy();
+          reply.send();
+          resolve();
+        });
+        req.on('error', (err) => reject(err));
+        req.setTimeout(15000, () => {
+          req.destroy();
+          reject(new Error('Timeout probing stream headers'));
+        });
+      });
+    }
+
     // If stream is HLS m3u8
     if (targetUrl.includes('.m3u8') || targetUrl.includes('manifest')) {
       const data: Buffer = await new Promise((resolve, reject) => {
@@ -465,6 +506,12 @@ export async function vodRoutes(server: FastifyInstance) {
         if (res.headers['content-length']) reply.header('Content-Length', res.headers['content-length']);
         if (res.headers['content-range']) reply.header('Content-Range', res.headers['content-range']);
         if (res.headers['accept-ranges']) reply.header('Accept-Ranges', res.headers['accept-ranges']);
+
+        // Clean up upstream connection if downstream client closes/disconnects
+        reply.raw.on('close', () => {
+          req.destroy();
+        });
+
         res.pipe(reply.raw);
         res.on('end', () => resolve());
         res.on('error', (err) => reject(err));
@@ -502,11 +549,16 @@ export async function vodRoutes(server: FastifyInstance) {
         let target = direct.directUrl || url;
 
         if (
+          direct.directUrl ||
           target.includes('.mp4') ||
           target.includes('.m3u8') ||
           target.includes('manifest') ||
           target.includes('get_video') ||
-          target.includes('gamescdn')
+          target.includes('gamescdn') ||
+          target.includes('cloudflarestorage') ||
+          target.includes('r2.') ||
+          target.includes('workers.dev') ||
+          target.includes('storage.googleapis')
         ) {
           await relayVideoStream(target, request, reply);
           return;
@@ -516,12 +568,12 @@ export async function vodRoutes(server: FastifyInstance) {
       }
     }
 
-    // Fallback: If no candidate could be directly piped, redirect to primary URL
-    if (candidateUrls[0]) {
+    // Fallback: If no candidate could be directly piped, return error or redirect if browser
+    if (candidateUrls[0] && request.headers.accept?.includes('text/html')) {
       return reply.redirect(candidateUrls[0]);
     }
 
-    return reply.status(404).send({ error: 'No working stream found for this item' });
+    return reply.status(502).send({ error: 'No working playable stream found for this item' });
   }
 
   /**
