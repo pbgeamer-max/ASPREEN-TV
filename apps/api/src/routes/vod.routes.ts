@@ -950,13 +950,14 @@ export async function vodRoutes(server: FastifyInstance) {
 
     if (reply.raw.headersSent) return;
 
-    // Fallback: If browser request
-    if (candidateUrls[0] && request.headers.accept?.includes('text/html')) {
-      return reply.redirect(candidateUrls[0]);
+    // Fallback: Seamless redirect to best candidate or primary URL (supports VLC, Android TV, and Web)
+    const fallbackUrl = candidateUrls[0] || primaryUrl || (servers && servers[0]?.url);
+    if (fallbackUrl) {
+      return reply.redirect(fallbackUrl, 302);
     }
 
     reply.header('Content-Type', 'application/json');
-    return reply.status(502).send(JSON.stringify({ error: 'No working playable stream found for this item' }));
+    return reply.status(404).send(JSON.stringify({ error: 'Stream not found for this item' }));
   }
 
   /**

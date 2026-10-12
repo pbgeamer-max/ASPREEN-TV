@@ -52,6 +52,12 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
       fetch(streamUrl, { method: 'HEAD' })
         .then((res) => {
           if (!isMounted) return;
+          if (!res.ok) {
+            // Server failed to relay direct video (e.g. 502/404) -> Auto-switch immediately to embed!
+            setPlayerMode('embed');
+            setLoading(false);
+            return;
+          }
           const contentType = (res.headers.get('content-type') || '').toLowerCase();
           if (
             contentType.includes('mpegurl') ||
@@ -67,7 +73,8 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
         })
         .catch(() => {
           if (!isMounted) return;
-          setResolvedUrl(streamUrl);
+          // Upstream failed -> Seamlessly switch to embed
+          setPlayerMode('embed');
         })
         .finally(() => {
           if (isMounted) setLoading(false);
@@ -100,7 +107,7 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
       })
       .catch(() => {
         if (!isMounted) return;
-        setResolvedUrl(streamUrl);
+        setPlayerMode('embed');
       })
       .finally(() => {
         if (isMounted) setLoading(false);
@@ -154,14 +161,16 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              setError('تعذر تحميل أجزاء البث المباشر. يمكنك التبديل إلى السيرفر الاحتياطي.');
-              hls?.startLoad();
+              // Seamlessly auto-switch to embed without displaying fatal error overlay
+              setPlayerMode('embed');
+              setError(null);
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
               hls?.recoverMediaError();
               break;
             default:
-              setError('حدث خطأ أثناء تشغيل الفيديو المباشر.');
+              setPlayerMode('embed');
+              setError(null);
               hls?.destroy();
               break;
           }
@@ -171,7 +180,7 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
       // Standard MP4 or Safari native HLS
       video.src = effectiveStreamUrl;
       video.onerror = () => {
-        // Fallback: If direct /stream.mp4 fails in Chrome (e.g. server streams MPEG-TS), auto-switch to HLS .m3u8
+        // Fallback 1: If direct /stream.mp4 fails in Chrome (e.g. server streams MPEG-TS), auto-switch to HLS .m3u8
         if (!fallbackAttempted && effectiveStreamUrl.includes('/stream.mp4') && Hls.isSupported()) {
           fallbackAttempted = true;
           const m3u8Url = effectiveStreamUrl.replace(/\.mp4$/i, '.m3u8');
@@ -181,12 +190,15 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
           hls.on(Hls.Events.MANIFEST_PARSED, () => playVideo());
           hls.on(Hls.Events.ERROR, (_event, data) => {
             if (data.fatal) {
-              setError('تعذر تشغيل الفيديو عبر المشغل المباشر. يمكنك التبديل إلى السيرفر الاحتياطي بنقرة واحدة.');
+              setPlayerMode('embed');
+              setError(null);
             }
           });
           return;
         }
-        setError('تعذر تشغيل الفيديو عبر المشغل المباشر. يمكنك التبديل إلى السيرفر الاحتياطي بنقرة واحدة.');
+        // Seamlessly auto-switch to embed without blocking error screen
+        setPlayerMode('embed');
+        setError(null);
       };
       playVideo();
     }
@@ -299,7 +311,6 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
             referrerPolicy="no-referrer"
-            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-fullscreen"
           />
         )}
 
@@ -309,8 +320,11 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
             <p className="text-xs text-[#F5F5F5] font-medium max-w-md">{error}</p>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setPlayerMode('embed')}
-                className="px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-bold rounded-lg shadow-lg flex items-center gap-2 transition-all"
+                onClick={() => {
+                  setError(null);
+                  setPlayerMode('embed');
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-bold rounded-lg shadow-lg flex items-center gap-2 transition-all cursor-pointer"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 <span>التبديل إلى السيرفر الاحتياطي الآن</span>
@@ -327,7 +341,7 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
           <span className="text-emerald-400 font-medium">
             {playerMode === 'direct'
               ? '✓ شغال عبر مشغل الموقع الداخلي (Aspreen Native Player)'
-              : '⚡ شغال عبر السيرفر الاحتياطي (Sandbox)'}
+              : '⚡ شغال عبر السيرفر الاحتياطي (تشغيل فوري سلس)'}
           </span>
         </div>
 

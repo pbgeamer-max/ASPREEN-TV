@@ -44,7 +44,9 @@ export function isDeadOrBrokenHost(url: string | null | undefined): boolean {
     lower.includes('5drama') ||
     lower.includes('5tv.asia') ||
     lower.includes('5tv.fun') ||
-    lower.includes('moshahda.net')
+    lower.includes('moshahda.net') ||
+    lower.includes('mixdrop') ||
+    lower.includes('mxdrop')
   );
 }
 

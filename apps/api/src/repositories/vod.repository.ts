@@ -508,6 +508,8 @@ export class VodRepository {
               AND elem->>'url' NOT ILIKE '%ds2play%'
               AND elem->>'url' NOT ILIKE '%vidbem%'
               AND elem->>'url' NOT ILIKE '%gamescdn%'
+              AND elem->>'url' NOT ILIKE '%mixdrop%'
+              AND elem->>'url' NOT ILIKE '%mxdrop%'
               AND (
                 elem->>'url' ILIKE '%71stream%'
                 OR elem->>'url' ILIKE '%ult4vid%'
@@ -533,13 +535,51 @@ export class VodRepository {
              OR stream_url ILIKE '%ds2play%'
              OR stream_url ILIKE '%vidbem%'
              OR stream_url ILIKE '%gamescdn%'
+             OR stream_url ILIKE '%mixdrop%'
+             OR stream_url ILIKE '%mxdrop%'
         ) sub
         WHERE movies.id = sub.id AND sub.working_url IS NOT NULL;
       `);
 
       const moviesHealed = healRes.rowCount || 0;
 
-      // 2. Delete remaining movies with completely dead streams
+      // 2. Heal episodes with bad streams if they have an alternate working server
+      const epHealRes = await pool.query(`
+        UPDATE episodes
+        SET stream_url = sub.working_url
+        FROM (
+          SELECT episodes.id, (
+            SELECT elem->>'url'
+            FROM jsonb_array_elements(servers) as elem
+            WHERE elem->>'url' IS NOT NULL
+              AND elem->>'url' NOT ILIKE '%dood%'
+              AND elem->>'url' NOT ILIKE '%mystream%'
+              AND elem->>'url' NOT ILIKE '%dsvplay%'
+              AND elem->>'url' NOT ILIKE '%gamescdn%'
+              AND elem->>'url' NOT ILIKE '%mixdrop%'
+              AND elem->>'url' NOT ILIKE '%mxdrop%'
+              AND (
+                elem->>'url' ILIKE '%71stream%'
+                OR elem->>'url' ILIKE '%ult4vid%'
+                OR elem->>'url' ILIKE '%morencius%'
+                OR elem->>'url' ILIKE '%vidmoly%'
+                OR elem->>'url' ILIKE '%.m3u8%'
+                OR elem->>'url' ILIKE '%.mp4%'
+              )
+            LIMIT 1
+          ) as working_url
+          FROM episodes
+          WHERE stream_url ILIKE '%dood%'
+             OR stream_url ILIKE '%mystream%'
+             OR stream_url ILIKE '%dsvplay%'
+             OR stream_url ILIKE '%gamescdn%'
+             OR stream_url ILIKE '%mixdrop%'
+             OR stream_url ILIKE '%mxdrop%'
+        ) sub
+        WHERE episodes.id = sub.id AND sub.working_url IS NOT NULL;
+      `);
+
+      // 3. Delete remaining movies with completely dead streams
       const mRes = await pool.query(`
         DELETE FROM movies
         WHERE stream_url ILIKE '%dood%'
@@ -565,9 +605,11 @@ export class VodRepository {
            OR stream_url ILIKE '%topcinema.io%'
            OR stream_url ILIKE '%gamescdn.online%'
            OR stream_url ILIKE '%moshahda.net%'
+           OR stream_url ILIKE '%mixdrop%'
+           OR stream_url ILIKE '%mxdrop%'
       `);
 
-      // 3. Delete remaining episodes with dead streams
+      // 4. Delete remaining episodes with dead streams
       const eRes = await pool.query(`
         DELETE FROM episodes
         WHERE stream_url ILIKE '%dood%'
@@ -593,6 +635,8 @@ export class VodRepository {
            OR stream_url ILIKE '%topcinema.io%'
            OR stream_url ILIKE '%gamescdn.online%'
            OR stream_url ILIKE '%moshahda.net%'
+           OR stream_url ILIKE '%mixdrop%'
+           OR stream_url ILIKE '%mxdrop%'
       `);
 
       return {
