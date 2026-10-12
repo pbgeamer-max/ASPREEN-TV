@@ -199,7 +199,10 @@ export class TranscodingService {
       }
       if (targetPage) {
         try {
-          const fresh = await liveHunterService.resolveFreshStream(targetPage);
+          const fresh = await Promise.race([
+            liveHunterService.resolveFreshStream(targetPage),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+          ]);
           if (fresh?.streamUrl) {
             rawInputUrl = `${fresh.streamUrl}|Referer=${fresh.referer || 'https://lastvelvet.net/'}|Origin=https://lastvelvet.net|PageUrl=${encodeURIComponent(targetPage)}`;
             await channelRepository.updateChannel(channel.id, {
@@ -478,7 +481,10 @@ export class TranscodingService {
               }
               if (targetPage) {
                 console.log(`[Stream Healing] 🔄 Attempting dynamic stream re-resolution for "${channel.name}" (${targetPage})...`);
-                const fresh = await liveHunterService.resolveFreshStream(targetPage).catch(() => null);
+                const fresh = await Promise.race([
+                  liveHunterService.resolveFreshStream(targetPage),
+                  new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+                ]).catch(() => null);
                 if (fresh?.streamUrl) {
                   const freshUrl = `${fresh.streamUrl}|Referer=${fresh.referer || 'https://lastvelvet.net/'}|Origin=https://lastvelvet.net|PageUrl=${encodeURIComponent(targetPage)}`;
                   params.rawInputUrl = freshUrl;

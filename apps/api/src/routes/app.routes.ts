@@ -248,14 +248,21 @@ export async function appRoutes(server: FastifyInstance) {
    */
   server.post('/hunt/all', async (_request, reply) => {
     const { liveHunterService } = await import('../services/live-hunter.service');
-    const { alokal, koora } = await liveHunterService.huntAll();
+    const { alokal, koora, alreadyRunning } = await liveHunterService.huntAll();
+    if (alreadyRunning) {
+      return {
+        success: true,
+        message: 'عملية الصيد جارية بالفعل في الخلفية...',
+        summary: { totalAdded: 0, totalUpdated: 0, totalDeleted: 0, totalSkipped: 0 },
+      };
+    }
     return {
       success: true,
       summary: {
-        totalAdded: alokal.addedCount + koora.addedCount,
-        totalUpdated: alokal.updatedCount + koora.updatedCount,
-        totalDeleted: alokal.deletedOldCount + koora.deletedOldCount,
-        totalSkipped: alokal.skippedCount + koora.skippedCount,
+        totalAdded: (alokal?.addedCount || 0) + (koora?.addedCount || 0),
+        totalUpdated: (alokal?.updatedCount || 0) + (koora?.updatedCount || 0),
+        totalDeleted: (alokal?.deletedOldCount || 0) + (koora?.deletedOldCount || 0),
+        totalSkipped: (alokal?.skippedCount || 0) + (koora?.skippedCount || 0),
       },
       alokal,
       koora,

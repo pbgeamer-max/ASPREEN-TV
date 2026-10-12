@@ -73,6 +73,7 @@ const SOURCE_ID_KOORA  = 'live-hunter-koora';
 // ─────────────────────────────────────────────────────────────
 export class LiveHunterService {
   private channelPageCache = new Map<string, string>();
+  private isHunting = false;
 
   // ── HTTP helpers ─────────────────────────────────────────────
 
@@ -164,7 +165,7 @@ export class LiveHunterService {
               'X-Return-Format': 'html',
               Accept: 'text/html,*/*',
             },
-            timeout: 15000,
+            timeout: 4500,
           },
           (res) => {
             let data = '';
@@ -190,21 +191,11 @@ export class LiveHunterService {
   ): Promise<{ body: string; finalUrl: string } | null> {
     if (depth > 5) return null;
 
-    // Fast-path: aflam4you.net is protected by Cloudflare WAF against datacenter IPs.
-    // Bypass immediately through residential scraper proxy without wasting 10s on doomed direct request!
-    if (url.includes('aflam4you.net')) {
-      const proxiedBody = await this.fetchViaProxy(url);
-      if (proxiedBody && proxiedBody.length > 200) {
-        return { body: proxiedBody, finalUrl: url };
-      }
-    }
-
-    // 1. Try Direct request (for lastvelvet.net, alokalive.com, stream CDNs)
+    // 1. Direct request first (FAST: ~100-300ms)
     const direct = await this.fetchDirect(url, referer, depth);
     const isCloudflareBlocked =
       !direct ||
       !direct.body ||
-      direct.body.length < 400 ||
       direct.statusCode === 403 ||
       direct.statusCode === 503 ||
       (direct.body.includes('Just a moment...') && !direct.body.includes('playerae.php'));
@@ -213,11 +204,13 @@ export class LiveHunterService {
       return { body: direct.body, finalUrl: direct.finalUrl };
     }
 
-    // 2. Fallback to Cloudflare Bypass Proxy
-    console.log(`[LiveHunter] 🛡️ تفعيل تجاوز Cloudflare لـ: ${url}`);
-    const proxiedBody = await this.fetchViaProxy(url);
-    if (proxiedBody && proxiedBody.length > 200) {
-      return { body: proxiedBody, finalUrl: url };
+    // 2. Only fallback to proxy if direct returned Cloudflare challenge (403/503/Just a moment)
+    if (isCloudflareBlocked && direct?.statusCode !== 404) {
+      console.log(`[LiveHunter] 🛡️ تفعيل تجاوز Cloudflare لـ: ${url}`);
+      const proxiedBody = await this.fetchViaProxy(url);
+      if (proxiedBody && proxiedBody.length > 200) {
+        return { body: proxiedBody, finalUrl: url };
+      }
     }
 
     return direct ? { body: direct.body, finalUrl: direct.finalUrl } : null;
@@ -295,7 +288,7 @@ export class LiveHunterService {
       const atob1 = (s: string) => Buffer.from(s, 'base64').toString('binary');
       const step1 = atob1(input);
       const totalLen = step1.length;
-      const partLen = Math.ceil(totalLen / partsCount);
+      const partLen = Math.round(totalLen / partsCount);
       const chunks: string[] = [];
       let offset = 0;
       for (let i = 0; i < partsCount; i++) {
@@ -492,22 +485,16 @@ export class LiveHunterService {
     // Direct Aflam4you shortcut: extract vid from pageUrl (e.g. ..._68.html or embed.php?vid=68)
     const vidMatch = pageUrl.match(/(?:_(\d+)\.html|vid=(\d+))/);
     const vid = vidMatch ? (vidMatch[1] || vidMatch[2]) : null;
-    if (vid && !pageUrl.includes('playeraf.php') && !pageUrl.includes('playerae.php') && !pageUrl.includes('lastvelvet')) {
-      for (const serverNum of [1, 2, 3]) {
-        const candidateUrls = [
-          `https://channel.aflam4you.net/playeraf.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex1`,
-          `https://channel.aflam4you.net/zzremb472.php?vid=${vid}&aflam_s=${serverNum}&aflam_w=360&aflam_h=250&aflam_k=11zzz623324`,
-          `https://channel.aflam4you.net/playerae.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex55`,
-        ];
-        for (const directPlayerUrl of candidateUrls) {
-          try {
-            const pResp = await this.fetchHtml(directPlayerUrl, `https://channel.aflam4you.net/embed.php?vid=${vid}`);
-            if (pResp?.body) {
-              const res = await this.resolveIframes(pResp.body, directPlayerUrl, depth + 1);
-              if (res) return res;
-            }
-          } catch { /* continue */ }
-        }
+    if (vid && !pageUrl.includes('playeraf.php') && !pageUrl.includes('lastvelvet')) {
+      for (const serverNum of [1, 2]) {
+        const directPlayerUrl = `https://channel.aflam4you.net/playeraf.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex1`;
+        try {
+          const pResp = await this.fetchHtml(directPlayerUrl, `https://channel.aflam4you.net/embed.php?vid=${vid}`);
+          if (pResp?.body) {
+            const res = await this.resolveIframes(pResp.body, directPlayerUrl, depth + 1);
+            if (res) return res;
+          }
+        } catch { /* continue */ }
       }
     }
 
@@ -857,7 +844,7 @@ export class LiveHunterService {
       return result;
     }
 
-    const matchArray = Array.from(matchLinks).slice(0, 100);
+    const matchArray = Array.from(matchLinks).slice(0, 35);
 
     await this.pMap(
       matchArray,
@@ -1040,23 +1027,17 @@ export class LiveHunterService {
     const vid = vidMatch ? (vidMatch[1] || vidMatch[2]) : null;
 
     if (vid) {
-      for (const serverNum of [1, 2, 3]) {
-        const candidateUrls = [
-          `https://channel.aflam4you.net/playeraf.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex1`,
-          `https://channel.aflam4you.net/zzremb472.php?vid=${vid}&aflam_s=${serverNum}&aflam_w=360&aflam_h=250&aflam_k=11zzz623324`,
-          `https://channel.aflam4you.net/playerae.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex55`,
-        ];
-        for (const directPlayerUrl of candidateUrls) {
-          try {
-            const pResp = await this.fetchHtml(directPlayerUrl, `https://channel.aflam4you.net/embed.php?vid=${vid}`);
-            if (pResp?.body) {
-              const res = await this.resolveIframes(pResp.body, directPlayerUrl);
-              if (res?.streamUrl) {
-                return res;
-              }
+      for (const serverNum of [1, 2]) {
+        const directPlayerUrl = `https://channel.aflam4you.net/playeraf.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex1`;
+        try {
+          const pResp = await this.fetchHtml(directPlayerUrl, `https://channel.aflam4you.net/embed.php?vid=${vid}`);
+          if (pResp?.body) {
+            const res = await this.resolveIframes(pResp.body, directPlayerUrl);
+            if (res?.streamUrl) {
+              return res;
             }
-          } catch { /* continue */ }
-        }
+          }
+        } catch { /* continue */ }
       }
     }
 
@@ -1074,21 +1055,35 @@ export class LiveHunterService {
   //  Full Hunt (Both Sources)
   // ─────────────────────────────────────────────────────────────
 
-  public async huntAll(): Promise<{ alokal: HuntResult; koora: HuntResult }> {
-    console.log('[LiveHunter] 🔥 بدء الصيد الشامل — كل المصادر ...');
-    const [alokal, koora] = await Promise.all([
-      this.huntAlokalive().catch((err) => ({
-        source: 'alokalive.com', totalFound: 0, addedCount: 0, updatedCount: 0,
-        skippedCount: 0, deletedOldCount: 0, streams: [],
-        errors: [`خطأ فادح: ${err.message}`],
-      } as HuntResult)),
-      this.huntKooraLive().catch((err) => ({
-        source: 'aflam4you/koora', totalFound: 0, addedCount: 0, updatedCount: 0,
-        skippedCount: 0, deletedOldCount: 0, streams: [],
-        errors: [`خطأ فادح: ${err.message}`],
-      } as HuntResult)),
-    ]);
-    return { alokal, koora };
+  public async huntAll(): Promise<{ alokal: HuntResult; koora: HuntResult; alreadyRunning?: boolean }> {
+    if (this.isHunting) {
+      console.log('[LiveHunter] ⏳ صيد قيد التنفيذ بالفعل — منع التكرار');
+      return {
+        alreadyRunning: true,
+        alokal: { source: 'alokalive.com', totalFound: 0, addedCount: 0, updatedCount: 0, skippedCount: 0, deletedOldCount: 0, streams: [], errors: [] },
+        koora: { source: 'aflam4you/koora_live', totalFound: 0, addedCount: 0, updatedCount: 0, skippedCount: 0, deletedOldCount: 0, streams: [], errors: [] },
+      };
+    }
+
+    this.isHunting = true;
+    try {
+      console.log('[LiveHunter] 🔥 بدء الصيد الشامل — كل المصادر ...');
+      const [alokal, koora] = await Promise.all([
+        this.huntAlokalive().catch((err) => ({
+          source: 'alokalive.com', totalFound: 0, addedCount: 0, updatedCount: 0,
+          skippedCount: 0, deletedOldCount: 0, streams: [],
+          errors: [`خطأ فادح: ${err.message}`],
+        } as HuntResult)),
+        this.huntKooraLive().catch((err) => ({
+          source: 'aflam4you/koora', totalFound: 0, addedCount: 0, updatedCount: 0,
+          skippedCount: 0, deletedOldCount: 0, streams: [],
+          errors: [`خطأ فادح: ${err.message}`],
+        } as HuntResult)),
+      ]);
+      return { alokal, koora };
+    } finally {
+      this.isHunting = false;
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
