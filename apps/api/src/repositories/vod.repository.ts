@@ -607,6 +607,10 @@ export class VodRepository {
            OR stream_url ILIKE '%moshahda.net%'
            OR stream_url ILIKE '%mixdrop%'
            OR stream_url ILIKE '%mxdrop%'
+           OR stream_url ILIKE '%upstream%'
+           OR stream_url ILIKE '%lulu%'
+           OR stream_url ILIKE '%voe.sx%'
+           OR stream_url ILIKE '%swhoi%'
       `);
 
       // 4. Delete remaining episodes with dead streams
@@ -637,6 +641,10 @@ export class VodRepository {
            OR stream_url ILIKE '%moshahda.net%'
            OR stream_url ILIKE '%mixdrop%'
            OR stream_url ILIKE '%mxdrop%'
+           OR stream_url ILIKE '%upstream%'
+           OR stream_url ILIKE '%lulu%'
+           OR stream_url ILIKE '%voe.sx%'
+           OR stream_url ILIKE '%swhoi%'
       `);
 
       return {

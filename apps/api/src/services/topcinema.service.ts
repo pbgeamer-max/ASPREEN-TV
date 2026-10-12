@@ -160,19 +160,15 @@ export class TopCinemaService {
       const collectedServers: Array<{ name: string; url: string }> = [];
 
       if (serverItems.length > 0) {
-        // Preference ranking: OK.ru > VidMoly > LuluStream > Mixdrop > Firestream > UpStream > StreamWish > UpDown > Streamtape > VidTube
+        // Preference ranking: OK.ru > VidMoly > VidTube > Firestream > Streamtape > UpDown
         const getRank = (item: { name: string; sIndex: string }) => {
           if (item.name.includes('ok')) return 1;
           if (item.name.includes('vidmoly')) return 2;
-          if (item.name.includes('lulu')) return 3;
-          if (item.name.includes('mixdrop')) return 4;
-          if (item.name.includes('firestream')) return 5;
-          if (item.name.includes('upstream')) return 6;
-          if (item.name.includes('streamwish') || item.name.includes('streamhg') || item.sIndex === '2') return 7;
-          if (item.name.includes('updown')) return 8;
-          if (item.name.includes('streamtape')) return 9;
-          if (item.name.includes('tube') || item.sIndex === '0') return 10;
-          return 20;
+          if (item.name.includes('vidtube') || item.name.includes('tube') || item.sIndex === '0') return 3;
+          if (item.name.includes('firestream')) return 4;
+          if (item.name.includes('streamtape')) return 5;
+          if (item.name.includes('updown')) return 6;
+          return 99;
         };
 
         serverItems.sort((a, b) => getRank(a) - getRank(b));

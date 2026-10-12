@@ -5,18 +5,14 @@ import Hls from 'hls.js';
 import {
   Play,
   Pause,
-  Volume2,
-  VolumeX,
   Maximize,
   Minimize,
   RefreshCw,
-  AlertCircle,
   Tv,
-  ExternalLink,
-  ShieldCheck,
   CheckCircle2,
+  ShieldCheck,
+  AlertCircle,
 } from 'lucide-react';
-import { api } from '@/lib/api-client';
 
 interface VodPlayerProps {
   title: string;
@@ -26,189 +22,119 @@ interface VodPlayerProps {
   onClose?: () => void;
 }
 
-export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClose }: VodPlayerProps) {
+export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Player mode: 'direct' (Aspreen TV native player) is ALWAYS DEFAULT
-  const [playerMode, setPlayerMode] = useState<'direct' | 'embed'>('direct');
-  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
-  // Resolve stream to direct MP4/M3U8 file if needed
   useEffect(() => {
     let isMounted = true;
+    let hls: Hls | null = null;
     setLoading(true);
     setError(null);
-    setResolvedUrl(null);
 
-    const isServerStream = streamUrl.includes('/api/vod/stream/');
-
-    // If it's a server rebroadcast stream (/api/vod/stream/...), probe upstream content type
-    if (isServerStream) {
-      fetch(streamUrl, { method: 'HEAD' })
-        .then((res) => {
-          if (!isMounted) return;
-          if (!res.ok) {
-            // Server failed to relay direct video (e.g. 502/404) -> Auto-switch immediately to embed!
-            setPlayerMode('embed');
-            setLoading(false);
-            return;
-          }
-          const contentType = (res.headers.get('content-type') || '').toLowerCase();
-          if (
-            contentType.includes('mpegurl') ||
-            contentType.includes('mp2t') ||
-            contentType.includes('apple') ||
-            streamUrl.endsWith('.m3u8')
-          ) {
-            const m3u8Url = streamUrl.replace(/\.mp4$/i, '.m3u8');
-            setResolvedUrl(m3u8Url);
-          } else {
-            setResolvedUrl(streamUrl);
-          }
-        })
-        .catch(() => {
-          if (!isMounted) return;
-          // Upstream failed -> Seamlessly switch to embed
-          setPlayerMode('embed');
-        })
-        .finally(() => {
-          if (isMounted) setLoading(false);
-        });
-      return () => {
-        isMounted = false;
-      };
-    }
-
-    // If stream URL is already a direct video file (.mp4 / .m3u8) without needing embed resolution
-    if (
-      streamUrl.toLowerCase().includes('.mp4') ||
-      streamUrl.toLowerCase().includes('.m3u8')
-    ) {
-      setResolvedUrl(streamUrl);
-      setLoading(false);
-      return;
-    }
-
-    // Attempt to resolve through API (e.g. 71stream -> Cloudflare R2 MP4, vidtube -> HLS Master)
-    api
-      .resolveStream(streamUrl)
-      .then((res) => {
-        if (!isMounted) return;
-        if (res.directUrl && res.directUrl !== streamUrl) {
-          setResolvedUrl(res.directUrl);
-        } else {
-          setResolvedUrl(streamUrl);
-        }
-      })
-      .catch(() => {
-        if (!isMounted) return;
-        setPlayerMode('embed');
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [streamUrl]);
-
-  // Setup HLS or direct HTML5 video playback
-  useEffect(() => {
-    if (playerMode !== 'direct') return;
     const video = videoRef.current;
-    if (!video || !resolvedUrl) return;
+    if (!video) return;
 
-    let hls: Hls | null = null;
-    let fallbackAttempted = false;
-    const isHls = resolvedUrl.toLowerCase().includes('.m3u8');
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || '/api';
-    const effectiveStreamUrl =
-      isHls && !resolvedUrl.includes('/proxy-stream') && !resolvedUrl.startsWith('/api')
-        ? `${apiBase}/vod/proxy-stream?url=${encodeURIComponent(resolvedUrl)}`
-        : resolvedUrl;
+    // Stream URL is the server re-broadcast endpoint (e.g. /api/vod/stream/movie/:id/stream.mp4)
+    const isM3u8 = streamUrl.toLowerCase().includes('.m3u8');
 
-    const playVideo = () => {
-      video.play().catch(() => {
-        // Autoplay may be restricted without interaction - not a stream failure
-      });
+    const handlePlaySuccess = () => {
+      if (isMounted) {
+        setLoading(false);
+        setError(null);
+      }
     };
 
-    if (isHls && Hls.isSupported()) {
+    if (isM3u8 && Hls.isSupported()) {
       hls = new Hls({
         enableWorker: true,
         lowLatencyMode: false,
         backBufferLength: 30,
         maxBufferLength: 30,
         maxMaxBufferLength: 60,
-        maxBufferSize: 30 * 1000 * 1000,
         startFragPrefetch: true,
       });
 
-      hls.loadSource(effectiveStreamUrl);
+      hls.loadSource(streamUrl);
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        playVideo();
+        video.play().then(handlePlaySuccess).catch(() => {});
       });
 
       hls.on(Hls.Events.ERROR, (_event, data) => {
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              // Seamlessly auto-switch to embed without displaying fatal error overlay
-              setPlayerMode('embed');
-              setError(null);
+              hls?.startLoad();
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
               hls?.recoverMediaError();
               break;
             default:
-              setPlayerMode('embed');
-              setError(null);
               hls?.destroy();
+              if (isMounted) {
+                setError('جاري إعادة محاولة الاتصال بالبث المعاد...');
+              }
               break;
           }
         }
       });
     } else {
-      // Standard MP4 or Safari native HLS
-      video.src = effectiveStreamUrl;
+      // Standard HTML5 video playback with Range request support from re-broadcast server
+      video.src = streamUrl;
+
+      video.onloadeddata = () => {
+        handlePlaySuccess();
+      };
+
+      video.oncanplay = () => {
+        handlePlaySuccess();
+        video.play().catch(() => {});
+      };
+
       video.onerror = () => {
-        // Fallback 1: If direct /stream.mp4 fails in Chrome (e.g. server streams MPEG-TS), auto-switch to HLS .m3u8
-        if (!fallbackAttempted && effectiveStreamUrl.includes('/stream.mp4') && Hls.isSupported()) {
-          fallbackAttempted = true;
-          const m3u8Url = effectiveStreamUrl.replace(/\.mp4$/i, '.m3u8');
+        if (!isMounted) return;
+        // If Chrome gets an MPEG-TS remuxed stream on .mp4, auto-attach HLS
+        if (Hls.isSupported() && !hls) {
+          const m3u8Url = streamUrl.replace(/\.mp4$/i, '.m3u8');
           hls = new Hls({ enableWorker: true, lowLatencyMode: false });
           hls.loadSource(m3u8Url);
           hls.attachMedia(video);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => playVideo());
-          hls.on(Hls.Events.ERROR, (_event, data) => {
-            if (data.fatal) {
-              setPlayerMode('embed');
-              setError(null);
-            }
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play().then(handlePlaySuccess).catch(() => {});
           });
           return;
         }
-        // Seamlessly auto-switch to embed without blocking error screen
-        setPlayerMode('embed');
-        setError(null);
+
+        // Auto-retry up to 3 times for streaming latency
+        if (retryCount < 3) {
+          setRetryCount((prev) => prev + 1);
+          setTimeout(() => {
+            if (video && isMounted) {
+              video.load();
+              video.play().catch(() => {});
+            }
+          }, 1500);
+        } else {
+          setError('جاري تجهيز البث المعاد من المصدر، يرجى الانتظار ثوانٍ أو إعادة المحاولة.');
+          setLoading(false);
+        }
       };
-      playVideo();
     }
 
     return () => {
+      isMounted = false;
       if (hls) {
         hls.destroy();
       }
     };
-  }, [resolvedUrl, playerMode]);
+  }, [streamUrl, retryCount]);
 
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
@@ -216,6 +142,18 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
       containerRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
     } else {
       document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+    }
+  };
+
+  const handleManualRetry = () => {
+    setError(null);
+    setLoading(true);
+    setRetryCount(0);
+    const video = videoRef.current;
+    if (video) {
+      video.src = streamUrl;
+      video.load();
+      video.play().catch(() => {});
     }
   };
 
@@ -235,42 +173,19 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
               <span className="text-xs font-bold text-white line-clamp-1">{title}</span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/60 text-emerald-400 border border-emerald-500/20 flex items-center gap-1 shrink-0">
                 <CheckCircle2 className="w-2.5 h-2.5" />
-                مشغل موقعي الخاص (بث معاد)
+                مشغل موقعي الخاص (بث معاد 100%)
               </span>
             </div>
             <p className="text-[10px] text-[#71717A] mt-0.5 font-mono">
-              بث مباشر نقي معاد عبر خادمك بدون إعلانات خارجية
+              بث مباشر نقي معاد بالكامل عبر خادم أسبيرين TV بدون روابط خارجية أو إعلانات
             </p>
           </div>
         </div>
 
-        {/* Player Mode Switcher */}
         <div className="flex items-center gap-2 shrink-0">
-          <div className="flex items-center gap-1 bg-[#161616] p-1 rounded-xl border border-[#2E2E2E]">
-            <button
-              onClick={() => setPlayerMode('direct')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-                playerMode === 'direct'
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-950/40'
-                  : 'text-[#A1A1AA] hover:text-white'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>مشغل موقعي (افتراضي)</span>
-            </button>
-
-            <button
-              onClick={() => setPlayerMode('embed')}
-              className={`px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
-                playerMode === 'embed'
-                  ? 'bg-[#2A2A2A] text-white border border-white/10'
-                  : 'text-[#71717A] hover:text-[#A1A1AA]'
-              }`}
-              title="استخدام سيرفر خارجي بديل في حال وجود مشكلة في الرابط المباشر"
-            >
-              <ExternalLink className="w-3 h-3" />
-              <span>سيرفر بديل (احتياطي)</span>
-            </button>
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-950/40 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs font-bold">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>بث معاد من خادمك</span>
           </div>
 
           {onClose && (
@@ -289,47 +204,32 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
         {loading && (
           <div className="absolute inset-0 bg-black/90 z-20 flex flex-col items-center justify-center gap-2 text-[#A1A1AA]">
             <RefreshCw className="w-6 h-6 animate-spin text-emerald-400" />
-            <span className="text-xs">جاري تجهيز مشغل الموقع الخاص واستخراج رابط البث المباشر...</span>
+            <span className="text-xs">جاري إعادة بث الفيديو عبر خادم موقعك وبدء التشغيل الفوري...</span>
           </div>
         )}
 
-        {playerMode === 'direct' ? (
-          <video
-            ref={videoRef}
-            controls
-            autoPlay
-            playsInline
-            poster={posterUrl}
-            className="w-full h-full object-contain"
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-          />
-        ) : (
-          <iframe
-            src={backupStreamUrl || streamUrl}
-            className="w-full h-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-            allowFullScreen
-            referrerPolicy="no-referrer"
-          />
-        )}
+        <video
+          ref={videoRef}
+          controls
+          autoPlay
+          playsInline
+          poster={posterUrl}
+          className="w-full h-full object-contain"
+          onPlaying={() => setLoading(false)}
+          onWaiting={() => setLoading(true)}
+        />
 
-        {error && playerMode === 'direct' && (
+        {error && (
           <div className="absolute inset-0 bg-black/95 z-20 flex flex-col items-center justify-center p-6 text-center gap-3">
             <AlertCircle className="w-8 h-8 text-amber-500" />
             <p className="text-xs text-[#F5F5F5] font-medium max-w-md">{error}</p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  setError(null);
-                  setPlayerMode('embed');
-                }}
-                className="px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-bold rounded-lg shadow-lg flex items-center gap-2 transition-all cursor-pointer"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>التبديل إلى السيرفر الاحتياطي الآن</span>
-              </button>
-            </div>
+            <button
+              onClick={handleManualRetry}
+              className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-lg shadow-lg flex items-center gap-2 transition-all cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>إعادة الاتصال بالبث المعاد</span>
+            </button>
           </div>
         )}
       </div>
@@ -339,9 +239,7 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-emerald-400 font-medium">
-            {playerMode === 'direct'
-              ? '✓ شغال عبر مشغل الموقع الداخلي (Aspreen Native Player)'
-              : '⚡ شغال عبر السيرفر الاحتياطي (تشغيل فوري سلس)'}
+            ✓ شغال عبر مشغل الموقع الداخلي (بث معاد بنسبة 100%)
           </span>
         </div>
 
