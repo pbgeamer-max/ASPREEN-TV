@@ -285,8 +285,8 @@ export async function createServer() {
         }
       }
 
-      if (/awqb0f40a9yo|7odxv0l067ka|lastvelvet/i.test(actualUrl)) {
-        headersStr += 'Referer: https://lastvelvet.net/\r\nOrigin: https://lastvelvet.net\r\n';
+      if (/awqb0f40a9yo|7odxv0l067ka|lastvelvet|cuttingfame/i.test(actualUrl)) {
+        headersStr += 'Referer: https://lastvelvet.net/\r\nOrigin: https://lastvelvet.net\r\nAccept: */*\r\nAccept-Language: en-US,en;q=0.9\r\nSec-Fetch-Dest: empty\r\nSec-Fetch-Mode: cors\r\nSec-Fetch-Site: cross-site\r\n';
       } else if (/baranewssumsel|sportsurges|alokalive/i.test(actualUrl)) {
         headersStr += 'Referer: https://www.alokalive.com/\r\nOrigin: https://www.alokalive.com\r\n';
       }
@@ -295,7 +295,7 @@ export async function createServer() {
         '-hide_banner',
         '-loglevel', 'warning',
         '-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls',
-        '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
         '-headers', headersStr,
         '-probesize', '1000000',
         '-analyzeduration', '1000000',

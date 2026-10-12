@@ -388,7 +388,7 @@ export class LiveHunterService {
     if (econfigMatch) {
       const cfg = this.decryptLastvelvetEconfig(econfigMatch[1]);
       if (cfg) {
-        const direct = cfg.stream_url_nop2p || cfg.stream_url;
+        const direct = cfg.stream_url || cfg.stream_url_nop2p;
         if (direct && this.isValidStreamUrl(direct)) {
           return direct;
         }
@@ -856,30 +856,44 @@ export class LiveHunterService {
       matchArray,
       async (matchUrl) => {
         try {
-          const resp = await this.fetchHtml(matchUrl, 'https://channel.aflam4you.net/');
-          if (!resp?.body) return;
+          // Fast-path: extract vid directly from matchUrl
+          const vidMatch = matchUrl.match(/(?:_(\d+)\.html|vid=(\d+))/);
+          const vid = vidMatch ? (vidMatch[1] || vidMatch[2]) : null;
 
-          // Extract match name from page title
-          const titleMatch =
-            resp.body.match(/<title[^>]*>([^<]{5,100})<\/title>/i) ||
-            resp.body.match(/<h1[^>]*>([^<]{5,80})<\/h1>/i);
-          let matchName = titleMatch
-            ? titleMatch[1]
+          let matchName = 'مباراة مباشرة';
+          let thumbnail: string | undefined = undefined;
+
+          // Quick slug-based channel name fallback
+          const urlSlug = matchUrl.split('/').pop()?.replace(/_\d+\.html$/, '') || '';
+          if (urlSlug) {
+            matchName = urlSlug.replace(/-/g, ' ').trim();
+          }
+
+          const resp = await this.fetchHtml(matchUrl, 'https://channel.aflam4you.net/');
+          if (resp?.body) {
+            const titleMatch =
+              resp.body.match(/<title[^>]*>([^<]{5,100})<\/title>/i) ||
+              resp.body.match(/<h1[^>]*>([^<]{5,80})<\/h1>/i);
+            if (titleMatch) {
+              matchName = titleMatch[1]
                 .replace(/\s*[-|–]\s*(?:aflam4you|koora|مباشر).*$/i, '')
                 .replace(/\s*\|\s*.*$/, '')
                 .replace(/مشاهدة\s+قناة\s+/i, '')
                 .replace(/مشاهده\s+قناه\s+/i, '')
-                .trim()
-            : 'مباراة مباشرة';
+                .trim();
+            }
 
-          // Extract thumbnail/poster
-          const thumbMatch =
-            resp.body.match(/(?:poster|thumbnail|og:image)['":\s]+['"]([^'"]+)['"]/i) ||
-            resp.body.match(/<meta[^>]+(?:property=['"]og:image['"]|name=['"]thumbnail['"])[^>]+content=['"]([^'"]+)['"]/i);
-          const thumbnail = thumbMatch ? this.normalizeUrl(thumbMatch[1], matchUrl) || undefined : undefined;
+            const thumbMatch =
+              resp.body.match(/(?:poster|thumbnail|og:image)['":\s]+['"]([^'"]+)['"]/i) ||
+              resp.body.match(/<meta[^>]+(?:property=['"]og:image['"]|name=['"]thumbnail['"])[^>]+content=['"]([^'"]+)['"]/i);
+            thumbnail = thumbMatch ? this.normalizeUrl(thumbMatch[1], matchUrl) || undefined : undefined;
+          }
 
-          // Resolve stream (deep iframe + base64 + lastvelvet decrypter)
-          const resolved = await this.resolveIframes(resp.body, matchUrl);
+          // Resolve stream (vid fast-path + deep iframe + lastvelvet decrypter)
+          const resolved = vid
+            ? await this.resolveFreshStream(matchUrl)
+            : (resp?.body ? await this.resolveIframes(resp.body, matchUrl) : null);
+
           if (!resolved) return;
 
           const { streamUrl, referer } = resolved;
@@ -911,7 +925,7 @@ export class LiveHunterService {
       15
     );
 
-    // Delete stale match entries
+    // Delete stale match entries safely (only if we scanned enough active channels)
     result.deletedOldCount = await this.purgeStaleEntries(SOURCE_ID_KOORA, result.streams.map((s) => s.name));
     console.log(`[LiveHunter] ✅ koora_live — تم إضافة ${result.addedCount}, تحديث ${result.updatedCount}, حذف ${result.deletedOldCount}`);
 
@@ -930,12 +944,21 @@ export class LiveHunterService {
     const existing = await channelRepository.findChannelByNormalizedName(norm).catch(() => null);
 
     // If stream has a custom referer, append it as pipe header so FFmpeg relays it seamlessly
-    const finalStreamUrl = stream.referer && !stream.streamUrl.includes('|')
-      ? `${stream.streamUrl}|Referer=${stream.referer}`
-      : stream.streamUrl;
+    let finalStreamUrl = stream.streamUrl;
+    if (!finalStreamUrl.includes('|')) {
+      const parts = [`Referer=${stream.referer || 'https://lastvelvet.net/'}`];
+      if (stream.referer?.includes('lastvelvet') || /7odxv0l067ka|awqb0f40a9yo/i.test(stream.streamUrl)) {
+        parts.push('Origin=https://lastvelvet.net');
+      }
+      if (stream.pageUrl) {
+        parts.push(`PageUrl=${encodeURIComponent(stream.pageUrl)}`);
+      }
+      finalStreamUrl = `${stream.streamUrl}|${parts.join('&')}`;
+    }
 
     const payload = {
       sourceId,
+      externalIdentifier: stream.pageUrl,
       name: stream.name,
       normalizedName: norm,
       inputType: (stream.streamUrl.includes('.m3u8') ? 'HLS' : 'TS_STREAM') as 'HLS' | 'TS_STREAM',
@@ -951,6 +974,7 @@ export class LiveHunterService {
 
     if (existing) {
       await channelRepository.updateChannel(existing.id, {
+        externalIdentifier: stream.pageUrl,
         encryptedInputUrl: encrypt(finalStreamUrl),
         inputStatus: 'ONLINE',
         groupTitle: stream.category,
@@ -966,6 +990,10 @@ export class LiveHunterService {
 
   private async purgeStaleEntries(sourceId: string, activeNames: string[]): Promise<number> {
     try {
+      // Safety guard: NEVER purge if fewer than 10 channels were found in the current hunt
+      if (!activeNames || activeNames.length < 10) {
+        return 0;
+      }
       const all = await channelRepository.listChannels(sourceId);
       let deleted = 0;
       const activeNormed = new Set(activeNames.map((n) => n.trim().toLowerCase()));
@@ -980,6 +1008,39 @@ export class LiveHunterService {
     } catch {
       return 0;
     }
+  }
+
+  /**
+   * Resolves a fresh live stream URL on demand for a pageUrl / matchUrl
+   */
+  public async resolveFreshStream(pageUrl: string): Promise<{ streamUrl: string; referer: string } | null> {
+    if (!pageUrl) return null;
+    const vidMatch = pageUrl.match(/(?:_(\d+)\.html|vid=(\d+))/);
+    const vid = vidMatch ? (vidMatch[1] || vidMatch[2]) : null;
+
+    if (vid) {
+      for (const serverNum of [1, 2, 3]) {
+        try {
+          const directPlayerUrl = `https://channel.aflam4you.net/playerae.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex55`;
+          const pResp = await this.fetchHtml(directPlayerUrl, `https://channel.aflam4you.net/embed.php?vid=${vid}`);
+          if (pResp?.body) {
+            const res = await this.resolveIframes(pResp.body, directPlayerUrl);
+            if (res?.streamUrl) {
+              return res;
+            }
+          }
+        } catch { /* continue */ }
+      }
+    }
+
+    try {
+      const resp = await this.fetchHtml(pageUrl, 'https://channel.aflam4you.net/');
+      if (resp?.body) {
+        return await this.resolveIframes(resp.body, pageUrl);
+      }
+    } catch {}
+
+    return null;
   }
 
   // ─────────────────────────────────────────────────────────────

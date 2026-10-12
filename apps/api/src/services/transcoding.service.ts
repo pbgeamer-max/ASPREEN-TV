@@ -16,7 +16,8 @@ import { settingsRepository } from '../repositories/settings.repository';
 import { logRepository } from '../repositories/log.repository';
 import { tokenRepository } from '../repositories/token.repository';
 import { generateStreamToken, hashStreamToken } from '../security/token';
-import { decrypt } from '../security/encryption';
+import { encrypt, decrypt } from '../security/encryption';
+import { liveHunterService } from './live-hunter.service';
 import { config } from '../config';
 
 interface RunningProcess {
@@ -175,9 +176,25 @@ export class TranscodingService {
     } catch {}
 
     // 5. Decrypt input URL
-    const rawInputUrl = decrypt(channel.encryptedInputUrl);
+    let rawInputUrl = decrypt(channel.encryptedInputUrl);
     if (!rawInputUrl) {
       throw new Error('Channel input URL could not be decrypted');
+    }
+
+    // Dynamic stream refresh for expiring tokens (aflam4you/koora_live or LastVelvet CDNs)
+    if (channel.sourceId === 'aflam4you/koora_live' || /7odxv0l067ka|awqb0f40a9yo|lastvelvet|cuttingfame/i.test(rawInputUrl)) {
+      const targetPage = channel.externalIdentifier || (rawInputUrl.includes('PageUrl=') ? decodeURIComponent(rawInputUrl.split('PageUrl=')[1].split('&')[0]) : null);
+      if (targetPage) {
+        try {
+          const fresh = await liveHunterService.resolveFreshStream(targetPage);
+          if (fresh?.streamUrl) {
+            rawInputUrl = `${fresh.streamUrl}|Referer=${fresh.referer || 'https://lastvelvet.net/'}&Origin=https://lastvelvet.net&PageUrl=${encodeURIComponent(targetPage)}`;
+            await channelRepository.updateChannel(channel.id, {
+              encryptedInputUrl: encrypt(rawInputUrl),
+            }).catch(() => {});
+          }
+        } catch {}
+      }
     }
 
     // 6. Create Job record in Firestore
@@ -437,6 +454,22 @@ export class TranscodingService {
           if (this.intentionalStops.has(channel.id)) return;
 
           try {
+            if (isAuthOrLimitExceeded) {
+              const targetPage = channel.externalIdentifier || (params.rawInputUrl.includes('PageUrl=') ? decodeURIComponent(params.rawInputUrl.split('PageUrl=')[1].split('&')[0]) : null);
+              if (targetPage) {
+                console.log(`[Stream Healing] 🔄 Attempting dynamic stream re-resolution for "${channel.name}"...`);
+                const fresh = await liveHunterService.resolveFreshStream(targetPage).catch(() => null);
+                if (fresh?.streamUrl) {
+                  const freshUrl = `${fresh.streamUrl}|Referer=${fresh.referer || 'https://lastvelvet.net/'}&Origin=https://lastvelvet.net&PageUrl=${encodeURIComponent(targetPage)}`;
+                  params.rawInputUrl = freshUrl;
+                  await channelRepository.updateChannel(channel.id, {
+                    encryptedInputUrl: encrypt(freshUrl),
+                  }).catch(() => {});
+                  console.log(`[Stream Healing] ✅ Fresh stream URL retrieved for "${channel.name}"!`);
+                }
+              }
+            }
+
             await this.spawnFfmpegWorker(params);
           } catch (err: any) {
             console.error(`[Stream Healing] Failed to auto-recover channel ${channel.id}:`, err.message);

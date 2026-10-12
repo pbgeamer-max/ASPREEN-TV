@@ -114,19 +114,27 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
       }
     }
 
+    const DEFAULT_BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+
     // Auto-detect upstream requirements based on target host
-    if (/awqb0f40a9yo|7odxv0l067ka|lastvelvet/i.test(actualInputUrl)) {
+    if (/awqb0f40a9yo|7odxv0l067ka|lastvelvet|cuttingfame/i.test(actualInputUrl)) {
       if (!effectiveHeaders['Referer']) effectiveHeaders['Referer'] = 'https://lastvelvet.net/';
       if (!effectiveHeaders['Origin']) effectiveHeaders['Origin'] = 'https://lastvelvet.net';
-      if (!effectiveHeaders['User-Agent']) effectiveHeaders['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+      if (!effectiveHeaders['Accept']) effectiveHeaders['Accept'] = '*/*';
+      if (!effectiveHeaders['Accept-Language']) effectiveHeaders['Accept-Language'] = 'en-US,en;q=0.9';
+      if (!effectiveHeaders['Sec-Fetch-Dest']) effectiveHeaders['Sec-Fetch-Dest'] = 'empty';
+      if (!effectiveHeaders['Sec-Fetch-Mode']) effectiveHeaders['Sec-Fetch-Mode'] = 'cors';
+      if (!effectiveHeaders['Sec-Fetch-Site']) effectiveHeaders['Sec-Fetch-Site'] = 'cross-site';
+      if (!effectiveHeaders['User-Agent']) effectiveHeaders['User-Agent'] = DEFAULT_BROWSER_UA;
     } else if (/baranewssumsel|sportsurges|alokalive/i.test(actualInputUrl)) {
       if (!effectiveHeaders['Referer']) effectiveHeaders['Referer'] = 'https://www.alokalive.com/';
       if (!effectiveHeaders['Origin']) effectiveHeaders['Origin'] = 'https://www.alokalive.com';
+      if (!effectiveHeaders['User-Agent']) effectiveHeaders['User-Agent'] = DEFAULT_BROWSER_UA;
     }
 
-    // Input reconnect flags and standard VLC User-Agent for network HTTP/HTTPS streams
+    // Input reconnect flags and modern Chrome User-Agent for network HTTP/HTTPS streams
     if (/^https?:\/\//i.test(actualInputUrl)) {
-      args.push('-user_agent', effectiveHeaders['User-Agent'] || 'VLC/3.0.20 LibVLC/3.0.20');
+      args.push('-user_agent', effectiveHeaders['User-Agent'] || DEFAULT_BROWSER_UA);
       let headersStr = 'Connection: keep-alive\r\n';
       for (const [k, v] of Object.entries(effectiveHeaders)) {
         if (k.toLowerCase() !== 'user-agent') {
