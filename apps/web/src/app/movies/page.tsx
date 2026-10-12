@@ -485,6 +485,7 @@ export default function MoviesPage() {
                     <VodPlayer
                       title={selectedMovie.title}
                       streamUrl={playingStream}
+                      backupStreamUrl={selectedMovie.streamUrl}
                       posterUrl={selectedMovie.posterUrl || selectedMovie.backdropUrl}
                       onClose={() => setPlayingStream(null)}
                     />
@@ -536,7 +537,7 @@ export default function MoviesPage() {
 
                       <div className="flex items-center gap-2.5">
                         <button
-                          onClick={() => setPlayingStream(selectedMovie.streamUrl || `/api/vod/stream/movie/${selectedMovie.id}/stream.mp4`)}
+                          onClick={() => setPlayingStream(`/api/vod/stream/movie/${selectedMovie.id}/stream.mp4`)}
                           className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-red-950/30 transition-all cursor-pointer"
                         >
                           <Play className="w-4 h-4 fill-white" />

@@ -23,7 +23,9 @@ export function getProperReferer(url: string, explicitReferer?: string): string 
       parsed.hostname.includes('morencius') ||
       parsed.hostname.includes('minochinos') ||
       parsed.hostname.includes('callistanise') ||
-      parsed.hostname.includes('ult4vid')
+      parsed.hostname.includes('ult4vid') ||
+      parsed.hostname.includes('dramiyos') ||
+      parsed.hostname.includes('acek-cdn')
     ) {
       return 'https://new61.5tv.lol/';
     }
@@ -735,6 +737,12 @@ export async function vodRoutes(server: FastifyInstance) {
           return reject(new Error(`Upstream server returned HTTP ${res.statusCode}`));
         }
 
+        const rawContentType = (res.headers['content-type'] || '').toLowerCase();
+        if (rawContentType.includes('text/html') || rawContentType.includes('text/plain')) {
+          res.destroy();
+          return reject(new Error(`Upstream returned non-video content (${rawContentType})`));
+        }
+
         const outHeaders: Record<string, string> = {
           'Content-Type': res.headers['content-type'] || 'video/mp4',
           'Accept-Ranges': 'bytes',
@@ -823,8 +831,8 @@ export async function vodRoutes(server: FastifyInstance) {
           continue;
         }
 
-        if (
-          direct.directUrl ||
+        const isTargetValidVideo =
+          (direct.directUrl && direct.directUrl !== url) ||
           target.includes('.mp4') ||
           target.includes('.m3u8') ||
           target.includes('manifest') ||
@@ -832,8 +840,9 @@ export async function vodRoutes(server: FastifyInstance) {
           target.includes('cloudflarestorage') ||
           target.includes('r2.') ||
           target.includes('workers.dev') ||
-          target.includes('storage.googleapis')
-        ) {
+          target.includes('storage.googleapis');
+
+        if (isTargetValidVideo) {
           await relayVideoStream(target, request, reply);
           return;
         }

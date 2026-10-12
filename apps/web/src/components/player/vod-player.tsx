@@ -21,11 +21,12 @@ import { api } from '@/lib/api-client';
 interface VodPlayerProps {
   title: string;
   streamUrl: string;
+  backupStreamUrl?: string;
   posterUrl?: string;
   onClose?: () => void;
 }
 
-export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerProps) {
+export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClose }: VodPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -43,6 +44,33 @@ export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerPro
     setLoading(true);
     setError(null);
     setResolvedUrl(null);
+
+    const isServerStream = streamUrl.includes('/api/vod/stream/');
+
+    // If it's a server rebroadcast stream (/api/vod/stream/...), probe upstream content type
+    if (isServerStream) {
+      fetch(streamUrl, { method: 'HEAD' })
+        .then((res) => {
+          if (!isMounted) return;
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('mpegurl') || streamUrl.endsWith('.m3u8')) {
+            const m3u8Url = streamUrl.replace(/\.mp4$/i, '.m3u8');
+            setResolvedUrl(m3u8Url);
+          } else {
+            setResolvedUrl(streamUrl);
+          }
+        })
+        .catch(() => {
+          if (!isMounted) return;
+          setResolvedUrl(streamUrl);
+        })
+        .finally(() => {
+          if (isMounted) setLoading(false);
+        });
+      return () => {
+        isMounted = false;
+      };
+    }
 
     // If stream URL is already a direct video file (.mp4 / .m3u8) without needing embed resolution
     if (
@@ -85,12 +113,19 @@ export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerPro
     if (!video || !resolvedUrl) return;
 
     let hls: Hls | null = null;
+    let fallbackAttempted = false;
     const isHls = resolvedUrl.toLowerCase().includes('.m3u8');
     const apiBase = process.env.NEXT_PUBLIC_API_URL || '/api';
     const effectiveStreamUrl =
       isHls && !resolvedUrl.includes('/proxy-stream') && !resolvedUrl.startsWith('/api')
         ? `${apiBase}/vod/proxy-stream?url=${encodeURIComponent(resolvedUrl)}`
         : resolvedUrl;
+
+    const playVideo = () => {
+      video.play().catch(() => {
+        // Autoplay may be restricted without interaction - not a stream failure
+      });
+    };
 
     if (isHls && Hls.isSupported()) {
       hls = new Hls({
@@ -102,7 +137,7 @@ export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerPro
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(() => {});
+        playVideo();
       });
 
       hls.on(Hls.Events.ERROR, (_event, data) => {
@@ -127,15 +162,23 @@ export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerPro
       video.src = effectiveStreamUrl;
       video.onerror = () => {
         // Fallback: If direct /stream.mp4 fails in Chrome (e.g. server streams MPEG-TS), auto-switch to HLS .m3u8
-        if (effectiveStreamUrl.includes('/stream.mp4') && Hls.isSupported()) {
+        if (!fallbackAttempted && effectiveStreamUrl.includes('/stream.mp4') && Hls.isSupported()) {
+          fallbackAttempted = true;
           const m3u8Url = effectiveStreamUrl.replace(/\.mp4$/i, '.m3u8');
           hls = new Hls({ enableWorker: true, lowLatencyMode: false });
           hls.loadSource(m3u8Url);
           hls.attachMedia(video);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+          hls.on(Hls.Events.MANIFEST_PARSED, () => playVideo());
+          hls.on(Hls.Events.ERROR, (_event, data) => {
+            if (data.fatal) {
+              setError('تعذر تشغيل الفيديو عبر المشغل المباشر. يمكنك التبديل إلى السيرفر الاحتياطي بنقرة واحدة.');
+            }
+          });
+          return;
         }
+        setError('تعذر تشغيل الفيديو عبر المشغل المباشر. يمكنك التبديل إلى السيرفر الاحتياطي بنقرة واحدة.');
       };
-      video.play().catch(() => {});
+      playVideo();
     }
 
     return () => {
@@ -170,11 +213,11 @@ export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerPro
               <span className="text-xs font-bold text-white line-clamp-1">{title}</span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/60 text-emerald-400 border border-emerald-500/20 flex items-center gap-1 shrink-0">
                 <CheckCircle2 className="w-2.5 h-2.5" />
-                مشغل موقعي الخاص
+                مشغل موقعي الخاص (بث معاد)
               </span>
             </div>
             <p className="text-[10px] text-[#71717A] mt-0.5 font-mono">
-              بث مباشر نقي ومحمي بدون إعلانات خارجية
+              بث مباشر نقي معاد عبر خادمك بدون إعلانات خارجية
             </p>
           </div>
         </div>
@@ -238,13 +281,10 @@ export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerPro
             className="w-full h-full object-contain"
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
-            onError={() => {
-              setError('تعذر تشغيل الفيديو عبر المشغل المباشر. يمكنك التبديل إلى السيرفر الاحتياطي بنقرة واحدة.');
-            }}
           />
         ) : (
           <iframe
-            src={streamUrl}
+            src={backupStreamUrl || streamUrl}
             className="w-full h-full border-0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
