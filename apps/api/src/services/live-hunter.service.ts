@@ -23,6 +23,7 @@ import http from 'http';
 import https from 'https';
 import { URL } from 'url';
 import vm from 'vm';
+import zlib from 'zlib';
 import { channelRepository } from '../repositories/channel.repository';
 import { encrypt } from '../security/encryption';
 
@@ -95,12 +96,21 @@ export class LiveHunterService {
             rejectUnauthorized: false,
             headers: {
               'User-Agent': UA,
-              Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
               'Accept-Language': 'ar,en-US;q=0.9,en;q=0.8',
+              'Accept-Encoding': 'gzip, deflate, br',
               Referer: referer || `${parsed.protocol}//${parsed.hostname}/`,
-              Connection: 'close',
+              Connection: 'keep-alive',
+              'Sec-Ch-Ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+              'Sec-Ch-Ua-Mobile': '?0',
+              'Sec-Ch-Ua-Platform': '"Windows"',
+              'Sec-Fetch-Dest': 'document',
+              'Sec-Fetch-Mode': 'navigate',
+              'Sec-Fetch-Site': 'none',
+              'Sec-Fetch-User': '?1',
+              'Upgrade-Insecure-Requests': '1',
             },
-            timeout: 10000,
+            timeout: 12000,
           },
           (res) => {
             if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
@@ -108,11 +118,22 @@ export class LiveHunterService {
               res.destroy();
               return this.fetchHtml(redirected, referer || url, depth + 1).then(resolve);
             }
+
+            let stream: NodeJS.ReadableStream = res;
+            const enc = (res.headers['content-encoding'] || '').toLowerCase();
+            if (enc === 'gzip') {
+              stream = res.pipe(zlib.createGunzip());
+            } else if (enc === 'deflate') {
+              stream = res.pipe(zlib.createInflate());
+            } else if (enc === 'br') {
+              stream = res.pipe(zlib.createBrotliDecompress());
+            }
+
             let data = '';
-            res.setEncoding('utf8');
-            res.on('data', (c) => (data += c));
-            res.on('end', () => resolve({ body: data, finalUrl: url }));
-            res.on('error', () => resolve(null));
+            stream.setEncoding('utf8');
+            stream.on('data', (c) => (data += c));
+            stream.on('end', () => resolve({ body: data, finalUrl: url }));
+            stream.on('error', () => resolve({ body: data, finalUrl: url }));
           }
         );
 
@@ -140,26 +161,30 @@ export class LiveHunterService {
         const headers: Record<string, string> = {
           'User-Agent': UA,
           Referer: effectiveReferer,
-          Range: 'bytes=0-1023',
+          Accept: '*/*',
         };
 
         if (/awqb0f40a9yo|7odxv0l067ka|lastvelvet/i.test(cleanUrl)) {
           headers['Referer'] = 'https://lastvelvet.net/';
           headers['Origin'] = 'https://lastvelvet.net';
+          headers['Sec-Fetch-Dest'] = 'empty';
+          headers['Sec-Fetch-Mode'] = 'cors';
+          headers['Sec-Fetch-Site'] = 'cross-site';
         } else if (/baranewssumsel|sportsurges|alokalive/i.test(cleanUrl)) {
           headers['Referer'] = 'https://www.alokalive.com/';
           headers['Origin'] = 'https://www.alokalive.com';
         }
 
+        const portNumber = parsed.port ? parseInt(parsed.port, 10) : (isHttps ? 443 : 80);
         const req = lib.request(
           {
             hostname: parsed.hostname,
-            port: parsed.port || (isHttps ? 443 : 80),
+            port: portNumber,
             path: parsed.pathname + parsed.search,
             method: 'GET',
             rejectUnauthorized: false,
             headers,
-            timeout: 5000,
+            timeout: 7000,
           },
           (res) => {
             const sc = res.statusCode || 0;
@@ -640,6 +665,9 @@ export class LiveHunterService {
 
     // Delete stale entries from previous scans for this source
     result.deletedOldCount = await this.purgeStaleEntries(SOURCE_ID_ALOKAL, result.streams.map((s) => s.name));
+    if (result.streams.length === 0) {
+      result.errors.push('ملاحظة: موقع alokalive.com لا يحتوي على مشغلات فيديو نشطة حالياً (مقالات فقط)، بينما كورة لايف يحتوي على كافة القنوات.');
+    }
     console.log(`[LiveHunter] ✅ alokalive.com — تم إضافة ${result.addedCount}, تحديث ${result.updatedCount}, حذف ${result.deletedOldCount}`);
 
     return result;
