@@ -75,11 +75,11 @@ export class LiveHunterService {
 
   // ── HTTP helpers ─────────────────────────────────────────────
 
-  private async fetchHtml(
+  private async fetchDirect(
     url: string,
     referer?: string,
     depth = 0
-  ): Promise<{ body: string; finalUrl: string } | null> {
+  ): Promise<{ body: string; finalUrl: string; statusCode: number } | null> {
     if (depth > 5) return null;
     return new Promise((resolve) => {
       try {
@@ -90,7 +90,7 @@ export class LiveHunterService {
         const req = lib.request(
           {
             hostname: parsed.hostname,
-            port: parsed.port || (isHttps ? 443 : 80),
+            port: parsed.port ? parseInt(parsed.port, 10) : (isHttps ? 443 : 80),
             path: parsed.pathname + parsed.search,
             method: 'GET',
             rejectUnauthorized: false,
@@ -110,13 +110,14 @@ export class LiveHunterService {
               'Sec-Fetch-User': '?1',
               'Upgrade-Insecure-Requests': '1',
             },
-            timeout: 12000,
+            timeout: 10000,
           },
           (res) => {
-            if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+            const statusCode = res.statusCode || 0;
+            if (statusCode >= 300 && statusCode < 400 && res.headers.location) {
               const redirected = new URL(res.headers.location, url).toString();
               res.destroy();
-              return this.fetchHtml(redirected, referer || url, depth + 1).then(resolve);
+              return this.fetchDirect(redirected, referer || url, depth + 1).then(resolve);
             }
 
             let stream: NodeJS.ReadableStream = res;
@@ -132,8 +133,8 @@ export class LiveHunterService {
             let data = '';
             stream.setEncoding('utf8');
             stream.on('data', (c) => (data += c));
-            stream.on('end', () => resolve({ body: data, finalUrl: url }));
-            stream.on('error', () => resolve({ body: data, finalUrl: url }));
+            stream.on('end', () => resolve({ body: data, finalUrl: url, statusCode }));
+            stream.on('error', () => resolve({ body: data, finalUrl: url, statusCode }));
           }
         );
 
@@ -144,6 +145,72 @@ export class LiveHunterService {
         resolve(null);
       }
     });
+  }
+
+  private async fetchViaProxy(url: string): Promise<string | null> {
+    return new Promise((resolve) => {
+      try {
+        const jinaUrl = `https://r.jina.ai/${url}`;
+        const parsed = new URL(jinaUrl);
+        const req = https.request(
+          {
+            hostname: parsed.hostname,
+            port: 443,
+            path: parsed.pathname + parsed.search,
+            method: 'GET',
+            headers: {
+              'User-Agent': UA,
+              'X-Return-Format': 'html',
+              Accept: 'text/html,*/*',
+            },
+            timeout: 15000,
+          },
+          (res) => {
+            let data = '';
+            res.setEncoding('utf8');
+            res.on('data', (c) => (data += c));
+            res.on('end', () => resolve(data));
+            res.on('error', () => resolve(null));
+          }
+        );
+        req.on('timeout', () => { req.destroy(); resolve(null); });
+        req.on('error', () => resolve(null));
+        req.end();
+      } catch {
+        resolve(null);
+      }
+    });
+  }
+
+  private async fetchHtml(
+    url: string,
+    referer?: string,
+    depth = 0
+  ): Promise<{ body: string; finalUrl: string } | null> {
+    if (depth > 5) return null;
+
+    // 1. Try Direct request
+    const direct = await this.fetchDirect(url, referer, depth);
+    const isCloudflareBlocked =
+      !direct ||
+      !direct.body ||
+      direct.body.length < 400 ||
+      direct.statusCode === 403 ||
+      direct.statusCode === 503 ||
+      (direct.body.includes('Just a moment...') && !direct.body.includes('playerae.php'));
+
+    if (direct?.body && !isCloudflareBlocked) {
+      return { body: direct.body, finalUrl: direct.finalUrl };
+    }
+
+    // 2. Fallback to Cloudflare Bypass Proxy (Jina residential scraper)
+    console.log(`[LiveHunter] 🛡️ تفعيل تجاوز Cloudflare لـ: ${url}`);
+    const proxiedBody = await this.fetchViaProxy(url);
+    if (proxiedBody && proxiedBody.length > 200) {
+      return { body: proxiedBody, finalUrl: url };
+    }
+
+    return direct ? { body: direct.body, finalUrl: direct.finalUrl } : null;
   }
 
   private async verifyStream(url: string, referer?: string): Promise<boolean> {
@@ -410,6 +477,22 @@ export class LiveHunterService {
         ? 'https://lastvelvet.net/'
         : pageUrl;
       return { streamUrl: direct, referer: ref };
+    }
+
+    // Direct Aflam4you shortcut: extract vid from pageUrl (e.g. ..._68.html or embed.php?vid=68)
+    const vidMatch = pageUrl.match(/(?:_(\d+)\.html|vid=(\d+))/);
+    const vid = vidMatch ? (vidMatch[1] || vidMatch[2]) : null;
+    if (vid && !pageUrl.includes('playerae.php') && !pageUrl.includes('lastvelvet')) {
+      for (const serverNum of [1, 2, 3]) {
+        try {
+          const directPlayerUrl = `https://channel.aflam4you.net/playerae.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex55`;
+          const pResp = await this.fetchHtml(directPlayerUrl, `https://channel.aflam4you.net/embed.php?vid=${vid}`);
+          if (pResp?.body) {
+            const res = await this.resolveIframes(pResp.body, directPlayerUrl, depth + 1);
+            if (res) return res;
+          }
+        } catch { /* continue */ }
+      }
     }
 
     // Check for Double Base64 embed_c (Aflam4you / Koora player)
@@ -727,6 +810,8 @@ export class LiveHunterService {
       const linkPatterns = [
         /href=['"](https?:\/\/channel\.aflam4you\.net\/[^'"]+_\d+\.html)['"]/gi,
         /href=['"](\/[^'"]+_\d+\.html)['"]/gi,
+        /\]\((https?:\/\/channel\.aflam4you\.net\/[^\s)]+_\d+\.html)/gi,
+        /(https?:\/\/channel\.aflam4you\.net\/[a-zA-Z0-9_-]+_\d+\.html)/gi,
         /href=['"]([^'"]*(?:watch|video|live|match|stream)[^'"]*\.html)['"]/gi,
       ];
 
