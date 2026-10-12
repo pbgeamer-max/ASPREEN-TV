@@ -8,6 +8,34 @@ import { topCinemaService } from '../services/topcinema.service';
 import { fiveTvService } from '../services/fivetv.service';
 import { streamResolverService } from '../services/stream-resolver.service';
 
+export function getProperReferer(url: string, explicitReferer?: string): string {
+  if (explicitReferer) return explicitReferer;
+  try {
+    const parsed = new URL(url);
+    if (
+      parsed.hostname.includes('cdn-video.xyz') ||
+      parsed.hostname.includes('vidtube') ||
+      parsed.hostname.includes('videotube')
+    ) {
+      return 'https://down.vidtube.one/';
+    }
+    if (
+      parsed.hostname.includes('morencius') ||
+      parsed.hostname.includes('minochinos') ||
+      parsed.hostname.includes('callistanise') ||
+      parsed.hostname.includes('ult4vid')
+    ) {
+      return 'https://new61.5tv.lol/';
+    }
+    if (parsed.hostname.includes('streamtape')) {
+      return 'https://streamtape.cc/';
+    }
+    return `${parsed.protocol}//${parsed.hostname}/`;
+  } catch {
+    return 'https://web.topcinema.io/';
+  }
+}
+
 export async function vodRoutes(server: FastifyInstance) {
   /**
    * GET /api/vod/movies
@@ -350,7 +378,7 @@ export async function vodRoutes(server: FastifyInstance) {
         const headers: Record<string, string> = {
           'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Referer': `${parsed.protocol}//${parsed.hostname}/`,
+          'Referer': getProperReferer(url),
         };
         if (request.headers.range) {
           headers['Range'] = request.headers.range;
@@ -477,7 +505,7 @@ export async function vodRoutes(server: FastifyInstance) {
       'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       'Accept': '*/*',
-      'Referer': explicitReferer || `${parsed.protocol}//${parsed.hostname}/`,
+      'Referer': getProperReferer(targetUrl, explicitReferer),
     };
     if (request.headers.range) {
       headers['Range'] = request.headers.range;
