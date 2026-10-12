@@ -1,3 +1,5 @@
+import https from 'https';
+import http from 'http';
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import { vodRepository } from '../repositories/vod.repository';
 import { vodService } from '../services/vod.service';
@@ -260,5 +262,94 @@ export async function vodRoutes(server: FastifyInstance) {
   server.get('/stats', async () => {
     return await vodRepository.getStats();
   });
+
+  /**
+   * GET /api/vod/proxy-stream
+   * High-performance CORS proxy for HLS (.m3u8) manifests and video segments
+   */
+  server.get(
+    '/proxy-stream',
+    async (request: FastifyRequest<{ Querystring: { url: string } }>, reply) => {
+      const { url } = request.query;
+      if (!url) {
+        return reply.status(400).send({ error: 'URL parameter is required' });
+      }
+
+      try {
+        const parsed = new URL(url);
+        const isHttps = parsed.protocol === 'https:';
+        const client = isHttps ? https : http;
+
+        reply.header('Access-Control-Allow-Origin', '*');
+        reply.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+        reply.header('Access-Control-Allow-Headers', '*');
+
+        const headers: Record<string, string> = {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Referer': `${parsed.protocol}//${parsed.hostname}/`,
+        };
+        if (request.headers.range) {
+          headers['Range'] = request.headers.range;
+        }
+
+        const isM3u8 = url.includes('.m3u8') || url.includes('manifest');
+
+        if (isM3u8) {
+          const data: Buffer = await new Promise((resolve, reject) => {
+            const req = client.get(url, { headers, rejectUnauthorized: false }, (res) => {
+              const chunks: Buffer[] = [];
+              res.on('data', (c) => chunks.push(c));
+              res.on('end', () => resolve(Buffer.concat(chunks)));
+            });
+            req.on('error', reject);
+            req.setTimeout(12000, () => {
+              req.destroy();
+              reject(new Error('Timeout fetching m3u8'));
+            });
+          });
+
+          const text = data.toString('utf8');
+          const baseUrl = url;
+
+          const rewrittenLines = text.split('\n').map((line) => {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith('#')) return line;
+            try {
+              const absUrl = new URL(trimmed, baseUrl).toString();
+              return `/api/vod/proxy-stream?url=${encodeURIComponent(absUrl)}`;
+            } catch {
+              return line;
+            }
+          });
+
+          reply.header('Content-Type', 'application/vnd.apple.mpegurl');
+          return reply.send(rewrittenLines.join('\n'));
+        }
+
+        // For .ts segments or direct media chunks
+        return new Promise<void>((resolve, reject) => {
+          const req = client.get(url, { headers, rejectUnauthorized: false }, (res) => {
+            reply.status(res.statusCode || 200);
+            if (res.headers['content-type']) reply.header('Content-Type', res.headers['content-type']);
+            if (res.headers['content-length']) reply.header('Content-Length', res.headers['content-length']);
+            if (res.headers['content-range']) reply.header('Content-Range', res.headers['content-range']);
+            if (res.headers['accept-ranges']) reply.header('Accept-Ranges', res.headers['accept-ranges']);
+            res.pipe(reply.raw);
+            res.on('end', () => resolve());
+            res.on('error', (err) => reject(err));
+          });
+          req.on('error', (err) => reject(err));
+          req.setTimeout(20000, () => {
+            req.destroy();
+            reject(new Error('Timeout fetching stream segment'));
+          });
+        });
+      } catch (err: any) {
+        console.error('[ProxyStream Error]:', err.message);
+        return reply.status(502).send({ error: 'Failed to proxy stream: ' + err.message });
+      }
+    }
+  );
 }
 

@@ -86,6 +86,11 @@ export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerPro
 
     let hls: Hls | null = null;
     const isHls = resolvedUrl.toLowerCase().includes('.m3u8');
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || '/api';
+    const effectiveStreamUrl =
+      isHls && !resolvedUrl.includes('/proxy-stream')
+        ? `${apiBase}/vod/proxy-stream?url=${encodeURIComponent(resolvedUrl)}`
+        : resolvedUrl;
 
     if (isHls && Hls.isSupported()) {
       hls = new Hls({
@@ -93,7 +98,7 @@ export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerPro
         lowLatencyMode: false,
       });
 
-      hls.loadSource(resolvedUrl);
+      hls.loadSource(effectiveStreamUrl);
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -119,7 +124,7 @@ export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerPro
       });
     } else {
       // Standard MP4 or Safari native HLS
-      video.src = resolvedUrl;
+      video.src = effectiveStreamUrl;
       video.play().catch(() => {});
     }
 
