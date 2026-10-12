@@ -296,16 +296,16 @@ export async function createServer() {
         /lastvelvet|cuttingfame|5gkygx509kqv|awqb0f40a9yo|7odxv0l067ka/i.test(actualUrl) ||
         (effectiveHeaders['Referer'] && /lastvelvet|cuttingfame/i.test(effectiveHeaders['Referer']));
 
-      if (isLastVelvetCdn) {
+      const isCuttingFame = /cuttingfame/i.test(actualUrl) || (effectiveHeaders['Referer'] && /cuttingfame/i.test(effectiveHeaders['Referer']));
+
+      if (isCuttingFame) {
+        effectiveHeaders['Referer'] = 'https://cuttingfame.net/';
+        effectiveHeaders['Origin'] = 'https://cuttingfame.net';
+      } else if (isLastVelvetCdn) {
         if (!effectiveHeaders['Referer'] || /baranewssumsel|alokalive/i.test(effectiveHeaders['Referer'])) {
           effectiveHeaders['Referer'] = 'https://lastvelvet.net/';
         }
         effectiveHeaders['Origin'] = 'https://lastvelvet.net';
-        effectiveHeaders['Accept'] = '*/*';
-        effectiveHeaders['Accept-Language'] = 'en-US,en;q=0.9';
-        effectiveHeaders['Sec-Fetch-Dest'] = 'empty';
-        effectiveHeaders['Sec-Fetch-Mode'] = 'cors';
-        effectiveHeaders['Sec-Fetch-Site'] = 'cross-site';
       } else if (/baranewssumsel|sportsurges|alokalive/i.test(actualUrl) || (effectiveHeaders['Referer'] && /alokalive/i.test(effectiveHeaders['Referer']))) {
         if (!effectiveHeaders['Referer']) effectiveHeaders['Referer'] = 'https://www.alokalive.com/';
         if (!effectiveHeaders['Origin']) effectiveHeaders['Origin'] = 'https://www.alokalive.com';
@@ -327,7 +327,10 @@ export async function createServer() {
         '-hide_banner',
         '-loglevel', 'warning',
         '-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls',
-        '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+        '-icy', '0',
+        '-seekable', '0',
+        '-multiple_requests', '1',
+        '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         '-headers', headersStr,
         '-probesize', '1000000',
         '-analyzeduration', '1000000',

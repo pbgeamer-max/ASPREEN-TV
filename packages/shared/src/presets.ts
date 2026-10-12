@@ -119,25 +119,25 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
       }
     }
 
-    const DEFAULT_BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+    const DEFAULT_BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
 
     // Auto-detect upstream requirements based on target host or stream origin
+    const isCuttingFame = /cuttingfame/i.test(actualInputUrl) || (effectiveHeaders['Referer'] && /cuttingfame/i.test(effectiveHeaders['Referer']));
     const isLastVelvetCdn = 
       /:8443(?:\/hls\/|$)/i.test(actualInputUrl) ||
       /\.net:8443/i.test(actualInputUrl) ||
       /lastvelvet|cuttingfame|5gkygx509kqv|awqb0f40a9yo|7odxv0l067ka/i.test(actualInputUrl) ||
       (effectiveHeaders['Referer'] && /lastvelvet|cuttingfame/i.test(effectiveHeaders['Referer']));
 
-    if (isLastVelvetCdn) {
+    if (isCuttingFame) {
+      effectiveHeaders['Referer'] = 'https://cuttingfame.net/';
+      effectiveHeaders['Origin'] = 'https://cuttingfame.net';
+      effectiveHeaders['User-Agent'] = DEFAULT_BROWSER_UA;
+    } else if (isLastVelvetCdn) {
       if (!effectiveHeaders['Referer'] || /baranewssumsel|alokalive/i.test(effectiveHeaders['Referer'])) {
         effectiveHeaders['Referer'] = 'https://lastvelvet.net/';
       }
       effectiveHeaders['Origin'] = 'https://lastvelvet.net';
-      effectiveHeaders['Accept'] = '*/*';
-      effectiveHeaders['Accept-Language'] = 'en-US,en;q=0.9';
-      effectiveHeaders['Sec-Fetch-Dest'] = 'empty';
-      effectiveHeaders['Sec-Fetch-Mode'] = 'cors';
-      effectiveHeaders['Sec-Fetch-Site'] = 'cross-site';
       effectiveHeaders['User-Agent'] = DEFAULT_BROWSER_UA;
     } else if (/baranewssumsel|sportsurges|alokalive/i.test(actualInputUrl) || (effectiveHeaders['Referer'] && /alokalive/i.test(effectiveHeaders['Referer']))) {
       if (!effectiveHeaders['Referer']) effectiveHeaders['Referer'] = 'https://www.alokalive.com/';
@@ -153,6 +153,11 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
     // Input reconnect flags and modern Chrome User-Agent for network HTTP/HTTPS streams
     if (/^https?:\/\//i.test(actualInputUrl)) {
       args.push('-user_agent', effectiveHeaders['User-Agent'] || DEFAULT_BROWSER_UA);
+      // Suppress icy metadata and non-seekable to prevent HTTP 403 from CDN servers
+      args.push('-icy', '0');
+      args.push('-seekable', '0');
+      args.push('-multiple_requests', '1');
+
       let headersStr = 'Connection: keep-alive\r\n';
       for (const [k, v] of Object.entries(effectiveHeaders)) {
         const lower = k.toLowerCase();
@@ -162,9 +167,16 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
       }
       args.push('-headers', headersStr);
       args.push('-reconnect', '1');
-      args.push('-reconnect_at_eof', '1');
-      args.push('-reconnect_streamed', '1');
-      args.push('-reconnect_delay_max', '1');
+      args.push('-reconnect_delay_max', '2');
+
+      const isHls = /\.m3u8(?:[?#]|$)/i.test(actualInputUrl);
+      if (!isHls) {
+        // -reconnect_at_eof and -reconnect_streamed are ONLY for infinite MPEG-TS streams.
+        // On HLS playlists, reconnect_at_eof causes infinite loops at the end of the playlist file!
+        args.push('-reconnect_at_eof', '1');
+        args.push('-reconnect_streamed', '1');
+      }
+
       args.push('-rw_timeout', '15000000');
       args.push('-timeout', '10000000');
     } else if (Object.keys(effectiveHeaders).length > 0) {

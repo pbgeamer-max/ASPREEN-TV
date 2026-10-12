@@ -69,6 +69,33 @@ const DEAD_HOSTS = [
 const SOURCE_ID_ALOKAL = 'live-hunter-alokal';
 const SOURCE_ID_KOORA  = 'live-hunter-koora';
 
+// Direct verified embed URLs for major channels (bypasses Cloudflare block on Railway)
+const KNOWN_CHANNEL_EMBEDS: Record<string, string[]> = {
+  // beIN Sports (cuttingfame.net Server 2 is primary & fast, lastvelvet.net Server 1 is backup)
+  '68':  ['https://cuttingfame.net/e/ul20p3zstxrux', 'https://lastvelvet.net/e/yxtmusy4xj8tj'], // beIN Sports 1
+  '2':   ['https://cuttingfame.net/e/7i3ndsazuue9c', 'https://lastvelvet.net/e/g8yofudvqi9o4'], // beIN Sports 2
+  '1':   ['https://cuttingfame.net/e/sudzp065f56jn', 'https://lastvelvet.net/e/jme27e5q28q73'], // beIN Sports 3
+  '3':   ['https://cuttingfame.net/e/cd8wb9ca5aa27', 'https://lastvelvet.net/e/nes605b1s1auu'], // beIN Sports 4
+  '73':  ['https://cuttingfame.net/e/pq1cxgc9ayrt8', 'https://lastvelvet.net/e/9pbaymxoe10u5'], // beIN Sports 5
+  '74':  ['https://cuttingfame.net/e/r47qs176bsera', 'https://lastvelvet.net/e/k5ayolxfziqxw'], // beIN Sports 6
+  '75':  ['https://cuttingfame.net/e/cd8wbhkarw9zf', 'https://lastvelvet.net/e/fkl4huceistlc'], // beIN Sports 7
+  '76':  ['https://cuttingfame.net/e/hojurc23czia2', 'https://lastvelvet.net/e/r47qsx86linpo'], // beIN Sports 8
+  '179': ['https://cuttingfame.net/e/ul20p3zstxrux', 'https://lastvelvet.net/e/yxtmusy4xj8tj'], // beIN Sports Max 1
+  '180': ['https://cuttingfame.net/e/7i3ndsazuue9c', 'https://lastvelvet.net/e/g8yofudvqi9o4'], // beIN Sports Max 2
+  // SSC & Sports
+  '167': ['https://cuttingfame.net/e/4yiju00rko0iq', 'https://lastvelvet.net/e/nes6w0c1sbpt4'], // SSC 1 Sports
+  '4':   ['https://cuttingfame.net/e/k5sdbrofhyd5u', 'https://lastvelvet.net/e/3hom7ub0xrx4h'], // Arryadia SNRT TNT
+  '65':  ['https://lastvelvet.net/e/qjndxh9pae73e'], // ON Time Sports 3
+  // Entertainment & Variety
+  '6':   ['https://lastvelvet.net/e/7i3ncg4z65r4j'], // MBC 2
+  '7':   ['https://lastvelvet.net/e/g8yoeasv965i2'], // Al Oula
+  '8':   ['https://lastvelvet.net/e/fkknn6repsxl6'], // 2M Maroc
+  '9':   ['https://lastvelvet.net/e/pq1cy7g9kcu3z'], // Zee Aflam
+  '79':  ['https://lastvelvet.net/e/qjndxtnpil3iy'], // Zee Alwan
+  '20':  ['https://lastvelvet.net/e/twof22linrpra'], // Algerie TV
+  '40':  ['https://lastvelvet.net/e/two992oijp5tg'], // Nesma
+};
+
 // ─────────────────────────────────────────────────────────────
 //  LiveHunterService
 // ─────────────────────────────────────────────────────────────
@@ -235,13 +262,14 @@ export class LiveHunterService {
           Accept: '*/*',
         };
 
-        const isLv = /:8443|lastvelvet|cuttingfame|5gkygx509kqv|awqb0f40a9yo|7odxv0l067ka/i.test(cleanUrl) || referer?.includes('lastvelvet') || referer?.includes('cuttingfame');
-        if (isLv) {
+        const isCuttingFame = /cuttingfame/i.test(cleanUrl) || referer?.includes('cuttingfame');
+        const isLv = /:8443|lastvelvet|cuttingfame|5gkygx509kqv|awqb0f40a9yo|7odxv0l067ka/i.test(cleanUrl) || referer?.includes('lastvelvet');
+        if (isCuttingFame) {
+          headers['Referer'] = 'https://cuttingfame.net/';
+          headers['Origin'] = 'https://cuttingfame.net';
+        } else if (isLv) {
           headers['Referer'] = 'https://lastvelvet.net/';
           headers['Origin'] = 'https://lastvelvet.net';
-          headers['Sec-Fetch-Dest'] = 'empty';
-          headers['Sec-Fetch-Mode'] = 'cors';
-          headers['Sec-Fetch-Site'] = 'cross-site';
         } else if (/baranewssumsel|sportsurges|alokalive/i.test(cleanUrl)) {
           headers['Referer'] = 'https://www.alokalive.com/';
           headers['Origin'] = 'https://www.alokalive.com';
@@ -478,16 +506,32 @@ export class LiveHunterService {
     // Try to get stream from current page first
     const direct = this.extractStreamUrl(html, pageUrl);
     if (direct) {
+      const isCf = /cuttingfame/i.test(direct) || pageUrl.includes('cuttingfame');
       const isLv = /:8443|lastvelvet|cuttingfame|5gkygx509kqv|awqb0f40a9yo|7odxv0l067ka/i.test(direct);
-      const ref = isLv ? 'https://lastvelvet.net/' : pageUrl;
+      const ref = isCf ? 'https://cuttingfame.net/' : isLv ? 'https://lastvelvet.net/' : pageUrl;
       return { streamUrl: direct, referer: ref };
     }
 
     // Direct Aflam4you shortcut: extract vid from pageUrl (e.g. ..._68.html or embed.php?vid=68)
     const vidMatch = pageUrl.match(/(?:_(\d+)\.html|vid=(\d+))/);
     const vid = vidMatch ? (vidMatch[1] || vidMatch[2]) : null;
-    if (vid && !pageUrl.includes('playeraf.php') && !pageUrl.includes('lastvelvet')) {
-      for (const serverNum of [1, 2]) {
+    if (vid && !pageUrl.includes('playeraf.php') && !pageUrl.includes('lastvelvet') && !pageUrl.includes('cuttingfame')) {
+      // First check known verified embeds (bypasses Cloudflare on Railway)
+      if (KNOWN_CHANNEL_EMBEDS[vid]) {
+        for (const embedUrl of KNOWN_CHANNEL_EMBEDS[vid]) {
+          try {
+            const isCf = embedUrl.includes('cuttingfame');
+            const parentRef = `https://channel.aflam4you.net/playeraf.php?vid=${vid}&aflam_s=${isCf ? 2 : 1}&aflam_k=forex1`;
+            const resp = await this.fetchHtml(embedUrl, parentRef);
+            if (resp?.body) {
+              const res = await this.resolveIframes(resp.body, embedUrl, depth + 1);
+              if (res) return res;
+            }
+          } catch { /* continue */ }
+        }
+      }
+
+      for (const serverNum of [2, 1, 3]) {
         const directPlayerUrl = `https://channel.aflam4you.net/playeraf.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex1`;
         try {
           const pResp = await this.fetchHtml(directPlayerUrl, `https://channel.aflam4you.net/embed.php?vid=${vid}`);
@@ -809,6 +853,25 @@ export class LiveHunterService {
 
     const matchLinks = new Set<string>();
 
+    // Pre-seed known core sports channels so they are always guaranteed to be hunted and refreshed
+    const knownBasePages = [
+      'https://channel.aflam4you.net/bein-sport-1-live-bein-1-funding-tv_68.html',
+      'https://channel.aflam4you.net/bein-sports-2-2026-bn2-funding-tv_2.html',
+      'https://channel.aflam4you.net/bein-sport-3-bein-3-live-funding-tv_1.html',
+      'https://channel.aflam4you.net/bein-sport-4-hd-live-hd-funding-tv_3.html',
+      'https://channel.aflam4you.net/bein-sports-5-hd-live-funding-tv_73.html',
+      'https://channel.aflam4you.net/bein-sports-6-hd-live-funding-tv_74.html',
+      'https://channel.aflam4you.net/bein-sports-7-hd-live-bein7-funding-tv_75.html',
+      'https://channel.aflam4you.net/bein-sports-8-hd-live-funding-tv_76.html',
+      'https://channel.aflam4you.net/bein-sport-max-1-live-hd-funding-tv_179.html',
+      'https://channel.aflam4you.net/bein-sport-max-2-live-hd-funding-tv_180.html',
+      'https://channel.aflam4you.net/arryadia-snrt-live-maroc-funding-tv_4.html',
+      'https://channel.aflam4you.net/ssc-1-live-hd-tv-live-match-funding-tv_167.html',
+    ];
+    for (const kp of knownBasePages) {
+      matchLinks.add(kp);
+    }
+
     for (const pageUrl of indexPages) {
       const resp = await this.fetchHtml(pageUrl, 'https://channel.aflam4you.net/');
       if (!resp?.body) continue;
@@ -916,21 +979,46 @@ export class LiveHunterService {
     sourceId: string
   ): Promise<{ added: boolean; updated: boolean }> {
     const norm = stream.name.trim().toLowerCase();
-    const existing = await channelRepository.findChannelByNormalizedName(norm).catch(() => null);
+    let existing = await channelRepository.findChannelByNormalizedName(norm).catch(() => null);
+
+    if (!existing) {
+      // Fuzzy lookup by key identifiers to update existing channels imported under slight name variations
+      const all = await channelRepository.listChannels().catch(() => []);
+      existing = all.find((c) => {
+        const cn = c.normalizedName;
+        if (cn === norm) return true;
+        if (norm.includes('bein sports 1') && (cn.includes('bein sport 1') || cn.includes('bein sports 1'))) return true;
+        if (norm.includes('bein sports 2') && (cn.includes('bein sport 2') || cn.includes('bein sports 2'))) return true;
+        if (norm.includes('bein sports 3') && (cn.includes('bein sport 3') || cn.includes('bein sports 3'))) return true;
+        if (norm.includes('bein sports 4') && (cn.includes('bein sport 4') || cn.includes('bein sports 4'))) return true;
+        if (norm.includes('bein sports 5') && (cn.includes('bein sport 5') || cn.includes('bein sports 5'))) return true;
+        if (norm.includes('bein sports 6') && (cn.includes('bein sport 6') || cn.includes('bein sports 6'))) return true;
+        if (norm.includes('bein sports 7') && (cn.includes('bein sport 7') || cn.includes('bein sports 7'))) return true;
+        if (norm.includes('bein sports 8') && (cn.includes('bein sport 8') || cn.includes('bein sports 8'))) return true;
+        if (norm.includes('max 1') && (cn.includes('max 1') || cn.includes('max1'))) return true;
+        if (norm.includes('max 2') && (cn.includes('max 2') || cn.includes('max2'))) return true;
+        if (norm.includes('arryadia') && cn.includes('arryadia')) return true;
+        if (norm.includes('ssc 1') && cn.includes('ssc 1')) return true;
+        return false;
+      }) || null;
+    }
 
     // Cache page URL for fast lookup
     if (stream.pageUrl) {
       this.channelPageCache.set(norm, stream.pageUrl);
+      if (existing) {
+        this.channelPageCache.set(existing.normalizedName, stream.pageUrl);
+      }
     }
 
     // If stream has a custom referer, append it as pipe header so FFmpeg relays it seamlessly
     let finalStreamUrl = stream.streamUrl;
     if (!finalStreamUrl.includes('|')) {
-      const isLv = /:8443|lastvelvet|cuttingfame|5gkygx509kqv|awqb0f40a9yo|7odxv0l067ka/i.test(stream.streamUrl) || stream.referer?.includes('lastvelvet') || stream.referer?.includes('cuttingfame');
-      const parts = [`Referer=${stream.referer || (isLv ? 'https://lastvelvet.net/' : 'https://www.alokalive.com/')}`];
-      if (isLv) {
-        parts.push('Origin=https://lastvelvet.net');
-      }
+      const isCuttingFame = /cuttingfame/i.test(stream.streamUrl) || stream.referer?.includes('cuttingfame');
+      const isLv = /:8443|lastvelvet|cuttingfame|5gkygx509kqv|awqb0f40a9yo|7odxv0l067ka/i.test(stream.streamUrl) || stream.referer?.includes('lastvelvet');
+      const ref = stream.referer || (isCuttingFame ? 'https://cuttingfame.net/' : isLv ? 'https://lastvelvet.net/' : 'https://www.alokalive.com/');
+      const orig = isCuttingFame ? 'https://cuttingfame.net' : isLv ? 'https://lastvelvet.net' : 'https://www.alokalive.com';
+      const parts = [`Referer=${ref}`, `Origin=${orig}`];
       if (stream.pageUrl) {
         parts.push(`PageUrl=${encodeURIComponent(stream.pageUrl)}`);
       }
@@ -999,6 +1087,56 @@ export class LiveHunterService {
     return this.channelPageCache.get(channelName.trim().toLowerCase()) || null;
   }
 
+  private static readonly NAME_TO_PAGE_URL: Record<string, string> = {
+    'bein sport 1': 'https://channel.aflam4you.net/bein-sport-1-live-bein-1-funding-tv_68.html',
+    'bein sports 1': 'https://channel.aflam4you.net/bein-sport-1-live-bein-1-funding-tv_68.html',
+    'bein sport 2': 'https://channel.aflam4you.net/bein-sports-2-2026-bn2-funding-tv_2.html',
+    'bein sports 2': 'https://channel.aflam4you.net/bein-sports-2-2026-bn2-funding-tv_2.html',
+    'bein sport 3': 'https://channel.aflam4you.net/bein-sport-3-bein-3-live-funding-tv_1.html',
+    'bein sports 3': 'https://channel.aflam4you.net/bein-sport-3-bein-3-live-funding-tv_1.html',
+    'bein sport 4': 'https://channel.aflam4you.net/bein-sport-4-hd-live-hd-funding-tv_3.html',
+    'bein sports 4': 'https://channel.aflam4you.net/bein-sport-4-hd-live-hd-funding-tv_3.html',
+    'bein sport 5': 'https://channel.aflam4you.net/bein-sports-5-hd-live-funding-tv_73.html',
+    'bein sports 5': 'https://channel.aflam4you.net/bein-sports-5-hd-live-funding-tv_73.html',
+    'bein sport 6': 'https://channel.aflam4you.net/bein-sports-6-hd-live-funding-tv_74.html',
+    'bein sports 6': 'https://channel.aflam4you.net/bein-sports-6-hd-live-funding-tv_74.html',
+    'bein sport 7': 'https://channel.aflam4you.net/bein-sports-7-hd-live-bein7-funding-tv_75.html',
+    'bein sports 7': 'https://channel.aflam4you.net/bein-sports-7-hd-live-bein7-funding-tv_75.html',
+    'bein sport 8': 'https://channel.aflam4you.net/bein-sports-8-hd-live-funding-tv_76.html',
+    'bein sports 8': 'https://channel.aflam4you.net/bein-sports-8-hd-live-funding-tv_76.html',
+    'bein sport max 1': 'https://channel.aflam4you.net/bein-sport-max-1-live-hd-funding-tv_179.html',
+    'bein sports max 1': 'https://channel.aflam4you.net/bein-sport-max-1-live-hd-funding-tv_179.html',
+    'bein sport max 2': 'https://channel.aflam4you.net/bein-sport-max-2-live-hd-funding-tv_180.html',
+    'bein sports max 2': 'https://channel.aflam4you.net/bein-sport-max-2-live-hd-funding-tv_180.html',
+    'arryadia': 'https://channel.aflam4you.net/arryadia-snrt-live-maroc-funding-tv_4.html',
+    'ssc 1': 'https://channel.aflam4you.net/ssc-1-live-hd-tv-live-match-funding-tv_167.html',
+    'ssc 1 sports': 'https://channel.aflam4you.net/ssc-1-live-hd-tv-live-match-funding-tv_167.html',
+  };
+
+  /**
+   * Resolves known aflam4you page URL by channel name if not in cache
+   */
+  public findPageUrlByName(channelName: string): string | null {
+    if (!channelName) return null;
+    const lower = channelName.toLowerCase();
+    for (const [key, url] of Object.entries(LiveHunterService.NAME_TO_PAGE_URL)) {
+      if (lower.includes(key)) return url;
+    }
+    if (/بي ان سبورت 1|بين سبورت 1/.test(channelName)) return 'https://channel.aflam4you.net/bein-sport-1-live-bein-1-funding-tv_68.html';
+    if (/بي ان سبورت 2|بين سبورت 2/.test(channelName)) return 'https://channel.aflam4you.net/bein-sports-2-2026-bn2-funding-tv_2.html';
+    if (/بي ان سبورت 3|بين سبورت 3/.test(channelName)) return 'https://channel.aflam4you.net/bein-sport-3-bein-3-live-funding-tv_1.html';
+    if (/بي ان سبورت 4|بين سبورت 4/.test(channelName)) return 'https://channel.aflam4you.net/bein-sport-4-hd-live-hd-funding-tv_3.html';
+    if (/بي ان سبورت 5|بين سبورت 5/.test(channelName)) return 'https://channel.aflam4you.net/bein-sports-5-hd-live-funding-tv_73.html';
+    if (/بي ان سبورت 6|بين سبورت 6/.test(channelName)) return 'https://channel.aflam4you.net/bein-sports-6-hd-live-funding-tv_74.html';
+    if (/بي ان سبورت 7|بين سبورت 7/.test(channelName)) return 'https://channel.aflam4you.net/bein-sports-7-hd-live-bein7-funding-tv_75.html';
+    if (/بي ان سبورت 8|بين سبورت 8/.test(channelName)) return 'https://channel.aflam4you.net/bein-sports-8-hd-live-funding-tv_76.html';
+    if (/ماكس 1|max 1/.test(lower)) return 'https://channel.aflam4you.net/bein-sport-max-1-live-hd-funding-tv_179.html';
+    if (/ماكس 2|max 2/.test(lower)) return 'https://channel.aflam4you.net/bein-sport-max-2-live-hd-funding-tv_180.html';
+    if (/الرياضية المغربية|snrt|رياضية/.test(channelName)) return 'https://channel.aflam4you.net/arryadia-snrt-live-maroc-funding-tv_4.html';
+    if (/اس اس سي 1|ssc 1/.test(lower)) return 'https://channel.aflam4you.net/ssc-1-live-hd-tv-live-match-funding-tv_167.html';
+    return null;
+  }
+
   /**
    * Resolves a fresh live stream URL on demand for a pageUrl / matchUrl
    */
@@ -1008,7 +1146,25 @@ export class LiveHunterService {
     const vid = vidMatch ? (vidMatch[1] || vidMatch[2]) : null;
 
     if (vid) {
-      for (const serverNum of [1, 2]) {
+      // 1. Direct verified embed bypass (NO CLOUDFLARE REQUEST TO AFLAM4YOU NEEDED!)
+      if (KNOWN_CHANNEL_EMBEDS[vid]) {
+        for (const embedUrl of KNOWN_CHANNEL_EMBEDS[vid]) {
+          try {
+            const isCf = embedUrl.includes('cuttingfame');
+            const parentRef = `https://channel.aflam4you.net/playeraf.php?vid=${vid}&aflam_s=${isCf ? 2 : 1}&aflam_k=forex1`;
+            const resp = await this.fetchHtml(embedUrl, parentRef);
+            if (resp?.body) {
+              const res = await this.resolveIframes(resp.body, embedUrl);
+              if (res?.streamUrl) {
+                return res;
+              }
+            }
+          } catch { /* continue */ }
+        }
+      }
+
+      // 2. Fallback to playeraf servers 2, 1, 3
+      for (const serverNum of [2, 1, 3]) {
         const directPlayerUrl = `https://channel.aflam4you.net/playeraf.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex1`;
         try {
           const pResp = await this.fetchHtml(directPlayerUrl, `https://channel.aflam4you.net/embed.php?vid=${vid}`);

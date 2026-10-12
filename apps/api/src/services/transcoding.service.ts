@@ -181,9 +181,11 @@ export class TranscodingService {
       throw new Error('Channel input URL could not be decrypted');
     }
 
-    // Dynamic stream refresh for expiring tokens (aflam4you/koora_live or LastVelvet CDNs)
+    // Dynamic stream refresh for expiring tokens (aflam4you/koora_live or LastVelvet/CuttingFame CDNs)
     const isExpiringTokenStream = 
       channel.sourceId === 'aflam4you/koora_live' ||
+      channel.sourceId === 'live-hunter-koora' ||
+      channel.sourceId === 'live-hunter-alokal' ||
       /:8443(?:\/hls\/|$)/i.test(rawInputUrl) ||
       /\.net:8443/i.test(rawInputUrl) ||
       /7odxv0l067ka|awqb0f40a9yo|5gkygx509kqv|lastvelvet|cuttingfame/i.test(rawInputUrl);
@@ -197,6 +199,9 @@ export class TranscodingService {
       if (!targetPage) {
         targetPage = liveHunterService.getCachedPageUrl(channel.name);
       }
+      if (!targetPage) {
+        targetPage = liveHunterService.findPageUrlByName(channel.name);
+      }
       if (targetPage) {
         try {
           const fresh = await Promise.race([
@@ -204,7 +209,10 @@ export class TranscodingService {
             new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
           ]);
           if (fresh?.streamUrl) {
-            rawInputUrl = `${fresh.streamUrl}|Referer=${fresh.referer || 'https://lastvelvet.net/'}|Origin=https://lastvelvet.net|PageUrl=${encodeURIComponent(targetPage)}`;
+            const isCf = /cuttingfame/i.test(fresh.streamUrl) || fresh.referer?.includes('cuttingfame');
+            const ref = fresh.referer || (isCf ? 'https://cuttingfame.net/' : 'https://lastvelvet.net/');
+            const orig = isCf ? 'https://cuttingfame.net' : 'https://lastvelvet.net';
+            rawInputUrl = `${fresh.streamUrl}|Referer=${ref}|Origin=${orig}|PageUrl=${encodeURIComponent(targetPage)}`;
             await channelRepository.updateChannel(channel.id, {
               encryptedInputUrl: encrypt(rawInputUrl),
             }).catch(() => {});
@@ -431,13 +439,13 @@ export class TranscodingService {
         )
       );
 
-      const MAX_AUTO_RESTARTS = isAuthOrLimitExceeded ? 3 : 20;
-      const delayMs = isAuthOrLimitExceeded ? 10000 : 1000;
+      const MAX_AUTO_RESTARTS = isAuthOrLimitExceeded ? 8 : 20;
+      const delayMs = isAuthOrLimitExceeded ? 1500 : 1000;
 
       if (attempts <= MAX_AUTO_RESTARTS) {
         console.warn(`[Stream Healing] Channel "${channel.name}" (${channel.id}) dropped (code ${code}). Auto-recovering in ${delayMs}ms (Attempt ${attempts}/${MAX_AUTO_RESTARTS})...`);
         if (isAuthOrLimitExceeded) {
-          console.warn(`[Stream Warning] IPTV Provider returned HTTP 403/401/429 ("access denied" / "Forbidden"). Upstream single-connection limit reached or line expired. Waiting ${delayMs}ms before attempt ${attempts}/${MAX_AUTO_RESTARTS}...`);
+          console.warn(`[Stream Warning] IPTV Provider returned HTTP 403/401/429 ("access denied" / "Forbidden"). Refreshing stream token in ${delayMs}ms (Attempt ${attempts}/${MAX_AUTO_RESTARTS})...`);
         }
         if (stderrData) {
           console.error(`[Stream Error] FFmpeg stderr for "${channel.name}":\n${safeError || stderrData}`);
@@ -479,6 +487,9 @@ export class TranscodingService {
               if (!targetPage) {
                 targetPage = liveHunterService.getCachedPageUrl(channel.name);
               }
+              if (!targetPage) {
+                targetPage = liveHunterService.findPageUrlByName(channel.name);
+              }
               if (targetPage) {
                 console.log(`[Stream Healing] 🔄 Attempting dynamic stream re-resolution for "${channel.name}" (${targetPage})...`);
                 const fresh = await Promise.race([
@@ -486,7 +497,10 @@ export class TranscodingService {
                   new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
                 ]).catch(() => null);
                 if (fresh?.streamUrl) {
-                  const freshUrl = `${fresh.streamUrl}|Referer=${fresh.referer || 'https://lastvelvet.net/'}|Origin=https://lastvelvet.net|PageUrl=${encodeURIComponent(targetPage)}`;
+                  const isCf = /cuttingfame/i.test(fresh.streamUrl) || fresh.referer?.includes('cuttingfame');
+                  const ref = fresh.referer || (isCf ? 'https://cuttingfame.net/' : 'https://lastvelvet.net/');
+                  const orig = isCf ? 'https://cuttingfame.net' : 'https://lastvelvet.net';
+                  const freshUrl = `${fresh.streamUrl}|Referer=${ref}|Origin=${orig}|PageUrl=${encodeURIComponent(targetPage)}`;
                   params.rawInputUrl = freshUrl;
                   await channelRepository.updateChannel(channel.id, {
                     encryptedInputUrl: encrypt(freshUrl),
