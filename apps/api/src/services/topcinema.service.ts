@@ -111,10 +111,11 @@ export class TopCinemaService {
 
   /**
    * Extract working stream iframe and details from a watch page
-   * STRICT: NEVER returns website URL as streamUrl!
+   * Returns primary streamUrl and all alternative servers
    */
   private async extractWatchDetails(watchUrl: string): Promise<{
     streamUrl: string | null;
+    servers: Array<{ name: string; url: string }>;
     posterUrl: string | null;
     description: string | null;
     rating: number | null;
@@ -140,20 +141,22 @@ export class TopCinemaService {
       }));
 
       let chosenStream: string | null = null;
+      const collectedServers: Array<{ name: string; url: string }> = [];
 
       if (serverItems.length > 0) {
-        // Preference ranking: OK.ru (Server 5, rock-solid, 1080p, no restrictions) > Streamtape > LuluStream > Mixdrop > Firestream > UpStream > StreamWish (demoted due to domain block) > VidTube (blocked)
+        // Preference ranking: UpDown (direct MP4) > Streamtape (direct video) > OK.ru > LuluStream > Mixdrop > Firestream > UpStream > StreamWish > VidTube
         const getRank = (item: { name: string; sIndex: string }) => {
-          if (item.name.includes('ok')) return 1;
+          if (item.name.includes('updown')) return 1;
           if (item.name.includes('streamtape')) return 2;
-          if (item.name.includes('lulu')) return 3;
-          if (item.name.includes('mixdrop')) return 4;
-          if (item.name.includes('firestream')) return 5;
-          if (item.name.includes('upstream')) return 6;
-          if (item.name.includes('dood')) return 7;
-          if (item.name.includes('streamwish') || item.name.includes('streamhg') || item.sIndex === '2') return 8; // Demote StreamWish due to domain restrictions
-          if (item.name.includes('filelion') || item.name.includes('earnvids')) return 9;
-          if (item.name.includes('tube') || item.sIndex === '0') return 10; // VidTube disables embeds!
+          if (item.name.includes('ok')) return 3;
+          if (item.name.includes('lulu')) return 4;
+          if (item.name.includes('mixdrop')) return 5;
+          if (item.name.includes('firestream')) return 6;
+          if (item.name.includes('upstream')) return 7;
+          if (item.name.includes('dood')) return 8;
+          if (item.name.includes('streamwish') || item.name.includes('streamhg') || item.sIndex === '2') return 9;
+          if (item.name.includes('filelion') || item.name.includes('earnvids')) return 10;
+          if (item.name.includes('tube') || item.sIndex === '0') return 11;
           return 7;
         };
 
@@ -165,8 +168,11 @@ export class TopCinemaService {
           }
           const stream = await this.fetchServer(item.id, item.sIndex);
           if (stream && isValidStreamEmbed(stream) && !stream.includes('vidtube') && !stream.includes('videotube')) {
-            chosenStream = stream;
-            break;
+            const serverLabel = item.name.toUpperCase() || `Server ${collectedServers.length + 1}`;
+            collectedServers.push({ name: serverLabel, url: stream });
+            if (!chosenStream) {
+              chosenStream = stream;
+            }
           }
         }
 
@@ -174,6 +180,7 @@ export class TopCinemaService {
           const fallbackStream = await this.fetchServer(serverItems[0].id, serverItems[0].sIndex);
           if (fallbackStream && isValidStreamEmbed(fallbackStream)) {
             chosenStream = fallbackStream;
+            collectedServers.push({ name: serverItems[0].name.toUpperCase() || 'Main Server', url: fallbackStream });
           }
         }
       }
@@ -183,6 +190,7 @@ export class TopCinemaService {
         const iframeMatch = html.match(/<iframe[^>]+src="([^"]+)"/i);
         if (iframeMatch && isValidStreamEmbed(iframeMatch[1])) {
           chosenStream = iframeMatch[1];
+          collectedServers.push({ name: 'Direct Embed', url: iframeMatch[1] });
         }
       }
 
@@ -198,12 +206,13 @@ export class TopCinemaService {
 
       return {
         streamUrl: chosenStream,
+        servers: collectedServers,
         posterUrl: posterMatch ? posterMatch[1] : null,
         description: cleanDesc,
         rating: ratingMatch ? parseFloat(ratingMatch[1]) : null,
       };
     } catch {
-      return { streamUrl: null, posterUrl: null, description: null, rating: null };
+      return { streamUrl: null, servers: [], posterUrl: null, description: null, rating: null };
     }
   }
 
@@ -292,11 +301,13 @@ export class TopCinemaService {
               title,
               normalizedTitle: this.normalizeTitle(title),
               category,
-              posterUrl: details.posterUrl || defaultPoster,
+              posterUrl: defaultPoster || details.posterUrl || undefined,
+              backdropUrl: details.posterUrl || defaultPoster || undefined,
               description: details.description || `مشاهدة وتحميل ${title} بجودة عالية وبدون تقطيع على أسبيرين TV.`,
               releaseYear,
               rating: details.rating || 7.5,
               streamUrl: details.streamUrl!,
+              servers: details.servers || [],
               containerExtension: 'html',
             });
 
@@ -417,9 +428,10 @@ export class TopCinemaService {
                         seasonNum,
                         episodeNum: epNum,
                         title: `الموسم ${seasonNum} - الحلقة ${epNum}`,
-                        posterUrl: epDetails.posterUrl || createdSeries.posterUrl,
+                        posterUrl: defaultPoster || createdSeries.posterUrl || undefined,
                         description: epDetails.description || `${rawTitle} - الموسم ${seasonNum} الحلقة ${epNum}`,
                         streamUrl: epDetails.streamUrl!,
+                        servers: epDetails.servers || [],
                         containerExtension: 'html',
                       });
 
@@ -525,11 +537,13 @@ export class TopCinemaService {
             title,
             normalizedTitle: this.normalizeTitle(title),
             category: 'أحدث الأفلام المضافة',
-            posterUrl: details.posterUrl || defaultPoster,
+            posterUrl: defaultPoster || details.posterUrl || undefined,
+            backdropUrl: details.posterUrl || defaultPoster || undefined,
             description: details.description || `مشاهدة وتحميل ${title} بجودة عالية.`,
             releaseYear,
             rating: details.rating || 7.5,
             streamUrl: details.streamUrl!,
+            servers: details.servers || [],
             containerExtension: 'html',
           });
 

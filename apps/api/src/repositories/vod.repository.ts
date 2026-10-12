@@ -1,6 +1,11 @@
 import * as crypto from 'crypto';
 import { getPool } from '../db';
 
+export interface MovieServer {
+  name: string;
+  url: string;
+}
+
 export interface Movie {
   id: string;
   title: string;
@@ -12,6 +17,7 @@ export interface Movie {
   releaseYear?: number;
   rating?: number;
   streamUrl: string;
+  servers?: MovieServer[];
   containerExtension?: string;
   createdAt: string;
   updatedAt: string;
@@ -42,6 +48,7 @@ export interface Episode {
   posterUrl?: string;
   description?: string;
   streamUrl: string;
+  servers?: MovieServer[];
   containerExtension?: string;
   createdAt: string;
 }
@@ -71,8 +78,8 @@ export class VodRepository {
       const res = await pool.query(
         `INSERT INTO movies (
           id, title, normalized_title, category, poster_url, backdrop_url,
-          description, release_year, rating, stream_url, container_extension, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          description, release_year, rating, stream_url, container_extension, servers, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         ON CONFLICT (normalized_title) DO UPDATE SET
           category = EXCLUDED.category,
           poster_url = COALESCE(EXCLUDED.poster_url, movies.poster_url),
@@ -82,6 +89,7 @@ export class VodRepository {
           rating = COALESCE(EXCLUDED.rating, movies.rating),
           stream_url = EXCLUDED.stream_url,
           container_extension = EXCLUDED.container_extension,
+          servers = COALESCE(EXCLUDED.servers, movies.servers),
           updated_at = NOW()
         RETURNING *`,
         [
@@ -96,6 +104,7 @@ export class VodRepository {
           movie.rating || null,
           movie.streamUrl,
           movie.containerExtension || 'mp4',
+          JSON.stringify(movie.servers || []),
           movie.createdAt,
           movie.updatedAt,
         ]
@@ -219,14 +228,15 @@ export class VodRepository {
       const res = await pool.query(
         `INSERT INTO episodes (
           id, series_id, season_num, episode_num, title,
-          poster_url, description, stream_url, container_extension, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          poster_url, description, stream_url, container_extension, servers, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         ON CONFLICT (series_id, season_num, episode_num) DO UPDATE SET
           title = EXCLUDED.title,
           poster_url = COALESCE(EXCLUDED.poster_url, episodes.poster_url),
           description = COALESCE(EXCLUDED.description, episodes.description),
           stream_url = EXCLUDED.stream_url,
-          container_extension = EXCLUDED.container_extension
+          container_extension = EXCLUDED.container_extension,
+          servers = COALESCE(EXCLUDED.servers, episodes.servers)
         RETURNING *`,
         [
           episode.id,
@@ -238,6 +248,7 @@ export class VodRepository {
           episode.description || null,
           episode.streamUrl,
           episode.containerExtension || 'mp4',
+          JSON.stringify(episode.servers || []),
           episode.createdAt,
         ]
       );
@@ -346,7 +357,42 @@ export class VodRepository {
     return Array.from(new Set(Array.from(inMemorySeries.values()).map((s) => s.category)));
   }
 
+  async getMovieById(id: string): Promise<Movie | null> {
+    const pool = getPool();
+    if (pool) {
+      try {
+        const res = await pool.query('SELECT * FROM movies WHERE id = $1', [id]);
+        if (res.rows.length === 0) return null;
+        return this.mapMovieRow(res.rows[0]);
+      } catch (err: any) {
+        console.error('[VodRepository] Error in getMovieById:', err.message);
+      }
+    }
+    return Array.from(inMemoryMovies.values()).find((m) => m.id === id) || null;
+  }
+
+  async getEpisodeById(id: string): Promise<Episode | null> {
+    const pool = getPool();
+    if (pool) {
+      try {
+        const res = await pool.query('SELECT * FROM episodes WHERE id = $1', [id]);
+        if (res.rows.length === 0) return null;
+        return this.mapEpisodeRow(res.rows[0]);
+      } catch (err: any) {
+        console.error('[VodRepository] Error in getEpisodeById:', err.message);
+      }
+    }
+    return Array.from(inMemoryEpisodes.values()).find((e) => e.id === id) || null;
+  }
+
   private mapMovieRow(r: any): Movie {
+    let servers: MovieServer[] = [];
+    if (Array.isArray(r.servers)) {
+      servers = r.servers;
+    } else if (typeof r.servers === 'string') {
+      try { servers = JSON.parse(r.servers); } catch {}
+    }
+
     return {
       id: r.id,
       title: r.title,
@@ -358,6 +404,7 @@ export class VodRepository {
       releaseYear: r.release_year ? Number(r.release_year) : undefined,
       rating: r.rating ? Number(r.rating) : undefined,
       streamUrl: r.stream_url,
+      servers,
       containerExtension: r.container_extension || 'mp4',
       createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at),
       updatedAt: r.updated_at instanceof Date ? r.updated_at.toISOString() : String(r.updated_at),
@@ -382,6 +429,13 @@ export class VodRepository {
   }
 
   private mapEpisodeRow(r: any): Episode {
+    let servers: MovieServer[] = [];
+    if (Array.isArray(r.servers)) {
+      servers = r.servers;
+    } else if (typeof r.servers === 'string') {
+      try { servers = JSON.parse(r.servers); } catch {}
+    }
+
     return {
       id: r.id,
       seriesId: r.series_id,
@@ -391,6 +445,7 @@ export class VodRepository {
       posterUrl: r.poster_url || undefined,
       description: r.description || undefined,
       streamUrl: r.stream_url,
+      servers,
       containerExtension: r.container_extension || 'mp4',
       createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at),
     };

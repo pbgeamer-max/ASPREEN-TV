@@ -14,6 +14,8 @@ import {
   Layers,
   Tv,
   ChevronDown,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/sidebar';
 import { VodPlayer } from '@/components/player/vod-player';
@@ -32,6 +34,7 @@ export default function SeriesPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [totalSeries, setTotalSeries] = useState(0);
   const [syncing, setSyncing] = useState(false);
+  const [copiedEpId, setCopiedEpId] = useState<string | null>(null);
 
   const PAGE_SIZE = 60;
 
@@ -221,7 +224,7 @@ export default function SeriesPage() {
     <div className="min-h-screen bg-[#080808] flex text-[#F5F5F5]">
       <Sidebar />
 
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 ml-64 p-8 min-w-0 overflow-x-hidden">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#1F1F1F]">
           <div>
@@ -344,7 +347,14 @@ export default function SeriesPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div
+            className="grid gap-4"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
+              gap: '16px',
+            }}
+          >
             {seriesList.map((series) => (
               <div
                 key={series.id}
@@ -352,7 +362,7 @@ export default function SeriesPage() {
                 className="group bg-[#121212] border border-[#262626] hover:border-amber-500/50 rounded-xl overflow-hidden cursor-pointer transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-950/20 flex flex-col"
               >
                 {/* Poster */}
-                <div className="relative aspect-[2/3] bg-[#1A1A1A] overflow-hidden">
+                <div className="relative aspect-[2/3] w-full max-h-[290px] bg-[#1A1A1A] overflow-hidden">
                   {series.posterUrl ? (
                     <img
                       src={series.posterUrl}
@@ -493,7 +503,7 @@ export default function SeriesPage() {
                 <div className="p-4 bg-black border-b border-[#262626]">
                   <VodPlayer
                     title={`${selectedSeries.title} — ${activeEpisode.title}`}
-                    streamUrl={activeEpisode.streamUrl}
+                    streamUrl={`/api/vod/stream/episode/${activeEpisode.id}/stream.mp4`}
                     posterUrl={activeEpisode.posterUrl || selectedSeries.posterUrl}
                     onClose={() => setActiveEpisode(null)}
                   />
@@ -567,10 +577,29 @@ export default function SeriesPage() {
                             e.stopPropagation();
                             setActiveEpisode(ep);
                           }}
-                          className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow transition-colors"
+                          className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow transition-colors"
                         >
                           <Play className="w-3 h-3 fill-white" />
                           <span>تشغيل الآن</span>
+                        </button>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const origin = typeof window !== 'undefined' ? window.location.origin : '';
+                            const epStreamUrl = `${origin}/api/vod/stream/episode/${ep.id}/stream.mp4`;
+                            navigator.clipboard.writeText(epStreamUrl);
+                            setCopiedEpId(ep.id);
+                            setTimeout(() => setCopiedEpId(null), 2500);
+                          }}
+                          className="p-1.5 bg-[#202020] hover:bg-[#2A2A2A] border border-[#333] text-white rounded-lg transition-colors"
+                          title="نسخ رابط MP4 المباشر لهذه الحلقة لتشغيلها في أندرويد أو VLC"
+                        >
+                          {copiedEpId === ep.id ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5 text-[#A1A1AA]" />
+                          )}
                         </button>
                       </div>
                     </div>

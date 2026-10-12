@@ -44,10 +44,11 @@ export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerPro
     setError(null);
     setResolvedUrl(null);
 
-    // If stream URL is already a direct video file (.mp4 / .m3u8)
+    // If stream URL is already a direct video file (.mp4 / .m3u8) or direct relay endpoint
     if (
       streamUrl.toLowerCase().includes('.mp4') ||
-      streamUrl.toLowerCase().includes('.m3u8')
+      streamUrl.toLowerCase().includes('.m3u8') ||
+      streamUrl.includes('/api/vod/stream/')
     ) {
       setResolvedUrl(streamUrl);
       setLoading(false);

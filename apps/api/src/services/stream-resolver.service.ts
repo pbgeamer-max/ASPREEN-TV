@@ -124,7 +124,29 @@ export class StreamResolverService {
       } catch {}
     }
 
-    // 4. OK.ru metadata
+    // 4. Streamtape direct link extraction
+    if (url.includes('streamtape')) {
+      try {
+        const html = await this.fetchHtml(url);
+        const m = html.match(/document\.getElementById\(['"]robotlink['"]\)\.innerHTML\s*=\s*['"]([^'"]+)['"]\s*\+\s*\((['"][^'"]+['"])\)\.substring\((\d+)\)\.substring\((\d+)\)/);
+        if (m) {
+          const part1 = m[1];
+          const rawPart2 = m[2].replace(/^['"]|['"]$/g, '');
+          const sub1 = parseInt(m[3], 10);
+          const sub2 = parseInt(m[4], 10);
+          const part2 = rawPart2.substring(sub1).substring(sub2);
+          const finalUrl = (part1.startsWith('//') ? 'https:' : '') + part1 + part2;
+          return { directUrl: finalUrl };
+        }
+        const m2 = html.match(/document\.getElementById\(['"]robotlink['"]\)\.innerHTML\s*=\s*['"]([^'"]+)['"]\s*\+\s*['"]([^'"]+)['"]/);
+        if (m2) {
+          const finalUrl = (m2[1].startsWith('//') ? 'https:' : '') + m2[1] + m2[2];
+          return { directUrl: finalUrl };
+        }
+      } catch {}
+    }
+
+    // 5. OK.ru metadata
     if (url.includes('ok.ru')) {
       try {
         const html = await this.fetchHtml(url);
@@ -144,6 +166,20 @@ export class StreamResolverService {
         }
       } catch {}
     }
+
+    // 5. Generic HTML5 <video> or <source> or file: "..." extraction for any host
+    try {
+      const html = await this.fetchHtml(url);
+      const videoSrcMatch =
+        html.match(/<video[^>]+src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
+        html.match(/<source[^>]+src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
+        html.match(/file\s*:\s*["'](https?:\/\/[^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
+        html.match(/source\s*:\s*["'](https?:\/\/[^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
+        html.match(/["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/i);
+      if (videoSrcMatch) {
+        return { directUrl: videoSrcMatch[1] };
+      }
+    } catch {}
 
     return { directUrl: null };
   }

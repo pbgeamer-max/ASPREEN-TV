@@ -242,6 +242,10 @@ export async function initDatabase(force = false): Promise<boolean> {
         );
 
         CREATE INDEX IF NOT EXISTS idx_episodes_series_id ON episodes(series_id, season_num ASC, episode_num ASC);
+
+        -- Multi-Server support for direct stream relay
+        ALTER TABLE movies ADD COLUMN IF NOT EXISTS servers JSONB DEFAULT '[]'::jsonb;
+        ALTER TABLE episodes ADD COLUMN IF NOT EXISTS servers JSONB DEFAULT '[]'::jsonb;
       `);
 
       isInitialized = true;

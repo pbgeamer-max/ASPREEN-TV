@@ -13,6 +13,8 @@ import {
   ExternalLink,
   Layers,
   ChevronDown,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/sidebar';
 import { VodPlayer } from '@/components/player/vod-player';
@@ -31,6 +33,7 @@ export default function MoviesPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [totalMovies, setTotalMovies] = useState(0);
   const [syncing, setSyncing] = useState(false);
+  const [copiedStream, setCopiedStream] = useState(false);
 
   const PAGE_SIZE = 60;
 
@@ -182,7 +185,7 @@ export default function MoviesPage() {
     <div className="min-h-screen bg-[#080808] flex text-[#F5F5F5]">
       <Sidebar />
 
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 ml-64 p-8 min-w-0 overflow-x-hidden">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#1F1F1F]">
           <div>
@@ -305,7 +308,14 @@ export default function MoviesPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div
+            className="grid gap-4"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
+              gap: '16px',
+            }}
+          >
             {movies.map((movie) => (
               <div
                 key={movie.id}
@@ -316,7 +326,7 @@ export default function MoviesPage() {
                 className="group bg-[#121212] border border-[#262626] hover:border-red-500/50 rounded-xl overflow-hidden cursor-pointer transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-red-950/20 flex flex-col"
               >
                 {/* Poster */}
-                <div className="relative aspect-[2/3] bg-[#1A1A1A] overflow-hidden">
+                <div className="relative aspect-[2/3] w-full max-h-[290px] bg-[#1A1A1A] overflow-hidden">
                   {movie.posterUrl ? (
                     <img
                       src={movie.posterUrl}
@@ -482,14 +492,40 @@ export default function MoviesPage() {
                       onClose={() => setPlayingStream(null)}
                     />
                   ) : (
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => setPlayingStream(selectedMovie.streamUrl)}
-                        className="flex-1 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-red-950/30 transition-all"
-                      >
-                        <Play className="w-4 h-4 fill-white" />
-                        <span>تشغيل الفيلم الآن على المشغل الداخلي</span>
-                      </button>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2.5">
+                        <button
+                          onClick={() => setPlayingStream(`/api/vod/stream/movie/${selectedMovie.id}/stream.mp4`)}
+                          className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-red-950/30 transition-all cursor-pointer"
+                        >
+                          <Play className="w-4 h-4 fill-white" />
+                          <span>تشغيل الفيلم الآن (نقرة واحدة)</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            const origin = typeof window !== 'undefined' ? window.location.origin : '';
+                            const directUrl = `${origin}/api/vod/stream/movie/${selectedMovie.id}/stream.mp4`;
+                            navigator.clipboard.writeText(directUrl);
+                            setCopiedStream(true);
+                            setTimeout(() => setCopiedStream(false), 2500);
+                          }}
+                          className="px-4 py-3 bg-[#1C1C1C] hover:bg-[#262626] border border-[#333] text-white text-xs font-medium rounded-xl flex items-center justify-center gap-1.5 transition-colors shrink-0 cursor-pointer"
+                          title="نسخ رابط MP4 المباشر لتشغيله في أي تطبيق أندرويد أو موقع خارجي أو VLC"
+                        >
+                          {copiedStream ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <span className="text-emerald-400 font-semibold">تم نسخ الرابط!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5 text-[#A1A1AA]" />
+                              <span>نسخ رابط الفيديو (أندرويد / خارجي)</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
