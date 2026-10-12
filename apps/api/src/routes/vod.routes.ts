@@ -392,26 +392,38 @@ export async function vodRoutes(server: FastifyInstance) {
         // For .ts segments or direct media chunks
         return new Promise<void>((resolve, reject) => {
           const req = client.get(url, { headers, rejectUnauthorized: false }, (res) => {
-            reply.status(res.statusCode || 200);
-            if (res.headers['content-type']) reply.header('Content-Type', res.headers['content-type']);
-            if (res.headers['content-length']) reply.header('Content-Length', res.headers['content-length']);
-            if (res.headers['content-range']) reply.header('Content-Range', res.headers['content-range']);
-            if (res.headers['accept-ranges']) reply.header('Accept-Ranges', res.headers['accept-ranges']);
-            reply.raw.on('close', () => { req.destroy(); });
-            reply.raw.on('error', () => { req.destroy(); });
+            const outHeaders: Record<string, string> = {
+              'Content-Type': res.headers['content-type'] || 'video/mp2t',
+              'Access-Control-Allow-Origin': '*',
+              'Accept-Ranges': 'bytes',
+            };
+            if (res.headers['content-length']) outHeaders['Content-Length'] = res.headers['content-length'];
+            if (res.headers['content-range']) outHeaders['Content-Range'] = res.headers['content-range'];
+
+            reply.raw.writeHead(res.statusCode || 200, outHeaders);
+            reply.sent = true;
+
+            reply.raw.on('close', () => { req.destroy(); resolve(); });
+            reply.raw.on('error', () => { req.destroy(); resolve(); });
             res.pipe(reply.raw);
             res.on('end', () => resolve());
-            res.on('error', (err) => reject(err));
+            res.on('error', () => resolve());
           });
-          req.on('error', (err) => reject(err));
-          req.setTimeout(20000, () => {
+          req.on('error', (err) => {
+            if (reply.raw.headersSent) resolve();
+            else reject(err);
+          });
+          req.setTimeout(25000, () => {
             req.destroy();
-            reject(new Error('Timeout fetching stream segment'));
+            if (reply.raw.headersSent) resolve();
+            else reject(new Error('Timeout fetching stream segment'));
           });
         });
       } catch (err: any) {
-        console.error('[ProxyStream Error]:', err.message);
-        return reply.status(502).send({ error: 'Failed to proxy stream: ' + err.message });
+        if (!reply.raw.headersSent) {
+          console.error('[ProxyStream Error]:', err.message);
+          return reply.status(502).send({ error: 'Failed to proxy stream: ' + err.message });
+        }
       }
     }
   );
@@ -517,22 +529,30 @@ export async function vodRoutes(server: FastifyInstance) {
             if (match) totalLength = match[1];
           }
 
-          reply.status(200);
-          reply.header('Content-Type', res.headers['content-type'] || 'video/mp4');
+          const responseHeaders: Record<string, string> = {
+            'Content-Type': res.headers['content-type'] || 'video/mp4',
+            'Accept-Ranges': 'bytes',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+            'Access-Control-Allow-Headers': 'Range, Accept, Content-Type',
+          };
           if (totalLength) {
-            reply.header('Content-Length', totalLength);
+            responseHeaders['Content-Length'] = totalLength;
           } else if (res.headers['content-length']) {
-            reply.header('Content-Length', res.headers['content-length']);
+            responseHeaders['Content-Length'] = res.headers['content-length'];
           }
-          reply.header('Accept-Ranges', 'bytes');
+
+          reply.raw.writeHead(200, responseHeaders);
+          reply.raw.end();
+          reply.sent = true;
           res.destroy();
-          reply.send();
           resolve();
         });
 
         req.on('error', (err) => {
           clearTimeout(connectTimer);
-          reject(err);
+          if (reply.raw.headersSent) resolve();
+          else reject(err);
         });
       });
     }
@@ -615,35 +635,45 @@ export async function vodRoutes(server: FastifyInstance) {
           return reject(new Error(`Upstream server returned HTTP ${res.statusCode}`));
         }
 
-        reply.status(res.statusCode || 200);
-        if (res.headers['content-type']) reply.header('Content-Type', res.headers['content-type']);
-        else reply.header('Content-Type', 'video/mp4');
-        if (res.headers['content-length']) reply.header('Content-Length', res.headers['content-length']);
-        if (res.headers['content-range']) reply.header('Content-Range', res.headers['content-range']);
-        if (res.headers['accept-ranges']) reply.header('Accept-Ranges', res.headers['accept-ranges']);
+        const outHeaders: Record<string, string> = {
+          'Content-Type': res.headers['content-type'] || 'video/mp4',
+          'Accept-Ranges': 'bytes',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+          'Access-Control-Allow-Headers': 'Range, Accept, Content-Type',
+        };
+        if (res.headers['content-length']) outHeaders['Content-Length'] = res.headers['content-length'];
+        if (res.headers['content-range']) outHeaders['Content-Range'] = res.headers['content-range'];
+
+        reply.raw.writeHead(res.statusCode || 200, outHeaders);
+        reply.sent = true;
 
         // Clean up upstream connection if downstream client closes/disconnects
         reply.raw.on('close', () => {
           req.destroy();
+          resolve();
         });
         reply.raw.on('error', () => {
           req.destroy();
+          resolve();
         });
 
         res.pipe(reply.raw);
         res.on('end', () => resolve());
-        res.on('error', (err) => reject(err));
+        res.on('error', () => resolve());
       });
 
       req.on('error', (err) => {
         clearTimeout(connectTimer);
-        reject(err);
+        if (reply.raw.headersSent) resolve();
+        else reject(err);
       });
 
       // Stream transfer idle timeout
       req.setTimeout(45000, () => {
         req.destroy();
-        reject(new Error('Timeout streaming media chunk'));
+        if (reply.raw.headersSent) resolve();
+        else reject(new Error('Timeout streaming media chunk'));
       });
     });
   }
@@ -659,6 +689,8 @@ export async function vodRoutes(server: FastifyInstance) {
     reply: any,
     metadata?: { id: string; title: string; type: 'movie' | 'episode' }
   ) {
+    if (reply.raw.headersSent) return;
+
     const candidateUrls: string[] = [];
     if (primaryUrl && !isPresignedUrlExpired(primaryUrl) && !primaryUrl.includes('gamescdn.online')) {
       candidateUrls.push(primaryUrl);
@@ -672,6 +704,7 @@ export async function vodRoutes(server: FastifyInstance) {
     }
 
     for (const url of candidateUrls) {
+      if (reply.raw.headersSent) return;
       try {
         let direct = await streamResolverService.resolveDirectStream(url);
         let target = direct.directUrl || url;
@@ -695,9 +728,12 @@ export async function vodRoutes(server: FastifyInstance) {
           return;
         }
       } catch (err: any) {
-        console.warn(`[StreamRelay] Server candidate failed (${url.slice(0, 60)}):`, err.message);
+        if (reply.raw.headersSent) return;
+        console.warn(`[StreamRelay] Server candidate failed (${url.slice(0, 60)}):`, err?.message || err);
       }
     }
+
+    if (reply.raw.headersSent) return;
 
     // Auto-Recovery: If all candidates failed or were expired, auto-heal by finding fresh watch details on FiveTV
     if (metadata?.title) {
@@ -707,6 +743,7 @@ export async function vodRoutes(server: FastifyInstance) {
         if (fresh?.streamUrl) {
           const freshCandidates = [fresh.streamUrl, ...(fresh.servers || []).map(s => s.url)];
           for (const fUrl of freshCandidates) {
+            if (reply.raw.headersSent) return;
             try {
               let direct = await streamResolverService.resolveDirectStream(fUrl);
               let target = direct.directUrl || fUrl;
@@ -743,14 +780,18 @@ export async function vodRoutes(server: FastifyInstance) {
                 return;
               }
             } catch (err: any) {
-              console.warn(`[StreamRelay] Auto-recovery candidate failed (${fUrl.slice(0, 60)}):`, err.message);
+              if (reply.raw.headersSent) return;
+              console.warn(`[StreamRelay] Auto-recovery candidate failed (${fUrl.slice(0, 60)}):`, err?.message || err);
             }
           }
         }
       } catch (err: any) {
-        console.warn(`[StreamRelay] Auto-recovery failed for "${metadata.title}":`, err.message);
+        if (reply.raw.headersSent) return;
+        console.warn(`[StreamRelay] Auto-recovery failed for "${metadata.title}":`, err?.message || err);
       }
     }
+
+    if (reply.raw.headersSent) return;
 
     // Fallback: If browser request
     if (candidateUrls[0] && request.headers.accept?.includes('text/html')) {
