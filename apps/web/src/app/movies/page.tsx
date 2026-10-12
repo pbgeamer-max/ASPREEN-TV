@@ -12,6 +12,7 @@ import {
   X,
   ExternalLink,
   Layers,
+  ChevronDown,
 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/sidebar';
 import { VodPlayer } from '@/components/player/vod-player';
@@ -27,7 +28,11 @@ export default function MoviesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [totalMovies, setTotalMovies] = useState(0);
   const [syncing, setSyncing] = useState(false);
+
+  const PAGE_SIZE = 60;
 
   // Selected movie modal
   const [selectedMovie, setSelectedMovie] = useState<any | null>(null);
@@ -54,30 +59,47 @@ export default function MoviesPage() {
       return;
     }
     if (user) {
-      loadMovies();
+      loadMovies(false);
     }
   }, [user, authLoading, selectedCategory, router]);
 
-  const loadMovies = async () => {
-    setLoading(true);
+  const loadMovies = async (isAppend = false) => {
+    if (isAppend) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
     try {
+      const offset = isAppend ? movies.length : 0;
       const data = await api.getMovies({
         category: selectedCategory === 'all' ? undefined : selectedCategory,
         q: searchQuery || undefined,
-        limit: 100,
+        limit: PAGE_SIZE,
+        offset,
       });
-      setMovies(data.items || []);
+
+      if (isAppend) {
+        setMovies((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id));
+          const newItems = (data.items || []).filter((m: any) => !existingIds.has(m.id));
+          return [...prev, ...newItems];
+        });
+      } else {
+        setMovies(data.items || []);
+      }
+      setTotalMovies(data.total || 0);
       setCategories(data.categories || []);
     } catch (err: any) {
       console.error('Failed to load movies:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loadMovies();
+    loadMovies(false);
   };
 
   const handleTopCinemaSync = async (deep = false) => {
@@ -242,7 +264,7 @@ export default function MoviesPage() {
                   : 'bg-[#141414] text-[#A1A1AA] hover:bg-[#1E1E1E] hover:text-white border border-[#262626]'
               }`}
             >
-              الكل ({movies.length})
+              الكل {selectedCategory === 'all' && totalMovies > 0 ? `(${totalMovies})` : `(${movies.length})`}
             </button>
             {categories.map((cat) => (
               <button
@@ -345,6 +367,46 @@ export default function MoviesPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Load More Button & Stats Footer */}
+        {!loading && movies.length > 0 && (
+          <div className="mt-10 mb-8 flex flex-col items-center justify-center gap-3">
+            <div className="text-xs text-[#71717A] flex items-center gap-1.5">
+              <span>عرض</span>
+              <span className="text-white font-bold">{movies.length}</span>
+              <span>من أصل</span>
+              <span className="text-red-400 font-bold">{totalMovies}</span>
+              <span>فيلم متوفر</span>
+            </div>
+
+            {movies.length < totalMovies ? (
+              <button
+                onClick={() => loadMovies(true)}
+                disabled={loadingMore}
+                className="px-6 py-2.5 bg-[#181818] hover:bg-[#222222] border border-[#2E2E2E] hover:border-red-500/50 text-white text-xs font-semibold rounded-xl flex items-center gap-2.5 shadow-lg transition-all disabled:opacity-50 group cursor-pointer"
+              >
+                {loadingMore ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin text-red-500" />
+                    <span>جاري جلب الأفلام الإضافية...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="group-hover:text-red-400 transition-colors">
+                      تحميل المزيد من الأفلام (+{Math.min(PAGE_SIZE, totalMovies - movies.length)})
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-red-500 group-hover:translate-y-0.5 transition-transform" />
+                  </>
+                )}
+              </button>
+            ) : (
+              <div className="px-4 py-1.5 bg-[#121212] border border-[#222222] rounded-full text-[11px] text-[#71717A] flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>تم عرض جميع الأفلام في هذه القائمة بالكامل ({totalMovies} فيلم)</span>
+              </div>
+            )}
           </div>
         )}
 

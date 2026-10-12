@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Layers,
   Tv,
+  ChevronDown,
 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/sidebar';
 import { VodPlayer } from '@/components/player/vod-player';
@@ -28,7 +29,11 @@ export default function SeriesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [totalSeries, setTotalSeries] = useState(0);
   const [syncing, setSyncing] = useState(false);
+
+  const PAGE_SIZE = 60;
 
   // Selected series modal with episodes
   const [selectedSeries, setSelectedSeries] = useState<any | null>(null);
@@ -57,25 +62,47 @@ export default function SeriesPage() {
       return;
     }
     if (user) {
-      loadSeries();
+      loadSeries(false);
     }
   }, [user, authLoading, selectedCategory, router]);
 
-  const loadSeries = async () => {
-    setLoading(true);
+  const loadSeries = async (isAppend = false) => {
+    if (isAppend) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
     try {
+      const offset = isAppend ? seriesList.length : 0;
       const data = await api.getSeries({
         category: selectedCategory === 'all' ? undefined : selectedCategory,
         q: searchQuery || undefined,
-        limit: 100,
+        limit: PAGE_SIZE,
+        offset,
       });
-      setSeriesList(data.items || []);
+
+      if (isAppend) {
+        setSeriesList((prev) => {
+          const existingIds = new Set(prev.map((s) => s.id));
+          const newItems = (data.items || []).filter((s: any) => !existingIds.has(s.id));
+          return [...prev, ...newItems];
+        });
+      } else {
+        setSeriesList(data.items || []);
+      }
+      setTotalSeries(data.total || 0);
       setCategories(data.categories || []);
     } catch (err: any) {
       console.error('Failed to load series:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    loadSeries(false);
   };
 
   const handleOpenSeries = async (series: any) => {
@@ -101,10 +128,6 @@ export default function SeriesPage() {
     }
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    loadSeries();
-  };
 
   const handleTopCinemaSync = async (deep = false) => {
     setSyncing(true);
@@ -280,7 +303,7 @@ export default function SeriesPage() {
                   : 'bg-[#141414] text-[#A1A1AA] hover:bg-[#1E1E1E] hover:text-white border border-[#262626]'
               }`}
             >
-              الكل ({seriesList.length})
+              الكل {selectedCategory === 'all' && totalSeries > 0 ? `(${totalSeries})` : `(${seriesList.length})`}
             </button>
             {categories.map((cat) => (
               <button
@@ -380,6 +403,46 @@ export default function SeriesPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Load More Button & Stats Footer */}
+        {!loading && seriesList.length > 0 && (
+          <div className="mt-10 mb-8 flex flex-col items-center justify-center gap-3">
+            <div className="text-xs text-[#71717A] flex items-center gap-1.5">
+              <span>عرض</span>
+              <span className="text-white font-bold">{seriesList.length}</span>
+              <span>من أصل</span>
+              <span className="text-amber-400 font-bold">{totalSeries}</span>
+              <span>مسلسل متوفر</span>
+            </div>
+
+            {seriesList.length < totalSeries ? (
+              <button
+                onClick={() => loadSeries(true)}
+                disabled={loadingMore}
+                className="px-6 py-2.5 bg-[#181818] hover:bg-[#222222] border border-[#2E2E2E] hover:border-amber-500/50 text-white text-xs font-semibold rounded-xl flex items-center gap-2.5 shadow-lg transition-all disabled:opacity-50 group cursor-pointer"
+              >
+                {loadingMore ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin text-amber-500" />
+                    <span>جاري جلب المسلسلات الإضافية...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="group-hover:text-amber-400 transition-colors">
+                      تحميل المزيد من المسلسلات (+{Math.min(PAGE_SIZE, totalSeries - seriesList.length)})
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-amber-500 group-hover:translate-y-0.5 transition-transform" />
+                  </>
+                )}
+              </button>
+            ) : (
+              <div className="px-4 py-1.5 bg-[#121212] border border-[#222222] rounded-full text-[11px] text-[#71717A] flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>تم عرض جميع المسلسلات في هذه القائمة بالكامل ({totalSeries} مسلسل)</span>
+              </div>
+            )}
           </div>
         )}
 
