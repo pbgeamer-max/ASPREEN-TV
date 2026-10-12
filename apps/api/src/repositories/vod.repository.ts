@@ -139,7 +139,7 @@ export class VodRepository {
 
       values.push(limit, offset);
       const rowsRes = await pool.query(
-        `SELECT * FROM movies ${whereClause} ORDER BY created_at DESC LIMIT $${idx++} OFFSET $${idx++}`,
+        `SELECT * FROM movies ${whereClause} ORDER BY release_year DESC NULLS LAST, updated_at DESC, created_at DESC LIMIT $${idx++} OFFSET $${idx++}`,
         values
       );
 
@@ -152,6 +152,7 @@ export class VodRepository {
     let items = Array.from(inMemoryMovies.values());
     if (category && category !== 'all') items = items.filter((m) => m.category === category);
     if (query) items = items.filter((m) => m.title.toLowerCase().includes(query.toLowerCase()));
+    items.sort((a, b) => (b.releaseYear || 0) - (a.releaseYear || 0));
     const total = items.length;
     return { items: items.slice(offset, offset + limit), total };
   }
@@ -510,18 +511,21 @@ export class VodRepository {
               AND elem->>'url' NOT ILIKE '%gamescdn%'
               AND elem->>'url' NOT ILIKE '%mixdrop%'
               AND elem->>'url' NOT ILIKE '%mxdrop%'
+              AND elem->>'url' NOT ILIKE '%ok.ru%'
+              AND elem->>'url' NOT ILIKE '%vidmoly.to%'
+              AND elem->>'url' NOT ILIKE '%ww547.vidmoly%'
               AND (
                 elem->>'url' ILIKE '%71stream%'
                 OR elem->>'url' ILIKE '%ult4vid%'
                 OR elem->>'url' ILIKE '%morencius%'
                 OR elem->>'url' ILIKE '%minochinos%'
                 OR elem->>'url' ILIKE '%callistanise%'
-                OR elem->>'url' ILIKE '%vidmoly%'
                 OR elem->>'url' ILIKE '%hgcloud%'
                 OR elem->>'url' ILIKE '%vidtube%'
-                OR elem->>'url' ILIKE '%ok.ru%'
+                OR elem->>'url' ILIKE '%videotube%'
                 OR elem->>'url' ILIKE '%.m3u8%'
                 OR elem->>'url' ILIKE '%.mp4%'
+                OR (elem->>'url' ILIKE '%vidmoly%' AND elem->>'url' NOT ILIKE '%vidmoly.to%')
               )
             LIMIT 1
           ) as working_url
@@ -537,6 +541,9 @@ export class VodRepository {
              OR stream_url ILIKE '%gamescdn%'
              OR stream_url ILIKE '%mixdrop%'
              OR stream_url ILIKE '%mxdrop%'
+             OR stream_url ILIKE '%ok.ru%'
+             OR stream_url ILIKE '%vidmoly.to%'
+             OR stream_url ILIKE '%ww547.vidmoly%'
         ) sub
         WHERE movies.id = sub.id AND sub.working_url IS NOT NULL;
       `);
@@ -558,13 +565,21 @@ export class VodRepository {
               AND elem->>'url' NOT ILIKE '%gamescdn%'
               AND elem->>'url' NOT ILIKE '%mixdrop%'
               AND elem->>'url' NOT ILIKE '%mxdrop%'
+              AND elem->>'url' NOT ILIKE '%ok.ru%'
+              AND elem->>'url' NOT ILIKE '%vidmoly.to%'
+              AND elem->>'url' NOT ILIKE '%ww547.vidmoly%'
               AND (
                 elem->>'url' ILIKE '%71stream%'
                 OR elem->>'url' ILIKE '%ult4vid%'
                 OR elem->>'url' ILIKE '%morencius%'
-                OR elem->>'url' ILIKE '%vidmoly%'
+                OR elem->>'url' ILIKE '%minochinos%'
+                OR elem->>'url' ILIKE '%callistanise%'
+                OR elem->>'url' ILIKE '%hgcloud%'
+                OR elem->>'url' ILIKE '%vidtube%'
+                OR elem->>'url' ILIKE '%videotube%'
                 OR elem->>'url' ILIKE '%.m3u8%'
                 OR elem->>'url' ILIKE '%.mp4%'
+                OR (elem->>'url' ILIKE '%vidmoly%' AND elem->>'url' NOT ILIKE '%vidmoly.to%')
               )
             LIMIT 1
           ) as working_url
@@ -575,11 +590,14 @@ export class VodRepository {
              OR stream_url ILIKE '%gamescdn%'
              OR stream_url ILIKE '%mixdrop%'
              OR stream_url ILIKE '%mxdrop%'
+             OR stream_url ILIKE '%ok.ru%'
+             OR stream_url ILIKE '%vidmoly.to%'
+             OR stream_url ILIKE '%ww547.vidmoly%'
         ) sub
         WHERE episodes.id = sub.id AND sub.working_url IS NOT NULL;
       `);
 
-      // 3. Delete remaining movies with completely dead streams
+      // 3. Delete remaining movies with completely dead streams or without any high-speed working server
       const mRes = await pool.query(`
         DELETE FROM movies
         WHERE stream_url ILIKE '%dood%'
@@ -611,6 +629,34 @@ export class VodRepository {
            OR stream_url ILIKE '%lulu%'
            OR stream_url ILIKE '%voe.sx%'
            OR stream_url ILIKE '%swhoi%'
+           OR stream_url ILIKE '%ok.ru%'
+           OR stream_url ILIKE '%vidmoly.to%'
+           OR stream_url ILIKE '%ww547.vidmoly%'
+           OR (
+             stream_url NOT ILIKE '%71stream%'
+             AND stream_url NOT ILIKE '%ult4vid%'
+             AND stream_url NOT ILIKE '%morencius%'
+             AND stream_url NOT ILIKE '%minochinos%'
+             AND stream_url NOT ILIKE '%callistanise%'
+             AND stream_url NOT ILIKE '%hgcloud%'
+             AND stream_url NOT ILIKE '%vidtube%'
+             AND stream_url NOT ILIKE '%videotube%'
+             AND stream_url NOT ILIKE '%.mp4%'
+             AND stream_url NOT ILIKE '%.m3u8%'
+             AND NOT EXISTS (
+               SELECT 1 FROM jsonb_array_elements(servers) as elem
+               WHERE elem->>'url' ILIKE '%71stream%'
+                  OR elem->>'url' ILIKE '%ult4vid%'
+                  OR elem->>'url' ILIKE '%morencius%'
+                  OR elem->>'url' ILIKE '%minochinos%'
+                  OR elem->>'url' ILIKE '%callistanise%'
+                  OR elem->>'url' ILIKE '%hgcloud%'
+                  OR elem->>'url' ILIKE '%vidtube%'
+                  OR elem->>'url' ILIKE '%videotube%'
+                  OR elem->>'url' ILIKE '%.mp4%'
+                  OR elem->>'url' ILIKE '%.m3u8%'
+             )
+           );
       `);
 
       // 4. Delete remaining episodes with dead streams
@@ -645,6 +691,9 @@ export class VodRepository {
            OR stream_url ILIKE '%lulu%'
            OR stream_url ILIKE '%voe.sx%'
            OR stream_url ILIKE '%swhoi%'
+           OR stream_url ILIKE '%ok.ru%'
+           OR stream_url ILIKE '%vidmoly.to%'
+           OR stream_url ILIKE '%ww547.vidmoly%'
       `);
 
       return {
@@ -656,6 +705,22 @@ export class VodRepository {
       console.error('[VodRepository] Error in healAndPurgeDeadVod:', err.message);
       return { moviesHealed: 0, moviesDeleted: 0, episodesDeleted: 0 };
     }
+  }
+
+  async resetMoviesOnly(): Promise<number> {
+    const pool = getPool();
+    if (pool) {
+      try {
+        const res = await pool.query('DELETE FROM movies');
+        return res.rowCount || 0;
+      } catch (err: any) {
+        console.error('Error in resetMoviesOnly:', err.message);
+        return 0;
+      }
+    }
+    const count = inMemoryMovies.size;
+    inMemoryMovies.clear();
+    return count;
   }
 
   async purgeInvalidStreams(): Promise<{ moviesDeleted: number; episodesDeleted: number; moviesHealed?: number }> {

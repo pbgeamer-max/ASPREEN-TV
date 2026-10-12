@@ -189,6 +189,35 @@ export default function MoviesPage() {
     }
   };
 
+  const handleResetMovies = async () => {
+    if (!confirm('هل تريد تنظيف الأفلام القديمة بالكامل وسحب أحدث أفلام 2026/2025 الشغالة 100%؟')) return;
+    setSyncing(true);
+    try {
+      const res = await api.resetMovies();
+      alert(res.message || '⚡ تم تنظيف الأفلام القديمة وبدء سحب الأفلام الحديثة الشغالة 100% في الخلفية!');
+      await loadMovies();
+      setTimeout(() => loadMovies(), 5000);
+      setTimeout(() => loadMovies(), 12000);
+    } catch (err: any) {
+      alert(`فشل تجديد الأفلام: ${err.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handlePurgeDead = async () => {
+    setSyncing(true);
+    try {
+      const res = await api.purgeDeadVod();
+      alert(res.message || '🧹 تم تنظيف وحذف الروابط المعطلة بنجاح!');
+      await loadMovies();
+    } catch (err: any) {
+      alert(`فشل تنظيف الروابط: ${err.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#080808] flex text-[#F5F5F5]">
       <Sidebar />
@@ -213,6 +242,26 @@ export default function MoviesPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={handleResetMovies}
+              disabled={syncing}
+              className="px-3.5 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-bold rounded-lg flex items-center gap-2 shadow-lg shadow-purple-950/20 transition-all disabled:opacity-50"
+              title="تفريغ الأفلام القديمة وسحب أحدث أفلام 2026/2025 الشغالة 100% بسيرفرات فائقة السرعة"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              <span>⚡ تجديد الأفلام (100% شغالة)</span>
+            </button>
+
+            <button
+              onClick={handlePurgeDead}
+              disabled={syncing}
+              className="px-3.5 py-2 bg-[#1A1A1A] hover:bg-[#252525] border border-red-500/30 text-red-400 hover:text-red-300 text-xs font-semibold rounded-lg flex items-center gap-2 transition-all disabled:opacity-50"
+              title="حذف جميع الأفلام ذات الروابط المعطلة أو المحذوفة فوراً"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              <span>🧹 تنظيف المعطل</span>
+            </button>
+
             <button
               onClick={handleDeepSync}
               disabled={syncing}

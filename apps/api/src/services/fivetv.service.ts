@@ -50,7 +50,10 @@ export function isDeadOrBrokenHost(url: string | null | undefined): boolean {
     lower.includes('upstream') ||
     lower.includes('lulu') ||
     lower.includes('voe.sx') ||
-    lower.includes('swhoi')
+    lower.includes('swhoi') ||
+    lower.includes('ok.ru') ||
+    lower.includes('vidmoly.to') ||
+    lower.includes('ww547.vidmoly')
   );
 }
 
@@ -78,23 +81,18 @@ export function isValidStreamEmbed(url: string | null | undefined): boolean {
     lower.includes('callistanise') ||
     lower.includes('dramiyos') ||
     lower.includes('acek-cdn') ||
-    lower.includes('vidmoly') ||
     lower.includes('hgcloud') ||
     lower.includes('vidtube') ||
     lower.includes('videotube') ||
     lower.includes('streamwish') ||
     lower.includes('streamtape') ||
-    lower.includes('upstream') ||
-    lower.includes('updown') ||
-    lower.includes('ok.ru') ||
-    lower.includes('mixdrop') ||
     lower.includes('firestream') ||
-    lower.includes('lulu') ||
     lower.includes('.m3u8') ||
     lower.includes('.mp4') ||
     lower.includes('r2.cloudflarestorage') ||
     lower.includes('workers.dev') ||
-    lower.includes('storage.googleapis')
+    lower.includes('storage.googleapis') ||
+    (lower.includes('vidmoly') && !lower.includes('vidmoly.to'))
   );
 }
 
@@ -417,6 +415,33 @@ export class FiveTvService {
 
               // STRICT CHECK: Must be a pure stream embed! NEVER save website URL!
               if (!isValidStreamEmbed(details.streamUrl)) {
+                return;
+              }
+
+              // STRICT CHECK: Movie MUST have at least one high-speed working server
+              const hasHighSpeedServer = (details.servers || []).some((s) =>
+                s.url.includes('71stream') ||
+                s.url.includes('ult4vid') ||
+                s.url.includes('morencius') ||
+                s.url.includes('minochinos') ||
+                s.url.includes('callistanise') ||
+                s.url.includes('hgcloud') ||
+                s.url.includes('vidtube') ||
+                s.url.includes('videotube') ||
+                s.url.includes('.mp4') ||
+                s.url.includes('.m3u8')
+              ) || (
+                details.streamUrl && (
+                  details.streamUrl.includes('71stream') ||
+                  details.streamUrl.includes('ult4vid') ||
+                  details.streamUrl.includes('morencius') ||
+                  details.streamUrl.includes('hgcloud') ||
+                  details.streamUrl.includes('.mp4') ||
+                  details.streamUrl.includes('.m3u8')
+                )
+              );
+
+              if (!hasHighSpeedServer) {
                 return;
               }
 

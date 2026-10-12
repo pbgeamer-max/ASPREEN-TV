@@ -187,6 +187,30 @@ export async function vodRoutes(server: FastifyInstance) {
   });
 
   /**
+   * POST /api/vod/reset-movies
+   * Wipes only movies and triggers fresh crawl of latest 1080p movies from FiveTV in the background
+   */
+  server.post('/reset-movies', async () => {
+    const deletedCount = await vodRepository.resetMoviesOnly();
+    // Trigger fresh movie sync in background
+    Promise.resolve().then(async () => {
+      try {
+        console.log('[VOD] Movies wiped, scraping fresh 1080p movies from FiveTV...');
+        await fiveTvService.scrapeMovies(15);
+        console.log('[VOD] Fresh 1080p movies scraping completed!');
+      } catch (err: any) {
+        console.error('[VOD] Error scraping fresh movies:', err?.message || err);
+      }
+    });
+
+    return {
+      success: true,
+      message: `تم تنظيف ${deletedCount} فيلم قديم وبدء سحب أحدث أفلام 2026/2025 الشغالة 100% في الخلفية.`,
+      deletedCount,
+    };
+  });
+
+  /**
    * POST /api/vod/topcinema-sync
    * Dedicated TopCinema crawler trigger (Runs safely in background)
    */
@@ -950,14 +974,24 @@ export async function vodRoutes(server: FastifyInstance) {
 
     if (reply.raw.headersSent) return;
 
-    // Fallback: Seamless redirect to best candidate or primary URL (supports VLC, Android TV, and Web)
+    // Fallback: Only redirect if candidate is a real direct video (.mp4/.m3u8), NEVER an HTML embed!
     const fallbackUrl = candidateUrls[0] || primaryUrl || (servers && servers[0]?.url);
-    if (fallbackUrl) {
+    if (
+      fallbackUrl &&
+      (fallbackUrl.includes('.mp4') ||
+        fallbackUrl.includes('.m3u8') ||
+        fallbackUrl.includes('r2.cloudflarestorage') ||
+        fallbackUrl.includes('storage.googleapis') ||
+        fallbackUrl.includes('workers.dev'))
+    ) {
       return reply.redirect(fallbackUrl, 302);
     }
 
     reply.header('Content-Type', 'application/json');
-    return reply.status(404).send(JSON.stringify({ error: 'Stream not found for this item' }));
+    return reply.status(404).send({
+      error: 'Stream unavailable',
+      message: 'لم يتم العثور على بث مباشر عالي السرعة لهذا المحتوى عبر الخادم حالياً.',
+    });
   }
 
   /**

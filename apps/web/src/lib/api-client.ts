@@ -339,6 +339,18 @@ class ApiClient {
     });
   }
 
+  async resetMovies() {
+    return this.request<{ success: boolean; message: string; deletedCount: number }>('/vod/reset-movies', {
+      method: 'POST',
+    });
+  }
+
+  async purgeDeadVod() {
+    return this.request<{ success: boolean; message: string; report: any }>('/vod/purge-dead', {
+      method: 'POST',
+    });
+  }
+
   async resolveStream(url: string) {
     return this.request<{ directUrl: string; title?: string }>(`/vod/resolve-stream?url=${encodeURIComponent(url)}`);
   }
