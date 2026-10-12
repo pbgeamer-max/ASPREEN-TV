@@ -1,24 +1,35 @@
 import https from 'https';
 import http from 'http';
+import vm from 'vm';
 
 export function unpackJs(packed: string): string | null {
   try {
-    const match = packed.match(/}\s*\(\s*'([\s\S]+?)'\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*'([\s\S]+?)'\.split\('\|'\)/);
-    if (!match) return null;
-    let p = match[1];
-    const a = parseInt(match[2], 10);
-    let c = parseInt(match[3], 10);
-    const k = match[4].split('|');
-
-    while (c--) {
-      if (k[c]) {
-        const reg = new RegExp('\\b' + c.toString(a) + '\\b', 'g');
-        p = p.replace(reg, k[c]);
-      }
+    let expr = packed.trim();
+    if (expr.startsWith('eval')) {
+      expr = expr.substring(4);
     }
-    return p;
-  } catch {
+    const result = vm.runInNewContext(expr, {}, { timeout: 1500 });
+    if (typeof result === 'string') return result;
     return null;
+  } catch {
+    try {
+      const match = packed.match(/}\s*\(\s*['"]([\s\S]+?)['"]\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*['"]([\s\S]+?)['"]\.split\(['"]\|['"]\)/);
+      if (!match) return null;
+      let p = match[1];
+      const a = parseInt(match[2], 10);
+      let c = parseInt(match[3], 10);
+      const k = match[4].split('|');
+
+      while (c--) {
+        if (k[c]) {
+          const reg = new RegExp('\\b' + c.toString(a) + '\\b', 'g');
+          p = p.replace(reg, k[c]);
+        }
+      }
+      return p;
+    } catch {
+      return null;
+    }
   }
 }
 
@@ -41,6 +52,12 @@ export class StreamResolverService {
           parsed.hostname.includes('ult4vid')
         ) {
           defaultReferer = 'https://new61.5tv.lol/';
+        } else if (
+          parsed.hostname.includes('vidtube') ||
+          parsed.hostname.includes('videotube') ||
+          parsed.hostname.includes('topcinema')
+        ) {
+          defaultReferer = 'https://web.topcinema.io/';
         }
 
         const req = client.get(
@@ -112,40 +129,31 @@ export class StreamResolverService {
       } catch {}
     }
 
-    // 3. Packed JS host (updown, vidmoly, morencius, minochinos, callistanise, vidhide, etc.)
-    if (
-      url.includes('updown') ||
-      url.includes('vidmoly') ||
-      url.includes('morencius') ||
-      url.includes('minochinos') ||
-      url.includes('callistanise') ||
-      url.includes('vidhide')
-    ) {
-      try {
-        const html = await this.fetchHtml(url);
-        const packedMatch = html.match(/eval\(function\(p,a,c,k,e,d\)[\s\S]*?\.split\('\|'\)\)\)/);
-        if (packedMatch) {
-          const unpacked = unpackJs(packedMatch[0]);
-          if (unpacked) {
-            // Prioritize clean HLS m3u8
-            const m3u8Match = unpacked.match(/https?:\/\/[^\s"'<>]+\.m3u8[^\s"'<>]*/i);
-            if (m3u8Match) {
-              return { directUrl: m3u8Match[0].replace(/&amp;/g, '&') };
-            }
+    // 3. Packed JS host (vidtube, videotube, updown, vidmoly, morencius, minochinos, callistanise, vidhide, streamwish, dood, etc.)
+    try {
+      const html = await this.fetchHtml(url);
+      const packedMatch = html.match(/eval\(function\(p,a,c,k,e,d\)[\s\S]*?\.split\('\|'\)\)\)/);
+      if (packedMatch) {
+        const unpacked = unpackJs(packedMatch[0]);
+        if (unpacked) {
+          // Prioritize clean HLS m3u8
+          const m3u8Match = unpacked.match(/https?:\/\/[^\s"'<>]+\.m3u8[^\s"'<>]*/i);
+          if (m3u8Match) {
+            return { directUrl: m3u8Match[0].replace(/&amp;/g, '&') };
+          }
 
-            const streamMatch =
-              unpacked.match(/https?:\/\/[^\s"'<>]+\.(?:mp4|m3u8)[^\s"'<>]*/i) ||
-              unpacked.match(/file\s*:\s*["']([^"']+)["']/i);
-            if (streamMatch) {
-              const matchedUrl = streamMatch[1] || streamMatch[0];
-              if (!matchedUrl.includes('gamescdn.online')) {
-                return { directUrl: matchedUrl.replace(/&amp;/g, '&') };
-              }
+          const streamMatch =
+            unpacked.match(/https?:\/\/[^\s"'<>]+\.(?:mp4|m3u8)[^\s"'<>]*/i) ||
+            unpacked.match(/file\s*:\s*["']([^"']+)["']/i);
+          if (streamMatch) {
+            const matchedUrl = streamMatch[1] || streamMatch[0];
+            if (!matchedUrl.includes('gamescdn.online')) {
+              return { directUrl: matchedUrl.replace(/&amp;/g, '&') };
             }
           }
         }
-      } catch {}
-    }
+      }
+    } catch {}
 
     // 4. Streamtape direct link extraction
     if (url.includes('streamtape')) {

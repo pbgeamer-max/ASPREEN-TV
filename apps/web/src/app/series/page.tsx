@@ -497,7 +497,7 @@ export default function SeriesPage() {
                 <div className="p-4 bg-black border-b border-[#262626] flex flex-col gap-3">
                   <VodPlayer
                     title={`${selectedSeries.title} — ${activeEpisode.title}`}
-                    streamUrl={`/api/vod/stream/episode/${activeEpisode.id}/stream.mp4`}
+                    streamUrl={activeEpisode.streamUrl || `/api/vod/stream/episode/${activeEpisode.id}/stream.mp4`}
                     posterUrl={activeEpisode.posterUrl || selectedSeries.posterUrl}
                     onClose={() => setActiveEpisode(null)}
                   />

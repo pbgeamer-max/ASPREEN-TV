@@ -180,11 +180,8 @@ export class TopCinemaService {
         serverItems.sort((a, b) => getRank(a) - getRank(b));
 
         for (const item of serverItems) {
-          if (getRank(item) >= 12 && serverItems.length > 1) {
-            continue; // Skip VidTube
-          }
           const stream = await this.fetchServer(item.id, item.sIndex);
-          if (stream && isValidStreamEmbed(stream) && !stream.includes('vidtube') && !stream.includes('videotube')) {
+          if (stream && isValidStreamEmbed(stream)) {
             const serverLabel = item.name.toUpperCase() || `Server ${collectedServers.length + 1}`;
             collectedServers.push({ name: serverLabel, url: stream });
             if (!chosenStream) {
@@ -545,6 +542,7 @@ export class TopCinemaService {
             posterUrl: details.posterUrl || defaultPoster,
             description: details.description || `${seriesTitle} - الموسم ${seasonNum} الحلقة ${episodeNum}`,
             streamUrl: details.streamUrl!,
+            servers: details.servers || [],
             containerExtension: 'html',
           });
 

@@ -1,5 +1,6 @@
 import https from 'https';
 import http from 'http';
+import { spawn } from 'child_process';
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import { vodRepository } from '../repositories/vod.repository';
 import { vodService } from '../services/vod.service';
@@ -559,51 +560,114 @@ export async function vodRoutes(server: FastifyInstance) {
 
     // If stream is HLS m3u8
     if (targetUrl.includes('.m3u8') || targetUrl.includes('manifest')) {
-      const data: Buffer = await new Promise((resolve, reject) => {
-        let headersReceived = false;
-        const connectTimer = setTimeout(() => {
-          if (!headersReceived) {
-            req.destroy();
-            reject(new Error(`Timeout connecting to m3u8 host (${parsed.hostname})`));
-          }
-        }, 7000);
+      const isM3u8Request = request.url.toLowerCase().includes('.m3u8');
 
-        const req = client.get(targetUrl, { headers, rejectUnauthorized: false }, (res) => {
-          headersReceived = true;
-          clearTimeout(connectTimer);
-
-          if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-            let nextUrl = res.headers.location;
-            if (!nextUrl.startsWith('http')) {
-              nextUrl = new URL(nextUrl, targetUrl).toString();
+      if (isM3u8Request) {
+        const data: Buffer = await new Promise((resolve, reject) => {
+          let headersReceived = false;
+          const connectTimer = setTimeout(() => {
+            if (!headersReceived) {
+              req.destroy();
+              reject(new Error(`Timeout connecting to m3u8 host (${parsed.hostname})`));
             }
-            return relayVideoStream(nextUrl, request, reply, redirectCount + 1, explicitReferer).then(resolve as any).catch(reject);
+          }, 7000);
+
+          const req = client.get(targetUrl, { headers, rejectUnauthorized: false }, (res) => {
+            headersReceived = true;
+            clearTimeout(connectTimer);
+
+            if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+              let nextUrl = res.headers.location;
+              if (!nextUrl.startsWith('http')) {
+                nextUrl = new URL(nextUrl, targetUrl).toString();
+              }
+              return relayVideoStream(nextUrl, request, reply, redirectCount + 1, explicitReferer).then(resolve as any).catch(reject);
+            }
+            const chunks: Buffer[] = [];
+            res.on('data', (c) => chunks.push(c));
+            res.on('end', () => resolve(Buffer.concat(chunks)));
+          });
+
+          req.on('error', (err) => {
+            clearTimeout(connectTimer);
+            reject(err);
+          });
+        });
+
+        const text = data.toString('utf8');
+        const rewrittenLines = text.split('\n').map((line) => {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith('#')) return line;
+          try {
+            const absUrl = new URL(trimmed, targetUrl).toString();
+            return `/api/vod/proxy-stream?url=${encodeURIComponent(absUrl)}`;
+          } catch {
+            return line;
           }
-          const chunks: Buffer[] = [];
-          res.on('data', (c) => chunks.push(c));
-          res.on('end', () => resolve(Buffer.concat(chunks)));
         });
 
-        req.on('error', (err) => {
-          clearTimeout(connectTimer);
-          reject(err);
+        reply.header('Content-Type', 'application/vnd.apple.mpegurl');
+        reply.header('Access-Control-Allow-Origin', '*');
+        return reply.send(rewrittenLines.join('\n'));
+      }
+
+      // If requested as .mp4 or generic media playback (e.g. VLC, Android TV, IPTV, media players):
+      // Dynamically remux upstream HLS playlist to MPEG-TS in real-time using FFmpeg!
+      return new Promise<void>((resolve, reject) => {
+        let headersSent = false;
+        const ffmpegArgs = [
+          '-headers', `Referer: ${headers['Referer']}\r\nUser-Agent: ${headers['User-Agent']}\r\n`,
+          '-probesize', '32768',
+          '-analyzeduration', '0',
+          '-i', targetUrl,
+          '-c', 'copy',
+          '-f', 'mpegts',
+          '-flush_packets', '1',
+          'pipe:1',
+        ];
+
+        const proc = spawn('ffmpeg', ffmpegArgs, { stdio: ['ignore', 'pipe', 'ignore'] });
+
+        const cleanup = () => {
+          try {
+            proc.kill('SIGKILL');
+          } catch {}
+        };
+
+        reply.raw.on('close', cleanup);
+        reply.raw.on('error', cleanup);
+
+        proc.stdout.on('data', (chunk: Buffer) => {
+          if (!headersSent) {
+            headersSent = true;
+            reply.raw.writeHead(200, {
+              'Content-Type': 'video/mp2t',
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+              'Access-Control-Allow-Headers': 'Range, Accept, Content-Type',
+              'Connection': 'keep-alive',
+            });
+            reply.hijack();
+          }
+          reply.raw.write(chunk);
+        });
+
+        proc.stdout.on('end', () => {
+          if (headersSent) reply.raw.end();
+          resolve();
+        });
+
+        proc.on('error', (err) => {
+          cleanup();
+          if (headersSent) resolve();
+          else reject(err);
+        });
+
+        proc.on('close', () => {
+          if (headersSent) reply.raw.end();
+          resolve();
         });
       });
-
-      const text = data.toString('utf8');
-      const rewrittenLines = text.split('\n').map((line) => {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('#')) return line;
-        try {
-          const absUrl = new URL(trimmed, targetUrl).toString();
-          return `/api/vod/proxy-stream?url=${encodeURIComponent(absUrl)}`;
-        } catch {
-          return line;
-        }
-      });
-
-      reply.header('Content-Type', 'application/vnd.apple.mpegurl');
-      return reply.send(rewrittenLines.join('\n'));
     }
 
     // Direct MP4 / binary stream with full Range request (206 Partial Content) support
@@ -805,11 +869,12 @@ export async function vodRoutes(server: FastifyInstance) {
   /**
    * GET /api/vod/stream/movie/:id
    * GET /api/vod/stream/movie/:id/stream.mp4
+   * GET /api/vod/stream/movie/:id/stream.m3u8
    * Pure Direct 1-Click Video Streaming Relay for Movies (Zero servers, zero ads, pure video)
    */
   const handleMovieStream = async (request: FastifyRequest<{ Params: { id: string } }>, reply: any) => {
     const rawId = request.params.id;
-    const id = rawId.replace(/\.mp4$/i, '').replace(/\/stream\.mp4$/i, '');
+    const id = rawId.replace(/\.(mp4|m3u8)$/i, '').replace(/\/stream\.(mp4|m3u8)$/i, '');
     const movie = await vodRepository.getMovieById(id);
     if (!movie) {
       return reply.status(404).send({ error: 'Movie not found' });
@@ -824,15 +889,17 @@ export async function vodRoutes(server: FastifyInstance) {
 
   server.get('/stream/movie/:id', handleMovieStream);
   server.get('/stream/movie/:id/stream.mp4', handleMovieStream);
+  server.get('/stream/movie/:id/stream.m3u8', handleMovieStream);
 
   /**
    * GET /api/vod/stream/episode/:id
    * GET /api/vod/stream/episode/:id/stream.mp4
+   * GET /api/vod/stream/episode/:id/stream.m3u8
    * Pure Direct 1-Click Video Streaming Relay for Series Episodes
    */
   const handleEpisodeStream = async (request: FastifyRequest<{ Params: { id: string } }>, reply: any) => {
     const rawId = request.params.id;
-    const id = rawId.replace(/\.mp4$/i, '').replace(/\/stream\.mp4$/i, '');
+    const id = rawId.replace(/\.(mp4|m3u8)$/i, '').replace(/\/stream\.(mp4|m3u8)$/i, '');
     const episode = await vodRepository.getEpisodeById(id);
     if (!episode) {
       return reply.status(404).send({ error: 'Episode not found' });
@@ -847,5 +914,6 @@ export async function vodRoutes(server: FastifyInstance) {
 
   server.get('/stream/episode/:id', handleEpisodeStream);
   server.get('/stream/episode/:id/stream.mp4', handleEpisodeStream);
+  server.get('/stream/episode/:id/stream.m3u8', handleEpisodeStream);
 }
 

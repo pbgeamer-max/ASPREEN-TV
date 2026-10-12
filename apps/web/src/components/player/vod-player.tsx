@@ -44,18 +44,17 @@ export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerPro
     setError(null);
     setResolvedUrl(null);
 
-    // If stream URL is already a direct video file (.mp4 / .m3u8) or direct relay endpoint
+    // If stream URL is already a direct video file (.mp4 / .m3u8) without needing embed resolution
     if (
       streamUrl.toLowerCase().includes('.mp4') ||
-      streamUrl.toLowerCase().includes('.m3u8') ||
-      streamUrl.includes('/api/vod/stream/')
+      streamUrl.toLowerCase().includes('.m3u8')
     ) {
       setResolvedUrl(streamUrl);
       setLoading(false);
       return;
     }
 
-    // Attempt to resolve through API (e.g. 71stream -> Cloudflare R2 MP4)
+    // Attempt to resolve through API (e.g. 71stream -> Cloudflare R2 MP4, vidtube -> HLS Master)
     api
       .resolveStream(streamUrl)
       .then((res) => {
@@ -89,7 +88,7 @@ export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerPro
     const isHls = resolvedUrl.toLowerCase().includes('.m3u8');
     const apiBase = process.env.NEXT_PUBLIC_API_URL || '/api';
     const effectiveStreamUrl =
-      isHls && !resolvedUrl.includes('/proxy-stream')
+      isHls && !resolvedUrl.includes('/proxy-stream') && !resolvedUrl.startsWith('/api')
         ? `${apiBase}/vod/proxy-stream?url=${encodeURIComponent(resolvedUrl)}`
         : resolvedUrl;
 
@@ -126,6 +125,16 @@ export function VodPlayer({ title, streamUrl, posterUrl, onClose }: VodPlayerPro
     } else {
       // Standard MP4 or Safari native HLS
       video.src = effectiveStreamUrl;
+      video.onerror = () => {
+        // Fallback: If direct /stream.mp4 fails in Chrome (e.g. server streams MPEG-TS), auto-switch to HLS .m3u8
+        if (effectiveStreamUrl.includes('/stream.mp4') && Hls.isSupported()) {
+          const m3u8Url = effectiveStreamUrl.replace(/\.mp4$/i, '.m3u8');
+          hls = new Hls({ enableWorker: true, lowLatencyMode: false });
+          hls.loadSource(m3u8Url);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+        }
+      };
       video.play().catch(() => {});
     }
 

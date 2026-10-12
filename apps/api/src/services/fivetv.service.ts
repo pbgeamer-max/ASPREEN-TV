@@ -37,6 +37,8 @@ export function isValidStreamEmbed(url: string | null | undefined): boolean {
   }
   return (
     lower.includes('71stream') ||
+    lower.includes('vidtube') ||
+    lower.includes('videotube') ||
     lower.includes('ok.ru') ||
     lower.includes('streamwish') ||
     lower.includes('streamtape') ||
