@@ -103,6 +103,44 @@ export async function vodRoutes(server: FastifyInstance) {
   });
 
   /**
+   * POST /api/vod/purge
+   * Cleans all dead, expired, and broken stream links (gamescdn, invalid domains)
+   */
+  server.post('/purge', async () => {
+    const report = await vodRepository.purgeInvalidStreams();
+    return {
+      success: true,
+      report,
+    };
+  });
+
+  /**
+   * POST /api/vod/reset
+   * Wipes movies & series completely and runs fresh A-to-Z scraper in the background
+   */
+  server.post('/reset', async () => {
+    const wipeReport = await vodRepository.wipeAllVod();
+    // Trigger fresh full sync in background
+    Promise.resolve().then(async () => {
+      try {
+        console.log('[VOD] Library wiped, starting fresh sync from FiveTV & TopCinema...');
+        await fiveTvService.scrapeMovies(10);
+        await fiveTvService.scrapeSeries(10, 50);
+        await topCinemaService.scrapeRecent(100);
+        console.log('[VOD] Fresh full sync completed!');
+      } catch (err: any) {
+        console.error('[VOD] Fresh sync error:', err.message);
+      }
+    });
+
+    return {
+      success: true,
+      message: 'تم تنظيف المكتبة بالكامل وبدء سحب روابط الأفلام والمسلسلات الجديدة 100% في الخلفية.',
+      wiped: wipeReport,
+    };
+  });
+
+  /**
    * POST /api/vod/topcinema-sync
    * Dedicated TopCinema crawler trigger (Runs safely in background)
    */
@@ -377,7 +415,39 @@ export async function vodRoutes(server: FastifyInstance) {
   /**
    * Helper: Relay a video stream with byte-range support (HTTP 206), redirect following, and CORS headers
    */
-  async function relayVideoStream(targetUrl: string, request: FastifyRequest, reply: any, redirectCount = 0): Promise<void> {
+  /**
+   * Check if a presigned Cloudflare R2 / AWS S3 link has expired
+   */
+  function isPresignedUrlExpired(url: string): boolean {
+    try {
+      const parsed = new URL(url);
+      const amzDate = parsed.searchParams.get('X-Amz-Date');
+      const amzExpires = parsed.searchParams.get('X-Amz-Expires');
+      if (amzDate && amzExpires) {
+        const year = parseInt(amzDate.substring(0, 4), 10);
+        const month = parseInt(amzDate.substring(4, 6), 10) - 1;
+        const day = parseInt(amzDate.substring(6, 8), 10);
+        const hour = parseInt(amzDate.substring(9, 11), 10);
+        const min = parseInt(amzDate.substring(11, 13), 10);
+        const sec = parseInt(amzDate.substring(13, 15), 10);
+        const signedTime = Date.UTC(year, month, day, hour, min, sec);
+        const expiryTime = signedTime + parseInt(amzExpires, 10) * 1000;
+        return Date.now() > expiryTime;
+      }
+    } catch {}
+    return false;
+  }
+
+  /**
+   * Helper: Relay a video stream with byte-range support (HTTP 206), redirect following, and fast failover
+   */
+  async function relayVideoStream(
+    targetUrl: string,
+    request: FastifyRequest,
+    reply: any,
+    redirectCount = 0,
+    explicitReferer?: string
+  ): Promise<void> {
     if (redirectCount > 5) {
       throw new Error('Too many redirects while relaying stream');
     }
@@ -390,7 +460,7 @@ export async function vodRoutes(server: FastifyInstance) {
       'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       'Accept': '*/*',
-      'Referer': `${parsed.protocol}//${parsed.hostname}/`,
+      'Referer': explicitReferer || `${parsed.protocol}//${parsed.hostname}/`,
     };
     if (request.headers.range) {
       headers['Range'] = request.headers.range;
@@ -410,13 +480,30 @@ export async function vodRoutes(server: FastifyInstance) {
     if (request.method === 'HEAD') {
       headers['Range'] = 'bytes=0-0';
       return new Promise<void>((resolve, reject) => {
+        let headersReceived = false;
+        const connectTimer = setTimeout(() => {
+          if (!headersReceived) {
+            req.destroy();
+            reject(new Error(`Timeout probing upstream (${parsed.hostname})`));
+          }
+        }, 6000);
+
         const req = client.get(targetUrl, { headers, rejectUnauthorized: false }, (res) => {
+          headersReceived = true;
+          clearTimeout(connectTimer);
+
           if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
             let nextUrl = res.headers.location;
             if (!nextUrl.startsWith('http')) {
               nextUrl = new URL(nextUrl, targetUrl).toString();
             }
-            return relayVideoStream(nextUrl, request, reply, redirectCount + 1).then(resolve).catch(reject);
+            const nextReferer = targetUrl.includes('streamtape') ? 'https://streamtape.cc/' : (explicitReferer || headers['Referer']);
+            return relayVideoStream(nextUrl, request, reply, redirectCount + 1, nextReferer).then(resolve).catch(reject);
+          }
+
+          if (res.statusCode && res.statusCode >= 400) {
+            res.destroy();
+            return reject(new Error(`Upstream server returned HTTP ${res.statusCode}`));
           }
 
           let totalLength: string | undefined;
@@ -438,10 +525,10 @@ export async function vodRoutes(server: FastifyInstance) {
           reply.send();
           resolve();
         });
-        req.on('error', (err) => reject(err));
-        req.setTimeout(15000, () => {
-          req.destroy();
-          reject(new Error('Timeout probing stream headers'));
+
+        req.on('error', (err) => {
+          clearTimeout(connectTimer);
+          reject(err);
         });
       });
     }
@@ -449,22 +536,33 @@ export async function vodRoutes(server: FastifyInstance) {
     // If stream is HLS m3u8
     if (targetUrl.includes('.m3u8') || targetUrl.includes('manifest')) {
       const data: Buffer = await new Promise((resolve, reject) => {
+        let headersReceived = false;
+        const connectTimer = setTimeout(() => {
+          if (!headersReceived) {
+            req.destroy();
+            reject(new Error(`Timeout connecting to m3u8 host (${parsed.hostname})`));
+          }
+        }, 7000);
+
         const req = client.get(targetUrl, { headers, rejectUnauthorized: false }, (res) => {
+          headersReceived = true;
+          clearTimeout(connectTimer);
+
           if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
             let nextUrl = res.headers.location;
             if (!nextUrl.startsWith('http')) {
               nextUrl = new URL(nextUrl, targetUrl).toString();
             }
-            return relayVideoStream(nextUrl, request, reply, redirectCount + 1).then(resolve as any).catch(reject);
+            return relayVideoStream(nextUrl, request, reply, redirectCount + 1, explicitReferer).then(resolve as any).catch(reject);
           }
           const chunks: Buffer[] = [];
           res.on('data', (c) => chunks.push(c));
           res.on('end', () => resolve(Buffer.concat(chunks)));
         });
-        req.on('error', reject);
-        req.setTimeout(12000, () => {
-          req.destroy();
-          reject(new Error('Timeout fetching m3u8'));
+
+        req.on('error', (err) => {
+          clearTimeout(connectTimer);
+          reject(err);
         });
       });
 
@@ -486,17 +584,30 @@ export async function vodRoutes(server: FastifyInstance) {
 
     // Direct MP4 / binary stream with full Range request (206 Partial Content) support
     return new Promise<void>((resolve, reject) => {
+      let headersReceived = false;
+      const connectTimer = setTimeout(() => {
+        if (!headersReceived) {
+          req.destroy();
+          reject(new Error(`Timeout connecting to upstream server (${parsed.hostname})`));
+        }
+      }, 6000); // 6 seconds max connect timeout to avoid blocking other candidate servers
+
       const req = client.get(targetUrl, { headers, rejectUnauthorized: false }, (res) => {
+        headersReceived = true;
+        clearTimeout(connectTimer);
+
         // Follow redirects seamlessly
         if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           let nextUrl = res.headers.location;
           if (!nextUrl.startsWith('http')) {
             nextUrl = new URL(nextUrl, targetUrl).toString();
           }
-          return relayVideoStream(nextUrl, request, reply, redirectCount + 1).then(resolve).catch(reject);
+          const nextReferer = targetUrl.includes('streamtape') ? 'https://streamtape.cc/' : (explicitReferer || headers['Referer']);
+          return relayVideoStream(nextUrl, request, reply, redirectCount + 1, nextReferer).then(resolve).catch(reject);
         }
 
         if (res.statusCode && res.statusCode >= 400) {
+          res.destroy();
           return reject(new Error(`Upstream server returned HTTP ${res.statusCode}`));
         }
 
@@ -516,28 +627,38 @@ export async function vodRoutes(server: FastifyInstance) {
         res.on('end', () => resolve());
         res.on('error', (err) => reject(err));
       });
-      req.on('error', (err) => reject(err));
-      req.setTimeout(30000, () => {
+
+      req.on('error', (err) => {
+        clearTimeout(connectTimer);
+        reject(err);
+      });
+
+      // Stream transfer idle timeout
+      req.setTimeout(45000, () => {
         req.destroy();
-        reject(new Error('Timeout streaming media'));
+        reject(new Error('Timeout streaming media chunk'));
       });
     });
   }
 
   /**
    * Helper: Automatically try all available servers in the background and stream the first working one
+   * Includes automatic self-healing recovery for movies & series with expired source links
    */
   async function streamWithAutoFallback(
     primaryUrl: string,
     servers: Array<{ name?: string; url: string }> | undefined,
     request: FastifyRequest,
-    reply: any
+    reply: any,
+    metadata?: { id: string; title: string; type: 'movie' | 'episode' }
   ) {
     const candidateUrls: string[] = [];
-    if (primaryUrl) candidateUrls.push(primaryUrl);
+    if (primaryUrl && !isPresignedUrlExpired(primaryUrl) && !primaryUrl.includes('gamescdn.online')) {
+      candidateUrls.push(primaryUrl);
+    }
     if (servers && servers.length > 0) {
       for (const s of servers) {
-        if (s.url && !candidateUrls.includes(s.url)) {
+        if (s.url && !candidateUrls.includes(s.url) && !isPresignedUrlExpired(s.url) && !s.url.includes('gamescdn.online')) {
           candidateUrls.push(s.url);
         }
       }
@@ -548,13 +669,16 @@ export async function vodRoutes(server: FastifyInstance) {
         let direct = await streamResolverService.resolveDirectStream(url);
         let target = direct.directUrl || url;
 
+        if (isPresignedUrlExpired(target) || target.includes('gamescdn.online')) {
+          continue;
+        }
+
         if (
           direct.directUrl ||
           target.includes('.mp4') ||
           target.includes('.m3u8') ||
           target.includes('manifest') ||
           target.includes('get_video') ||
-          target.includes('gamescdn') ||
           target.includes('cloudflarestorage') ||
           target.includes('r2.') ||
           target.includes('workers.dev') ||
@@ -564,16 +688,70 @@ export async function vodRoutes(server: FastifyInstance) {
           return;
         }
       } catch (err: any) {
-        console.warn(`[StreamRelay] Server candidate failed (${url}):`, err.message);
+        console.warn(`[StreamRelay] Server candidate failed (${url.slice(0, 60)}):`, err.message);
       }
     }
 
-    // Fallback: If no candidate could be directly piped, return error or redirect if browser
+    // Auto-Recovery: If all candidates failed or were expired, auto-heal by finding fresh watch details on FiveTV
+    if (metadata?.title) {
+      try {
+        console.log(`[StreamRelay] Attempting auto-recovery for ${metadata.type} "${metadata.title}"...`);
+        const fresh = await fiveTvService.findFreshWatchDetails(metadata.title);
+        if (fresh?.streamUrl) {
+          const freshCandidates = [fresh.streamUrl, ...(fresh.servers || []).map(s => s.url)];
+          for (const fUrl of freshCandidates) {
+            try {
+              let direct = await streamResolverService.resolveDirectStream(fUrl);
+              let target = direct.directUrl || fUrl;
+              if (
+                direct.directUrl ||
+                target.includes('.mp4') ||
+                target.includes('.m3u8') ||
+                target.includes('cloudflarestorage') ||
+                target.includes('r2.')
+              ) {
+                // Update database in background with the fresh permanent embed & servers
+                if (metadata.type === 'movie') {
+                  vodRepository.getMovieById(metadata.id).then(m => {
+                    if (m) {
+                      vodRepository.upsertMovie({
+                        ...m,
+                        streamUrl: fresh.streamUrl!,
+                        servers: fresh.servers,
+                      }).catch(() => {});
+                    }
+                  }).catch(() => {});
+                } else if (metadata.type === 'episode') {
+                  vodRepository.getEpisodeById(metadata.id).then(ep => {
+                    if (ep) {
+                      vodRepository.upsertEpisode({
+                        ...ep,
+                        streamUrl: fresh.streamUrl!,
+                        servers: fresh.servers,
+                      }).catch(() => {});
+                    }
+                  }).catch(() => {});
+                }
+                await relayVideoStream(target, request, reply);
+                return;
+              }
+            } catch (err: any) {
+              console.warn(`[StreamRelay] Auto-recovery candidate failed (${fUrl.slice(0, 60)}):`, err.message);
+            }
+          }
+        }
+      } catch (err: any) {
+        console.warn(`[StreamRelay] Auto-recovery failed for "${metadata.title}":`, err.message);
+      }
+    }
+
+    // Fallback: If browser request
     if (candidateUrls[0] && request.headers.accept?.includes('text/html')) {
       return reply.redirect(candidateUrls[0]);
     }
 
-    return reply.status(502).send({ error: 'No working playable stream found for this item' });
+    reply.header('Content-Type', 'application/json');
+    return reply.status(502).send(JSON.stringify({ error: 'No working playable stream found for this item' }));
   }
 
   /**
@@ -589,7 +767,11 @@ export async function vodRoutes(server: FastifyInstance) {
       return reply.status(404).send({ error: 'Movie not found' });
     }
 
-    return streamWithAutoFallback(movie.streamUrl, movie.servers, request, reply);
+    return streamWithAutoFallback(movie.streamUrl, movie.servers, request, reply, {
+      id: movie.id,
+      title: movie.title,
+      type: 'movie',
+    });
   };
 
   server.get('/stream/movie/:id', handleMovieStream);
@@ -608,7 +790,11 @@ export async function vodRoutes(server: FastifyInstance) {
       return reply.status(404).send({ error: 'Episode not found' });
     }
 
-    return streamWithAutoFallback(episode.streamUrl, episode.servers, request, reply);
+    return streamWithAutoFallback(episode.streamUrl, episode.servers, request, reply, {
+      id: episode.id,
+      title: episode.title,
+      type: 'episode',
+    });
   };
 
   server.get('/stream/episode/:id', handleEpisodeStream);

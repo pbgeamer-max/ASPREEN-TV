@@ -80,12 +80,12 @@ export class TopCinemaService {
   }
 
   /**
-   * Fetch specific server iframe via Single/Server.php
+   * Fetch specific server iframe via Ajaxat/Server.php
    */
   private fetchServer(id: string, sIndex: string): Promise<string | null> {
     return new Promise((resolve) => {
       const postData = new URLSearchParams({ id, i: String(sIndex) }).toString();
-      const req = https.request('https://web.topcinema.io/wp-content/themes/movies2023/Ajaxat/Single/Server.php', {
+      const req = https.request('https://web.topcinema.io/wp-content/themes/movies2023/Ajaxat/Server.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -121,7 +121,23 @@ export class TopCinemaService {
     rating: number | null;
   }> {
     try {
-      const html = await this.fetchHtml(watchUrl);
+      let html = await this.fetchHtml(watchUrl);
+      if (!watchUrl.includes('/watch') && !html.includes('data-server')) {
+        const watchLinkMatch = html.match(/href="([^"]*\/watch\/)"/i);
+        if (watchLinkMatch) {
+          try {
+            const watchHtml = await this.fetchHtml(watchLinkMatch[1]);
+            if (watchHtml.includes('data-server')) html = watchHtml;
+          } catch {}
+        } else {
+          try {
+            const withWatch = watchUrl.replace(/\/+$/, '') + '/watch/';
+            const watchHtml = await this.fetchHtml(withWatch);
+            if (watchHtml.includes('data-server')) html = watchHtml;
+          } catch {}
+        }
+      }
+
       const descMatch = html.match(/<meta property="og:description" content="([^"]+)"/i)
         || html.match(/<div class="story"[^>]*>([\s\S]*?)<\/div>/i);
       const posterMatch = html.match(/<meta property="og:image" content="([^"]+)"/i);
@@ -144,26 +160,27 @@ export class TopCinemaService {
       const collectedServers: Array<{ name: string; url: string }> = [];
 
       if (serverItems.length > 0) {
-        // Preference ranking: UpDown (direct MP4) > Streamtape (direct video) > OK.ru > LuluStream > Mixdrop > Firestream > UpStream > StreamWish > VidTube
+        // Preference ranking: OK.ru (direct MP4/HLS, high reliability) > LuluStream > VidMoly > Mixdrop > Firestream > UpStream > Dood > StreamWish > UpDown > Streamtape > VidTube
         const getRank = (item: { name: string; sIndex: string }) => {
-          if (item.name.includes('updown')) return 1;
-          if (item.name.includes('streamtape')) return 2;
-          if (item.name.includes('ok')) return 3;
-          if (item.name.includes('lulu')) return 4;
-          if (item.name.includes('mixdrop')) return 5;
-          if (item.name.includes('firestream')) return 6;
-          if (item.name.includes('upstream')) return 7;
-          if (item.name.includes('dood')) return 8;
-          if (item.name.includes('streamwish') || item.name.includes('streamhg') || item.sIndex === '2') return 9;
-          if (item.name.includes('filelion') || item.name.includes('earnvids')) return 10;
-          if (item.name.includes('tube') || item.sIndex === '0') return 11;
-          return 7;
+          if (item.name.includes('ok')) return 1;
+          if (item.name.includes('lulu')) return 2;
+          if (item.name.includes('vidmoly')) return 3;
+          if (item.name.includes('mixdrop')) return 4;
+          if (item.name.includes('firestream')) return 5;
+          if (item.name.includes('upstream')) return 6;
+          if (item.name.includes('dood') || item.name.includes('d0o0d')) return 7;
+          if (item.name.includes('streamwish') || item.name.includes('streamhg') || item.sIndex === '2') return 8;
+          if (item.name.includes('updown')) return 9;
+          if (item.name.includes('streamtape')) return 10;
+          if (item.name.includes('filelion') || item.name.includes('earnvids')) return 11;
+          if (item.name.includes('tube') || item.sIndex === '0') return 12;
+          return 8;
         };
 
         serverItems.sort((a, b) => getRank(a) - getRank(b));
 
         for (const item of serverItems) {
-          if (getRank(item) >= 10 && serverItems.length > 1) {
+          if (getRank(item) >= 12 && serverItems.length > 1) {
             continue; // Skip VidTube
           }
           const stream = await this.fetchServer(item.id, item.sIndex);
@@ -194,11 +211,11 @@ export class TopCinemaService {
         }
       }
 
-      // Automatically extract direct video stream URL if available
-      if (chosenStream) {
+      // If chosen stream can be resolved to a permanent direct stream (e.g. OK.ru direct), extract it safely
+      if (chosenStream && !chosenStream.includes('gamescdn') && !chosenStream.includes('cloudflarestorage')) {
         try {
           const direct = await streamResolverService.resolveDirectStream(chosenStream);
-          if (direct.directUrl) {
+          if (direct.directUrl && !direct.directUrl.includes('gamescdn')) {
             chosenStream = direct.directUrl;
           }
         } catch {}

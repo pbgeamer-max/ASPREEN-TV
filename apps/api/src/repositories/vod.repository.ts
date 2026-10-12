@@ -485,10 +485,10 @@ export class VodRepository {
     if (pool) {
       try {
         const epRes = await pool.query(
-          `DELETE FROM episodes WHERE stream_url ILIKE '%5tv.lol%' OR stream_url ILIKE '%topcinema.io%'`
+          `DELETE FROM episodes WHERE stream_url ILIKE '%5tv.lol%' OR stream_url ILIKE '%topcinema.io%' OR stream_url ILIKE '%gamescdn.online%'`
         );
         const mRes = await pool.query(
-          `DELETE FROM movies WHERE stream_url ILIKE '%5tv.lol%' OR stream_url ILIKE '%topcinema.io%'`
+          `DELETE FROM movies WHERE stream_url ILIKE '%5tv.lol%' OR stream_url ILIKE '%topcinema.io%' OR stream_url ILIKE '%gamescdn.online%'`
         );
         return {
           moviesDeleted: mRes.rowCount || 0,

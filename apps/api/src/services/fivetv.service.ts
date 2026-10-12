@@ -36,7 +36,7 @@ export function isValidStreamEmbed(url: string | null | undefined): boolean {
     return false;
   }
   return (
-    lower.includes('71stream.one') ||
+    lower.includes('71stream') ||
     lower.includes('ok.ru') ||
     lower.includes('streamwish') ||
     lower.includes('streamtape') ||
@@ -45,9 +45,22 @@ export function isValidStreamEmbed(url: string | null | undefined): boolean {
     lower.includes('ult4vid') ||
     lower.includes('vidmoly') ||
     lower.includes('morencius') ||
+    lower.includes('minochinos') ||
+    lower.includes('callistanise') ||
+    lower.includes('vidhide') ||
+    lower.includes('dood') ||
+    lower.includes('d0o0d') ||
+    lower.includes('lulu') ||
+    lower.includes('mixdrop') ||
+    lower.includes('firestream') ||
+    lower.includes('filelions') ||
+    lower.includes('earnvids') ||
+    lower.includes('byse') ||
     lower.includes('.m3u8') ||
     lower.includes('.mp4') ||
     lower.includes('/embed') ||
+    lower.includes('/e/') ||
+    lower.includes('/v/') ||
     lower.includes('videoembed')
   );
 }
@@ -138,6 +151,7 @@ export class FiveTvService {
   public async extractWatchDetails(pageUrl: string): Promise<{
     title: string | null;
     streamUrl: string | null;
+    servers: Array<{ name: string; url: string }>;
     posterUrl: string | null;
     description: string | null;
     rating: number | null;
@@ -155,61 +169,125 @@ export class FiveTvService {
         cleanDesc = descMatch[1].replace(/<[^>]+>/g, '').trim();
       }
 
+      const servers: Array<{ name: string; url: string }> = [];
+
       // Priority 1: Primary iframe
       const iframeMatches = [...html.matchAll(/<iframe[^>]+src="([^"]+)"/gi)].map(m => m[1]);
       let chosenStream: string | null = null;
 
       for (const ifr of iframeMatches) {
         if (isValidStreamEmbed(ifr)) {
-          chosenStream = ifr;
-          break;
+          servers.push({ name: 'Server ' + (servers.length + 1), url: ifr });
+          if (!chosenStream) chosenStream = ifr;
         }
       }
 
       // Priority 2: Alternative embed servers in HTML (71stream, ult4vid, morencius, vidmoly)
-      if (!chosenStream) {
-        const embedCandidates = [...html.matchAll(/https?:\/\/[^\s"'<>]*(?:71stream|ult4vid|morencius|vidmoly)[^\s"'<>]*/gi)].map(m => m[0]);
-        for (const candidate of embedCandidates) {
-          if (isValidStreamEmbed(candidate)) {
-            chosenStream = candidate;
-            break;
-          }
+      const embedCandidates = [...html.matchAll(/https?:\/\/[^\s"'<>]*(?:71stream|ult4vid|morencius|vidmoly)[^\s"'<>]*/gi)].map(m => m[0]);
+      for (const candidate of embedCandidates) {
+        if (isValidStreamEmbed(candidate) && !servers.some(s => s.url === candidate)) {
+          let name = 'Alternative Server';
+          if (candidate.includes('71stream')) name = '71Stream';
+          else if (candidate.includes('ult4vid')) name = 'Ult4Vid';
+          else if (candidate.includes('morencius')) name = 'Morencius';
+          else if (candidate.includes('vidmoly')) name = 'VidMoly';
+          servers.push({ name, url: candidate });
+          if (!chosenStream) chosenStream = candidate;
         }
       }
-
 
       return {
         title: titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : null,
         streamUrl: chosenStream,
+        servers,
         posterUrl: posterMatch ? posterMatch[1] : null,
         description: cleanDesc,
         rating: ratingMatch ? parseFloat(ratingMatch[1]) : null,
       };
     } catch {
-      return { title: null, streamUrl: null, posterUrl: null, description: null, rating: null };
+      return { title: null, streamUrl: null, servers: [], posterUrl: null, description: null, rating: null };
     }
   }
 
   /**
-   * Resolve a 71stream embed URL directly to the underlying MP4 media link
+   * Auto-heal: search FiveTV by title and return fresh permanent stream embed & servers
    */
-  public async resolve71Stream(embedUrl: string): Promise<{ directUrl: string | null; title?: string }> {
+  public async findFreshWatchDetails(rawTitle: string): Promise<{
+    streamUrl: string | null;
+    servers: Array<{ name: string; url: string }>;
+  } | null> {
     try {
-      const html = await this.fetchHtml(embedUrl);
-      const dataPageMatch = html.match(/data-page="([^"]+)"/i);
-      if (dataPageMatch) {
-        const decoded = JSON.parse(dataPageMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
-        if (decoded?.props?.url) {
+      let clean = rawTitle
+        .replace(/^(فيلم|مسلسل|انمي)\s+/i, '')
+        .replace(/\b(19\d{2}|20\d{2})\b/g, '')
+        .replace(/(مترجم|مدبلج|كامل|اون لاين|اونلاين)/gi, '')
+        .trim();
+      if (!clean) return null;
+
+      // Detect season & episode if present
+      const seasonMatch = clean.match(/(?:الموسم|season)\s*(\d+)/i);
+      const epMatch = clean.match(/(?:الحلقة|episode|ep)\s*(\d+)/i);
+      const targetSeason = seasonMatch ? parseInt(seasonMatch[1], 10) : null;
+      const targetEp = epMatch ? parseInt(epMatch[1], 10) : null;
+
+      const showName = clean
+        .replace(/(?:الموسم|season)\s*\d+/gi, '')
+        .replace(/(?:الحلقة|episode|ep)\s*\d+/gi, '')
+        .trim();
+
+      const queryTerm = showName || clean;
+      const searchUrl = `${this.BASE_URL}/search/?q=${encodeURIComponent(queryTerm)}`;
+      const html = await this.fetchHtml(searchUrl);
+      const links = [...new Set([...html.matchAll(/href="([^"]*\/(?:movie|series|episode)\/[^"]*)"/gi)].map(m => m[1]))];
+
+      if (links.length > 0) {
+        // If searching for a specific episode and a series page was found
+        if (targetEp !== null) {
+          const seriesLink = links.find(l => l.includes('/series/'));
+          if (seriesLink) {
+            try {
+              const sHtml = await this.fetchHtml(seriesLink);
+              const epMatches = [...sHtml.matchAll(/<a[^>]*href="([^"]*\/episode\/[^"]*)"[^>]*>([\s\S]*?)<\/a>/gi)];
+              for (const em of epMatches) {
+                const epUrl = em[1];
+                const epText = em[2];
+                const sx = epUrl.match(/(\d+)x(\d+)/i) || epText.match(/(\d+)x(\d+)/i);
+                if (sx) {
+                  const sNum = parseInt(sx[1], 10);
+                  const eNum = parseInt(sx[2], 10);
+                  if (targetSeason !== null ? (sNum === targetSeason && eNum === targetEp) : eNum === targetEp) {
+                    const details = await this.extractWatchDetails(epUrl);
+                    if (details.streamUrl) {
+                      return { streamUrl: details.streamUrl, servers: details.servers };
+                    }
+                  }
+                }
+              }
+            } catch {}
+          }
+        }
+
+        // Direct movie or episode
+        let directWatchLink = links.find(l => l.includes('/movie/') || l.includes('/episode/'));
+        if (!directWatchLink && links[0]?.includes('/series/')) {
+          try {
+            const sHtml = await this.fetchHtml(links[0]);
+            const firstEp = sHtml.match(/href="([^"]*\/episode\/[^"]*)"/i);
+            if (firstEp) directWatchLink = firstEp[1];
+          } catch {}
+        }
+        if (!directWatchLink) directWatchLink = links[0];
+
+        const details = await this.extractWatchDetails(directWatchLink);
+        if (details.streamUrl) {
           return {
-            directUrl: decoded.props.url,
-            title: decoded.props.title,
+            streamUrl: details.streamUrl,
+            servers: details.servers,
           };
         }
       }
-      return { directUrl: null };
-    } catch {
-      return { directUrl: null };
-    }
+    } catch {}
+    return null;
   }
 
   /**
@@ -259,6 +337,7 @@ export class FiveTvService {
                 releaseYear,
                 rating: details.rating || 8.0,
                 streamUrl: details.streamUrl!,
+                servers: details.servers,
                 containerExtension: 'html',
               });
 
@@ -393,6 +472,7 @@ export class FiveTvService {
                     posterUrl: epDetails.posterUrl || posterMatch?.[1] || series.posterUrl,
                     description: epDetails.description || `${rawTitle} - ${ep.epTitle}`,
                     streamUrl: epDetails.streamUrl!,
+                    servers: epDetails.servers,
                     containerExtension: 'html',
                   });
 
@@ -477,6 +557,7 @@ export class FiveTvService {
               posterUrl: epDetails.posterUrl || series.posterUrl,
               description: epDetails.description || `${seriesTitle} - الحلقة ${episodeNum}`,
               streamUrl: epDetails.streamUrl!,
+              servers: epDetails.servers,
               containerExtension: 'html',
             });
 

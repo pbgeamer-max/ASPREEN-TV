@@ -33,6 +33,16 @@ export class StreamResolverService {
         const isHttps = parsed.protocol === 'https:';
         const client = isHttps ? https : http;
 
+        let defaultReferer = `${parsed.protocol}//${parsed.hostname}/`;
+        if (
+          parsed.hostname.includes('morencius') ||
+          parsed.hostname.includes('minochinos') ||
+          parsed.hostname.includes('callistanise') ||
+          parsed.hostname.includes('ult4vid')
+        ) {
+          defaultReferer = 'https://new61.5tv.lol/';
+        }
+
         const req = client.get(
           {
             protocol: parsed.protocol,
@@ -43,7 +53,7 @@ export class StreamResolverService {
             headers: {
               'User-Agent': this.USER_AGENT,
               'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-              'Referer': referer || `${parsed.protocol}//${parsed.hostname}/`,
+              'Referer': referer || defaultReferer,
             },
           },
           (res) => {
@@ -52,7 +62,7 @@ export class StreamResolverService {
               if (!loc.startsWith('http')) {
                 loc = new URL(loc, url).toString();
               }
-              return this.fetchHtml(loc, referer).then(resolve).catch(reject);
+              return this.fetchHtml(loc, referer || defaultReferer).then(resolve).catch(reject);
             }
 
             let data = '';
@@ -62,7 +72,7 @@ export class StreamResolverService {
         );
 
         req.on('error', reject);
-        req.setTimeout(9000, () => {
+        req.setTimeout(15000, () => {
           req.destroy();
           reject(new Error('Timeout'));
         });
@@ -80,7 +90,9 @@ export class StreamResolverService {
 
     // 1. If it's already a direct video file
     if (url.includes('.mp4') || url.includes('.m3u8')) {
-      return { directUrl: url };
+      if (!url.includes('gamescdn.online')) {
+        return { directUrl: url };
+      }
     }
 
     // 2. FiveTV / 71stream.one -> Cloudflare R2 MP4
@@ -100,11 +112,14 @@ export class StreamResolverService {
       } catch {}
     }
 
-    // 3. Packed JS host (updown, vidmoly, morencius, etc.)
+    // 3. Packed JS host (updown, vidmoly, morencius, minochinos, callistanise, vidhide, etc.)
     if (
       url.includes('updown') ||
       url.includes('vidmoly') ||
-      url.includes('morencius')
+      url.includes('morencius') ||
+      url.includes('minochinos') ||
+      url.includes('callistanise') ||
+      url.includes('vidhide')
     ) {
       try {
         const html = await this.fetchHtml(url);
@@ -112,11 +127,20 @@ export class StreamResolverService {
         if (packedMatch) {
           const unpacked = unpackJs(packedMatch[0]);
           if (unpacked) {
+            // Prioritize clean HLS m3u8
+            const m3u8Match = unpacked.match(/https?:\/\/[^\s"'<>]+\.m3u8[^\s"'<>]*/i);
+            if (m3u8Match) {
+              return { directUrl: m3u8Match[0].replace(/&amp;/g, '&') };
+            }
+
             const streamMatch =
               unpacked.match(/https?:\/\/[^\s"'<>]+\.(?:mp4|m3u8)[^\s"'<>]*/i) ||
               unpacked.match(/file\s*:\s*["']([^"']+)["']/i);
             if (streamMatch) {
-              return { directUrl: streamMatch[1] || streamMatch[0] };
+              const matchedUrl = streamMatch[1] || streamMatch[0];
+              if (!matchedUrl.includes('gamescdn.online')) {
+                return { directUrl: matchedUrl.replace(/&amp;/g, '&') };
+              }
             }
           }
         }
@@ -153,11 +177,14 @@ export class StreamResolverService {
         if (dataOptions) {
           const decoded = JSON.parse(dataOptions[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
           if (decoded?.flashvars?.metadata) {
-            const meta = JSON.parse(decoded.flashvars.metadata);
-            if (meta.hlsManifestUrl) {
+            const meta =
+              typeof decoded.flashvars.metadata === 'string'
+                ? JSON.parse(decoded.flashvars.metadata)
+                : decoded.flashvars.metadata;
+            if (meta?.hlsManifestUrl) {
               return { directUrl: meta.hlsManifestUrl };
             }
-            if (Array.isArray(meta.videos) && meta.videos.length > 0) {
+            if (Array.isArray(meta?.videos) && meta.videos.length > 0) {
               const best = meta.videos[meta.videos.length - 1];
               return { directUrl: best.url };
             }
@@ -174,14 +201,16 @@ export class StreamResolverService {
         html.match(/data-src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
         html.match(/<video[^>]+src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
         html.match(/<source[^>]+src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
-        html.match(/https?:\/\/[^\s"'<>]*(?:r2\.cloudflarestorage|gamescdn|workers\.dev|storage\.googleapis)[^\s"'<>]+\.(?:mp4|m3u8)[^\s"'<>]*/i) ||
+        html.match(/https?:\/\/[^\s"'<>]*(?:r2\.cloudflarestorage|workers\.dev|storage\.googleapis)[^\s"'<>]+\.(?:mp4|m3u8)[^\s"'<>]*/i) ||
         html.match(/file\s*:\s*["'](https?:\/\/[^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
         html.match(/source\s*:\s*["'](https?:\/\/[^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
         html.match(/["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/i) ||
         html.match(/["'](https?:\/\/[^"']+\.mp4[^"']*)["']/i);
       if (match) {
         const extracted = (match[1] || match[0]).replace(/&amp;/g, '&').replace(/&quot;/g, '"');
-        return { directUrl: extracted };
+        if (!extracted.includes('gamescdn.online')) {
+          return { directUrl: extracted };
+        }
       }
     } catch {}
 
