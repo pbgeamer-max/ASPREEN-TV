@@ -217,4 +217,49 @@ export async function appRoutes(server: FastifyInstance) {
       cleanedCount: cleaned,
     };
   });
+
+  // ─────────────────────────────────────────────────────────────
+  //  LIVE HUNTER ENDPOINTS
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * POST /api/app/hunt/alokal
+   * Hunts live TV channels from alokalive.com, extracts & saves streams
+   */
+  server.post('/hunt/alokal', async (_request, reply) => {
+    const { liveHunterService } = await import('../services/live-hunter.service');
+    const result = await liveHunterService.huntAlokalive();
+    return { success: true, ...result };
+  });
+
+  /**
+   * POST /api/app/hunt/koora
+   * Hunts live football matches from aflam4you/koora_live, extracts & saves streams
+   */
+  server.post('/hunt/koora', async (_request, reply) => {
+    const { liveHunterService } = await import('../services/live-hunter.service');
+    const result = await liveHunterService.huntKooraLive();
+    return { success: true, ...result };
+  });
+
+  /**
+   * POST /api/app/hunt/all
+   * Hunts ALL sources: alokalive.com + koora_live simultaneously
+   */
+  server.post('/hunt/all', async (_request, reply) => {
+    const { liveHunterService } = await import('../services/live-hunter.service');
+    const { alokal, koora } = await liveHunterService.huntAll();
+    return {
+      success: true,
+      summary: {
+        totalAdded: alokal.addedCount + koora.addedCount,
+        totalUpdated: alokal.updatedCount + koora.updatedCount,
+        totalDeleted: alokal.deletedOldCount + koora.deletedOldCount,
+        totalSkipped: alokal.skippedCount + koora.skippedCount,
+      },
+      alokal,
+      koora,
+    };
+  });
 }
+

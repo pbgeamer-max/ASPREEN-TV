@@ -354,6 +354,26 @@ class ApiClient {
   async resolveStream(url: string) {
     return this.request<{ directUrl: string; title?: string }>(`/vod/resolve-stream?url=${encodeURIComponent(url)}`);
   }
+
+  // ── Live Hunter ──────────────────────────────────────────────
+
+  async huntAlokal() {
+    return this.request<{ success: boolean; source: string; addedCount: number; updatedCount: number; deletedOldCount: number; skippedCount: number; totalFound: number; errors: string[] }>('/app/hunt/alokal', { method: 'POST' });
+  }
+
+  async huntKoora() {
+    return this.request<{ success: boolean; source: string; addedCount: number; updatedCount: number; deletedOldCount: number; skippedCount: number; totalFound: number; errors: string[] }>('/app/hunt/koora', { method: 'POST' });
+  }
+
+  async huntAll() {
+    return this.request<{
+      success: boolean;
+      summary: { totalAdded: number; totalUpdated: number; totalDeleted: number; totalSkipped: number };
+      alokal: any;
+      koora: any;
+    }>('/app/hunt/all', { method: 'POST' });
+  }
 }
 
 export const api = new ApiClient();
+

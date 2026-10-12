@@ -306,6 +306,20 @@ export class ChannelRepository {
     return true;
   }
 
+  async findChannelByNormalizedName(normalizedName: string): Promise<Channel | null> {
+    const pool = getPool();
+    if (pool) {
+      const res = await pool.query('SELECT * FROM channels WHERE normalized_name = $1 LIMIT 1', [normalizedName]);
+      if (res.rows.length === 0) return null;
+      return mapChannelRow(res.rows[0]);
+    }
+
+    const colRef = this.db.collection(CHANNELS_COLLECTION);
+    const snap = await colRef.where('normalizedName', '==', normalizedName).limit(1).get();
+    if (snap.empty) return null;
+    return snap.docs[0].data() as Channel;
+  }
+
   async deleteChannelsBySourceId(sourceId: string): Promise<number> {
     const pool = getPool();
     if (pool) {

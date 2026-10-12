@@ -143,8 +143,9 @@ export async function createServer() {
     // Stop any other channel on the same source to release single-connection IPTV line
     await transcodingService.stopOtherChannelsOnSource(channel.sourceId, channel.id);
 
-    // Direct, instant HTTP/HTTPS streaming relay (<50ms delay, zero FFmpeg overhead)
-    if (/^https?:\/\//i.test(inputUrl)) {
+    // Direct, instant HTTP/HTTPS streaming relay for raw TS streams (<50ms delay, zero FFmpeg overhead)
+    // If input is an HLS playlist (.m3u8), delegate to FFmpeg remuxer below so players receive continuous MPEG-TS
+    if (/^https?:\/\//i.test(inputUrl) && !inputUrl.includes('.m3u8')) {
       return new Promise<void>((resolve) => {
         let isResolved = false;
         const done = () => {
@@ -268,17 +269,39 @@ export async function createServer() {
       });
     }
 
-    // Fallback for non-HTTP streams (RTMP, RTSP, UDP): Spawn optimized FFmpeg
+    // Fallback for HLS (.m3u8) or non-HTTP streams (RTMP, RTSP, UDP): Spawn optimized FFmpeg
     return new Promise<void>((resolve) => {
+      let actualUrl = inputUrl;
+      let headersStr = 'Connection: keep-alive\r\n';
+
+      if (actualUrl.includes('|')) {
+        const parts = actualUrl.split('|');
+        actualUrl = parts[0];
+        for (let i = 1; i < parts.length; i++) {
+          const eq = parts[i].indexOf('=');
+          if (eq !== -1) {
+            headersStr += `${parts[i].substring(0, eq).trim()}: ${parts[i].substring(eq + 1).trim()}\r\n`;
+          }
+        }
+      }
+
+      if (/awqb0f40a9yo|7odxv0l067ka|lastvelvet/i.test(actualUrl)) {
+        headersStr += 'Referer: https://lastvelvet.net/\r\nOrigin: https://lastvelvet.net\r\n';
+      } else if (/baranewssumsel|sportsurges|alokalive/i.test(actualUrl)) {
+        headersStr += 'Referer: https://www.alokalive.com/\r\nOrigin: https://www.alokalive.com\r\n';
+      }
+
       const ffmpegArgs = [
         '-hide_banner',
         '-loglevel', 'warning',
         '-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls',
+        '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        '-headers', headersStr,
         '-probesize', '1000000',
         '-analyzeduration', '1000000',
         '-fflags', '+genpts+discardcorrupt+nobuffer',
         '-err_detect', 'ignore_err',
-        '-i', inputUrl,
+        '-i', actualUrl,
         '-avoid_negative_ts', 'make_zero',
         '-c', 'copy',
         '-f', 'mpegts',

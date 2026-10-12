@@ -26,6 +26,9 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
+  Zap,
+  Crosshair,
+  Swords,
 } from 'lucide-react';
 
 export default function ChannelsPage() {
@@ -88,6 +91,17 @@ export default function ChannelsPage() {
   const [exportResult, setExportResult] = useState<ExportLinksResult | null>(null);
   const [activeExportTab, setActiveExportTab] = useState<'TXT' | 'M3U'>('TXT');
   const [copiedExport, setCopiedExport] = useState(false);
+
+  // Live Hunter state
+  const [huntLoading, setHuntLoading] = useState<'alokal' | 'koora' | 'all' | null>(null);
+  const [huntResultModal, setHuntResultModal] = useState<{
+    open: boolean;
+    title: string;
+    added: number;
+    updated: number;
+    deleted: number;
+    errors: string[];
+  }>({ open: false, title: '', added: 0, updated: 0, deleted: 0, errors: [] });
 
   const fetchChannels = async () => {
     try {
@@ -295,6 +309,67 @@ export default function ChannelsPage() {
     }
   };
 
+  const handleHuntAlokal = async () => {
+    setHuntLoading('alokal');
+    try {
+      const res = await api.huntAlokal();
+      setHuntResultModal({
+        open: true,
+        title: '📡 نتائج صيد alokalive.com',
+        added: res.addedCount,
+        updated: res.updatedCount,
+        deleted: res.deletedOldCount,
+        errors: res.errors || [],
+      });
+      fetchChannels();
+    } catch (err: any) {
+      alert(`Hunt failed: ${err.message}`);
+    } finally {
+      setHuntLoading(null);
+    }
+  };
+
+  const handleHuntKoora = async () => {
+    setHuntLoading('koora');
+    try {
+      const res = await api.huntKoora();
+      setHuntResultModal({
+        open: true,
+        title: '⚽ نتائج صيد مباريات كرة القدم',
+        added: res.addedCount,
+        updated: res.updatedCount,
+        deleted: res.deletedOldCount,
+        errors: res.errors || [],
+      });
+      fetchChannels();
+    } catch (err: any) {
+      alert(`Hunt failed: ${err.message}`);
+    } finally {
+      setHuntLoading(null);
+    }
+  };
+
+  const handleHuntAll = async () => {
+    if (!confirm('سيتم صيد جميع القنوات والمباريات المباشرة من alokalive.com و koora_live. قد يستغرق 3-5 دقائق. هل تريد المتابعة؟')) return;
+    setHuntLoading('all');
+    try {
+      const res = await api.huntAll();
+      setHuntResultModal({
+        open: true,
+        title: '🔥 نتائج الصيد الشامل',
+        added: res.summary.totalAdded,
+        updated: res.summary.totalUpdated,
+        deleted: res.summary.totalDeleted,
+        errors: [...(res.alokal?.errors || []), ...(res.koora?.errors || [])],
+      });
+      fetchChannels();
+    } catch (err: any) {
+      alert(`Hunt All failed: ${err.message}`);
+    } finally {
+      setHuntLoading(null);
+    }
+  };
+
   const downloadFile = (content: string, filename: string, mime: string) => {
     const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
@@ -354,6 +429,39 @@ export default function ChannelsPage() {
               >
                 <Download className={`w-3.5 h-3.5 ${exportLoading ? 'animate-bounce' : ''}`} />
                 <span>{exportLoading ? 'Exporting...' : 'Export All Links (TXT/M3U)'}</span>
+              </button>
+
+              {/* ── Live Hunter Buttons ── */}
+              <div className="w-px h-5 bg-[#333] mx-1" />
+
+              <button
+                onClick={handleHuntAlokal}
+                disabled={huntLoading !== null}
+                className="btn-secondary py-1.5 px-3 text-xs gap-1.5 border-purple-800 text-purple-300 hover:bg-purple-900/20"
+                title="صيد قنوات تلفزيون مباشرة من alokalive.com"
+              >
+                <Crosshair className={`w-3.5 h-3.5 ${huntLoading === 'alokal' ? 'animate-spin' : ''}`} />
+                <span>{huntLoading === 'alokal' ? 'صيد القنوات...' : '📡 alokalive'}</span>
+              </button>
+
+              <button
+                onClick={handleHuntKoora}
+                disabled={huntLoading !== null}
+                className="btn-secondary py-1.5 px-3 text-xs gap-1.5 border-green-800 text-green-300 hover:bg-green-900/20"
+                title="صيد مباريات كرة القدم المباشرة من koora_live"
+              >
+                <Swords className={`w-3.5 h-3.5 ${huntLoading === 'koora' ? 'animate-spin' : ''}`} />
+                <span>{huntLoading === 'koora' ? 'صيد المباريات...' : '⚽ كورة لايف'}</span>
+              </button>
+
+              <button
+                onClick={handleHuntAll}
+                disabled={huntLoading !== null}
+                className="py-1.5 px-3 text-xs gap-1.5 flex items-center rounded-md border border-orange-700 text-orange-300 bg-orange-900/10 hover:bg-orange-900/30 transition-colors disabled:opacity-50"
+                title="صيد شامل: alokalive + koora_live دفعة واحدة"
+              >
+                <Zap className={`w-3.5 h-3.5 ${huntLoading === 'all' ? 'animate-pulse' : ''}`} />
+                <span>{huntLoading === 'all' ? '🔥 جاري الصيد الشامل...' : '🔥 صيد شامل'}</span>
               </button>
             </div>
           }
@@ -826,6 +934,59 @@ export default function ChannelsPage() {
                   className="btn-primary py-1.5 px-4 text-xs"
                 >
                   OK
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Live Hunter Result Modal */}
+        {huntResultModal.open && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#111111] border border-[#262626] rounded-xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-[#222] pb-3">
+                <h3 className="text-sm font-bold text-[#F5F5F5]">{huntResultModal.title}</h3>
+                <button
+                  onClick={() => setHuntResultModal({ open: false, title: '', added: 0, updated: 0, deleted: 0, errors: [] })}
+                  className="text-[#71717A] hover:text-[#F5F5F5]"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-[#181818] border border-green-900/40 p-3 rounded-lg">
+                  <div className="text-lg font-bold text-green-400">+{huntResultModal.added}</div>
+                  <div className="text-[10px] text-zinc-400">قنوات جديدة</div>
+                </div>
+                <div className="bg-[#181818] border border-blue-900/40 p-3 rounded-lg">
+                  <div className="text-lg font-bold text-blue-400">{huntResultModal.updated}</div>
+                  <div className="text-[10px] text-zinc-400">تم تحديثها</div>
+                </div>
+                <div className="bg-[#181818] border border-red-900/40 p-3 rounded-lg">
+                  <div className="text-lg font-bold text-red-400">-{huntResultModal.deleted}</div>
+                  <div className="text-[10px] text-zinc-400">حذف قديمة</div>
+                </div>
+              </div>
+
+              {huntResultModal.errors && huntResultModal.errors.length > 0 && (
+                <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-mono text-[#A1A1AA]">ملاحظات / أخطاء:</span>
+                  <div className="max-h-28 overflow-auto bg-[#141414] p-2 rounded text-[11px] text-[#A1A1AA] font-mono space-y-1 border border-[#222]">
+                    {huntResultModal.errors.slice(0, 5).map((d, i) => (
+                      <div key={i}>• {d}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setHuntResultModal({ open: false, title: '', added: 0, updated: 0, deleted: 0, errors: [] })}
+                  className="btn-primary py-1.5 px-4 text-xs"
+                >
+                  حسناً
                 </button>
               </div>
             </div>

@@ -96,14 +96,42 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
       args.push('-http_proxy', params.proxyUrl);
     }
 
+    // Parse pipe headers syntax: url|Referer=...&Origin=...
+    let actualInputUrl = params.inputUrl;
+    const effectiveHeaders: Record<string, string> = { ...(params.customHeaders || {}) };
+
+    if (actualInputUrl.includes('|')) {
+      const parts = actualInputUrl.split('|');
+      actualInputUrl = parts[0];
+      for (let i = 1; i < parts.length; i++) {
+        const seg = parts[i];
+        const eqIdx = seg.indexOf('=');
+        if (eqIdx !== -1) {
+          const key = seg.substring(0, eqIdx).trim();
+          const val = seg.substring(eqIdx + 1).trim();
+          effectiveHeaders[key] = val;
+        }
+      }
+    }
+
+    // Auto-detect upstream requirements based on target host
+    if (/awqb0f40a9yo|7odxv0l067ka|lastvelvet/i.test(actualInputUrl)) {
+      if (!effectiveHeaders['Referer']) effectiveHeaders['Referer'] = 'https://lastvelvet.net/';
+      if (!effectiveHeaders['Origin']) effectiveHeaders['Origin'] = 'https://lastvelvet.net';
+      if (!effectiveHeaders['User-Agent']) effectiveHeaders['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+    } else if (/baranewssumsel|sportsurges|alokalive/i.test(actualInputUrl)) {
+      if (!effectiveHeaders['Referer']) effectiveHeaders['Referer'] = 'https://www.alokalive.com/';
+      if (!effectiveHeaders['Origin']) effectiveHeaders['Origin'] = 'https://www.alokalive.com';
+    }
+
     // Input reconnect flags and standard VLC User-Agent for network HTTP/HTTPS streams
-    if (/^https?:\/\//i.test(params.inputUrl)) {
-      args.push('-user_agent', 'VLC/3.0.20 LibVLC/3.0.20');
+    if (/^https?:\/\//i.test(actualInputUrl)) {
+      args.push('-user_agent', effectiveHeaders['User-Agent'] || 'VLC/3.0.20 LibVLC/3.0.20');
       let headersStr = 'Connection: keep-alive\r\n';
-      if (params.customHeaders && Object.keys(params.customHeaders).length > 0) {
-        headersStr += Object.entries(params.customHeaders)
-          .map(([k, v]) => `${k}: ${v}\r\n`)
-          .join('');
+      for (const [k, v] of Object.entries(effectiveHeaders)) {
+        if (k.toLowerCase() !== 'user-agent') {
+          headersStr += `${k}: ${v}\r\n`;
+        }
       }
       args.push('-headers', headersStr);
       args.push('-reconnect', '1');
@@ -112,8 +140,8 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
       args.push('-reconnect_delay_max', '1');
       args.push('-rw_timeout', '15000000');
       args.push('-timeout', '10000000');
-    } else if (params.customHeaders && Object.keys(params.customHeaders).length > 0) {
-      const headersStr = Object.entries(params.customHeaders)
+    } else if (Object.keys(effectiveHeaders).length > 0) {
+      const headersStr = Object.entries(effectiveHeaders)
         .map(([k, v]) => `${k}: ${v}\r\n`)
         .join('');
       args.push('-headers', headersStr);
@@ -124,7 +152,7 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
     args.push('-analyzeduration', '1000000');
 
     // Input file / stream URL
-    args.push('-i', params.inputUrl);
+    args.push('-i', actualInputUrl);
   }
 
   // Avoid negative timestamps when upstream resets or refreshes
