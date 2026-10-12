@@ -333,6 +333,12 @@ class ApiClient {
     });
   }
 
+  async wipeVod() {
+    return this.request<{ success: boolean; result: any; message: string }>('/vod/wipe', {
+      method: 'POST',
+    });
+  }
+
   async resolveStream(url: string) {
     return this.request<{ directUrl: string; title?: string }>(`/vod/resolve-stream?url=${encodeURIComponent(url)}`);
   }

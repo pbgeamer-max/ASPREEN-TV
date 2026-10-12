@@ -217,6 +217,19 @@ export async function vodRoutes(server: FastifyInstance) {
   });
 
   /**
+   * POST /api/vod/wipe
+   * Completely wipe movies and series library to start a 100% fresh clean ingestion
+   */
+  server.post('/wipe', async () => {
+    const result = await vodRepository.wipeAllVod();
+    return {
+      success: true,
+      result,
+      message: 'تم تصفير ومسح مكتبة الأفلام والمسلسلات بالكامل بنجاح.',
+    };
+  });
+
+  /**
    * GET /api/vod/resolve-stream
    * Resolve embed URLs (like 71stream) to direct media file for direct HTML5 player
    */

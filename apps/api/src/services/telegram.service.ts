@@ -166,6 +166,8 @@ class TelegramService {
           `🔹 <code>/scan_iraq</code> - فحص وجلب جميع القنوات العراقية النشطة\n` +
           `🔹 <code>/scan_sports</code> - فحص ومزامنة قنوات beIN Sports والرياضة\n` +
           `🔹 <code>/deep_sync</code> - 🚀 سحب شامل وعميق للمكتبات من الألف إلى الياء (A-Z) بالخلفية\n` +
+          `🔹 <code>/wipe_vod</code> - 🧹 مسح وتصفير مكتبة الأفلام والمسلسلات بالكامل\n` +
+          `🔹 <code>/stats</code> - 📊 إحصائيات فورية للأفلام والمسلسلات والحلقات والقنوات\n` +
           `🔹 <code>/fivetv_sync</code> - سحب مكتبة الأفلام والمسلسلات 1080p من FiveTV\n` +
           `🔹 <code>/topcinema_sync</code> - زحف مكتبة توب سينما (OK.ru/HD) بدون حظر إطارات\n` +
           `🔹 <code>/vod_sync</code> - مزامنة سريعة لمكتبي FiveTV و TopCinema بدون تكرار\n` +
@@ -548,6 +550,17 @@ class TelegramService {
             console.error('[DeepSync Background Error]:', e.message);
           }
         })();
+      } else if (command === '/wipe_vod' || command === '/clear_vod' || command === '/reset_vod') {
+        await this.sendMessage(chatId, '🧹 جاري مسح وتصفير مكتبة الأفلام والمسلسلات بالكامل...');
+        const { vodRepository } = await import('../repositories/vod.repository');
+        const res = await vodRepository.wipeAllVod();
+        await this.sendMessage(
+          chatId,
+          `✨ <b>تم مسح وتصفير المكتبة بالكامل بنجاح!</b>\n\n` +
+          `🗑️ تم مسح: <b>${res.moviesDeleted.toLocaleString()}</b> فيلم و <b>${res.seriesDeleted.toLocaleString()}</b> مسلسل و <b>${res.episodesDeleted.toLocaleString()}</b> حلقة.\n\n` +
+          `🚀 <b>الخطوة التالية للبدء النظيف من الألف إلى الياء:</b>\n` +
+          `أرسل الأمر <code>/deep_sync</code> الآن لسحب جميع المكتبات من الألف إلى الياء بروابط البث الأصلية النظيفة لمشغل موقعك بدون أي صفحات خارجية وبدون أي إعلانات!`
+        );
       } else if (command === '/movies') {
         const { vodRepository } = await import('../repositories/vod.repository');
         const { items, total } = await vodRepository.listMovies('all', undefined, 10, 0);

@@ -446,6 +446,32 @@ export class VodRepository {
     }
     return { moviesDeleted: 0, episodesDeleted: 0 };
   }
+
+  async wipeAllVod(): Promise<{ moviesDeleted: number; seriesDeleted: number; episodesDeleted: number }> {
+    const pool = getPool();
+    if (pool) {
+      try {
+        const eRes = await pool.query('DELETE FROM episodes');
+        const sRes = await pool.query('DELETE FROM series');
+        const mRes = await pool.query('DELETE FROM movies');
+        return {
+          moviesDeleted: mRes.rowCount || 0,
+          seriesDeleted: sRes.rowCount || 0,
+          episodesDeleted: eRes.rowCount || 0,
+        };
+      } catch (err: any) {
+        console.error('Error in wipeAllVod:', err.message);
+        return { moviesDeleted: 0, seriesDeleted: 0, episodesDeleted: 0 };
+      }
+    }
+    const mCount = inMemoryMovies.size;
+    const sCount = inMemorySeries.size;
+    const eCount = inMemoryEpisodes.size;
+    inMemoryMovies.clear();
+    inMemorySeries.clear();
+    inMemoryEpisodes.clear();
+    return { moviesDeleted: mCount, seriesDeleted: sCount, episodesDeleted: eCount };
+  }
 }
 
 export const vodRepository = new VodRepository();
