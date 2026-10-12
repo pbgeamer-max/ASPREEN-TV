@@ -401,7 +401,7 @@ export async function vodRoutes(server: FastifyInstance) {
             if (res.headers['content-range']) outHeaders['Content-Range'] = res.headers['content-range'];
 
             reply.raw.writeHead(res.statusCode || 200, outHeaders);
-            reply.sent = true;
+            reply.hijack();
 
             reply.raw.on('close', () => { req.destroy(); resolve(); });
             reply.raw.on('error', () => { req.destroy(); resolve(); });
@@ -544,7 +544,7 @@ export async function vodRoutes(server: FastifyInstance) {
 
           reply.raw.writeHead(200, responseHeaders);
           reply.raw.end();
-          reply.sent = true;
+          reply.hijack();
           res.destroy();
           resolve();
         });
@@ -646,7 +646,7 @@ export async function vodRoutes(server: FastifyInstance) {
         if (res.headers['content-range']) outHeaders['Content-Range'] = res.headers['content-range'];
 
         reply.raw.writeHead(res.statusCode || 200, outHeaders);
-        reply.sent = true;
+        reply.hijack();
 
         // Clean up upstream connection if downstream client closes/disconnects
         reply.raw.on('close', () => {
