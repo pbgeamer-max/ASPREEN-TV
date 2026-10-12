@@ -623,6 +623,10 @@ export async function vodRoutes(server: FastifyInstance) {
         });
 
         const text = data.toString('utf8');
+        if (!text.includes('#EXTM3U')) {
+          throw new Error('Upstream host returned invalid or blocked m3u8 playlist');
+        }
+
         const rewrittenLines = text.split('\n').map((line) => {
           const trimmed = line.trim();
           if (!trimmed || trimmed.startsWith('#')) return line;
@@ -691,9 +695,13 @@ export async function vodRoutes(server: FastifyInstance) {
           else reject(err);
         });
 
-        proc.on('close', () => {
-          if (headersSent) reply.raw.end();
-          resolve();
+        proc.on('close', (code) => {
+          if (headersSent) {
+            reply.raw.end();
+            resolve();
+          } else {
+            reject(new Error(`FFmpeg exited with code ${code} without sending media headers`));
+          }
         });
       });
     }
@@ -794,6 +802,16 @@ export async function vodRoutes(server: FastifyInstance) {
         }
       }
     }
+
+    // Prioritize ultra-reliable hosts (ult4vid, Cloudflare R2, vidtube, vidmoly)
+    candidateUrls.sort((a, b) => {
+      const score = (u: string) => {
+        if (u.includes('ult4vid') || u.includes('r2.cloudflarestorage') || u.includes('vidtube') || u.includes('vidmoly')) return 0;
+        if (u.includes('71stream')) return 1;
+        return 2;
+      };
+      return score(a) - score(b);
+    });
 
     for (const url of candidateUrls) {
       if (reply.raw.headersSent) return;
