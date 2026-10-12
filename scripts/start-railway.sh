@@ -8,12 +8,14 @@ echo "================================================================"
 # Create storage directory for HLS output
 mkdir -p "${STREAM_STORAGE_PATH:-/app/data/hls}"
 
+export NODE_OPTIONS="--max-old-space-size=2048"
+
 # Default public port set by Railway
 PUBLIC_PORT="${PORT:-3000}"
 INTERNAL_API_PORT="3001"
 
-echo "[Aspreen TV] Starting Fastify API on internal port ${INTERNAL_API_PORT}..."
-PORT=${INTERNAL_API_PORT} HOST=0.0.0.0 node apps/api/dist/index.js &
+echo "[Aspreen TV] Starting Fastify API on internal port ${INTERNAL_API_PORT} with 2GB heap limit..."
+PORT=${INTERNAL_API_PORT} HOST=0.0.0.0 node --max-old-space-size=2048 apps/api/dist/index.js &
 API_PID=$!
 
 echo "[Aspreen TV] Waiting for API to become ready..."

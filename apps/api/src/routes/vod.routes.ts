@@ -104,79 +104,101 @@ export async function vodRoutes(server: FastifyInstance) {
 
   /**
    * POST /api/vod/topcinema-sync
-   * Dedicated TopCinema crawler trigger
+   * Dedicated TopCinema crawler trigger (Runs safely in background)
    */
   server.post(
     '/topcinema-sync',
     async (
       request: FastifyRequest<{
         Body?: { maxMoviePages?: number; maxSeries?: number; recentLimit?: number };
-      }>
+      }>,
+      reply
     ) => {
       const { maxMoviePages, maxSeries, recentLimit } = request.body || {};
-      const report = await topCinemaService.syncTopCinema({
-        maxMoviePages: maxMoviePages || 8,
-        maxSeries: maxSeries || 30,
-        recentLimit: recentLimit || 50,
+      Promise.resolve().then(async () => {
+        try {
+          console.log('[TopCinema] Manual background sync started...');
+          await topCinemaService.syncTopCinema({
+            maxMoviePages: maxMoviePages || 8,
+            maxSeries: maxSeries || 30,
+            recentLimit: recentLimit || 50,
+          });
+          console.log('[TopCinema] Manual background sync finished!');
+        } catch (err: any) {
+          console.error('[TopCinema] Manual sync error:', err.message);
+        }
       });
-      return {
+
+      return reply.send({
         success: true,
-        report,
-      };
+        message: '🎬 بدأ سحب مكتبة TopCinema في الخلفية بأمان! جاري استخراج روابط الفيديو المباشرة.',
+      });
     }
   );
 
   /**
    * POST /api/vod/fivetv-sync
-   * Dedicated FiveTV crawler trigger
+   * Dedicated FiveTV crawler trigger (Runs safely in background)
    */
   server.post(
     '/fivetv-sync',
     async (
       request: FastifyRequest<{
         Body?: { maxMoviePages?: number; maxSeriesPages?: number; recentLimit?: number; deep?: boolean };
-      }>
+      }>,
+      reply
     ) => {
       const { maxMoviePages, maxSeriesPages, recentLimit, deep } = request.body || {};
-      const report = await fiveTvService.syncFiveTv({
-        deep: !!deep,
-        maxMoviePages: maxMoviePages || (deep ? 15 : 6),
-        maxSeriesPages: maxSeriesPages || (deep ? 10 : 4),
-        recentLimit: recentLimit || (deep ? 60 : 30),
+      Promise.resolve().then(async () => {
+        try {
+          console.log('[FiveTV] Manual background sync started...');
+          await fiveTvService.syncFiveTv({
+            deep: !!deep,
+            maxMoviePages: maxMoviePages || (deep ? 15 : 6),
+            maxSeriesPages: maxSeriesPages || (deep ? 10 : 4),
+            recentLimit: recentLimit || (deep ? 60 : 30),
+          });
+          console.log('[FiveTV] Manual background sync finished!');
+        } catch (err: any) {
+          console.error('[FiveTV] Manual sync error:', err.message);
+        }
       });
-      return {
+
+      return reply.send({
         success: true,
-        report,
-      };
+        message: '📺 بدأ سحب مكتبة FiveTV (1080p) في الخلفية بأمان! جاري استخراج روابط الفيديو المباشرة.',
+      });
     }
   );
 
   /**
    * POST /api/vod/full-sync
-   * Deep multi-provider sync across FiveTV and TopCinema
+   * Deep multi-provider sync across FiveTV and TopCinema (Runs safely in background)
    */
   server.post(
     '/full-sync',
     async (
       request: FastifyRequest<{
         Body?: { deep?: boolean };
-      }>
+      }>,
+      reply
     ) => {
       const { deep } = request.body || {};
-      const fivetvReport = await fiveTvService.syncFiveTv({ deep: !!deep });
-      const topcinemaReport = await topCinemaService.syncTopCinema({ deep: !!deep });
-      const stats = await vodRepository.getStats();
+      Promise.resolve().then(async () => {
+        try {
+          console.log('[FullSync] Background sync started...');
+          await fiveTvService.syncFiveTv({ deep: !!deep });
+          await topCinemaService.syncTopCinema({ deep: !!deep });
+          console.log('[FullSync] Background sync finished successfully!');
+        } catch (err: any) {
+          console.error('[FullSync] Background sync error:', err.message);
+        }
+      });
 
-      return {
+      return reply.send({
         success: true,
-        report: {
-          fivetv: fivetvReport,
-          topcinema: topcinemaReport,
-          totalMovies: stats.totalMovies,
-          totalSeries: stats.totalSeries,
-          totalEpisodes: stats.totalEpisodes,
-        },
-      };
+        message: '🚀 بدأت المزامنة الشاملة لجميع المصادر في الخلفية بأمان! جاري سحب الأفلام والمسلسلات وبناء روابط البث المباشر.',
+      });
     }
   );
 

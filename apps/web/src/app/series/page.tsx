@@ -141,15 +141,12 @@ export default function SeriesPage() {
         maxSeries: deep ? 40 : 20,
         recentLimit: deep ? 60 : 35,
       });
-      alert(
-        `🍿 تمت مزامنة موقع TopCinema بنجاح!\n` +
-        `المسلسلات المضافة/المحدثة: ${res.report?.seriesAdded || 0}\n` +
-        `الحلقات المرتبة: ${res.report?.episodesAdded || 0}\n` +
-        `الأفلام المضافة: ${res.report?.moviesAdded || 0}`
-      );
+      alert(res.message || '🎬 بدأ سحب مكتبة TopCinema في الخلفية بأمان!');
       await loadSeries();
+      setTimeout(() => loadSeries(), 4000);
+      setTimeout(() => loadSeries(), 10000);
     } catch (err: any) {
-      alert(`فشل التحديث من TopCinema: ${err.message}`);
+      alert(`فشل بدء التحديث من TopCinema: ${err.message}`);
     } finally {
       setSyncing(false);
     }
@@ -164,15 +161,12 @@ export default function SeriesPage() {
         maxSeriesPages: deep ? 10 : 4,
         recentLimit: deep ? 60 : 35,
       });
-      alert(
-        `🍿 تمت مزامنة موقع FiveTV بنجاح!\n` +
-        `المسلسلات المضافة: ${res.report?.seriesAdded || 0}\n` +
-        `الحلقات المنظمة: ${res.report?.episodesAdded || 0}\n` +
-        `الأفلام المضافة: ${res.report?.moviesAdded || 0}`
-      );
+      alert(res.message || '📺 بدأ سحب مكتبة FiveTV في الخلفية بأمان!');
       await loadSeries();
+      setTimeout(() => loadSeries(), 4000);
+      setTimeout(() => loadSeries(), 10000);
     } catch (err: any) {
-      alert(`فشل التحديث من FiveTV: ${err.message}`);
+      alert(`فشل بدء التحديث من FiveTV: ${err.message}`);
     } finally {
       setSyncing(false);
     }
@@ -182,15 +176,12 @@ export default function SeriesPage() {
     setSyncing(true);
     try {
       const res = await api.fullSyncVod({ deep: true });
-      alert(
-        `🍿 تمت المزامنة الشاملة لجميع المصادر بنجاح!\n` +
-        `إجمالي المسلسلات: ${res.report?.totalSeries || 0}\n` +
-        `إجمالي الأفلام: ${res.report?.totalMovies || 0}\n` +
-        `إجمالي الحلقات: ${res.report?.totalEpisodes || 0}`
-      );
+      alert(res.message || '🚀 بدأت المزامنة الشاملة لجميع المصادر في الخلفية بأمان!');
       await loadSeries();
+      setTimeout(() => loadSeries(), 4000);
+      setTimeout(() => loadSeries(), 10000);
     } catch (err: any) {
-      alert(`فشل التحديث: ${err.message}`);
+      alert(`فشل بدء التحديث: ${err.message}`);
     } finally {
       setSyncing(false);
     }
@@ -201,6 +192,9 @@ export default function SeriesPage() {
     try {
       const res = await api.deepSyncVod();
       alert(res.message || '🚀 بدأ سحب المكتبات بالكامل من الألف إلى الياء في الخلفية!');
+      await loadSeries();
+      setTimeout(() => loadSeries(), 5000);
+      setTimeout(() => loadSeries(), 12000);
     } catch (err: any) {
       alert(`فشل بدء السحب العميق: ${err.message}`);
     } finally {
@@ -500,13 +494,57 @@ export default function SeriesPage() {
 
               {/* Active Player View (if playing an episode) */}
               {activeEpisode && (
-                <div className="p-4 bg-black border-b border-[#262626]">
+                <div className="p-4 bg-black border-b border-[#262626] flex flex-col gap-3">
                   <VodPlayer
                     title={`${selectedSeries.title} — ${activeEpisode.title}`}
                     streamUrl={`/api/vod/stream/episode/${activeEpisode.id}/stream.mp4`}
                     posterUrl={activeEpisode.posterUrl || selectedSeries.posterUrl}
                     onClose={() => setActiveEpisode(null)}
                   />
+
+                  {/* Generated Server Stream URL Box for Episode */}
+                  <div className="p-3 bg-[#141414] border border-[#2A2A2A] rounded-xl flex flex-col gap-2">
+                    <div className="flex items-center justify-between flex-wrap gap-1">
+                      <span className="text-[11px] font-semibold text-white flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        رابط البث المباشر الخاص بخادمك لهذه الحلقة (يعيد بث الحلقة الأصلية مباشرة):
+                      </span>
+                      <span className="text-[10px] text-amber-400 bg-amber-950/50 border border-amber-500/20 px-2 py-0.5 rounded font-medium">
+                        جاهز للأندرويد والمواقع الخارجية ✓
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-[#0D0D0D] p-2 rounded-lg border border-[#222]">
+                      <input
+                        type="text"
+                        readOnly
+                        value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/vod/stream/episode/${activeEpisode.id}/stream.mp4`}
+                        className="bg-transparent text-[11px] font-mono text-zinc-300 w-full outline-none select-all cursor-text"
+                        onClick={(e) => (e.target as HTMLInputElement).select()}
+                      />
+                      <button
+                        onClick={() => {
+                          const origin = typeof window !== 'undefined' ? window.location.origin : '';
+                          const epStreamUrl = `${origin}/api/vod/stream/episode/${activeEpisode.id}/stream.mp4`;
+                          navigator.clipboard.writeText(epStreamUrl);
+                          setCopiedEpId(activeEpisode.id);
+                          setTimeout(() => setCopiedEpId(null), 2500);
+                        }}
+                        className="px-3.5 py-1.5 bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30 text-[11px] font-semibold rounded-md shrink-0 flex items-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        {copiedEpId === activeEpisode.id ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>تم النسخ!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>نسخ الرابط</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
 

@@ -137,15 +137,12 @@ export default function MoviesPage() {
         maxSeriesPages: deep ? 10 : 4,
         recentLimit: deep ? 60 : 35,
       });
-      alert(
-        `🍿 تمت مزامنة موقع FiveTV (1080p) بنجاح!\n` +
-        `الأفلام المضافة: ${res.report?.moviesAdded || 0}\n` +
-        `المسلسلات المضافة: ${res.report?.seriesAdded || 0}\n` +
-        `الحلقات المنظمة: ${res.report?.episodesAdded || 0}`
-      );
+      alert(res.message || '📺 بدأ سحب محتوى FiveTV في الخلفية بأمان!');
       await loadMovies();
+      setTimeout(() => loadMovies(), 4000);
+      setTimeout(() => loadMovies(), 10000);
     } catch (err: any) {
-      alert(`فشل التحديث من FiveTV: ${err.message}`);
+      alert(`فشل بدء التحديث من FiveTV: ${err.message}`);
     } finally {
       setSyncing(false);
     }
@@ -155,15 +152,12 @@ export default function MoviesPage() {
     setSyncing(true);
     try {
       const res = await api.fullSyncVod({ deep: true });
-      alert(
-        `🍿 تمت المزامنة الشاملة لجميع المصادر بنجاح!\n` +
-        `إجمالي الأفلام: ${res.report?.totalMovies || 0}\n` +
-        `إجمالي المسلسلات: ${res.report?.totalSeries || 0}\n` +
-        `إجمالي الحلقات: ${res.report?.totalEpisodes || 0}`
-      );
+      alert(res.message || '🚀 بدأت المزامنة الشاملة لجميع المصادر في الخلفية بأمان!');
       await loadMovies();
+      setTimeout(() => loadMovies(), 4000);
+      setTimeout(() => loadMovies(), 10000);
     } catch (err: any) {
-      alert(`فشل التحديث: ${err.message}`);
+      alert(`فشل بدء التحديث: ${err.message}`);
     } finally {
       setSyncing(false);
     }
@@ -174,6 +168,9 @@ export default function MoviesPage() {
     try {
       const res = await api.deepSyncVod();
       alert(res.message || '🚀 بدأ سحب المكتبات بالكامل من الألف إلى الياء في الخلفية!');
+      await loadMovies();
+      setTimeout(() => loadMovies(), 5000);
+      setTimeout(() => loadMovies(), 12000);
     } catch (err: any) {
       alert(`فشل بدء السحب العميق: ${err.message}`);
     } finally {
@@ -493,37 +490,57 @@ export default function MoviesPage() {
                     />
                   ) : (
                     <div className="flex flex-col gap-3">
+                      {/* Generated Server Stream URL Box */}
+                      <div className="p-3.5 bg-[#161616] border border-[#2E2E2E] rounded-xl flex flex-col gap-2 shadow-inner">
+                        <div className="flex items-center justify-between flex-wrap gap-1">
+                          <span className="text-[11px] font-semibold text-white flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            رابط البث المباشر الخاص بخادمك (يعيد بث الفيديو الأصلي مباشرة عبر موقعك):
+                          </span>
+                          <span className="text-[10px] text-emerald-400 bg-emerald-950/50 border border-emerald-500/20 px-2 py-0.5 rounded font-medium">
+                            جاهز للأندرويد والمواقع الخارجية ✓
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-[#0D0D0D] p-2 rounded-lg border border-[#262626]">
+                          <input
+                            type="text"
+                            readOnly
+                            value={`${typeof window !== 'undefined' ? window.location.origin : ''}/api/vod/stream/movie/${selectedMovie.id}/stream.mp4`}
+                            className="bg-transparent text-[11px] font-mono text-zinc-300 w-full outline-none select-all cursor-text"
+                            onClick={(e) => (e.target as HTMLInputElement).select()}
+                          />
+                          <button
+                            onClick={() => {
+                              const origin = typeof window !== 'undefined' ? window.location.origin : '';
+                              const directUrl = `${origin}/api/vod/stream/movie/${selectedMovie.id}/stream.mp4`;
+                              navigator.clipboard.writeText(directUrl);
+                              setCopiedStream(true);
+                              setTimeout(() => setCopiedStream(false), 2500);
+                            }}
+                            className="px-3.5 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 text-[11px] font-semibold rounded-md shrink-0 flex items-center gap-1.5 cursor-pointer transition-colors"
+                          >
+                            {copiedStream ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>تم النسخ!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5" />
+                                <span>نسخ الرابط</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
                       <div className="flex items-center gap-2.5">
                         <button
                           onClick={() => setPlayingStream(`/api/vod/stream/movie/${selectedMovie.id}/stream.mp4`)}
                           className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-red-950/30 transition-all cursor-pointer"
                         >
                           <Play className="w-4 h-4 fill-white" />
-                          <span>تشغيل الفيلم الآن (نقرة واحدة)</span>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            const origin = typeof window !== 'undefined' ? window.location.origin : '';
-                            const directUrl = `${origin}/api/vod/stream/movie/${selectedMovie.id}/stream.mp4`;
-                            navigator.clipboard.writeText(directUrl);
-                            setCopiedStream(true);
-                            setTimeout(() => setCopiedStream(false), 2500);
-                          }}
-                          className="px-4 py-3 bg-[#1C1C1C] hover:bg-[#262626] border border-[#333] text-white text-xs font-medium rounded-xl flex items-center justify-center gap-1.5 transition-colors shrink-0 cursor-pointer"
-                          title="نسخ رابط MP4 المباشر لتشغيله في أي تطبيق أندرويد أو موقع خارجي أو VLC"
-                        >
-                          {copiedStream ? (
-                            <>
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
-                              <span className="text-emerald-400 font-semibold">تم نسخ الرابط!</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3.5 h-3.5 text-[#A1A1AA]" />
-                              <span>نسخ رابط الفيديو (أندرويد / خارجي)</span>
-                            </>
-                          )}
+                          <span>تشغيل الفيلم الآن على مشغل الموقع (نقرة واحدة)</span>
                         </button>
                       </div>
                     </div>

@@ -269,8 +269,8 @@ export class TopCinemaService {
 
         if (movieBoxes.length === 0) break;
 
-        // Process in chunks of 5
-        const chunkSize = 5;
+        // Process in gentle chunks of 3 with GC breathers
+        const chunkSize = 3;
         for (let i = 0; i < movieBoxes.length; i += chunkSize) {
           const chunk = movieBoxes.slice(i, i + chunkSize);
           await Promise.all(chunk.map(async (box) => {
@@ -313,6 +313,9 @@ export class TopCinemaService {
 
             totalAdded++;
           }));
+
+          // GC breather
+          await new Promise(r => setTimeout(r, 60));
         }
 
         page++;
@@ -404,8 +407,8 @@ export class TopCinemaService {
                   const seasonHtml = await this.fetchHtml(seasonUrl);
                   const epMatches = [...seasonHtml.matchAll(/<a[^>]+href="([^"]+)"[^>]*title="([^"]*الحلقة[^"]*)"/gi)];
 
-                  // Process episodes in chunks of 4
-                  const epChunkSize = 4;
+                  // Process episodes in gentle chunks of 3 with GC breathers
+                  const epChunkSize = 3;
                   for (let j = 0; j < epMatches.length; j += epChunkSize) {
                     const epChunk = epMatches.slice(j, j + epChunkSize);
                     await Promise.all(epChunk.map(async (epMatch) => {
@@ -437,11 +440,17 @@ export class TopCinemaService {
 
                       episodesAdded++;
                     }));
+
+                    // GC breather between episode batches
+                    await new Promise(r => setTimeout(r, 60));
                   }
                 } catch (err: any) {
                   console.error(`Error scraping season ${seasonNum} for ${rawTitle}:`, err.message);
                 }
               }
+
+              // GC breather between series
+              await new Promise(r => setTimeout(r, 100));
             } catch (err: any) {
               console.error(`Error scraping series page ${seriesUrl}:`, err.message);
             }

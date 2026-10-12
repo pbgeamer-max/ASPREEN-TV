@@ -306,21 +306,21 @@ class ApiClient {
   }
 
   async syncTopCinema(params?: { maxMoviePages?: number; maxSeries?: number; recentLimit?: number; deep?: boolean }) {
-    return this.request<{ success: boolean; report: any }>('/vod/topcinema-sync', {
+    return this.request<{ success: boolean; message?: string; report?: any }>('/vod/topcinema-sync', {
       method: 'POST',
       body: JSON.stringify(params || {}),
     });
   }
 
   async syncFiveTv(params?: { maxMoviePages?: number; maxSeriesPages?: number; recentLimit?: number; deep?: boolean }) {
-    return this.request<{ success: boolean; report: any }>('/vod/fivetv-sync', {
+    return this.request<{ success: boolean; message?: string; report?: any }>('/vod/fivetv-sync', {
       method: 'POST',
       body: JSON.stringify(params || {}),
     });
   }
 
   async fullSyncVod(params?: { deep?: boolean }) {
-    return this.request<{ success: boolean; report: any }>('/vod/full-sync', {
+    return this.request<{ success: boolean; message?: string; report?: any }>('/vod/full-sync', {
       method: 'POST',
       body: JSON.stringify(params || {}),
     });

@@ -177,15 +177,6 @@ export class FiveTvService {
         }
       }
 
-      // Automatically resolve 71stream.one into direct high-speed MP4 link
-      if (chosenStream && chosenStream.includes('71stream.one')) {
-        try {
-          const resolved = await this.resolve71Stream(chosenStream);
-          if (resolved.directUrl) {
-            chosenStream = resolved.directUrl;
-          }
-        } catch {}
-      }
 
       return {
         title: titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : null,
@@ -241,8 +232,8 @@ export class FiveTvService {
           break;
         }
 
-        // Process in chunks of 5
-        const chunkSize = 5;
+        // Process in gentle chunks of 3 with GC breathers
+        const chunkSize = 3;
         for (let i = 0; i < movieLinks.length; i += chunkSize) {
           const chunk = movieLinks.slice(i, i + chunkSize);
           await Promise.all(chunk.map(async (mUrl) => {
@@ -276,6 +267,9 @@ export class FiveTvService {
               console.error(`Error processing 5tv movie ${mUrl}:`, err.message);
             }
           }));
+
+          // GC breather
+          await new Promise(r => setTimeout(r, 60));
         }
 
         page++;
@@ -379,8 +373,8 @@ export class FiveTvService {
 
             seriesAdded++;
 
-            // Extract pure stream for each episode in chunks of 5
-            const epChunkSize = 5;
+            // Extract pure stream for each episode in gentle chunks of 3 with GC breathers
+            const epChunkSize = 3;
             for (let i = 0; i < epList.length; i += epChunkSize) {
               const chunk = epList.slice(i, i + epChunkSize);
               await Promise.all(chunk.map(async (ep) => {
@@ -407,7 +401,13 @@ export class FiveTvService {
                   console.error(`Error extracting stream for 5tv episode ${ep.epUrl}:`, err.message);
                 }
               }));
+
+              // GC breather between episode batches
+              await new Promise(r => setTimeout(r, 60));
             }
+
+            // GC breather between series
+            await new Promise(r => setTimeout(r, 100));
           } catch (err: any) {
             console.error(`Error processing 5tv series ${sUrl}:`, err.message);
           }
