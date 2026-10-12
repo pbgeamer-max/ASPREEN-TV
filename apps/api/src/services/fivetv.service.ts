@@ -244,10 +244,16 @@ export class FiveTvService {
 
       // 4. Candidate embed URLs in HTML body
       const embedCandidates = [
-        ...html.matchAll(/https?:\/\/[^\s"'<>]*(?:71stream|ult4vid|morencius|vidmoly|vidtube)[^\s"'<>]*/gi),
+        ...html.matchAll(
+          /https?:\/\/[^\s"'<>]*(?:71stream|ult4vid|morencius|vidmoly|vidtube)[^\s"'<>]*(?:embed|\/e\/)[^\s"'<>]*/gi
+        ),
       ].map((m) => m[0]);
       for (const candidate of embedCandidates) {
         if (
+          !candidate.includes('.jpg') &&
+          !candidate.includes('.png') &&
+          !candidate.includes('.css') &&
+          !candidate.includes('.js') &&
           isValidStreamEmbed(candidate) &&
           !isDeadOrBrokenHost(candidate) &&
           !collectedServers.some((s) => s.url === candidate)
