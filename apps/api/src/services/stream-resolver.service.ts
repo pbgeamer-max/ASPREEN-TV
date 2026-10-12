@@ -89,7 +89,7 @@ export class StreamResolverService {
         );
 
         req.on('error', reject);
-        req.setTimeout(15000, () => {
+        req.setTimeout(3500, () => {
           req.destroy();
           reject(new Error('Timeout'));
         });

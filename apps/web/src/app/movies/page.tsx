@@ -21,6 +21,17 @@ import { VodPlayer } from '@/components/player/vod-player';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api-client';
 
+function cleanTitle(str?: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&#8217;/g, "'")
+    .replace(/&#8216;/g, "'")
+    .replace(/&#8211;/g, "-")
+    .replace(/&#8212;/g, "--")
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"');
+}
+
 export default function MoviesPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
@@ -365,7 +376,7 @@ export default function MoviesPage() {
                 <div className="p-3 flex-1 flex flex-col justify-between">
                   <div>
                     <h3 className="text-xs font-semibold text-white line-clamp-1 group-hover:text-red-400 transition-colors">
-                      {movie.title}
+                      {cleanTitle(movie.title)}
                     </h3>
                     <p className="text-[10px] text-[#71717A] mt-0.5 line-clamp-1">
                       {movie.category}
@@ -470,7 +481,7 @@ export default function MoviesPage() {
                     </div>
 
                     <h2 className="text-lg font-bold text-white mt-2">
-                      {selectedMovie.title}
+                      {cleanTitle(selectedMovie.title)}
                     </h2>
 
                     <p className="text-xs text-[#A1A1AA] mt-2 line-clamp-4 leading-relaxed">
@@ -483,7 +494,7 @@ export default function MoviesPage() {
                 <div className="mt-6 pt-5 border-t border-[#262626]">
                   {playingStream ? (
                     <VodPlayer
-                      title={selectedMovie.title}
+                      title={cleanTitle(selectedMovie.title)}
                       streamUrl={playingStream}
                       backupStreamUrl={selectedMovie.streamUrl}
                       posterUrl={selectedMovie.posterUrl || selectedMovie.backdropUrl}

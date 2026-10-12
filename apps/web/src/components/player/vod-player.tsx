@@ -52,8 +52,13 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
       fetch(streamUrl, { method: 'HEAD' })
         .then((res) => {
           if (!isMounted) return;
-          const contentType = res.headers.get('content-type') || '';
-          if (contentType.includes('mpegurl') || streamUrl.endsWith('.m3u8')) {
+          const contentType = (res.headers.get('content-type') || '').toLowerCase();
+          if (
+            contentType.includes('mpegurl') ||
+            contentType.includes('mp2t') ||
+            contentType.includes('apple') ||
+            streamUrl.endsWith('.m3u8')
+          ) {
             const m3u8Url = streamUrl.replace(/\.mp4$/i, '.m3u8');
             setResolvedUrl(m3u8Url);
           } else {
@@ -131,6 +136,11 @@ export function VodPlayer({ title, streamUrl, backupStreamUrl, posterUrl, onClos
       hls = new Hls({
         enableWorker: true,
         lowLatencyMode: false,
+        backBufferLength: 30,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60,
+        maxBufferSize: 30 * 1000 * 1000,
+        startFragPrefetch: true,
       });
 
       hls.loadSource(effectiveStreamUrl);

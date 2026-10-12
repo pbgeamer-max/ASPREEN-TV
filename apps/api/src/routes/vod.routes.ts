@@ -716,7 +716,7 @@ export async function vodRoutes(server: FastifyInstance) {
           req.destroy();
           reject(new Error(`Timeout connecting to upstream server (${parsed.hostname})`));
         }
-      }, 6000); // 6 seconds max connect timeout to avoid blocking other candidate servers
+      }, 3500); // 3.5s connect timeout for instant failover
 
       const req = client.get(targetUrl, { headers, rejectUnauthorized: false }, (res) => {
         headersReceived = true;
@@ -811,12 +811,37 @@ export async function vodRoutes(server: FastifyInstance) {
       }
     }
 
-    // Prioritize ultra-reliable hosts (ult4vid, Cloudflare R2, vidtube, vidmoly)
+    // Prioritize ultra-reliable, high-speed hosts
     candidateUrls.sort((a, b) => {
       const score = (u: string) => {
-        if (u.includes('ult4vid') || u.includes('r2.cloudflarestorage') || u.includes('vidtube') || u.includes('vidmoly')) return 0;
-        if (u.includes('71stream')) return 1;
-        return 2;
+        // Direct cloud buckets / MP4 files (Fastest: < 200ms)
+        if (
+          u.includes('ult4vid') ||
+          u.includes('r2.cloudflarestorage') ||
+          u.includes('workers.dev') ||
+          u.includes('storage.googleapis')
+        ) return 0;
+        // Fast direct extractors
+        if (u.includes('71stream') || u.includes('vidtube') || u.includes('videotube')) return 1;
+        // High quality fast HLS hosts
+        if (
+          u.includes('vidmoly') ||
+          u.includes('morencius') ||
+          u.includes('minochinos') ||
+          u.includes('callistanise') ||
+          u.includes('dramiyos') ||
+          u.includes('acek-cdn')
+        ) return 2;
+        if (u.includes('streamtape') || u.includes('ok.ru')) return 3;
+        // Deprioritize known slow or problematic hosts
+        if (
+          u.includes('dsvplay') ||
+          u.includes('streamwish') ||
+          u.includes('filemoon') ||
+          u.includes('dood') ||
+          u.includes('vidoza')
+        ) return 99;
+        return 5;
       };
       return score(a) - score(b);
     });

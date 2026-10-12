@@ -22,6 +22,17 @@ import { VodPlayer } from '@/components/player/vod-player';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api-client';
 
+function cleanTitle(str?: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&#8217;/g, "'")
+    .replace(/&#8216;/g, "'")
+    .replace(/&#8211;/g, "-")
+    .replace(/&#8212;/g, "--")
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"');
+}
+
 export default function SeriesPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
@@ -476,7 +487,7 @@ export default function SeriesPage() {
                       )}
                     </div>
                     <h2 className="text-lg font-bold text-white mt-1.5">
-                      {selectedSeries.title}
+                      {cleanTitle(selectedSeries.title)}
                     </h2>
                     <p className="text-xs text-[#A1A1AA] mt-1.5 line-clamp-2 leading-relaxed">
                       {selectedSeries.description || 'مسلسل كامل الحلقات بدون تكرار وبجودة عالية.'}
@@ -496,7 +507,7 @@ export default function SeriesPage() {
               {activeEpisode && (
                 <div className="p-4 bg-black border-b border-[#262626] flex flex-col gap-3">
                   <VodPlayer
-                    title={`${selectedSeries.title} — ${activeEpisode.title}`}
+                    title={`${cleanTitle(selectedSeries.title)} — ${activeEpisode.title}`}
                     streamUrl={`/api/vod/stream/episode/${activeEpisode.id}/stream.mp4`}
                     backupStreamUrl={activeEpisode.streamUrl}
                     posterUrl={activeEpisode.posterUrl || selectedSeries.posterUrl}
