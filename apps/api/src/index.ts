@@ -7,6 +7,14 @@ import * as fs from 'fs';
 import * as http from 'http';
 import * as https from 'https';
 import { spawn } from 'child_process';
+
+// Shield process from unhandled async scraper or stream disconnect crashes
+process.on('uncaughtException', (err: any) => {
+  console.error('[Process] Intercepted uncaughtException:', err?.message || err);
+});
+process.on('unhandledRejection', (reason: any) => {
+  console.error('[Process] Intercepted unhandledRejection:', reason?.message || reason);
+});
 import { config } from './config';
 import { initFirebaseAdmin } from './firebase/admin';
 import { authRoutes } from './routes/auth.routes';

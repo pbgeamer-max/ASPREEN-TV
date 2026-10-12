@@ -120,16 +120,18 @@ export async function vodRoutes(server: FastifyInstance) {
    */
   server.post('/reset', async () => {
     const wipeReport = await vodRepository.wipeAllVod();
-    // Trigger fresh full sync in background
+    // Trigger fresh full sync in background with gentle staggering
     Promise.resolve().then(async () => {
       try {
-        console.log('[VOD] Library wiped, starting fresh sync from FiveTV & TopCinema...');
-        await fiveTvService.scrapeMovies(10);
-        await fiveTvService.scrapeSeries(10, 50);
-        await topCinemaService.scrapeRecent(100);
-        console.log('[VOD] Fresh full sync completed!');
+        console.log('[VOD] Library wiped, starting gentle fresh sync from FiveTV & TopCinema...');
+        await fiveTvService.scrapeMovies(5);
+        await new Promise(r => setTimeout(r, 2000));
+        await topCinemaService.scrapeRecent(30);
+        await new Promise(r => setTimeout(r, 2000));
+        await fiveTvService.scrapeSeries(5, 15);
+        console.log('[VOD] Gentle fresh sync completed!');
       } catch (err: any) {
-        console.error('[VOD] Fresh sync error:', err.message);
+        console.error('[VOD] Fresh sync error:', err?.message || err);
       }
     });
 
@@ -395,6 +397,8 @@ export async function vodRoutes(server: FastifyInstance) {
             if (res.headers['content-length']) reply.header('Content-Length', res.headers['content-length']);
             if (res.headers['content-range']) reply.header('Content-Range', res.headers['content-range']);
             if (res.headers['accept-ranges']) reply.header('Accept-Ranges', res.headers['accept-ranges']);
+            reply.raw.on('close', () => { req.destroy(); });
+            reply.raw.on('error', () => { req.destroy(); });
             res.pipe(reply.raw);
             res.on('end', () => resolve());
             res.on('error', (err) => reject(err));
@@ -620,6 +624,9 @@ export async function vodRoutes(server: FastifyInstance) {
 
         // Clean up upstream connection if downstream client closes/disconnects
         reply.raw.on('close', () => {
+          req.destroy();
+        });
+        reply.raw.on('error', () => {
           req.destroy();
         });
 

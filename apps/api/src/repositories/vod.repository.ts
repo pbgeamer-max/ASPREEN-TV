@@ -144,7 +144,7 @@ export class VodRepository {
       );
 
       return {
-        items: rowsRes.rows.map(this.mapMovieRow),
+        items: rowsRes.rows.map((r) => this.mapMovieRow(r)),
         total,
       };
     }
