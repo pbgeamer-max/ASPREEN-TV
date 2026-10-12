@@ -248,6 +248,111 @@ export async function initDatabase(force = false): Promise<boolean> {
         ALTER TABLE episodes ADD COLUMN IF NOT EXISTS servers JSONB DEFAULT '[]'::jsonb;
       `);
 
+      // Automatically clean and heal dead streams from database on startup
+      try {
+        await client.query(`
+          UPDATE movies
+          SET stream_url = sub.working_url, updated_at = NOW()
+          FROM (
+            SELECT id, (
+              SELECT elem->>'url'
+              FROM jsonb_array_elements(servers) as elem
+              WHERE elem->>'url' IS NOT NULL
+                AND elem->>'url' NOT ILIKE '%dood%'
+                AND elem->>'url' NOT ILIKE '%d0o0d%'
+                AND elem->>'url' NOT ILIKE '%d0000d%'
+                AND elem->>'url' NOT ILIKE '%do0od%'
+                AND elem->>'url' NOT ILIKE '%mystream%'
+                AND elem->>'url' NOT ILIKE '%dsvplay%'
+                AND elem->>'url' NOT ILIKE '%ds2play%'
+                AND elem->>'url' NOT ILIKE '%vidbem%'
+                AND elem->>'url' NOT ILIKE '%gamescdn%'
+                AND (
+                  elem->>'url' ILIKE '%71stream%'
+                  OR elem->>'url' ILIKE '%ult4vid%'
+                  OR elem->>'url' ILIKE '%morencius%'
+                  OR elem->>'url' ILIKE '%minochinos%'
+                  OR elem->>'url' ILIKE '%callistanise%'
+                  OR elem->>'url' ILIKE '%vidmoly%'
+                  OR elem->>'url' ILIKE '%hgcloud%'
+                  OR elem->>'url' ILIKE '%vidtube%'
+                  OR elem->>'url' ILIKE '%ok.ru%'
+                  OR elem->>'url' ILIKE '%.m3u8%'
+                  OR elem->>'url' ILIKE '%.mp4%'
+                )
+              LIMIT 1
+            ) as working_url
+            FROM movies
+            WHERE stream_url ILIKE '%dood%'
+               OR stream_url ILIKE '%d0o0d%'
+               OR stream_url ILIKE '%d0000d%'
+               OR stream_url ILIKE '%do0od%'
+               OR stream_url ILIKE '%mystream%'
+               OR stream_url ILIKE '%dsvplay%'
+               OR stream_url ILIKE '%ds2play%'
+               OR stream_url ILIKE '%vidbem%'
+               OR stream_url ILIKE '%gamescdn%'
+          ) sub
+          WHERE movies.id = sub.id AND sub.working_url IS NOT NULL;
+        `);
+
+        await client.query(`
+          DELETE FROM movies
+          WHERE stream_url ILIKE '%dood%'
+             OR stream_url ILIKE '%d0o0d%'
+             OR stream_url ILIKE '%d0000d%'
+             OR stream_url ILIKE '%do0od%'
+             OR stream_url ILIKE '%dooood%'
+             OR stream_url ILIKE '%mystream%'
+             OR stream_url ILIKE '%dsvplay%'
+             OR stream_url ILIKE '%ds2play%'
+             OR stream_url ILIKE '%ds2video%'
+             OR stream_url ILIKE '%vidbem%'
+             OR stream_url ILIKE '%vidshar%'
+             OR stream_url ILIKE '%vidbam%'
+             OR stream_url ILIKE '%goved%'
+             OR stream_url ILIKE '%2embed%'
+             OR stream_url ILIKE '%fembed%'
+             OR stream_url ILIKE '%youtube.com%'
+             OR stream_url ILIKE '%5drama%'
+             OR stream_url ILIKE '%5tv.asia%'
+             OR stream_url ILIKE '%5tv.fun%'
+             OR stream_url ILIKE '%5tv.lol%'
+             OR stream_url ILIKE '%topcinema.io%'
+             OR stream_url ILIKE '%gamescdn.online%'
+             OR stream_url ILIKE '%moshahda.net%';
+        `);
+
+        await client.query(`
+          DELETE FROM episodes
+          WHERE stream_url ILIKE '%dood%'
+             OR stream_url ILIKE '%d0o0d%'
+             OR stream_url ILIKE '%d0000d%'
+             OR stream_url ILIKE '%do0od%'
+             OR stream_url ILIKE '%dooood%'
+             OR stream_url ILIKE '%mystream%'
+             OR stream_url ILIKE '%dsvplay%'
+             OR stream_url ILIKE '%ds2play%'
+             OR stream_url ILIKE '%ds2video%'
+             OR stream_url ILIKE '%vidbem%'
+             OR stream_url ILIKE '%vidshar%'
+             OR stream_url ILIKE '%vidbam%'
+             OR stream_url ILIKE '%goved%'
+             OR stream_url ILIKE '%2embed%'
+             OR stream_url ILIKE '%fembed%'
+             OR stream_url ILIKE '%youtube.com%'
+             OR stream_url ILIKE '%5drama%'
+             OR stream_url ILIKE '%5tv.asia%'
+             OR stream_url ILIKE '%5tv.fun%'
+             OR stream_url ILIKE '%5tv.lol%'
+             OR stream_url ILIKE '%topcinema.io%'
+             OR stream_url ILIKE '%gamescdn.online%'
+             OR stream_url ILIKE '%moshahda.net%';
+        `);
+      } catch (cleanErr: any) {
+        console.warn('[PostgreSQL] Non-fatal VOD cleanup notice:', cleanErr.message);
+      }
+
       isInitialized = true;
       console.log('[PostgreSQL] Database schema verified and ready for high-performance operations.');
       return true;

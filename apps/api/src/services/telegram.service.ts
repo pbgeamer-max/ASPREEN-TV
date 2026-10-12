@@ -166,7 +166,8 @@ class TelegramService {
           `🔹 <code>/scan_iraq</code> - فحص وجلب جميع القنوات العراقية النشطة\n` +
           `🔹 <code>/scan_sports</code> - فحص ومزامنة قنوات beIN Sports والرياضة\n` +
           `🔹 <code>/deep_sync</code> - 🚀 سحب شامل وعميق للمكتبات من الألف إلى الياء (A-Z) بالخلفية\n` +
-          `🔹 <code>/wipe_vod</code> - 🧹 مسح وتصفير مكتبة الأفلام والمسلسلات بالكامل\n` +
+          `🔹 <code>/purge_dead</code> - 🧹 فحص وتنظيف الروابط المعطلة وإصلاح السيرفرات البديلة\n` +
+          `🔹 <code>/wipe_vod</code> - 🗑️ مسح وتصفير مكتبة الأفلام والمسلسلات بالكامل\n` +
           `🔹 <code>/stats</code> - 📊 إحصائيات فورية للأفلام والمسلسلات والحلقات والقنوات\n` +
           `🔹 <code>/fivetv_sync</code> - سحب مكتبة الأفلام والمسلسلات 1080p من FiveTV\n` +
           `🔹 <code>/topcinema_sync</code> - زحف مكتبة توب سينما (OK.ru/HD) بدون حظر إطارات\n` +
@@ -446,6 +447,18 @@ class TelegramService {
           `✨ <b>تم التنظيف والترتيب بنجاح!</b>\n\n` +
           `تم تنظيف وترتيب: <b>${cleaned}</b> قناة.\n` +
           `تم عزل القنوات الأجنبية غير المرغوبة، وتقسيم القنوات ذات الأرقام (1, 2, 3) إلى باقات منظمة في موقعك وتطبيقك!`
+        );
+      } else if (command === '/purge_dead' || command === '/clean_vod' || command === '/fix_vod') {
+        await this.sendMessage(chatId, '🧹 جاري فحص وتنظيف روابط الأفلام والمسلسلات وإصلاح السيرفرات البديلة وحذف الروابط المعطلة...');
+        const { vodRepository } = await import('../repositories/vod.repository');
+        const report = await vodRepository.healAndPurgeDeadVod();
+        await this.sendMessage(
+          chatId,
+          `✨ <b>تم فحص وتنظيف مكتبة الفيديو بنجاح!</b>\n\n` +
+          `🛠️ <b>الأفلام التي تم إصلاح روابطها تلقائياً:</b> ${report.moviesHealed} فيلم\n` +
+          `🗑️ <b>الأفلام المعطلة المحذوفة:</b> ${report.moviesDeleted} فيلم\n` +
+          `🎞️ <b>الحلقات المعطلة المحذوفة:</b> ${report.episodesDeleted} حلقة\n\n` +
+          `✅ الآن أصبحت مكتبتك تحتوي على أفلام ومسلسلات بروابط تشغيل حقيقية 100% شغالة بدون أي رسائل خطأ!`
         );
       } else if (command === '/topcinema_sync' || command === '/topcinema') {
         const isDeep = args.includes('deep') || args.includes('عميق') || args.includes('كامل');

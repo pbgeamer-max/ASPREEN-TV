@@ -1,6 +1,7 @@
 import https from 'https';
 import http from 'http';
 import vm from 'vm';
+import { isDeadOrBrokenHost } from './fivetv.service';
 
 export function unpackJs(packed: string): string | null {
   try {
@@ -105,82 +106,100 @@ export class StreamResolverService {
   public async resolveDirectStream(url: string): Promise<{ directUrl: string | null; title?: string }> {
     if (!url) return { directUrl: null };
 
-    // 1. If it's already a direct video file
+    // 1. Instantly reject dead or broken hosts
+    if (isDeadOrBrokenHost(url)) {
+      return { directUrl: null };
+    }
+
+    // 2. If it's already a direct video file
     if (url.includes('.mp4') || url.includes('.m3u8')) {
       if (!url.includes('gamescdn.online')) {
         return { directUrl: url };
       }
     }
 
-    // 2. FiveTV / 71stream.one -> Cloudflare R2 MP4
-    if (url.includes('71stream.one')) {
+    // Fetch upstream HTML ONCE (with strict 3.5s timeout)
+    let html: string;
+    try {
+      html = await this.fetchHtml(url);
+    } catch {
+      return { directUrl: null };
+    }
+
+    if (!html) return { directUrl: null };
+
+    // 3. FiveTV / 71stream.one -> Cloudflare R2 MP4 in data-page attribute
+    if (url.includes('71stream') || html.includes('data-page="')) {
       try {
-        const html = await this.fetchHtml(url);
         const dataPageMatch = html.match(/data-page="([^"]+)"/i);
         if (dataPageMatch) {
           const decoded = JSON.parse(dataPageMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
-          if (decoded?.props?.url) {
-            return {
-              directUrl: decoded.props.url,
-              title: decoded.props.title,
-            };
-          }
-        }
-      } catch {}
-    }
-
-    // 3. Packed JS host (vidtube, videotube, updown, vidmoly, morencius, minochinos, callistanise, vidhide, streamwish, dood, etc.)
-    try {
-      const html = await this.fetchHtml(url);
-      const packedMatch = html.match(/eval\(function\(p,a,c,k,e,d\)[\s\S]*?\.split\('\|'\)\)\)/);
-      if (packedMatch) {
-        const unpacked = unpackJs(packedMatch[0]);
-        if (unpacked) {
-          // Prioritize clean HLS m3u8
-          const m3u8Match = unpacked.match(/https?:\/\/[^\s"'<>]+\.m3u8[^\s"'<>]*/i);
-          if (m3u8Match) {
-            return { directUrl: m3u8Match[0].replace(/&amp;/g, '&') };
-          }
-
-          const streamMatch =
-            unpacked.match(/https?:\/\/[^\s"'<>]+\.(?:mp4|m3u8)[^\s"'<>]*/i) ||
-            unpacked.match(/file\s*:\s*["']([^"']+)["']/i);
-          if (streamMatch) {
-            const matchedUrl = streamMatch[1] || streamMatch[0];
-            if (!matchedUrl.includes('gamescdn.online')) {
-              return { directUrl: matchedUrl.replace(/&amp;/g, '&') };
+          const videoUrl = decoded?.props?.url || decoded?.props?.video?.url || decoded?.props?.stream?.url;
+          if (videoUrl && typeof videoUrl === 'string') {
+            const cleanUrl = videoUrl.replace(/\\/g, '');
+            if (!cleanUrl.includes('gamescdn.online')) {
+              return {
+                directUrl: cleanUrl,
+                title: decoded?.props?.title,
+              };
             }
           }
         }
-      }
-    } catch {}
-
-    // 4. Streamtape direct link extraction
-    if (url.includes('streamtape')) {
-      try {
-        const html = await this.fetchHtml(url);
-        const m = html.match(/document\.getElementById\(['"]robotlink['"]\)\.innerHTML\s*=\s*['"]([^'"]+)['"]\s*\+\s*\((['"][^'"]+['"])\)\.substring\((\d+)\)\.substring\((\d+)\)/);
-        if (m) {
-          const part1 = m[1];
-          const rawPart2 = m[2].replace(/^['"]|['"]$/g, '');
-          const sub1 = parseInt(m[3], 10);
-          const sub2 = parseInt(m[4], 10);
-          const part2 = rawPart2.substring(sub1).substring(sub2);
-          const finalUrl = (part1.startsWith('//') ? 'https:' : '') + part1 + part2;
-          return { directUrl: finalUrl };
-        }
-        const m2 = html.match(/document\.getElementById\(['"]robotlink['"]\)\.innerHTML\s*=\s*['"]([^'"]+)['"]\s*\+\s*['"]([^'"]+)['"]/);
-        if (m2) {
-          const finalUrl = (m2[1].startsWith('//') ? 'https:' : '') + m2[1] + m2[2];
-          return { directUrl: finalUrl };
-        }
       } catch {}
     }
 
-    // 5. OK.ru metadata
+    // 4. Ultra4Vid / direct Cloudflare R2 or GCP storage MP4 links
+    const r2Match = html.match(
+      /https?:\/\/[^\s"'<>]*(?:r2\.cloudflarestorage|workers\.dev|storage\.googleapis)[^\s"'<>]+\.(?:mp4|m3u8)[^\s"'<>]*/i
+    );
+    if (r2Match) {
+      const extracted = r2Match[0].replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+      return { directUrl: extracted };
+    }
+
+    // 5. Packed JS host (vidtube, videotube, updown, vidmoly, morencius, minochinos, callistanise, vidhide, etc.)
+    const packedMatch = html.match(/eval\(function\(p,a,c,k,e,d\)[\s\S]*?\.split\('\|'\)\)\)/);
+    if (packedMatch) {
+      const unpacked = unpackJs(packedMatch[0]);
+      if (unpacked) {
+        // Prioritize clean HLS m3u8
+        const m3u8Match = unpacked.match(/https?:\/\/[^\s"'<>]+\.m3u8[^\s"'<>]*/i);
+        if (m3u8Match) {
+          return { directUrl: m3u8Match[0].replace(/&amp;/g, '&') };
+        }
+
+        const streamMatch =
+          unpacked.match(/https?:\/\/[^\s"'<>]+\.(?:mp4|m3u8)[^\s"'<>]*/i) ||
+          unpacked.match(/file\s*:\s*["']([^"']+)["']/i);
+        if (streamMatch) {
+          const matchedUrl = streamMatch[1] || streamMatch[0];
+          if (!matchedUrl.includes('gamescdn.online')) {
+            return { directUrl: matchedUrl.replace(/&amp;/g, '&') };
+          }
+        }
+      }
+    }
+
+    // 6. Generic HTML5 <video>, <source>, data-link, or file: "..." extraction (vidmoly, hgcloud, etc.)
+    const mediaMatch =
+      html.match(/data-link=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
+      html.match(/data-src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
+      html.match(/<video[^>]+src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
+      html.match(/<source[^>]+src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
+      html.match(/file\s*:\s*["'](https?:\/\/[^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
+      html.match(/source\s*:\s*["'](https?:\/\/[^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
+      html.match(/["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/i) ||
+      html.match(/["'](https?:\/\/[^"']+\.mp4[^"']*)["']/i);
+    if (mediaMatch) {
+      const extracted = (mediaMatch[1] || mediaMatch[0]).replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+      if (!isDeadOrBrokenHost(extracted)) {
+        return { directUrl: extracted };
+      }
+    }
+
+    // 7. OK.ru metadata extraction
     if (url.includes('ok.ru')) {
       try {
-        const html = await this.fetchHtml(url);
         const dataOptions = html.match(/data-options="([^"]+)"/i);
         if (dataOptions) {
           const decoded = JSON.parse(dataOptions[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
@@ -201,26 +220,30 @@ export class StreamResolverService {
       } catch {}
     }
 
-    // 6. Generic HTML5 <video>, <source>, data-link, or file: "..." extraction for any host (including ult4vid)
-    try {
-      const html = await this.fetchHtml(url);
-      const match =
-        html.match(/data-link=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
-        html.match(/data-src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
-        html.match(/<video[^>]+src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
-        html.match(/<source[^>]+src=["']([^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
-        html.match(/https?:\/\/[^\s"'<>]*(?:r2\.cloudflarestorage|workers\.dev|storage\.googleapis)[^\s"'<>]+\.(?:mp4|m3u8)[^\s"'<>]*/i) ||
-        html.match(/file\s*:\s*["'](https?:\/\/[^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
-        html.match(/source\s*:\s*["'](https?:\/\/[^"']+\.(?:mp4|m3u8)[^"']*)["']/i) ||
-        html.match(/["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/i) ||
-        html.match(/["'](https?:\/\/[^"']+\.mp4[^"']*)["']/i);
-      if (match) {
-        const extracted = (match[1] || match[0]).replace(/&amp;/g, '&').replace(/&quot;/g, '"');
-        if (!extracted.includes('gamescdn.online')) {
-          return { directUrl: extracted };
+    // 8. Streamtape direct link extraction
+    if (url.includes('streamtape')) {
+      try {
+        const m = html.match(
+          /document\.getElementById\(['"]robotlink['"]\)\.innerHTML\s*=\s*['"]([^'"]+)['"]\s*\+\s*\((['"][^'"]+['"])\)\.substring\((\d+)\)\.substring\((\d+)\)/
+        );
+        if (m) {
+          const part1 = m[1];
+          const rawPart2 = m[2].replace(/^['"]|['"]$/g, '');
+          const sub1 = parseInt(m[3], 10);
+          const sub2 = parseInt(m[4], 10);
+          const part2 = rawPart2.substring(sub1).substring(sub2);
+          const finalUrl = (part1.startsWith('//') ? 'https:' : '') + part1 + part2;
+          return { directUrl: finalUrl };
         }
-      }
-    } catch {}
+        const m2 = html.match(
+          /document\.getElementById\(['"]robotlink['"]\)\.innerHTML\s*=\s*['"]([^'"]+)['"]\s*\+\s*['"]([^'"]+)['"]/
+        );
+        if (m2) {
+          const finalUrl = (m2[1].startsWith('//') ? 'https:' : '') + m2[1] + m2[2];
+          return { directUrl: finalUrl };
+        }
+      } catch {}
+    }
 
     return { directUrl: null };
   }

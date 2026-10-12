@@ -5,7 +5,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify';
 import { vodRepository } from '../repositories/vod.repository';
 import { vodService } from '../services/vod.service';
 import { topCinemaService } from '../services/topcinema.service';
-import { fiveTvService } from '../services/fivetv.service';
+import { fiveTvService, isDeadOrBrokenHost } from '../services/fivetv.service';
 import { streamResolverService } from '../services/stream-resolver.service';
 
 export function getProperReferer(url: string, explicitReferer?: string): string {
@@ -170,6 +170,19 @@ export async function vodRoutes(server: FastifyInstance) {
       success: true,
       message: 'تم تنظيف المكتبة بالكامل وبدء سحب روابط الأفلام والمسلسلات الجديدة 100% في الخلفية.',
       wiped: wipeReport,
+    };
+  });
+
+  /**
+   * POST /api/vod/purge-dead
+   * Heals movies with alternate servers and purges all completely dead links
+   */
+  server.post('/purge-dead', async () => {
+    const report = await vodRepository.healAndPurgeDeadVod();
+    return {
+      success: true,
+      message: `تم تنظيف الروابط المعطلة بنجاح: تم إصلاح ${report.moviesHealed} فيلم، وحذف ${report.moviesDeleted} فيلم و ${report.episodesDeleted} حلقة معطلة.`,
+      report,
     };
   });
 
@@ -800,12 +813,12 @@ export async function vodRoutes(server: FastifyInstance) {
     if (reply.raw.headersSent) return;
 
     const candidateUrls: string[] = [];
-    if (primaryUrl && !isPresignedUrlExpired(primaryUrl) && !primaryUrl.includes('gamescdn.online')) {
+    if (primaryUrl && !isPresignedUrlExpired(primaryUrl) && !isDeadOrBrokenHost(primaryUrl)) {
       candidateUrls.push(primaryUrl);
     }
     if (servers && servers.length > 0) {
       for (const s of servers) {
-        if (s.url && !candidateUrls.includes(s.url) && !isPresignedUrlExpired(s.url) && !s.url.includes('gamescdn.online')) {
+        if (s.url && !candidateUrls.includes(s.url) && !isPresignedUrlExpired(s.url) && !isDeadOrBrokenHost(s.url)) {
           candidateUrls.push(s.url);
         }
       }

@@ -20,9 +20,38 @@ export interface FiveTvSyncReport {
   durationMs: number;
 }
 
+export function isDeadOrBrokenHost(url: string | null | undefined): boolean {
+  if (!url) return true;
+  const lower = url.toLowerCase();
+  return (
+    lower.includes('mystream') ||
+    lower.includes('dood') ||
+    lower.includes('d0o0d') ||
+    lower.includes('d0000d') ||
+    lower.includes('do0od') ||
+    lower.includes('dooood') ||
+    lower.includes('gamescdn') ||
+    lower.includes('dsvplay') ||
+    lower.includes('ds2play') ||
+    lower.includes('ds2video') ||
+    lower.includes('vidbem') ||
+    lower.includes('vidshar') ||
+    lower.includes('vidbam') ||
+    lower.includes('goved') ||
+    lower.includes('2embed') ||
+    lower.includes('fembed') ||
+    lower.includes('youtube.com') ||
+    lower.includes('5drama') ||
+    lower.includes('5tv.asia') ||
+    lower.includes('5tv.fun') ||
+    lower.includes('moshahda.net')
+  );
+}
+
 export function isValidStreamEmbed(url: string | null | undefined): boolean {
   if (!url) return false;
   const lower = url.toLowerCase();
+  if (isDeadOrBrokenHost(lower)) return false;
   if (
     lower.includes('topcinema.io') ||
     lower.includes('5tv.lol') ||
@@ -37,33 +66,29 @@ export function isValidStreamEmbed(url: string | null | undefined): boolean {
   }
   return (
     lower.includes('71stream') ||
+    lower.includes('ult4vid') ||
+    lower.includes('morencius') ||
+    lower.includes('minochinos') ||
+    lower.includes('callistanise') ||
+    lower.includes('dramiyos') ||
+    lower.includes('acek-cdn') ||
+    lower.includes('vidmoly') ||
+    lower.includes('hgcloud') ||
     lower.includes('vidtube') ||
     lower.includes('videotube') ||
-    lower.includes('ok.ru') ||
     lower.includes('streamwish') ||
     lower.includes('streamtape') ||
     lower.includes('upstream') ||
     lower.includes('updown') ||
-    lower.includes('ult4vid') ||
-    lower.includes('vidmoly') ||
-    lower.includes('morencius') ||
-    lower.includes('minochinos') ||
-    lower.includes('callistanise') ||
-    lower.includes('vidhide') ||
-    lower.includes('dood') ||
-    lower.includes('d0o0d') ||
-    lower.includes('lulu') ||
+    lower.includes('ok.ru') ||
     lower.includes('mixdrop') ||
     lower.includes('firestream') ||
-    lower.includes('filelions') ||
-    lower.includes('earnvids') ||
-    lower.includes('byse') ||
+    lower.includes('lulu') ||
     lower.includes('.m3u8') ||
     lower.includes('.mp4') ||
-    lower.includes('/embed') ||
-    lower.includes('/e/') ||
-    lower.includes('/v/') ||
-    lower.includes('videoembed')
+    lower.includes('r2.cloudflarestorage') ||
+    lower.includes('workers.dev') ||
+    lower.includes('storage.googleapis')
   );
 }
 
@@ -171,37 +196,93 @@ export class FiveTvService {
         cleanDesc = descMatch[1].replace(/<[^>]+>/g, '').trim();
       }
 
-      const servers: Array<{ name: string; url: string }> = [];
+      const collectedServers: Array<{ name: string; url: string }> = [];
 
-      // Priority 1: Primary iframe
-      const iframeMatches = [...html.matchAll(/<iframe[^>]+src="([^"]+)"/gi)].map(m => m[1]);
-      let chosenStream: string | null = null;
+      // 1. Primary: Extract servers from watch tabs (<button ... data-server-url="...">)
+      const tabRegex = /<button[^>]*data-server-url="([^"]+)"[^>]*>([\s\S]*?)<\/button>/gi;
+      let tabMatch: RegExpExecArray | null;
+      while ((tabMatch = tabRegex.exec(html)) !== null) {
+        const sUrl = tabMatch[1].trim();
+        const tabInner = tabMatch[2];
+        if (isValidStreamEmbed(sUrl) && !isDeadOrBrokenHost(sUrl)) {
+          const nameMatch =
+            tabInner.match(/<strong>\s*([^<]+)\s*<\/strong>/i) ||
+            tabInner.match(/<span[^>]*class="[^"]*number[^"]*"[^>]*>([\s\S]*?)<\/span>/i);
+          let sName = nameMatch ? nameMatch[1].replace(/<[^>]+>/g, '').trim() : '';
+          if (!sName || sName === 'سيرفر') {
+            try {
+              sName = new URL(sUrl).hostname.replace(/^www\./, '');
+            } catch {
+              sName = `Server ${collectedServers.length + 1}`;
+            }
+          }
+          if (!collectedServers.some((s) => s.url === sUrl)) {
+            collectedServers.push({ name: sName, url: sUrl });
+          }
+        }
+      }
 
+      // 2. Also extract raw data-server-url attributes if any were missed
+      const dataServerMatches = [...html.matchAll(/data-server-url="([^"]+)"/gi)].map((m) => m[1]);
+      for (const dUrl of dataServerMatches) {
+        if (isValidStreamEmbed(dUrl) && !isDeadOrBrokenHost(dUrl) && !collectedServers.some((s) => s.url === dUrl)) {
+          let sName = 'Server';
+          try {
+            sName = new URL(dUrl).hostname.replace(/^www\./, '');
+          } catch {}
+          collectedServers.push({ name: sName, url: dUrl });
+        }
+      }
+
+      // 3. Fallback to iframe in HTML (only if valid and NOT dead)
+      const iframeMatches = [...html.matchAll(/<iframe[^>]+src="([^"]+)"/gi)].map((m) => m[1]);
       for (const ifr of iframeMatches) {
-        if (isValidStreamEmbed(ifr)) {
-          servers.push({ name: 'Server ' + (servers.length + 1), url: ifr });
-          if (!chosenStream) chosenStream = ifr;
+        if (isValidStreamEmbed(ifr) && !isDeadOrBrokenHost(ifr) && !collectedServers.some((s) => s.url === ifr)) {
+          collectedServers.push({ name: 'Direct Embed', url: ifr });
         }
       }
 
-      // Priority 2: Alternative embed servers in HTML (71stream, ult4vid, morencius, vidmoly)
-      const embedCandidates = [...html.matchAll(/https?:\/\/[^\s"'<>]*(?:71stream|ult4vid|morencius|vidmoly)[^\s"'<>]*/gi)].map(m => m[0]);
+      // 4. Candidate embed URLs in HTML body
+      const embedCandidates = [
+        ...html.matchAll(/https?:\/\/[^\s"'<>]*(?:71stream|ult4vid|morencius|vidmoly|vidtube)[^\s"'<>]*/gi),
+      ].map((m) => m[0]);
       for (const candidate of embedCandidates) {
-        if (isValidStreamEmbed(candidate) && !servers.some(s => s.url === candidate)) {
-          let name = 'Alternative Server';
-          if (candidate.includes('71stream')) name = '71Stream';
-          else if (candidate.includes('ult4vid')) name = 'Ult4Vid';
-          else if (candidate.includes('morencius')) name = 'Morencius';
-          else if (candidate.includes('vidmoly')) name = 'VidMoly';
-          servers.push({ name, url: candidate });
-          if (!chosenStream) chosenStream = candidate;
+        if (
+          isValidStreamEmbed(candidate) &&
+          !isDeadOrBrokenHost(candidate) &&
+          !collectedServers.some((s) => s.url === candidate)
+        ) {
+          let sName = 'Server';
+          try {
+            sName = new URL(candidate).hostname.replace(/^www\./, '');
+          } catch {}
+          collectedServers.push({ name: sName, url: candidate });
         }
       }
+
+      // Rank servers so highest quality, lightning-fast streams are ALWAYS first!
+      const getServerScore = (url: string) => {
+        const u = url.toLowerCase();
+        if (u.includes('ult4vid') || u.includes('r2.cloudflarestorage') || u.includes('workers.dev')) return 1;
+        if (u.includes('71stream')) return 2;
+        if (u.includes('morencius') || u.includes('minochinos') || u.includes('callistanise') || u.includes('dramiyos'))
+          return 3;
+        if (u.includes('vidmoly')) return 4;
+        if (u.includes('hgcloud')) return 5;
+        if (u.includes('vidtube') || u.includes('videotube')) return 6;
+        if (u.includes('ok.ru')) return 7;
+        return 20;
+      };
+
+      collectedServers.sort((a, b) => getServerScore(a.url) - getServerScore(b.url));
+
+      // Chosen stream is ONLY valid if we found an actually playable, non-dead server!
+      const chosenStream = collectedServers.length > 0 ? collectedServers[0].url : null;
 
       return {
         title: titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : null,
         streamUrl: chosenStream,
-        servers,
+        servers: collectedServers,
         posterUrl: posterMatch ? posterMatch[1] : null,
         description: cleanDesc,
         rating: ratingMatch ? parseFloat(ratingMatch[1]) : null,
@@ -523,7 +604,7 @@ export class FiveTvService {
           try {
             const epDetails = await this.extractWatchDetails(epUrl);
             const rawTitle = epDetails.title || '';
-            if (!rawTitle || !isValidStreamEmbed(epDetails.streamUrl)) return;
+            if (!rawTitle || !epDetails.streamUrl || !isValidStreamEmbed(epDetails.streamUrl) || isDeadOrBrokenHost(epDetails.streamUrl)) return;
 
             let seriesTitle = rawTitle.replace(/—\s*الحلقة.*$/i, '').replace(/الموسم.*$/i, '').trim();
             if (!seriesTitle) seriesTitle = rawTitle;
@@ -569,6 +650,36 @@ export class FiveTvService {
           }
         }));
       }
+
+      // Also ingest latest movies
+      try {
+        const movieHtml = await this.fetchHtml(`${this.BASE_URL}/latest-movies/`);
+        const movieLinks = [...new Set([...movieHtml.matchAll(/href="([^"]*\/movie\/[^"]*)"/gi)].map(m => m[1]))].slice(0, Math.floor(limit / 2));
+        for (const mUrl of movieLinks) {
+          try {
+            const mDetails = await this.extractWatchDetails(mUrl);
+            const mTitle = mDetails.title || '';
+            if (!mTitle || !mDetails.streamUrl || !isValidStreamEmbed(mDetails.streamUrl) || isDeadOrBrokenHost(mDetails.streamUrl)) continue;
+
+            const yearMatch = mTitle.match(/\b(19\d{2}|20\d{2})\b/);
+            const releaseYear = yearMatch ? parseInt(yearMatch[1], 10) : new Date().getFullYear();
+
+            await vodRepository.upsertMovie({
+              title: mTitle,
+              normalizedTitle: this.normalizeTitle(mTitle),
+              category: 'أفلام فايف تي في FiveTV',
+              posterUrl: mDetails.posterUrl || undefined,
+              description: mDetails.description || `مشاهدة وتحميل ${mTitle} أون لاين على أسبيرين TV.`,
+              releaseYear,
+              rating: mDetails.rating || 8.0,
+              streamUrl: mDetails.streamUrl!,
+              servers: mDetails.servers,
+              containerExtension: 'html',
+            });
+            newMovies++;
+          } catch {}
+        }
+      } catch {}
     } catch (err: any) {
       console.error('Error in 5tv scrapeRecent:', err.message);
     }

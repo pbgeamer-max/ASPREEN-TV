@@ -1,7 +1,7 @@
 import https from 'https';
 import http from 'http';
 import { vodRepository, Movie, Series, Episode } from '../repositories/vod.repository';
-import { isValidStreamEmbed } from './fivetv.service';
+import { isValidStreamEmbed, isDeadOrBrokenHost } from './fivetv.service';
 import { streamResolverService } from './stream-resolver.service';
 
 export interface TopCinemaSyncReport {
@@ -160,28 +160,27 @@ export class TopCinemaService {
       const collectedServers: Array<{ name: string; url: string }> = [];
 
       if (serverItems.length > 0) {
-        // Preference ranking: OK.ru (direct MP4/HLS, high reliability) > LuluStream > VidMoly > Mixdrop > Firestream > UpStream > Dood > StreamWish > UpDown > Streamtape > VidTube
+        // Preference ranking: OK.ru > VidMoly > LuluStream > Mixdrop > Firestream > UpStream > StreamWish > UpDown > Streamtape > VidTube
         const getRank = (item: { name: string; sIndex: string }) => {
           if (item.name.includes('ok')) return 1;
-          if (item.name.includes('lulu')) return 2;
-          if (item.name.includes('vidmoly')) return 3;
+          if (item.name.includes('vidmoly')) return 2;
+          if (item.name.includes('lulu')) return 3;
           if (item.name.includes('mixdrop')) return 4;
           if (item.name.includes('firestream')) return 5;
           if (item.name.includes('upstream')) return 6;
-          if (item.name.includes('dood') || item.name.includes('d0o0d')) return 7;
-          if (item.name.includes('streamwish') || item.name.includes('streamhg') || item.sIndex === '2') return 8;
-          if (item.name.includes('updown')) return 9;
-          if (item.name.includes('streamtape')) return 10;
-          if (item.name.includes('filelion') || item.name.includes('earnvids')) return 11;
-          if (item.name.includes('tube') || item.sIndex === '0') return 12;
-          return 8;
+          if (item.name.includes('streamwish') || item.name.includes('streamhg') || item.sIndex === '2') return 7;
+          if (item.name.includes('updown')) return 8;
+          if (item.name.includes('streamtape')) return 9;
+          if (item.name.includes('tube') || item.sIndex === '0') return 10;
+          return 20;
         };
 
         serverItems.sort((a, b) => getRank(a) - getRank(b));
 
         for (const item of serverItems) {
+          if (isDeadOrBrokenHost(item.name)) continue;
           const stream = await this.fetchServer(item.id, item.sIndex);
-          if (stream && isValidStreamEmbed(stream)) {
+          if (stream && isValidStreamEmbed(stream) && !isDeadOrBrokenHost(stream)) {
             const serverLabel = item.name.toUpperCase() || `Server ${collectedServers.length + 1}`;
             collectedServers.push({ name: serverLabel, url: stream });
             if (!chosenStream) {
@@ -190,9 +189,9 @@ export class TopCinemaService {
           }
         }
 
-        if (!chosenStream && serverItems[0]) {
+        if (!chosenStream && serverItems[0] && !isDeadOrBrokenHost(serverItems[0].name)) {
           const fallbackStream = await this.fetchServer(serverItems[0].id, serverItems[0].sIndex);
-          if (fallbackStream && isValidStreamEmbed(fallbackStream)) {
+          if (fallbackStream && isValidStreamEmbed(fallbackStream) && !isDeadOrBrokenHost(fallbackStream)) {
             chosenStream = fallbackStream;
             collectedServers.push({ name: serverItems[0].name.toUpperCase() || 'Main Server', url: fallbackStream });
           }
@@ -202,7 +201,7 @@ export class TopCinemaService {
       // Fallback to iframe in HTML if Server.php didn't respond
       if (!chosenStream) {
         const iframeMatch = html.match(/<iframe[^>]+src="([^"]+)"/i);
-        if (iframeMatch && isValidStreamEmbed(iframeMatch[1])) {
+        if (iframeMatch && isValidStreamEmbed(iframeMatch[1]) && !isDeadOrBrokenHost(iframeMatch[1])) {
           chosenStream = iframeMatch[1];
           collectedServers.push({ name: 'Direct Embed', url: iframeMatch[1] });
         }

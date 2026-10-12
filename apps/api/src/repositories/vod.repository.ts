@@ -480,26 +480,134 @@ export class VodRepository {
     };
   }
 
-  async purgeInvalidStreams(): Promise<{ moviesDeleted: number; episodesDeleted: number }> {
+  /**
+   * Heal or purge all dead streams from movies & episodes
+   * 1. Heals items where stream_url is dead by promoting a working server from servers JSONB
+   * 2. Purges items that have zero working servers
+   */
+  async healAndPurgeDeadVod(): Promise<{ moviesHealed: number; moviesDeleted: number; episodesDeleted: number }> {
     const pool = getPool();
-    if (pool) {
-      try {
-        const epRes = await pool.query(
-          `DELETE FROM episodes WHERE stream_url ILIKE '%5tv.lol%' OR stream_url ILIKE '%topcinema.io%' OR stream_url ILIKE '%gamescdn.online%'`
-        );
-        const mRes = await pool.query(
-          `DELETE FROM movies WHERE stream_url ILIKE '%5tv.lol%' OR stream_url ILIKE '%topcinema.io%' OR stream_url ILIKE '%gamescdn.online%'`
-        );
-        return {
-          moviesDeleted: mRes.rowCount || 0,
-          episodesDeleted: epRes.rowCount || 0,
-        };
-      } catch (err: any) {
-        console.error('Error in purgeInvalidStreams:', err.message);
-        return { moviesDeleted: 0, episodesDeleted: 0 };
-      }
+    if (!pool) return { moviesHealed: 0, moviesDeleted: 0, episodesDeleted: 0 };
+
+    try {
+      // 1. Try to heal movies where stream_url is dead by selecting first working server from servers JSONB
+      const healRes = await pool.query(`
+        UPDATE movies
+        SET stream_url = sub.working_url, updated_at = NOW()
+        FROM (
+          SELECT id, (
+            SELECT elem->>'url'
+            FROM jsonb_array_elements(servers) as elem
+            WHERE elem->>'url' IS NOT NULL
+              AND elem->>'url' NOT ILIKE '%dood%'
+              AND elem->>'url' NOT ILIKE '%d0o0d%'
+              AND elem->>'url' NOT ILIKE '%d0000d%'
+              AND elem->>'url' NOT ILIKE '%do0od%'
+              AND elem->>'url' NOT ILIKE '%mystream%'
+              AND elem->>'url' NOT ILIKE '%dsvplay%'
+              AND elem->>'url' NOT ILIKE '%ds2play%'
+              AND elem->>'url' NOT ILIKE '%vidbem%'
+              AND elem->>'url' NOT ILIKE '%gamescdn%'
+              AND (
+                elem->>'url' ILIKE '%71stream%'
+                OR elem->>'url' ILIKE '%ult4vid%'
+                OR elem->>'url' ILIKE '%morencius%'
+                OR elem->>'url' ILIKE '%minochinos%'
+                OR elem->>'url' ILIKE '%callistanise%'
+                OR elem->>'url' ILIKE '%vidmoly%'
+                OR elem->>'url' ILIKE '%hgcloud%'
+                OR elem->>'url' ILIKE '%vidtube%'
+                OR elem->>'url' ILIKE '%ok.ru%'
+                OR elem->>'url' ILIKE '%.m3u8%'
+                OR elem->>'url' ILIKE '%.mp4%'
+              )
+            LIMIT 1
+          ) as working_url
+          FROM movies
+          WHERE stream_url ILIKE '%dood%'
+             OR stream_url ILIKE '%d0o0d%'
+             OR stream_url ILIKE '%d0000d%'
+             OR stream_url ILIKE '%do0od%'
+             OR stream_url ILIKE '%mystream%'
+             OR stream_url ILIKE '%dsvplay%'
+             OR stream_url ILIKE '%ds2play%'
+             OR stream_url ILIKE '%vidbem%'
+             OR stream_url ILIKE '%gamescdn%'
+        ) sub
+        WHERE movies.id = sub.id AND sub.working_url IS NOT NULL;
+      `);
+
+      const moviesHealed = healRes.rowCount || 0;
+
+      // 2. Delete remaining movies with completely dead streams
+      const mRes = await pool.query(`
+        DELETE FROM movies
+        WHERE stream_url ILIKE '%dood%'
+           OR stream_url ILIKE '%d0o0d%'
+           OR stream_url ILIKE '%d0000d%'
+           OR stream_url ILIKE '%do0od%'
+           OR stream_url ILIKE '%dooood%'
+           OR stream_url ILIKE '%mystream%'
+           OR stream_url ILIKE '%dsvplay%'
+           OR stream_url ILIKE '%ds2play%'
+           OR stream_url ILIKE '%ds2video%'
+           OR stream_url ILIKE '%vidbem%'
+           OR stream_url ILIKE '%vidshar%'
+           OR stream_url ILIKE '%vidbam%'
+           OR stream_url ILIKE '%goved%'
+           OR stream_url ILIKE '%2embed%'
+           OR stream_url ILIKE '%fembed%'
+           OR stream_url ILIKE '%youtube.com%'
+           OR stream_url ILIKE '%5drama%'
+           OR stream_url ILIKE '%5tv.asia%'
+           OR stream_url ILIKE '%5tv.fun%'
+           OR stream_url ILIKE '%5tv.lol%'
+           OR stream_url ILIKE '%topcinema.io%'
+           OR stream_url ILIKE '%gamescdn.online%'
+           OR stream_url ILIKE '%moshahda.net%'
+      `);
+
+      // 3. Delete remaining episodes with dead streams
+      const eRes = await pool.query(`
+        DELETE FROM episodes
+        WHERE stream_url ILIKE '%dood%'
+           OR stream_url ILIKE '%d0o0d%'
+           OR stream_url ILIKE '%d0000d%'
+           OR stream_url ILIKE '%do0od%'
+           OR stream_url ILIKE '%dooood%'
+           OR stream_url ILIKE '%mystream%'
+           OR stream_url ILIKE '%dsvplay%'
+           OR stream_url ILIKE '%ds2play%'
+           OR stream_url ILIKE '%ds2video%'
+           OR stream_url ILIKE '%vidbem%'
+           OR stream_url ILIKE '%vidshar%'
+           OR stream_url ILIKE '%vidbam%'
+           OR stream_url ILIKE '%goved%'
+           OR stream_url ILIKE '%2embed%'
+           OR stream_url ILIKE '%fembed%'
+           OR stream_url ILIKE '%youtube.com%'
+           OR stream_url ILIKE '%5drama%'
+           OR stream_url ILIKE '%5tv.asia%'
+           OR stream_url ILIKE '%5tv.fun%'
+           OR stream_url ILIKE '%5tv.lol%'
+           OR stream_url ILIKE '%topcinema.io%'
+           OR stream_url ILIKE '%gamescdn.online%'
+           OR stream_url ILIKE '%moshahda.net%'
+      `);
+
+      return {
+        moviesHealed,
+        moviesDeleted: mRes.rowCount || 0,
+        episodesDeleted: eRes.rowCount || 0,
+      };
+    } catch (err: any) {
+      console.error('[VodRepository] Error in healAndPurgeDeadVod:', err.message);
+      return { moviesHealed: 0, moviesDeleted: 0, episodesDeleted: 0 };
     }
-    return { moviesDeleted: 0, episodesDeleted: 0 };
+  }
+
+  async purgeInvalidStreams(): Promise<{ moviesDeleted: number; episodesDeleted: number; moviesHealed?: number }> {
+    return this.healAndPurgeDeadVod();
   }
 
   async wipeAllVod(): Promise<{ moviesDeleted: number; seriesDeleted: number; episodesDeleted: number }> {
