@@ -72,6 +72,7 @@ const SOURCE_ID_KOORA  = 'live-hunter-koora';
 //  LiveHunterService
 // ─────────────────────────────────────────────────────────────
 export class LiveHunterService {
+  private channelPageCache = new Map<string, string>();
 
   // ── HTTP helpers ─────────────────────────────────────────────
 
@@ -240,7 +241,8 @@ export class LiveHunterService {
           Accept: '*/*',
         };
 
-        if (/awqb0f40a9yo|7odxv0l067ka|lastvelvet|cuttingfame/i.test(cleanUrl) || referer?.includes('lastvelvet')) {
+        const isLv = /:8443|lastvelvet|cuttingfame|5gkygx509kqv|awqb0f40a9yo|7odxv0l067ka/i.test(cleanUrl) || referer?.includes('lastvelvet') || referer?.includes('cuttingfame');
+        if (isLv) {
           headers['Referer'] = 'https://lastvelvet.net/';
           headers['Origin'] = 'https://lastvelvet.net';
           headers['Sec-Fetch-Dest'] = 'empty';
@@ -482,25 +484,30 @@ export class LiveHunterService {
     // Try to get stream from current page first
     const direct = this.extractStreamUrl(html, pageUrl);
     if (direct) {
-      const ref = /awqb0f40a9yo|7odxv0l067ka|lastvelvet/i.test(direct)
-        ? 'https://lastvelvet.net/'
-        : pageUrl;
+      const isLv = /:8443|lastvelvet|cuttingfame|5gkygx509kqv|awqb0f40a9yo|7odxv0l067ka/i.test(direct);
+      const ref = isLv ? 'https://lastvelvet.net/' : pageUrl;
       return { streamUrl: direct, referer: ref };
     }
 
     // Direct Aflam4you shortcut: extract vid from pageUrl (e.g. ..._68.html or embed.php?vid=68)
     const vidMatch = pageUrl.match(/(?:_(\d+)\.html|vid=(\d+))/);
     const vid = vidMatch ? (vidMatch[1] || vidMatch[2]) : null;
-    if (vid && !pageUrl.includes('playerae.php') && !pageUrl.includes('lastvelvet')) {
+    if (vid && !pageUrl.includes('playeraf.php') && !pageUrl.includes('playerae.php') && !pageUrl.includes('lastvelvet')) {
       for (const serverNum of [1, 2, 3]) {
-        try {
-          const directPlayerUrl = `https://channel.aflam4you.net/playerae.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex55`;
-          const pResp = await this.fetchHtml(directPlayerUrl, `https://channel.aflam4you.net/embed.php?vid=${vid}`);
-          if (pResp?.body) {
-            const res = await this.resolveIframes(pResp.body, directPlayerUrl, depth + 1);
-            if (res) return res;
-          }
-        } catch { /* continue */ }
+        const candidateUrls = [
+          `https://channel.aflam4you.net/playeraf.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex1`,
+          `https://channel.aflam4you.net/zzremb472.php?vid=${vid}&aflam_s=${serverNum}&aflam_w=360&aflam_h=250&aflam_k=11zzz623324`,
+          `https://channel.aflam4you.net/playerae.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex55`,
+        ];
+        for (const directPlayerUrl of candidateUrls) {
+          try {
+            const pResp = await this.fetchHtml(directPlayerUrl, `https://channel.aflam4you.net/embed.php?vid=${vid}`);
+            if (pResp?.body) {
+              const res = await this.resolveIframes(pResp.body, directPlayerUrl, depth + 1);
+              if (res) return res;
+            }
+          } catch { /* continue */ }
+        }
       }
     }
 
@@ -943,17 +950,23 @@ export class LiveHunterService {
     const norm = stream.name.trim().toLowerCase();
     const existing = await channelRepository.findChannelByNormalizedName(norm).catch(() => null);
 
+    // Cache page URL for fast lookup
+    if (stream.pageUrl) {
+      this.channelPageCache.set(norm, stream.pageUrl);
+    }
+
     // If stream has a custom referer, append it as pipe header so FFmpeg relays it seamlessly
     let finalStreamUrl = stream.streamUrl;
     if (!finalStreamUrl.includes('|')) {
-      const parts = [`Referer=${stream.referer || 'https://lastvelvet.net/'}`];
-      if (stream.referer?.includes('lastvelvet') || /7odxv0l067ka|awqb0f40a9yo/i.test(stream.streamUrl)) {
+      const isLv = /:8443|lastvelvet|cuttingfame|5gkygx509kqv|awqb0f40a9yo|7odxv0l067ka/i.test(stream.streamUrl) || stream.referer?.includes('lastvelvet') || stream.referer?.includes('cuttingfame');
+      const parts = [`Referer=${stream.referer || (isLv ? 'https://lastvelvet.net/' : 'https://www.alokalive.com/')}`];
+      if (isLv) {
         parts.push('Origin=https://lastvelvet.net');
       }
       if (stream.pageUrl) {
         parts.push(`PageUrl=${encodeURIComponent(stream.pageUrl)}`);
       }
-      finalStreamUrl = `${stream.streamUrl}|${parts.join('&')}`;
+      finalStreamUrl = `${stream.streamUrl}|${parts.join('|')}`;
     }
 
     const payload = {
@@ -1011,6 +1024,14 @@ export class LiveHunterService {
   }
 
   /**
+   * Returns cached page URL for a channel by normalized name
+   */
+  public getCachedPageUrl(channelName: string): string | null {
+    if (!channelName) return null;
+    return this.channelPageCache.get(channelName.trim().toLowerCase()) || null;
+  }
+
+  /**
    * Resolves a fresh live stream URL on demand for a pageUrl / matchUrl
    */
   public async resolveFreshStream(pageUrl: string): Promise<{ streamUrl: string; referer: string } | null> {
@@ -1020,16 +1041,22 @@ export class LiveHunterService {
 
     if (vid) {
       for (const serverNum of [1, 2, 3]) {
-        try {
-          const directPlayerUrl = `https://channel.aflam4you.net/playerae.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex55`;
-          const pResp = await this.fetchHtml(directPlayerUrl, `https://channel.aflam4you.net/embed.php?vid=${vid}`);
-          if (pResp?.body) {
-            const res = await this.resolveIframes(pResp.body, directPlayerUrl);
-            if (res?.streamUrl) {
-              return res;
+        const candidateUrls = [
+          `https://channel.aflam4you.net/playeraf.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex1`,
+          `https://channel.aflam4you.net/zzremb472.php?vid=${vid}&aflam_s=${serverNum}&aflam_w=360&aflam_h=250&aflam_k=11zzz623324`,
+          `https://channel.aflam4you.net/playerae.php?vid=${vid}&aflam_s=${serverNum}&aflam_k=forex55`,
+        ];
+        for (const directPlayerUrl of candidateUrls) {
+          try {
+            const pResp = await this.fetchHtml(directPlayerUrl, `https://channel.aflam4you.net/embed.php?vid=${vid}`);
+            if (pResp?.body) {
+              const res = await this.resolveIframes(pResp.body, directPlayerUrl);
+              if (res?.streamUrl) {
+                return res;
+              }
             }
-          }
-        } catch { /* continue */ }
+          } catch { /* continue */ }
+        }
       }
     }
 

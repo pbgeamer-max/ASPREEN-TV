@@ -272,23 +272,55 @@ export async function createServer() {
     // Fallback for HLS (.m3u8) or non-HTTP streams (RTMP, RTSP, UDP): Spawn optimized FFmpeg
     return new Promise<void>((resolve) => {
       let actualUrl = inputUrl;
-      let headersStr = 'Connection: keep-alive\r\n';
+      const effectiveHeaders: Record<string, string> = {};
 
       if (actualUrl.includes('|')) {
-        const parts = actualUrl.split('|');
-        actualUrl = parts[0];
-        for (let i = 1; i < parts.length; i++) {
-          const eq = parts[i].indexOf('=');
+        const pipeIdx = actualUrl.indexOf('|');
+        const headerPart = actualUrl.substring(pipeIdx + 1);
+        actualUrl = actualUrl.substring(0, pipeIdx);
+
+        const pairs = headerPart.split(/[|&]/);
+        for (const pair of pairs) {
+          const eq = pair.indexOf('=');
           if (eq !== -1) {
-            headersStr += `${parts[i].substring(0, eq).trim()}: ${parts[i].substring(eq + 1).trim()}\r\n`;
+            const k = pair.substring(0, eq).trim();
+            const v = pair.substring(eq + 1).trim();
+            if (k && v) effectiveHeaders[k] = v;
           }
         }
       }
 
-      if (/awqb0f40a9yo|7odxv0l067ka|lastvelvet|cuttingfame/i.test(actualUrl)) {
-        headersStr += 'Referer: https://lastvelvet.net/\r\nOrigin: https://lastvelvet.net\r\nAccept: */*\r\nAccept-Language: en-US,en;q=0.9\r\nSec-Fetch-Dest: empty\r\nSec-Fetch-Mode: cors\r\nSec-Fetch-Site: cross-site\r\n';
-      } else if (/baranewssumsel|sportsurges|alokalive/i.test(actualUrl)) {
-        headersStr += 'Referer: https://www.alokalive.com/\r\nOrigin: https://www.alokalive.com\r\n';
+      const isLastVelvetCdn = 
+        /:8443(?:\/hls\/|$)/i.test(actualUrl) ||
+        /\.net:8443/i.test(actualUrl) ||
+        /lastvelvet|cuttingfame|5gkygx509kqv|awqb0f40a9yo|7odxv0l067ka/i.test(actualUrl) ||
+        (effectiveHeaders['Referer'] && /lastvelvet|cuttingfame/i.test(effectiveHeaders['Referer']));
+
+      if (isLastVelvetCdn) {
+        if (!effectiveHeaders['Referer'] || /baranewssumsel|alokalive/i.test(effectiveHeaders['Referer'])) {
+          effectiveHeaders['Referer'] = 'https://lastvelvet.net/';
+        }
+        effectiveHeaders['Origin'] = 'https://lastvelvet.net';
+        effectiveHeaders['Accept'] = '*/*';
+        effectiveHeaders['Accept-Language'] = 'en-US,en;q=0.9';
+        effectiveHeaders['Sec-Fetch-Dest'] = 'empty';
+        effectiveHeaders['Sec-Fetch-Mode'] = 'cors';
+        effectiveHeaders['Sec-Fetch-Site'] = 'cross-site';
+      } else if (/baranewssumsel|sportsurges|alokalive/i.test(actualUrl) || (effectiveHeaders['Referer'] && /alokalive/i.test(effectiveHeaders['Referer']))) {
+        if (!effectiveHeaders['Referer']) effectiveHeaders['Referer'] = 'https://www.alokalive.com/';
+        if (!effectiveHeaders['Origin']) effectiveHeaders['Origin'] = 'https://www.alokalive.com';
+      } else if (effectiveHeaders['Referer'] && !effectiveHeaders['Origin']) {
+        try {
+          effectiveHeaders['Origin'] = new URL(effectiveHeaders['Referer']).origin;
+        } catch {}
+      }
+
+      let headersStr = 'Connection: keep-alive\r\n';
+      for (const [k, v] of Object.entries(effectiveHeaders)) {
+        const lower = k.toLowerCase();
+        if (lower !== 'user-agent' && lower !== 'pageurl') {
+          headersStr += `${k}: ${v}\r\n`;
+        }
       }
 
       const ffmpegArgs = [

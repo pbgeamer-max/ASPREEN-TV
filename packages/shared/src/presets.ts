@@ -96,40 +96,58 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
       args.push('-http_proxy', params.proxyUrl);
     }
 
-    // Parse pipe headers syntax: url|Referer=...&Origin=...
+    // Parse pipe headers syntax: url|Referer=...&Origin=... or url|Referer=...|Origin=...
     let actualInputUrl = params.inputUrl;
     const effectiveHeaders: Record<string, string> = { ...(params.customHeaders || {}) };
 
     if (actualInputUrl.includes('|')) {
-      const parts = actualInputUrl.split('|');
-      actualInputUrl = parts[0];
-      for (let i = 1; i < parts.length; i++) {
-        const seg = parts[i];
-        const eqIdx = seg.indexOf('=');
+      const pipeIdx = actualInputUrl.indexOf('|');
+      const headerPart = actualInputUrl.substring(pipeIdx + 1);
+      actualInputUrl = actualInputUrl.substring(0, pipeIdx);
+
+      // Robustly split on both '|' and '&' delimiters
+      const pairs = headerPart.split(/[|&]/);
+      for (const pair of pairs) {
+        const eqIdx = pair.indexOf('=');
         if (eqIdx !== -1) {
-          const key = seg.substring(0, eqIdx).trim();
-          const val = seg.substring(eqIdx + 1).trim();
-          effectiveHeaders[key] = val;
+          const key = pair.substring(0, eqIdx).trim();
+          const val = pair.substring(eqIdx + 1).trim();
+          if (key && val) {
+            effectiveHeaders[key] = val;
+          }
         }
       }
     }
 
     const DEFAULT_BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 
-    // Auto-detect upstream requirements based on target host
-    if (/awqb0f40a9yo|7odxv0l067ka|lastvelvet|cuttingfame/i.test(actualInputUrl)) {
-      if (!effectiveHeaders['Referer']) effectiveHeaders['Referer'] = 'https://lastvelvet.net/';
-      if (!effectiveHeaders['Origin']) effectiveHeaders['Origin'] = 'https://lastvelvet.net';
-      if (!effectiveHeaders['Accept']) effectiveHeaders['Accept'] = '*/*';
-      if (!effectiveHeaders['Accept-Language']) effectiveHeaders['Accept-Language'] = 'en-US,en;q=0.9';
-      if (!effectiveHeaders['Sec-Fetch-Dest']) effectiveHeaders['Sec-Fetch-Dest'] = 'empty';
-      if (!effectiveHeaders['Sec-Fetch-Mode']) effectiveHeaders['Sec-Fetch-Mode'] = 'cors';
-      if (!effectiveHeaders['Sec-Fetch-Site']) effectiveHeaders['Sec-Fetch-Site'] = 'cross-site';
-      if (!effectiveHeaders['User-Agent']) effectiveHeaders['User-Agent'] = DEFAULT_BROWSER_UA;
-    } else if (/baranewssumsel|sportsurges|alokalive/i.test(actualInputUrl)) {
+    // Auto-detect upstream requirements based on target host or stream origin
+    const isLastVelvetCdn = 
+      /:8443(?:\/hls\/|$)/i.test(actualInputUrl) ||
+      /\.net:8443/i.test(actualInputUrl) ||
+      /lastvelvet|cuttingfame|5gkygx509kqv|awqb0f40a9yo|7odxv0l067ka/i.test(actualInputUrl) ||
+      (effectiveHeaders['Referer'] && /lastvelvet|cuttingfame/i.test(effectiveHeaders['Referer']));
+
+    if (isLastVelvetCdn) {
+      if (!effectiveHeaders['Referer'] || /baranewssumsel|alokalive/i.test(effectiveHeaders['Referer'])) {
+        effectiveHeaders['Referer'] = 'https://lastvelvet.net/';
+      }
+      effectiveHeaders['Origin'] = 'https://lastvelvet.net';
+      effectiveHeaders['Accept'] = '*/*';
+      effectiveHeaders['Accept-Language'] = 'en-US,en;q=0.9';
+      effectiveHeaders['Sec-Fetch-Dest'] = 'empty';
+      effectiveHeaders['Sec-Fetch-Mode'] = 'cors';
+      effectiveHeaders['Sec-Fetch-Site'] = 'cross-site';
+      effectiveHeaders['User-Agent'] = DEFAULT_BROWSER_UA;
+    } else if (/baranewssumsel|sportsurges|alokalive/i.test(actualInputUrl) || (effectiveHeaders['Referer'] && /alokalive/i.test(effectiveHeaders['Referer']))) {
       if (!effectiveHeaders['Referer']) effectiveHeaders['Referer'] = 'https://www.alokalive.com/';
       if (!effectiveHeaders['Origin']) effectiveHeaders['Origin'] = 'https://www.alokalive.com';
       if (!effectiveHeaders['User-Agent']) effectiveHeaders['User-Agent'] = DEFAULT_BROWSER_UA;
+    } else if (effectiveHeaders['Referer'] && !effectiveHeaders['Origin']) {
+      try {
+        const refUrl = new URL(effectiveHeaders['Referer']);
+        effectiveHeaders['Origin'] = refUrl.origin;
+      } catch {}
     }
 
     // Input reconnect flags and modern Chrome User-Agent for network HTTP/HTTPS streams
@@ -137,7 +155,8 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
       args.push('-user_agent', effectiveHeaders['User-Agent'] || DEFAULT_BROWSER_UA);
       let headersStr = 'Connection: keep-alive\r\n';
       for (const [k, v] of Object.entries(effectiveHeaders)) {
-        if (k.toLowerCase() !== 'user-agent') {
+        const lower = k.toLowerCase();
+        if (lower !== 'user-agent' && lower !== 'pageurl') {
           headersStr += `${k}: ${v}\r\n`;
         }
       }
@@ -150,9 +169,12 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
       args.push('-timeout', '10000000');
     } else if (Object.keys(effectiveHeaders).length > 0) {
       const headersStr = Object.entries(effectiveHeaders)
+        .filter(([k]) => k.toLowerCase() !== 'user-agent' && k.toLowerCase() !== 'pageurl')
         .map(([k, v]) => `${k}: ${v}\r\n`)
         .join('');
-      args.push('-headers', headersStr);
+      if (headersStr) {
+        args.push('-headers', headersStr);
+      }
     }
 
     // Optimize probe size and analyze duration for fast live stream startup

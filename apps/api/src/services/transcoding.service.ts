@@ -182,13 +182,26 @@ export class TranscodingService {
     }
 
     // Dynamic stream refresh for expiring tokens (aflam4you/koora_live or LastVelvet CDNs)
-    if (channel.sourceId === 'aflam4you/koora_live' || /7odxv0l067ka|awqb0f40a9yo|lastvelvet|cuttingfame/i.test(rawInputUrl)) {
-      const targetPage = channel.externalIdentifier || (rawInputUrl.includes('PageUrl=') ? decodeURIComponent(rawInputUrl.split('PageUrl=')[1].split('&')[0]) : null);
+    const isExpiringTokenStream = 
+      channel.sourceId === 'aflam4you/koora_live' ||
+      /:8443(?:\/hls\/|$)/i.test(rawInputUrl) ||
+      /\.net:8443/i.test(rawInputUrl) ||
+      /7odxv0l067ka|awqb0f40a9yo|5gkygx509kqv|lastvelvet|cuttingfame/i.test(rawInputUrl);
+
+    if (isExpiringTokenStream) {
+      let targetPage: string | null | undefined = channel.externalIdentifier;
+      if (!targetPage && rawInputUrl.includes('PageUrl=')) {
+        const m = rawInputUrl.match(/PageUrl=([^|&\s]+)/);
+        if (m) targetPage = decodeURIComponent(m[1]);
+      }
+      if (!targetPage) {
+        targetPage = liveHunterService.getCachedPageUrl(channel.name);
+      }
       if (targetPage) {
         try {
           const fresh = await liveHunterService.resolveFreshStream(targetPage);
           if (fresh?.streamUrl) {
-            rawInputUrl = `${fresh.streamUrl}|Referer=${fresh.referer || 'https://lastvelvet.net/'}&Origin=https://lastvelvet.net&PageUrl=${encodeURIComponent(targetPage)}`;
+            rawInputUrl = `${fresh.streamUrl}|Referer=${fresh.referer || 'https://lastvelvet.net/'}|Origin=https://lastvelvet.net|PageUrl=${encodeURIComponent(targetPage)}`;
             await channelRepository.updateChannel(channel.id, {
               encryptedInputUrl: encrypt(rawInputUrl),
             }).catch(() => {});
@@ -455,12 +468,19 @@ export class TranscodingService {
 
           try {
             if (isAuthOrLimitExceeded) {
-              const targetPage = channel.externalIdentifier || (params.rawInputUrl.includes('PageUrl=') ? decodeURIComponent(params.rawInputUrl.split('PageUrl=')[1].split('&')[0]) : null);
+              let targetPage: string | null | undefined = channel.externalIdentifier;
+              if (!targetPage && params.rawInputUrl.includes('PageUrl=')) {
+                const m = params.rawInputUrl.match(/PageUrl=([^|&\s]+)/);
+                if (m) targetPage = decodeURIComponent(m[1]);
+              }
+              if (!targetPage) {
+                targetPage = liveHunterService.getCachedPageUrl(channel.name);
+              }
               if (targetPage) {
-                console.log(`[Stream Healing] 🔄 Attempting dynamic stream re-resolution for "${channel.name}"...`);
+                console.log(`[Stream Healing] 🔄 Attempting dynamic stream re-resolution for "${channel.name}" (${targetPage})...`);
                 const fresh = await liveHunterService.resolveFreshStream(targetPage).catch(() => null);
                 if (fresh?.streamUrl) {
-                  const freshUrl = `${fresh.streamUrl}|Referer=${fresh.referer || 'https://lastvelvet.net/'}&Origin=https://lastvelvet.net&PageUrl=${encodeURIComponent(targetPage)}`;
+                  const freshUrl = `${fresh.streamUrl}|Referer=${fresh.referer || 'https://lastvelvet.net/'}|Origin=https://lastvelvet.net|PageUrl=${encodeURIComponent(targetPage)}`;
                   params.rawInputUrl = freshUrl;
                   await channelRepository.updateChannel(channel.id, {
                     encryptedInputUrl: encrypt(freshUrl),
