@@ -62,6 +62,7 @@ const DEAD_HOSTS = [
   'ok.ru', 'vidmoly.to', 'vidmoly.com', 'gamescdn.online',
   'vidembed.cc', 'vembed.net', 'mixdrop.co', 'fembed.com',
   'solidfiles.com', 'openload.co', 'oload.tv',
+  'proveouter.net', 'turneven.net', 'baranewssumsel.online',
 ];
 
 // Source IDs stored in DB so we can purge old entries per-source
@@ -506,10 +507,13 @@ export class LiveHunterService {
         const l2 = Buffer.from(l1, 'base64').toString('utf8');
         const lvMatch = l2.match(/https?:\/\/[^\s"'<>]+\/e\/[a-zA-Z0-9]+/);
         if (lvMatch) {
-          const resp = await this.fetchHtml(lvMatch[0], pageUrl);
-          if (resp?.body) {
-            const res = await this.resolveIframes(resp.body, lvMatch[0], depth + 1);
-            if (res) return res;
+          const lvUrl = lvMatch[0];
+          if (!DEAD_HOSTS.some((h) => lvUrl.includes(h))) {
+            const resp = await this.fetchHtml(lvUrl, pageUrl);
+            if (resp?.body) {
+              const res = await this.resolveIframes(resp.body, lvUrl, depth + 1);
+              if (res) return res;
+            }
           }
         }
       } catch { /* ignore */ }
@@ -746,7 +750,7 @@ export class LiveHunterService {
           result.errors.push(`${channelUrl}: ${err.message}`);
         }
       },
-      15
+      4
     );
 
     // Delete stale entries from previous scans for this source
@@ -844,50 +848,27 @@ export class LiveHunterService {
       return result;
     }
 
-    const matchArray = Array.from(matchLinks).slice(0, 35);
+    // Sort priority sports channels first so they resolve instantly
+    const priorityTerms = ['bein-sport', 'ssc', 'arryadia', 'abudhabi', 'alkass'];
+    const sortedMatches = Array.from(matchLinks).sort((a, b) => {
+      const aPri = priorityTerms.some((t) => a.toLowerCase().includes(t)) ? 0 : 1;
+      const bPri = priorityTerms.some((t) => b.toLowerCase().includes(t)) ? 0 : 1;
+      return aPri - bPri;
+    });
+    const matchArray = sortedMatches.slice(0, 25);
 
     await this.pMap(
       matchArray,
       async (matchUrl) => {
         try {
-          // Fast-path: extract vid directly from matchUrl
           const vidMatch = matchUrl.match(/(?:_(\d+)\.html|vid=(\d+))/);
           const vid = vidMatch ? (vidMatch[1] || vidMatch[2]) : null;
 
-          let matchName = 'مباراة مباشرة';
-          let thumbnail: string | undefined = undefined;
+          const matchName = this.formatArabicChannelName(matchUrl);
+          const thumbnail = vid ? `https://channel.aflam4you.net/uploads/thumbs/${vid}-social2.jpg` : undefined;
 
-          // Quick slug-based channel name fallback
-          const urlSlug = matchUrl.split('/').pop()?.replace(/_\d+\.html$/, '') || '';
-          if (urlSlug) {
-            matchName = urlSlug.replace(/-/g, ' ').trim();
-          }
-
-          const resp = await this.fetchHtml(matchUrl, 'https://channel.aflam4you.net/');
-          if (resp?.body) {
-            const titleMatch =
-              resp.body.match(/<title[^>]*>([^<]{5,100})<\/title>/i) ||
-              resp.body.match(/<h1[^>]*>([^<]{5,80})<\/h1>/i);
-            if (titleMatch) {
-              matchName = titleMatch[1]
-                .replace(/\s*[-|–]\s*(?:aflam4you|koora|مباشر).*$/i, '')
-                .replace(/\s*\|\s*.*$/, '')
-                .replace(/مشاهدة\s+قناة\s+/i, '')
-                .replace(/مشاهده\s+قناه\s+/i, '')
-                .trim();
-            }
-
-            const thumbMatch =
-              resp.body.match(/(?:poster|thumbnail|og:image)['":\s]+['"]([^'"]+)['"]/i) ||
-              resp.body.match(/<meta[^>]+(?:property=['"]og:image['"]|name=['"]thumbnail['"])[^>]+content=['"]([^'"]+)['"]/i);
-            thumbnail = thumbMatch ? this.normalizeUrl(thumbMatch[1], matchUrl) || undefined : undefined;
-          }
-
-          // Resolve stream (vid fast-path + deep iframe + lastvelvet decrypter)
-          const resolved = vid
-            ? await this.resolveFreshStream(matchUrl)
-            : (resp?.body ? await this.resolveIframes(resp.body, matchUrl) : null);
-
+          // Directly resolve fresh stream without wasting requests downloading match HTML
+          const resolved = await this.resolveFreshStream(matchUrl);
           if (!resolved) return;
 
           const { streamUrl, referer } = resolved;
@@ -916,7 +897,7 @@ export class LiveHunterService {
           result.errors.push(`${matchUrl}: ${err.message}`);
         }
       },
-      15
+      4
     );
 
     // Delete stale match entries safely (only if we scanned enough active channels)
@@ -1103,6 +1084,37 @@ export class LiveHunterService {
     if (/news|jazeera|arabiya|hadath|أخبار|إخبارية|حدث/.test(n)) return 'باقة الأخبار العربية';
     if (/quran|قرآن|إسلام|سنة/.test(n)) return 'باقة القنوات الإسلامية';
     return 'باقة القنوات العربية والمنوعة';
+  }
+
+  private formatArabicChannelName(url: string): string {
+    const slug = url.split('/').pop()?.replace(/_\d+\.html$/, '') || '';
+    if (/bein-?sport-?1\b/i.test(slug)) return 'قناة beIN Sports 1 HD';
+    if (/bein-?sport-?2\b/i.test(slug)) return 'قناة beIN Sports 2 HD';
+    if (/bein-?sport-?3\b/i.test(slug)) return 'قناة beIN Sports 3 HD';
+    if (/bein-?sport-?4\b/i.test(slug)) return 'قناة beIN Sports 4 HD';
+    if (/bein-?sport-?5\b/i.test(slug)) return 'قناة beIN Sports 5 HD';
+    if (/bein-?sport-?6\b/i.test(slug)) return 'قناة beIN Sports 6 HD';
+    if (/bein-?sport-?7\b/i.test(slug)) return 'قناة beIN Sports 7 HD';
+    if (/bein-?sport-?8\b/i.test(slug)) return 'قناة beIN Sports 8 HD';
+    if (/bein-?sport-?9\b/i.test(slug)) return 'قناة beIN Sports 9 HD';
+    if (/bein-?sport-?10\b/i.test(slug)) return 'قناة beIN Sports 10 HD';
+    if (/bein-?sport-?max-?1\b/i.test(slug)) return 'قناة beIN Sports Max 1 HD';
+    if (/bein-?sport-?max-?2\b/i.test(slug)) return 'قناة beIN Sports Max 2 HD';
+    if (/bein-?ports-?news\b/i.test(slug)) return 'قناة beIN Sports الإخبارية';
+    if (/arryadia/i.test(slug)) return 'قناة الرياضية المغربية (Arryadia SNRT)';
+    if (/ssc1\b/i.test(slug)) return 'قناة SSC 1 Sports HD';
+    if (/ssc2\b/i.test(slug)) return 'قناة SSC 2 Sports HD';
+    if (/ssc3\b/i.test(slug)) return 'قناة SSC 3 Sports HD';
+    if (/ssc4\b/i.test(slug)) return 'قناة SSC 4 Sports HD';
+    if (/ssc5\b/i.test(slug)) return 'قناة SSC 5 Sports HD';
+    if (/abudhabi-?sport-?3\b/i.test(slug)) return 'قناة أبوظبي الرياضية 3';
+    if (/alkass/i.test(slug)) return 'قناة الكأس الرياضية';
+
+    return slug
+      .replace(/-funding-tv$/i, '')
+      .replace(/-live$/i, '')
+      .replace(/-/g, ' ')
+      .trim() || 'مباراة مباشرة';
   }
 
   private extractOrderIndex(name: string): number {
