@@ -1,6 +1,25 @@
+/**
+ * ASPREEN TV - Channel Extractor
+ * By default runs the aflam4you.net extractor to pull all live channels from A to Z.
+ * Pass --xtream to extract from the Xtream IPTV server instead.
+ */
+
+const { spawn } = require('child_process');
+const path = require('path');
+
+if (!process.argv.includes('--xtream')) {
+  console.log('[ASPREEN TV] Running aflam4you extractor for all channels...');
+  const scriptPath = path.join(__dirname, 'extract_aflam4you_channels.js');
+  const child = spawn(process.execPath, [scriptPath, ...process.argv.slice(2)], {
+    stdio: 'inherit'
+  });
+  child.on('exit', (code) => process.exit(code || 0));
+  return;
+}
+
+// Legacy Xtream IPTV extraction (when --xtream is explicitly passed)
 const http = require('http');
 const fs = require('fs');
-const path = require('path');
 
 const USERNAME = 'AX02AV5XXDR2U2T';
 const PASSWORD = 'vgbghaS6N5';
@@ -28,10 +47,9 @@ function fetchJson(url) {
 }
 
 async function main() {
-  console.log('Connecting to IPTV server...');
+  console.log('Connecting to Xtream IPTV server...');
   const baseUrl = `http://${HOST}:${PORT}/player_api.php?username=${USERNAME}&password=${PASSWORD}`;
 
-  console.log('Fetching live categories...');
   const categories = await fetchJson(`${baseUrl}&action=get_live_categories`);
   const categoryMap = new Map();
   if (Array.isArray(categories)) {
@@ -39,13 +57,10 @@ async function main() {
       categoryMap.set(String(cat.category_id), cat.category_name);
     }
   }
-  console.log(`Loaded ${categoryMap.size} categories.`);
 
-  console.log('Fetching live streams...');
   const streams = await fetchJson(`${baseUrl}&action=get_live_streams`);
   console.log(`Loaded ${streams.length} live streams.`);
 
-  // Prepare M3U file
   const outPathM3u = path.join(__dirname, '..', 'channels.m3u');
   const outPathM3u8 = path.join(__dirname, '..', 'channels.m3u8');
   const outPathJson = path.join(__dirname, '..', 'channels.json');
@@ -64,7 +79,6 @@ async function main() {
     const urlTs = `http://${HOST}:${PORT}/live/${USERNAME}/${PASSWORD}/${streamId}.ts`;
     const urlM3u8 = `http://${HOST}:${PORT}/live/${USERNAME}/${PASSWORD}/${streamId}.m3u8`;
 
-    // Standard Extended M3U format
     linesM3u.push(
       `#EXTINF:-1 tvg-id="${epgId}" tvg-name="${name.replace(/"/g, "'")}" tvg-logo="${logo}" group-title="${categoryName.replace(/"/g, "'")}",${name}`
     );
@@ -87,19 +101,11 @@ async function main() {
     });
   }
 
-  console.log(`Writing channels.m3u (${linesM3u.length / 2} channels)...`);
   fs.writeFileSync(outPathM3u, linesM3u.join('\n'), 'utf-8');
-
-  console.log(`Writing channels.m3u8 (${linesM3u8.length / 2} channels)...`);
   fs.writeFileSync(outPathM3u8, linesM3u8.join('\n'), 'utf-8');
-
-  console.log(`Writing channels.json (${structuredList.length} channels)...`);
   fs.writeFileSync(outPathJson, JSON.stringify(structuredList, null, 2), 'utf-8');
 
-  console.log('Done! Files created successfully:');
-  console.log('- channels.m3u:', fs.statSync(outPathM3u).size, 'bytes');
-  console.log('- channels.m3u8:', fs.statSync(outPathM3u8).size, 'bytes');
-  console.log('- channels.json:', fs.statSync(outPathJson).size, 'bytes');
+  console.log('Xtream IPTV channels exported successfully.');
 }
 
 main().catch(err => {

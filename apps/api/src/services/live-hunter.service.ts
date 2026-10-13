@@ -843,17 +843,16 @@ export class LiveHunterService {
       errors: [],
     };
 
-    console.log('[LiveHunter] ⚽ بدء صيد مباريات koora_live ...');
+    console.log('[LiveHunter] ⚽ بدء صيد جميع قنوات koora_live من الألف إلى الياء...');
 
-    const indexPages = [
-      'https://channel.aflam4you.net/browse-watch-koora_live-tv-live-videos-1-date.html',
-      'https://channel.aflam4you.net/browse-watch-koora_live-tv-live-videos-2-date.html',
-      'https://channel.aflam4you.net/browse-watch-koora_live-tv-live-videos-3-date.html',
-    ];
+    interface ChannelMeta {
+      title?: string;
+      logo?: string;
+    }
 
-    const matchLinks = new Set<string>();
+    const matchLinks = new Map<string, ChannelMeta>();
 
-    // Pre-seed known core sports channels so they are always guaranteed to be hunted and refreshed
+    // Pre-seed known core sports channels so they are always guaranteed
     const knownBasePages = [
       'https://channel.aflam4you.net/bein-sport-1-live-bein-1-funding-tv_68.html',
       'https://channel.aflam4you.net/bein-sports-2-2026-bn2-funding-tv_2.html',
@@ -869,41 +868,54 @@ export class LiveHunterService {
       'https://channel.aflam4you.net/ssc-1-live-hd-tv-live-match-funding-tv_167.html',
     ];
     for (const kp of knownBasePages) {
-      matchLinks.add(kp);
+      matchLinks.set(kp, {});
     }
 
-    for (const pageUrl of indexPages) {
+    // Crawl all pages of sports category dynamically until no more pages exist
+    for (let page = 1; page <= 25; page++) {
+      const pageUrl = `https://channel.aflam4you.net/browse-watch-koora_live-tv-live-videos-${page}-date.html`;
       const resp = await this.fetchHtml(pageUrl, 'https://channel.aflam4you.net/');
-      if (!resp?.body) continue;
+      if (!resp?.body) break;
 
-      // Extract channels: ends with _\d+.html e.g. bein-sport-1-live-bein-1-funding-tv_68.html
-      const linkPatterns = [
-        /href=['"](https?:\/\/channel\.aflam4you\.net\/[^'"]+_\d+\.html)['"]/gi,
-        /href=['"](\/[^'"]+_\d+\.html)['"]/gi,
-        /\]\((https?:\/\/channel\.aflam4you\.net\/[^\s)]+_\d+\.html)/gi,
-        /(https?:\/\/channel\.aflam4you\.net\/[a-zA-Z0-9_-]+_\d+\.html)/gi,
-        /href=['"]([^'"]*(?:watch|video|live|match|stream)[^'"]*\.html)['"]/gi,
-      ];
+      let foundOnPage = 0;
+      const itemRegex = /<div class="pm-video-thumb">[\s\S]*?<a href="([^"]+)"(?:\s+title="([^"]*)")?[\s\S]*?<img src="([^"]+)"[^>]*alt="([^"]*)"/gi;
+      let m: RegExpExecArray | null;
 
-      for (const pattern of linkPatterns) {
-        let m: RegExpExecArray | null;
-        while ((m = pattern.exec(resp.body)) !== null) {
-          try {
-            const fullUrl = new URL(m[1], pageUrl).toString();
-            if (
-              fullUrl.includes('aflam4you.net') &&
-              !fullUrl.includes('browse-watch') &&
-              !fullUrl.includes('login') &&
-              !fullUrl.includes('register')
-            ) {
-              matchLinks.add(fullUrl);
-            }
-          } catch { /* ignore */ }
-        }
+      while ((m = itemRegex.exec(resp.body)) !== null) {
+        try {
+          const fullUrl = new URL(m[1], pageUrl).toString();
+          if (fullUrl.includes('aflam4you.net') && !fullUrl.includes('browse-watch')) {
+            const rawTitle = (m[4] || m[2] || '').trim();
+            const rawLogo = m[3] ? (m[3].startsWith('http') ? m[3] : 'https://channel.aflam4you.net' + m[3]) : undefined;
+            matchLinks.set(fullUrl, {
+              title: rawTitle,
+              logo: rawLogo,
+            });
+            foundOnPage++;
+          }
+        } catch { /* ignore */ }
+      }
+
+      // Fallback regex to capture any other channel links on page
+      const linkRegex = /href=['"]([^'"]*_(\d+)\.html)['"][^>]*>([^<]*)<\/a>/gi;
+      while ((m = linkRegex.exec(resp.body)) !== null) {
+        try {
+          const rawUrl = m[1];
+          if (rawUrl.includes('browse-watch') || rawUrl.includes('login') || rawUrl.includes('register')) continue;
+          const fullUrl = new URL(rawUrl, pageUrl).toString();
+          if (!matchLinks.has(fullUrl)) {
+            matchLinks.set(fullUrl, { title: (m[3] || '').trim() });
+            foundOnPage++;
+          }
+        } catch { /* ignore */ }
+      }
+
+      if (foundOnPage === 0) {
+        break; // Reached end of pagination
       }
     }
 
-    console.log(`[LiveHunter] ⚽ وجدت ${matchLinks.size} رابط مباراة/قناة من koora_live`);
+    console.log(`[LiveHunter] ⚽ إجمالي القنوات المكتشفة من koora_live: ${matchLinks.size} قناة.`);
     result.totalFound = matchLinks.size;
 
     if (matchLinks.size === 0) {
@@ -911,26 +923,29 @@ export class LiveHunterService {
       return result;
     }
 
-    // Sort priority sports channels first so they resolve instantly
+    // Sort priority sports channels first so they resolve quickly
     const priorityTerms = ['bein-sport', 'ssc', 'arryadia', 'abudhabi', 'alkass'];
-    const sortedMatches = Array.from(matchLinks).sort((a, b) => {
+    const sortedEntries = Array.from(matchLinks.entries()).sort(([a], [b]) => {
       const aPri = priorityTerms.some((t) => a.toLowerCase().includes(t)) ? 0 : 1;
       const bPri = priorityTerms.some((t) => b.toLowerCase().includes(t)) ? 0 : 1;
       return aPri - bPri;
     });
-    const matchArray = sortedMatches.slice(0, 25);
 
+    // Process ALL discovered channels from A to Z without truncating
     await this.pMap(
-      matchArray,
-      async (matchUrl) => {
+      sortedEntries,
+      async ([matchUrl, meta]) => {
         try {
           const vidMatch = matchUrl.match(/(?:_(\d+)\.html|vid=(\d+))/);
           const vid = vidMatch ? (vidMatch[1] || vidMatch[2]) : null;
 
-          const matchName = this.formatArabicChannelName(matchUrl);
-          const thumbnail = vid ? `https://channel.aflam4you.net/uploads/thumbs/${vid}-social2.jpg` : undefined;
+          const matchName = meta.title && meta.title.length > 2
+            ? meta.title.replace(/^مشاهدة\s+قناة\s+/i, '').replace(/^مشاهده\s+قناه\s+/i, '').replace(/^قناة\s+/i, '').trim()
+            : this.formatArabicChannelName(matchUrl);
 
-          // Directly resolve fresh stream without wasting requests downloading match HTML
+          const thumbnail = meta.logo || (vid ? `https://channel.aflam4you.net/uploads/thumbs/${vid}-1.jpg` : undefined);
+
+          // Resolve fresh stream from upstream CDN
           const resolved = await this.resolveFreshStream(matchUrl);
           if (!resolved) return;
 
@@ -955,17 +970,19 @@ export class LiveHunterService {
           else if (updated) result.updatedCount++;
           else result.skippedCount++;
 
-          console.log(`[LiveHunter] ⚽ ${matchName} → ${streamUrl.substring(0, 70)}...`);
+          console.log(`[LiveHunter] ⚽ [${result.streams.length}/${matchLinks.size}] ${matchName} → ${streamUrl.substring(0, 65)}...`);
         } catch (err: any) {
           result.errors.push(`${matchUrl}: ${err.message}`);
         }
       },
-      4
+      8
     );
 
-    // Delete stale match entries safely (only if we scanned enough active channels)
-    result.deletedOldCount = await this.purgeStaleEntries(SOURCE_ID_KOORA, result.streams.map((s) => s.name));
-    console.log(`[LiveHunter] ✅ koora_live — تم إضافة ${result.addedCount}, تحديث ${result.updatedCount}, حذف ${result.deletedOldCount}`);
+    // Only purge stale entries if we found a healthy number of channels (>= 20)
+    if (result.streams.length >= 20) {
+      result.deletedOldCount = await this.purgeStaleEntries(SOURCE_ID_KOORA, result.streams.map((s) => s.name));
+    }
+    console.log(`[LiveHunter] ✅ koora_live — تم إضافة ${result.addedCount}, تحديث ${result.updatedCount}, حذف ${result.deletedOldCount}, المجموع الحي ${result.streams.length}`);
 
     return result;
   }
