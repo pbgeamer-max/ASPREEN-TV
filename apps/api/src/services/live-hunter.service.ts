@@ -1022,29 +1022,7 @@ export class LiveHunterService {
     sourceId: string
   ): Promise<{ added: boolean; updated: boolean }> {
     const norm = stream.name.trim().toLowerCase();
-    let existing = await channelRepository.findChannelByNormalizedName(norm).catch(() => null);
-
-    if (!existing) {
-      // Fuzzy lookup by key identifiers to update existing channels imported under slight name variations
-      const all = await channelRepository.listChannels().catch(() => []);
-      existing = all.find((c) => {
-        const cn = c.normalizedName;
-        if (cn === norm) return true;
-        if (norm.includes('bein sports 1') && (cn.includes('bein sport 1') || cn.includes('bein sports 1'))) return true;
-        if (norm.includes('bein sports 2') && (cn.includes('bein sport 2') || cn.includes('bein sports 2'))) return true;
-        if (norm.includes('bein sports 3') && (cn.includes('bein sport 3') || cn.includes('bein sports 3'))) return true;
-        if (norm.includes('bein sports 4') && (cn.includes('bein sport 4') || cn.includes('bein sports 4'))) return true;
-        if (norm.includes('bein sports 5') && (cn.includes('bein sport 5') || cn.includes('bein sports 5'))) return true;
-        if (norm.includes('bein sports 6') && (cn.includes('bein sport 6') || cn.includes('bein sports 6'))) return true;
-        if (norm.includes('bein sports 7') && (cn.includes('bein sport 7') || cn.includes('bein sports 7'))) return true;
-        if (norm.includes('bein sports 8') && (cn.includes('bein sport 8') || cn.includes('bein sports 8'))) return true;
-        if (norm.includes('max 1') && (cn.includes('max 1') || cn.includes('max1'))) return true;
-        if (norm.includes('max 2') && (cn.includes('max 2') || cn.includes('max2'))) return true;
-        if (norm.includes('arryadia') && cn.includes('arryadia')) return true;
-        if (norm.includes('ssc 1') && cn.includes('ssc 1')) return true;
-        return false;
-      }) || null;
-    }
+    const existing = await channelRepository.findChannelByNormalizedName(norm).catch(() => null);
 
     // Cache page URL for fast lookup
     if (stream.pageUrl) {
