@@ -119,7 +119,7 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
       }
     }
 
-    const DEFAULT_BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+    const DEFAULT_BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
 
     // Auto-detect upstream requirements based on target host or stream origin
     const isCuttingFame = /cuttingfame/i.test(actualInputUrl) || (effectiveHeaders['Referer'] && /cuttingfame/i.test(effectiveHeaders['Referer']));

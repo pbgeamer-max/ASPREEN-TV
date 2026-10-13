@@ -330,7 +330,7 @@ export async function createServer() {
         '-icy', '0',
         '-seekable', '0',
         '-multiple_requests', '1',
-        '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
         '-headers', headersStr,
         '-probesize', '1000000',
         '-analyzeduration', '1000000',
