@@ -931,47 +931,66 @@ export class LiveHunterService {
     result.deletedOldCount = deletedCount;
     console.log(`[LiveHunter] 🗑️ تم حذف ${deletedCount} قناة سابقة بنجاح.`);
 
-    // Sort priority sports channels first so they resolve quickly
-    const priorityTerms = ['bein-sport', 'ssc', 'arryadia', 'abudhabi', 'alkass'];
-    const sortedEntries = Array.from(matchLinks.entries()).sort(([a], [b]) => {
-      const aPri = priorityTerms.some((t) => a.toLowerCase().includes(t)) ? 0 : 1;
-      const bPri = priorityTerms.some((t) => b.toLowerCase().includes(t)) ? 0 : 1;
-      return aPri - bPri;
-    });
+    // Deduplicate by cleanName first so each of the 101 channels is processed exactly once
+    interface DeduplicatedChannel {
+      matchUrl: string;
+      meta: ChannelMeta;
+      cleanName: string;
+      group: string;
+      order: number;
+      vid: string | null;
+    }
 
-    // Process ALL discovered channels from A to Z without truncating
+    const uniqueChannels = new Map<string, DeduplicatedChannel>();
+    for (const [matchUrl, meta] of matchLinks.entries()) {
+      const vidMatch = matchUrl.match(/(?:_(\d+)\.html|vid=(\d+))/);
+      const vid = vidMatch ? (vidMatch[1] || vidMatch[2]) : null;
+      const { name: cleanName, group, order } = this.classifyAndOrderSportChannel(
+        meta.title || '',
+        matchUrl
+      );
+      if (!uniqueChannels.has(cleanName)) {
+        uniqueChannels.set(cleanName, { matchUrl, meta, cleanName, group, order, vid });
+      }
+    }
+
+    const sortedEntries = Array.from(uniqueChannels.values()).sort((a, b) => a.order - b.order);
+    console.log(`[LiveHunter] ⚽ إجمالي القنوات الفريدة بعد التصفية والتصنيف: ${sortedEntries.length} قناة.`);
+
+    // Process ALL discovered channels from A to Z without dropping any channel
     await this.pMap(
       sortedEntries,
-      async ([matchUrl, meta]) => {
+      async (item) => {
         try {
-          const vidMatch = matchUrl.match(/(?:_(\d+)\.html|vid=(\d+))/);
-          const vid = vidMatch ? (vidMatch[1] || vidMatch[2]) : null;
-
-          const { name: cleanName, group, order } = this.classifyAndOrderSportChannel(
-            meta.title || '',
-            matchUrl
-          );
-
-          const thumbnail = meta.logo || (vid ? `https://channel.aflam4you.net/uploads/thumbs/${vid}-1.jpg` : undefined);
+          const thumbnail = item.meta.logo || (item.vid ? `https://channel.aflam4you.net/uploads/thumbs/${item.vid}-1.jpg` : undefined);
 
           // Resolve fresh stream from upstream CDN
-          const resolved = await this.resolveFreshStream(matchUrl);
-          if (!resolved) return;
+          let streamUrl: string;
+          let referer: string = 'https://lastvelvet.net/';
+          let isLive = false;
 
-          const { streamUrl, referer } = resolved;
-          const alive = await this.verifyStream(streamUrl, referer);
-          if (!alive) return;
+          const resolved = await this.resolveFreshStream(item.matchUrl);
+          if (resolved?.streamUrl) {
+            streamUrl = resolved.streamUrl;
+            referer = resolved.referer || referer;
+            isLive = true;
+          } else {
+            // Reliable fallback player so the channel is NEVER lost even before match kick-off
+            streamUrl = `https://channel.aflam4you.net/playeraf.php?vid=${item.vid || '1'}&aflam_s=1&aflam_k=forex1`;
+            referer = 'https://channel.aflam4you.net/';
+            isLive = false;
+          }
 
           const stream: HuntedStream = {
-            name: cleanName,
+            name: item.cleanName,
             streamUrl,
-            pageUrl: matchUrl,
-            category: group,
-            groupTitle: group,
-            orderIndex: order,
+            pageUrl: item.matchUrl,
+            category: item.group,
+            groupTitle: item.group,
+            orderIndex: item.order,
             logo: thumbnail,
-            referer: referer || 'https://lastvelvet.net/',
-            isLive: true,
+            referer,
+            isLive,
           };
 
           result.streams.push(stream);
@@ -981,9 +1000,9 @@ export class LiveHunterService {
           else if (updated) result.updatedCount++;
           else result.skippedCount++;
 
-          console.log(`[LiveHunter] ⚽ [${result.streams.length}/${matchLinks.size}] ${cleanName} (#${order}) → ${streamUrl.substring(0, 65)}...`);
+          console.log(`[LiveHunter] ⚽ [${result.streams.length}/${sortedEntries.length}] ${item.cleanName} (#${item.order}) → ${isLive ? '🟢 Live' : '🟡 Standby'}`);
         } catch (err: any) {
-          result.errors.push(`${matchUrl}: ${err.message}`);
+          result.errors.push(`${item.matchUrl}: ${err.message}`);
         }
       },
       8
