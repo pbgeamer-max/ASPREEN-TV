@@ -33,6 +33,7 @@ import { topCinemaService } from './services/topcinema.service';
 import { fiveTvService } from './services/fivetv.service';
 import { autoPilotService } from './services/auto-pilot.service';
 import { liveHunterService } from './services/live-hunter.service';
+import { oscarSyncService } from './services/oscar-sync.service';
 import { tokenRepository } from './repositories/token.repository';
 import { channelRepository } from './repositories/channel.repository';
 import { settingsRepository } from './repositories/settings.repository';
@@ -146,8 +147,8 @@ export async function createServer() {
     await transcodingService.stopOtherChannelsOnSource(channel.sourceId, channel.id);
 
     // Direct, instant HTTP/HTTPS streaming relay for raw TS streams (<50ms delay, zero FFmpeg overhead)
-    // If input is an HLS playlist (.m3u8), delegate to FFmpeg remuxer below so players receive continuous MPEG-TS
-    if (/^https?:\/\//i.test(inputUrl) && !inputUrl.includes('.m3u8')) {
+    // If input is an HLS playlist (.m3u8 or disguised .css), delegate to FFmpeg remuxer below so players receive continuous MPEG-TS
+    if (/^https?:\/\//i.test(inputUrl) && !inputUrl.includes('.m3u8') && !inputUrl.includes('.css')) {
       return new Promise<void>((resolve) => {
         let isResolved = false;
         const done = () => {
@@ -325,14 +326,24 @@ export async function createServer() {
         }
       }
 
+      const isOscarStream =
+        actualUrl.includes('.css') ||
+        actualUrl.includes('workers.dev') ||
+        effectiveHeaders['User-Agent'] === 'OSCARTV2021';
+
+      const uaToUse = isOscarStream
+        ? 'OSCARTV2021'
+        : (effectiveHeaders['User-Agent'] || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+
       const ffmpegArgs = [
         '-hide_banner',
         '-loglevel', 'warning',
         '-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls',
+        ...(isOscarStream ? ['-allowed_segment_extensions', 'ALL', '-extension_picky', '0', '-f', 'hls'] : []),
         '-icy', '0',
         '-seekable', '0',
         '-multiple_requests', '1',
-        '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        '-user_agent', uaToUse,
         '-headers', headersStr,
         '-probesize', '1000000',
         '-analyzeduration', '1000000',
@@ -526,6 +537,7 @@ async function start() {
       fiveTvService.startAutoUpdater(30);
       autoPilotService.start(3);
       liveHunterService.updateAllExistingLogos().catch(() => {});
+      oscarSyncService.syncChannelsToDb().catch(() => {});
     } catch (e: any) {
       console.warn('[Services] Service init warning:', e.message);
     }

@@ -1,0 +1,127 @@
+#EXTM3U
+#EXTINF:-1 group-title="Live TV" tvg-name="beIN Sports 1",beIN Sports 1
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn87tc/OamamFJZLcq5Y3l1ZcJu-AdH37e/xui/assets/79768337/22315546/1319.css
+#EXTINF:-1 group-title="Live TV" tvg-name="beIN Sports 2",beIN Sports 2
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn87tc/OamamFJZLcq5Y3l1ZcJu-AdH37e/xui/assets/79768337/22315546/1319.css
+#EXTINF:-1 group-title="Live TV" tvg-name="beIN Sports 3",beIN Sports 3
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn87tc/OamamFJZLcq5Y3l1ZcJu-AdH37e/xui/assets/79768337/22315546/1319.css
+#EXTINF:-1 group-title="Live TV" tvg-name="beIN Sports 4",beIN Sports 4
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn87ub/9OVQWSECL5IY1zUiBP-8RPrm1nJ/xui/assets/79768337/22315546/1346.css
+#EXTINF:-1 group-title="Live TV" tvg-name="beIN Sports 5",beIN Sports 5
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn87un/PEtgj3_uOXV8NE-f6vQxbPy0y2Y/xui/assets/79768337/22315546/1355.css
+#EXTINF:-1 group-title="Live TV" tvg-name="beIN Sports 6",beIN Sports 6
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn87uz/X-mOt-hBYA424VqRoxksNszEezN/xui/assets/79768337/22315546/1364.css
+#EXTINF:-1 group-title="بي إن سبورتس" tvg-name="StarzPlay Sports 1",StarzPlay Sports 1
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn88iu/GGTASRyPSlsESxbxVWdXBWzgMPh/xui/assets/79768337/22315546/641.css
+#EXTINF:-1 group-title="بي إن سبورتس" tvg-name="StarzPlay Sports 2",StarzPlay Sports 2
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn88j7/lJmkod7_tQJQBzRdjo4G1ShKiPA/xui/assets/79768337/22315546/647.css
+#EXTINF:-1 group-title="بي إن سبورتس" tvg-name="StarzPlay Sports 3",StarzPlay Sports 3
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn88jj/bS-_Znd-dMGWdT6SIG-GjcTIQLP/xui/assets/79768337/22315546/653.css
+#EXTINF:-1 group-title="بي إن سبورتس" tvg-name="الرابعة",الرابعة
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn88jw/U4ARFks0Inkf4cSYRpAfjn53ICn/xui/assets/79768337/22315546/38.css
+#EXTINF:-1 group-title="بي إن سبورتس" tvg-name="باب الحارة",باب الحارة
+https://shd-amg-fast.edgenextcdn.net/tx010/playlist.m3u8
+#EXTINF:-1 group-title="بي إن سبورتس" tvg-name="شاشا 1",شاشا 1
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn88kp/avDxfQX7rpHeZ3pAgAtEpW_y-ff/xui/assets/79768337/22315546/1604.css
+#EXTINF:-1 group-title="Live TV" tvg-name="شاشا 2",شاشا 2
+https://213368-castr.akamaized.net/65bdf582e043b56b0868a081/live_1d3b9f50d68011f0891ac1acf28a6858/index.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="CBC",CBC
+https://fastly.live.brightcove.com/1843521364865282260/eu-central-1/6057955906001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXltc3VjLmVncmVzcy5haGc3NmwiLCJhY2NvdW50X2lkIjoiNjA1Nzk1NTkwNjAwMSIsImVobiI6ImZhc3RseS5saXZlLmJyaWdodGNvdmUuY29tIiwiaXNzIjoiYmxpdmUtcGxheWJhY2stc291cmNlLWFwaSIsInN1YiI6InBhdGhtYXB0b2tlbiIsImF1ZCI6WyI2MDU3OTU1OTA2MDAxIl0sImp0aSI6IjE4NDM1MjEzNjQ4NjUyODIyNjAifQ.0dAr9XfheySFlNSKyHmeaasEMRIr-eZhJXZkoB1nzu4/playlist-hls.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="CBC Drama",CBC Drama
+https://fastly.live.brightcove.com/1843521364865282260/eu-central-1/6057955906001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXltc3VjLmVncmVzcy5haGc3NmwiLCJhY2NvdW50X2lkIjoiNjA1Nzk1NTkwNjAwMSIsImVobiI6ImZhc3RseS5saXZlLmJyaWdodGNvdmUuY29tIiwiaXNzIjoiYmxpdmUtcGxheWJhY2stc291cmNlLWFwaSIsInN1YiI6InBhdGhtYXB0b2tlbiIsImF1ZCI6WyI2MDU3OTU1OTA2MDAxIl0sImp0aSI6IjE4NDM1MjEzNjQ4NjUyODIyNjAifQ.0dAr9XfheySFlNSKyHmeaasEMRIr-eZhJXZkoB1nzu4/playlist-hls.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="CN بالعربية",CN بالعربية
+https://fastly.live.brightcove.com/1843521364865282260/eu-central-1/6057955906001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXltc3VjLmVncmVzcy5haGc3NmwiLCJhY2NvdW50X2lkIjoiNjA1Nzk1NTkwNjAwMSIsImVobiI6ImZhc3RseS5saXZlLmJyaWdodGNvdmUuY29tIiwiaXNzIjoiYmxpdmUtcGxheWJhY2stc291cmNlLWFwaSIsInN1YiI6InBhdGhtYXB0b2tlbiIsImF1ZCI6WyI2MDU3OTU1OTA2MDAxIl0sImp0aSI6IjE4NDM1MjEzNjQ4NjUyODIyNjAifQ.0dAr9XfheySFlNSKyHmeaasEMRIr-eZhJXZkoB1nzu4/playlist-hls.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="DMC",DMC
+https://fastly.live.brightcove.com/1843521364865282260/eu-central-1/6057955906001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXltc3VjLmVncmVzcy5haGc3NmwiLCJhY2NvdW50X2lkIjoiNjA1Nzk1NTkwNjAwMSIsImVobiI6ImZhc3RseS5saXZlLmJyaWdodGNvdmUuY29tIiwiaXNzIjoiYmxpdmUtcGxheWJhY2stc291cmNlLWFwaSIsInN1YiI6InBhdGhtYXB0b2tlbiIsImF1ZCI6WyI2MDU3OTU1OTA2MDAxIl0sImp0aSI6IjE4NDM1MjEzNjQ4NjUyODIyNjAifQ.0dAr9XfheySFlNSKyHmeaasEMRIr-eZhJXZkoB1nzu4/playlist-hls.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="DMC Drama",DMC Drama
+https://fastly.live.brightcove.com/1843521364865282260/eu-central-1/6057955906001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXltc3VjLmVncmVzcy5haGc3NmwiLCJhY2NvdW50X2lkIjoiNjA1Nzk1NTkwNjAwMSIsImVobiI6ImZhc3RseS5saXZlLmJyaWdodGNvdmUuY29tIiwiaXNzIjoiYmxpdmUtcGxheWJhY2stc291cmNlLWFwaSIsInN1YiI6InBhdGhtYXB0b2tlbiIsImF1ZCI6WyI2MDU3OTU1OTA2MDAxIl0sImp0aSI6IjE4NDM1MjEzNjQ4NjUyODIyNjAifQ.0dAr9XfheySFlNSKyHmeaasEMRIr-eZhJXZkoB1nzu4/playlist-hls.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="LBC",LBC
+https://rotana.hibridcdn.net/rotananet/lbc_net-7Y83PP5adWixDF93/playlist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="MBC Persia",MBC Persia
+https://rotana.hibridcdn.net/rotananet/lbc_net-7Y83PP5adWixDF93/playlist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="Mix Hollywood",Mix Hollywood
+https://ml-pull-hwc.myco.io/MixTV/hls/index.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="Mix One",Mix One
+https://ml-pull-hwc.myco.io/MixONE/hls/index.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="Movies Action",Movies Action
+https://shd-amg-fast.edgenextcdn.net/tx011/playlist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="Movies Thriller",Movies Thriller
+https://shd-amg-fast.edgenextcdn.net/tx012/playlist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="ON Drama",ON Drama
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89qj/h_GPfwd8A3UIpgU3FdsCzCbVrTa/xui/assets/79768337/22315546/50.css
+#EXTINF:-1 group-title="Live TV" tvg-name="ON TV",ON TV
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89qj/h_GPfwd8A3UIpgU3FdsCzCbVrTa/xui/assets/79768337/22315546/50.css
+#EXTINF:-1 group-title="Live TV" tvg-name="PNC Drama",PNC Drama
+https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e8376bd8417a1b6761138aa41c26c7309312/pnc-drama/master.m3u8?ads.vf=xdliEBYtdWS
+#EXTINF:-1 group-title="Live TV" tvg-name="SBC",SBC
+https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e8376bd8417a1b6761138aa41c26c7309312/pnc-drama/master.m3u8?ads.vf=xdliEBYtdWS
+#EXTINF:-1 group-title="Live TV" tvg-name="Spacetoon Arabic",Spacetoon Arabic
+https://live-uae-next.spacetoongo.com/ST_MENA_NEXT/hls/r9p2hjipmw2kl.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="STC",STC
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89sa/VJan2001LXFrxo67ywAs90AnEg3/xui/assets/79768337/22315546/446.css
+#EXTINF:-1 group-title="Live TV" tvg-name="ZEE Aflam",ZEE Aflam
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89sn/u_P9bZSCEz6_InqeYifU8UUFbqc/xui/assets/79768337/22315546/1136.css
+#EXTINF:-1 group-title="Live TV" tvg-name="ZEE Alwan",ZEE Alwan
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89t0/9dQcGRgXUARlF3uMcFPF-AJHV9E/xui/assets/79768337/22315546/1133.css
+#EXTINF:-1 group-title="Live TV" tvg-name="أبو ظبي الرياضية 1",أبو ظبي الرياضية 1
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89tc/qq_c0Wb2hW9tsyPBqbyJozgi86i/xui/assets/79768337/22315546/416.css
+#EXTINF:-1 group-title="Live TV" tvg-name="أبو ظبي الرياضية 2",أبو ظبي الرياضية 2
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89tu/Qq0cDHhZQMSz56cZW-Vh0Dujful/xui/assets/79768337/22315546/419.css
+#EXTINF:-1 group-title="Live TV" tvg-name="أفلام",أفلام
+https://shd-amg-fast.edgenextcdn.net/tx001/playlist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="أنا سوريا",أنا سوريا
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89uj/dr9jrYm9bsKyFz1-thvXlhKcOKn/xui/assets/79768337/22315546/755.css
+#EXTINF:-1 group-title="Live TV" tvg-name="السعودية الرياضية 1",السعودية الرياضية 1
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89v0/ZYle-gYrDAvxawSKBXqxC69eiie/xui/assets/79768337/22315546/1595.css
+#EXTINF:-1 group-title="Live TV" tvg-name="السعودية الرياضية 2",السعودية الرياضية 2
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89vd/RlgTjgL20Y0u-MEg5q29pQvGvxV/xui/assets/79768337/22315546/1598.css
+#EXTINF:-1 group-title="Live TV" tvg-name="السعودية الرياضية 3",السعودية الرياضية 3
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89vq/Kkk487zU0JXCxzaKbCQnJh85sQH/xui/assets/79768337/22315546/1601.css
+#EXTINF:-1 group-title="Live TV" tvg-name="الشارقة الرياضية",الشارقة الرياضية
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89w7/sShlYGo1l8nAFexYzObQunhwekd/xui/assets/79768337/22315546/434.css
+#EXTINF:-1 group-title="Live TV" tvg-name="الكويت الرياضية 1",الكويت الرياضية 1
+https://kwtspta.cdn.mangomolo.com/sp/smil:sp.stream.smil/chunklist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="الكويت الرياضية 2",الكويت الرياضية 2
+https://kwtsplta.cdn.mangomolo.com/spl/smil:spl.stream.smil/chunklist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="المغربية الرياضية",المغربية الرياضية
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89x9/w7YXMyYzFqx4EBD7XQ6noz9W6UQ/xui/assets/79768337/22315546/443.css
+#EXTINF:-1 group-title="Live TV" tvg-name="النهار",النهار
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89xm/SNlcz9bi3xj9BanXAS5PS6Za74K/xui/assets/79768337/22315546/59.css
+#EXTINF:-1 group-title="Live TV" tvg-name="الوطنية 1",الوطنية 1
+https://sw1.tanitweb.net/TunisiaTV/_definst_/watania1/chunklist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="الوطنية 2",الوطنية 2
+https://sw1.tanitweb.net/TunisiaTV/_definst_/watania2/playlist.m3u8?DVR
+#EXTINF:-1 group-title="Live TV" tvg-name="براعم",براعم
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89yt/_7BB8bp38Z14402_SeBl4Ua-e-j/xui/assets/79768337/22315546/512.css
+#EXTINF:-1 group-title="Live TV" tvg-name="جيم JEEM TV",جيم JEEM TV
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89z6/AATeSwKZv_gTuxMkgskjC7TJkbs/xui/assets/79768337/22315546/62.css
+#EXTINF:-1 group-title="Live TV" tvg-name="دبي الرياضية 1",دبي الرياضية 1
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89z6/AATeSwKZv_gTuxMkgskjC7TJkbs/xui/assets/79768337/22315546/62.css
+#EXTINF:-1 group-title="Live TV" tvg-name="دبي الرياضية 2",دبي الرياضية 2
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn89zv/LhADGfMQ9yyQMBYGQg-V87fuf99/xui/assets/79768337/22315546/1619.css
+#EXTINF:-1 group-title="Live TV" tvg-name="دبي الرياضية 3",دبي الرياضية 3
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn8a08/s-8h-hDK4v9-hhWyyvt0W-AX-jb/xui/assets/79768337/22315546/1622.css
+#EXTINF:-1 group-title="Live TV" tvg-name="روتانا Kids",روتانا Kids
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn8a0q/FwCLL4KCPMVcejBBdKU0u548d9Z/xui/assets/79768337/22315546/65.css
+#EXTINF:-1 group-title="Live TV" tvg-name="روتانا خليجية",روتانا خليجية
+https://rotana.hibridcdn.net/rotananet/khaleejiya_net-7Y83PP5adWixDF93/playlist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="روتانا دراما",روتانا دراما
+https://rotana.hibridcdn.net/rotananet/drama_net-7Y83PP5adWixDF93/playlist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="روتانا سينما السعودية",روتانا سينما السعودية
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn8a1s/Y3mkLAcZcvPoFKXFAu0t3QvWVlU/xui/assets/79768337/22315546/71.css
+#EXTINF:-1 group-title="Live TV" tvg-name="روتانا سينما مصر",روتانا سينما مصر
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn8a1s/Y3mkLAcZcvPoFKXFAu0t3QvWVlU/xui/assets/79768337/22315546/71.css
+#EXTINF:-1 group-title="Live TV" tvg-name="روتانا كلاسيك",روتانا كلاسيك
+https://rotana.hibridcdn.net/rotananet/classical_net-7Y83PP5adWixDF93/playlist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="روتانا كليب",روتانا كليب
+https://rotana.hibridcdn.net/rotananet/clip_net-7Y83PP5adWixDF93/playlist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="روتانا كوميدي",روتانا كوميدي
+https://rotana.hibridcdn.net/rotananet/comedy_net-7Y83PP5adWixDF93/playlist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="روتانا موسيقى",روتانا موسيقى
+https://rotana.hibridcdn.net/rotananet/music_net-7Y83PP5adWixDF93/playlist.m3u8
+#EXTINF:-1 group-title="Live TV" tvg-name="صدى البلد",صدى البلد
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn8a40/RhYwPKkOsospq1QNRN9i8Tpm0Pi/xui/assets/79768337/22315546/74.css
+#EXTINF:-1 group-title="Live TV" tvg-name="صدى البلد 2",صدى البلد 2
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn8a4d/luZmf7MfRQ9lILdCZ3DjZde-Qti/xui/assets/79768337/22315546/77.css
+#EXTINF:-1 group-title="Live TV" tvg-name="صدى البلد دراما",صدى البلد دراما
+https://still-dust-c9ae.manon-lol2000.workers.dev/t/tn8a4q/kISZBCb1zkdUHf4YMcrclp_2IhP/xui/assets/79768337/22315546/80.css
