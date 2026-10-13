@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
+  referrer: 'no-referrer',
 };
 
 export default function RootLayout({

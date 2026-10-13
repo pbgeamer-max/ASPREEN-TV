@@ -221,6 +221,12 @@ export class TranscodingService {
       }
     }
 
+    // Guard: Prevent spawning FFmpeg on web player pages when no live match stream is active
+    const cleanInput = rawInputUrl.split('|')[0].trim();
+    if (/playeraf\.php|embed\.php|\.html(?:\?|$)/i.test(cleanInput)) {
+      throw new Error(`بث "${channel.name}" غير متاح حالياً (يبدأ البث المباشر تلقائياً فور انطلاق المباراة)`);
+    }
+
     // 6. Create Job record in Firestore
     const job = await jobRepository.createJob({
       channelId: channel.id,
@@ -439,8 +445,9 @@ export class TranscodingService {
         )
       );
 
-      const MAX_AUTO_RESTARTS = isAuthOrLimitExceeded ? 8 : 20;
-      const delayMs = isAuthOrLimitExceeded ? 1500 : 1000;
+      const is404NotFound = !!(safeError && (safeError.includes('404') || safeError.includes('Not Found')));
+      const MAX_AUTO_RESTARTS = is404NotFound ? 2 : isAuthOrLimitExceeded ? 3 : 5;
+      const delayMs = is404NotFound ? 3000 : isAuthOrLimitExceeded ? 2500 : 1500;
 
       if (attempts <= MAX_AUTO_RESTARTS) {
         console.warn(`[Stream Healing] Channel "${channel.name}" (${channel.id}) dropped (code ${code}). Auto-recovering in ${delayMs}ms (Attempt ${attempts}/${MAX_AUTO_RESTARTS})...`);

@@ -612,13 +612,28 @@ export default function ChannelsPage() {
                     {paginatedChannels.map((ch) => (
                       <tr key={ch.id} className="hover:bg-[#141414] transition-colors">
                         <td className="py-3 px-4 font-medium text-[#F5F5F5]">
-                          <div className="flex items-center gap-2">
-                            {ch.logoUrl ? (
-                              <img src={ch.logoUrl} alt="" className="w-5 h-5 rounded object-cover bg-neutral-900" />
-                            ) : (
-                              <Tv className="w-4 h-4 text-[#71717A]" />
-                            )}
-                            <span>{ch.name}</span>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-md bg-neutral-900 border border-neutral-800 flex items-center justify-center overflow-hidden shrink-0">
+                              {ch.logoUrl ? (
+                                <img
+                                  src={ch.logoUrl}
+                                  alt=""
+                                  referrerPolicy="no-referrer"
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <Tv className="w-4 h-4 text-[#71717A]" />
+                              )}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-white">{ch.name}</span>
+                              {ch.orderIndex !== undefined && ch.orderIndex > 0 && (
+                                <span className="text-[10px] font-mono text-[#71717A]">#{ch.orderIndex}</span>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="py-3 px-4 text-[#A1A1AA] text-[11px]">
