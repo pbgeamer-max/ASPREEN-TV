@@ -373,6 +373,24 @@ class ApiClient {
       koora: any;
     }>('/app/hunt/all', { method: 'POST' });
   }
+
+  async deleteAllChannels() {
+    return this.request<{ success: boolean; count: number; message: string }>('/channels/all', {
+      method: 'DELETE',
+    });
+  }
+
+  async resetAndHuntKoora() {
+    return this.request<{
+      success: boolean;
+      deletedTotal: number;
+      addedCount: number;
+      updatedCount: number;
+      streams: any[];
+      errors: string[];
+      message: string;
+    }>('/app/hunt/reset-and-hunt', { method: 'POST' });
+  }
 }
 
 export const api = new ApiClient();

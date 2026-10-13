@@ -29,6 +29,8 @@ import {
   Zap,
   Crosshair,
   Swords,
+  Trash2,
+  RotateCcw,
 } from 'lucide-react';
 
 export default function ChannelsPage() {
@@ -370,6 +372,46 @@ export default function ChannelsPage() {
     }
   };
 
+  const handleDeleteAllChannels = async () => {
+    if (!confirm(`⚠️ تحذير فوري:\nهل أنت متأكد من حذف جميع القنوات (${channels.length}) بالكامل من النظام؟\nسيتم مسح كافة القنوات نهائياً للبدء من جديد بشكل نظيف ومرتب.`)) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await api.deleteAllChannels();
+      setChannels([]);
+      alert(res.message || 'تم حذف جميع القنوات بنجاح.');
+      await fetchChannels();
+    } catch (err: any) {
+      alert(`فشل الحذف: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetAndHunt = async () => {
+    if (!confirm(`⚡ إعادة ضبط وصيد نظيف:\nهل تريد حذف جميع القنوات الحالية ومسحها بالكامل، وسحب باقة قنوات كورة لايف مرتبة ومصنفة (101 قناة) بدون تكرار؟`)) {
+      return;
+    }
+    setHuntLoading('koora');
+    try {
+      const res = await api.resetAndHuntKoora();
+      setHuntResultModal({
+        open: true,
+        title: '⚡ نتيجة التصفير الشامل وإعادة الصيد والترتيب',
+        added: res.addedCount,
+        updated: res.updatedCount,
+        deleted: res.deletedTotal,
+        errors: res.errors || [],
+      });
+      await fetchChannels();
+    } catch (err: any) {
+      alert(`فشل التصفير والصيد: ${err.message}`);
+    } finally {
+      setHuntLoading(null);
+    }
+  };
+
   const downloadFile = (content: string, filename: string, mime: string) => {
     const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
@@ -462,6 +504,28 @@ export default function ChannelsPage() {
               >
                 <Zap className={`w-3.5 h-3.5 ${huntLoading === 'all' ? 'animate-pulse' : ''}`} />
                 <span>{huntLoading === 'all' ? '🔥 جاري الصيد الشامل...' : '🔥 صيد شامل'}</span>
+              </button>
+
+              <div className="w-px h-5 bg-[#333] mx-1" />
+
+              <button
+                onClick={handleDeleteAllChannels}
+                disabled={loading || huntLoading !== null || totalChannels === 0}
+                className="py-1.5 px-3 text-xs gap-1.5 flex items-center rounded-md border border-red-800 text-red-300 bg-red-950/20 hover:bg-red-900/40 transition-colors disabled:opacity-50"
+                title="حذف جميع القنوات بالكامل للبدء من جديد"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                <span>حذف الكل ({totalChannels})</span>
+              </button>
+
+              <button
+                onClick={handleResetAndHunt}
+                disabled={loading || huntLoading !== null}
+                className="py-1.5 px-3 text-xs gap-1.5 flex items-center rounded-md border border-amber-600 text-amber-200 bg-amber-950/30 hover:bg-amber-900/50 transition-colors disabled:opacity-50"
+                title="مسح كافة القنوات وسحب باقة كورة لايف مرتبة من جديد"
+              >
+                <RotateCcw className={`w-3.5 h-3.5 ${huntLoading === 'koora' ? 'animate-spin' : ''}`} />
+                <span>تصفير وترتيب</span>
               </button>
             </div>
           }

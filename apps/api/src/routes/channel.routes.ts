@@ -101,6 +101,25 @@ export async function channelRoutes(server: FastifyInstance) {
   });
 
   /**
+   * DELETE /api/channels/all
+   * Stops all streams and completely wipes all channels from the database
+   */
+  server.delete('/all', async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const all = await channelRepository.listChannels();
+      for (const ch of all) {
+        if (ch.transcodingStatus === 'RUNNING') {
+          await transcodingService.stopChannel(ch.id).catch(() => {});
+        }
+      }
+      const count = await channelRepository.deleteAllChannels();
+      return { success: true, count, message: `تم حذف جميع القنوات (${count}) بالكامل.` };
+    } catch (err: any) {
+      return reply.status(500).send({ error: 'Failed to delete all channels', message: err.message });
+    }
+  });
+
+  /**
    * DELETE /api/channels/:id
    */
   server.delete('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {

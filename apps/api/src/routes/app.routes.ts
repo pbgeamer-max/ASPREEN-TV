@@ -243,6 +243,23 @@ export async function appRoutes(server: FastifyInstance) {
   });
 
   /**
+   * POST /api/app/hunt/reset-and-hunt
+   * Wipes ALL existing channels and runs clean fresh hunt for koora_live
+   */
+  server.post('/hunt/reset-and-hunt', async (_request, reply) => {
+    const { liveHunterService } = await import('../services/live-hunter.service');
+    const { channelRepository } = await import('../repositories/channel.repository');
+    const deletedTotal = await channelRepository.deleteAllChannels();
+    const result = await liveHunterService.huntKooraLive();
+    return {
+      success: true,
+      deletedTotal,
+      ...result,
+      message: `تم حذف كافة الـ ${deletedTotal} قناة السابقة بنجاح، وإعادة استيراد وترتيب ${result.addedCount} قناة جديدة.`
+    };
+  });
+
+  /**
    * POST /api/app/hunt/all
    * Hunts ALL sources: alokalive.com + koora_live simultaneously
    */
