@@ -166,12 +166,28 @@ export class TranscodingService {
     }
 
     // Release single-connection IPTV line by stopping other channels on the same source
-    for (const [_, activeProc] of this.activeProcesses) {
-      if (activeProc.channelId !== channelId) {
-        const otherCh = await channelRepository.getChannel(activeProc.channelId);
-        if (otherCh && otherCh.sourceId === channel.sourceId) {
-          console.log(`[Source Limit] Stopping previous channel "${otherCh.name}" to release IPTV connection for "${channel.name}"`);
-          await this.stopChannel(activeProc.channelId).catch(() => {});
+    // Note: Free web sources, CDNs, Hunter sources, and continuous rebroadcasts allow unlimited simultaneous connections.
+    const isSingleLineProvider =
+      channel.sourceId &&
+      !this.continuousChannels.has(channelId) &&
+      !channel.sourceId.includes('aflam4you') &&
+      !channel.sourceId.includes('live-hunter') &&
+      !channel.sourceId.includes('web-') &&
+      !channel.sourceId.includes('telegram-') &&
+      !channel.sourceId.includes('hunter') &&
+      !channel.sourceId.includes('koora') &&
+      !channel.sourceId.includes('alokal') &&
+      !channel.sourceId.includes('sniff');
+
+    if (isSingleLineProvider) {
+      for (const [_, activeProc] of this.activeProcesses) {
+        if (activeProc.channelId !== channelId) {
+          if (this.continuousChannels.has(activeProc.channelId)) continue;
+          const otherCh = await channelRepository.getChannel(activeProc.channelId);
+          if (otherCh && otherCh.sourceId === channel.sourceId) {
+            console.log(`[Source Limit] Stopping previous channel "${otherCh.name}" to release IPTV connection for "${channel.name}"`);
+            await this.stopChannel(activeProc.channelId).catch(() => {});
+          }
         }
       }
     }
@@ -656,8 +672,22 @@ export class TranscodingService {
    * Stops any other running channels from the same source to release single-connection IPTV lines.
    */
   async stopOtherChannelsOnSource(sourceId: string, exceptChannelId?: string): Promise<void> {
+    if (
+      !sourceId ||
+      sourceId.includes('aflam4you') ||
+      sourceId.includes('live-hunter') ||
+      sourceId.includes('web-') ||
+      sourceId.includes('telegram-') ||
+      sourceId.includes('hunter') ||
+      sourceId.includes('koora') ||
+      sourceId.includes('alokal') ||
+      sourceId.includes('sniff')
+    ) {
+      return;
+    }
     for (const [_, activeProc] of this.activeProcesses) {
       if (activeProc.channelId !== exceptChannelId) {
+        if (this.continuousChannels.has(activeProc.channelId)) continue;
         const otherCh = await channelRepository.getChannel(activeProc.channelId);
         if (otherCh && otherCh.sourceId === sourceId) {
           console.log(`[Source Limit] Stopping competing channel "${otherCh.name}" to release IPTV connection`);

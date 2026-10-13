@@ -11,7 +11,11 @@ export async function channelRoutes(server: FastifyInstance) {
 
   function sanitizeChannel(ch: any) {
     const { encryptedInputUrl, ...rest } = ch;
-    return rest;
+    const isActuallyRunning = transcodingService.isChannelRunning(ch.id);
+    return {
+      ...rest,
+      transcodingStatus: isActuallyRunning ? 'RUNNING' : (ch.transcodingStatus === 'FAILED' ? 'FAILED' : 'STOPPED'),
+    };
   }
 
   /**

@@ -139,6 +139,20 @@ export default function ChannelsPage() {
     }
   }, [user, authLoading, selectedSourceId, selectedGroup, router]);
 
+  // Periodic background status refresh every 10 seconds
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(() => {
+      api.getChannels({
+        sourceId: selectedSourceId || undefined,
+        group: selectedGroup || undefined,
+      }).then((data) => {
+        setChannels(data);
+      }).catch(() => {});
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [user, selectedSourceId, selectedGroup]);
+
   const handleStart = async (channelId: string) => {
     setActionInProgress(channelId);
     setChannels((prev) =>
