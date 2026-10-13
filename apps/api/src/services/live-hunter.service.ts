@@ -962,7 +962,8 @@ export class LiveHunterService {
       sortedEntries,
       async (item) => {
         try {
-          const thumbnail = item.meta.logo || (item.vid ? `https://channel.aflam4you.net/uploads/thumbs/${item.vid}-1.jpg` : undefined);
+          const knownLogo = this.getKnownLogo(item.cleanName);
+          const thumbnail = knownLogo || item.meta.logo || (item.vid ? `https://channel.aflam4you.net/uploads/thumbs/${item.vid}-1.jpg` : undefined);
 
           // Resolve fresh stream from upstream CDN
           let streamUrl: string;
@@ -1476,6 +1477,55 @@ export class LiveHunterService {
   private extractOrderIndex(name: string): number {
     const m = name.match(/\b(\d+)\b/);
     return m ? parseInt(m[1], 10) : 99;
+  }
+
+  public getKnownLogo(name: string): string | undefined {
+    const n = (name || '').toLowerCase();
+    if (n.includes('bein sports news') || n.includes('الإخبارية')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/2/26/BeIN_Sports_News_logo.png';
+    }
+    if (n.includes('bein')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/b/b9/BeIN_Sports_logo.svg';
+    }
+    if (n.includes('كأس') || n.includes('alkass') || n.includes('al kass')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Alkass_Digital_Logo.png';
+    }
+    if (n.includes('أبوظبي') || n.includes('abu dhabi')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/5/52/Abu_Dhabi_Sports_logo.png';
+    }
+    if (n.includes('دبي') || n.includes('dubai')) {
+      return 'https://upload.wikimedia.org/wikipedia/en/b/b5/Dubai_Sports_Logo.png';
+    }
+    if (n.includes('on time') || n.includes('أون تايم') || n.includes('on sport')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/8/87/ON_Time_Sports.png';
+    }
+    if (n.includes('ssc') || n.includes('السعودية الرياضية') || n.includes('ksa')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/a/a2/KSA_SPORTS_Logo.png';
+    }
+    if (n.includes('الرياضية المغربية') || n.includes('arryadia') || n.includes('snrt')) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/8/82/Arryadia_logo_2021.svg';
+    }
+    return undefined;
+  }
+
+  public async updateAllExistingLogos(): Promise<number> {
+    try {
+      const channels = await channelRepository.listChannels();
+      let updated = 0;
+      for (const ch of channels) {
+        const known = this.getKnownLogo(ch.name);
+        if (known && ch.logoUrl !== known) {
+          await channelRepository.updateChannel(ch.id, { logoUrl: known }).catch(() => {});
+          updated++;
+        }
+      }
+      if (updated > 0) {
+        console.log(`[LiveHunter] 🖼️ تم تحديث شعارات ${updated} قناة بنجاح إلى شعارات رسمية عالية الدقة.`);
+      }
+      return updated;
+    } catch {
+      return 0;
+    }
   }
 }
 

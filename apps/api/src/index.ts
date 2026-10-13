@@ -32,6 +32,7 @@ import { feederService } from './services/feeder.service';
 import { topCinemaService } from './services/topcinema.service';
 import { fiveTvService } from './services/fivetv.service';
 import { autoPilotService } from './services/auto-pilot.service';
+import { liveHunterService } from './services/live-hunter.service';
 import { tokenRepository } from './repositories/token.repository';
 import { channelRepository } from './repositories/channel.repository';
 import { settingsRepository } from './repositories/settings.repository';
@@ -524,6 +525,7 @@ async function start() {
       topCinemaService.startAutoUpdater(30);
       fiveTvService.startAutoUpdater(30);
       autoPilotService.start(3);
+      liveHunterService.updateAllExistingLogos().catch(() => {});
     } catch (e: any) {
       console.warn('[Services] Service init warning:', e.message);
     }

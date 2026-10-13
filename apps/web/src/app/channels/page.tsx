@@ -656,12 +656,18 @@ export default function ChannelsPage() {
                             <div className="w-8 h-8 rounded-md bg-neutral-900 border border-neutral-800 flex items-center justify-center overflow-hidden shrink-0">
                               {ch.logoUrl ? (
                                 <img
-                                  src={ch.logoUrl}
+                                  src={`/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}`}
                                   alt=""
                                   referrerPolicy="no-referrer"
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-contain p-0.5"
                                   onError={(e) => {
-                                    (e.target as HTMLElement).style.display = 'none';
+                                    const target = e.target as HTMLImageElement;
+                                    if (!target.dataset.triedFallback) {
+                                      target.dataset.triedFallback = 'true';
+                                      target.src = ch.logoUrl!;
+                                    } else {
+                                      target.style.display = 'none';
+                                    }
                                   }}
                                 />
                               ) : (

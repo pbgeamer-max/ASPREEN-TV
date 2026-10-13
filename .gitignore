@@ -7,6 +7,7 @@ data/
 .DS_Store
 Thumbs.db
 scratch/
+scratch_*
 *.apk
 channels.m3u
 channels.m3u8
