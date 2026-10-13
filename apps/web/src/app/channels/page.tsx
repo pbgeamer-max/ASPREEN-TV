@@ -31,6 +31,7 @@ import {
   Swords,
   Trash2,
   RotateCcw,
+  Bot,
 } from 'lucide-react';
 
 export default function ChannelsPage() {
@@ -412,6 +413,21 @@ export default function ChannelsPage() {
     }
   };
 
+  const [autoPilotRunning, setAutoPilotRunning] = useState(false);
+
+  const handleTriggerAutoPilot = async () => {
+    setAutoPilotRunning(true);
+    try {
+      const res = await api.triggerAutoPilot();
+      alert(`✅ دورة الطيار الآلي اكتملت:\n- تم تحديث وفحص كافة الروابط الأصلية.\n- بدأ إعادة البث التلقائي لـ ${res.started} مباراة جارية.\n- تم إيقاف ${res.stopped} مباراة منتهية.`);
+      await fetchChannels();
+    } catch (err: any) {
+      alert(`فشل تشغيل الطيار الآلي: ${err.message}`);
+    } finally {
+      setAutoPilotRunning(false);
+    }
+  };
+
   const downloadFile = (content: string, filename: string, mime: string) => {
     const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
@@ -526,6 +542,16 @@ export default function ChannelsPage() {
               >
                 <RotateCcw className={`w-3.5 h-3.5 ${huntLoading === 'koora' ? 'animate-spin' : ''}`} />
                 <span>تصفير وترتيب</span>
+              </button>
+
+              <button
+                onClick={handleTriggerAutoPilot}
+                disabled={loading || autoPilotRunning}
+                className="py-1.5 px-3 text-xs gap-1.5 flex items-center rounded-md border border-cyan-700 text-cyan-200 bg-cyan-950/30 hover:bg-cyan-900/50 transition-colors disabled:opacity-50"
+                title="تحديث الروابط الأصلية وتشغيل إعادة البث المباشر على السيرفر تلقائياً"
+              >
+                <Bot className={`w-3.5 h-3.5 ${autoPilotRunning ? 'animate-spin' : 'text-cyan-400'}`} />
+                <span>{autoPilotRunning ? 'جاري الفحص وإعادة البث...' : '🤖 تحديث وبث تلقائي'}</span>
               </button>
             </div>
           }

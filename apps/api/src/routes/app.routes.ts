@@ -354,5 +354,26 @@ export async function appRoutes(server: FastifyInstance) {
       koora,
     };
   });
+
+  // ─────────────────────────────────────────────────────────────
+  //  AUTOPILOT (AUTONOMOUS REBROADCAST & CONTINUOUS SYNC)
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * GET /api/app/auto-pilot/status
+   */
+  server.get('/auto-pilot/status', async (_request, reply) => {
+    const { autoPilotService } = await import('../services/auto-pilot.service');
+    return autoPilotService.getStatus();
+  });
+
+  /**
+   * POST /api/app/auto-pilot/trigger
+   */
+  server.post('/auto-pilot/trigger', async (_request, reply) => {
+    const { autoPilotService } = await import('../services/auto-pilot.service');
+    const result = await autoPilotService.runCycle();
+    return { success: true, ...result };
+  });
 }
 

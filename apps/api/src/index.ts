@@ -31,6 +31,7 @@ import { telegramService } from './services/telegram.service';
 import { feederService } from './services/feeder.service';
 import { topCinemaService } from './services/topcinema.service';
 import { fiveTvService } from './services/fivetv.service';
+import { autoPilotService } from './services/auto-pilot.service';
 import { tokenRepository } from './repositories/token.repository';
 import { channelRepository } from './repositories/channel.repository';
 import { settingsRepository } from './repositories/settings.repository';
@@ -522,6 +523,7 @@ async function start() {
       feederService.start();
       topCinemaService.startAutoUpdater(30);
       fiveTvService.startAutoUpdater(30);
+      autoPilotService.start(3);
     } catch (e: any) {
       console.warn('[Services] Service init warning:', e.message);
     }

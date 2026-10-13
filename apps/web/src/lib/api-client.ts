@@ -391,6 +391,25 @@ class ApiClient {
       message: string;
     }>('/app/hunt/reset-and-hunt', { method: 'POST' });
   }
+
+  async getAutoPilotStatus() {
+    return this.request<{
+      enabled: boolean;
+      intervalMinutes: number;
+      lastRunAt?: string;
+      isCycleRunning: boolean;
+      activeRebroadcastsCount: number;
+      activeChannels: Array<{ id: string; name: string; orderIndex: number }>;
+      totalChannels: number;
+    }>('/app/auto-pilot/status');
+  }
+
+  async triggerAutoPilot() {
+    return this.request<{ success: boolean; updated: number; started: number; stopped: number }>(
+      '/app/auto-pilot/trigger',
+      { method: 'POST' }
+    );
+  }
 }
 
 export const api = new ApiClient();

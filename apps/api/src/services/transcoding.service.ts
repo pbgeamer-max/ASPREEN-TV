@@ -47,6 +47,7 @@ export class TranscodingService {
   private restartTimers: Map<string, NodeJS.Timeout> = new Map(); // channelId -> timer
   private lastAccessTimestamps: Map<string, number> = new Map(); // channelId -> timestamp
   private lastFailureTimestamps: Map<string, number> = new Map(); // channelId -> timestamp
+  private continuousChannels: Set<string> = new Set();
   private idleCheckInterval: NodeJS.Timeout;
 
   constructor() {
@@ -54,6 +55,7 @@ export class TranscodingService {
       const now = Date.now();
       const IDLE_TIMEOUT_MS = 90000; // 90 seconds of inactivity
       for (const [_, running] of this.activeProcesses) {
+        if (this.continuousChannels.has(running.channelId)) continue; // Never kill auto-pilot rebroadcasting channels
         const lastAccess = this.lastAccessTimestamps.get(running.channelId);
         if (lastAccess && now - lastAccess > IDLE_TIMEOUT_MS) {
           console.log(`[Auto-Idle] Stopping inactive channel "${running.channelId}" after 90s idle.`);
@@ -66,6 +68,25 @@ export class TranscodingService {
 
   isJobActive(jobId: string): boolean {
     return this.activeProcesses.has(jobId);
+  }
+
+  isChannelRunning(channelId: string): boolean {
+    for (const [_, running] of this.activeProcesses) {
+      if (running.channelId === channelId) return true;
+    }
+    return false;
+  }
+
+  setContinuousChannel(channelId: string, continuous = true) {
+    if (continuous) {
+      this.continuousChannels.add(channelId);
+    } else {
+      this.continuousChannels.delete(channelId);
+    }
+  }
+
+  getActiveChannelsCount(): number {
+    return this.activeProcesses.size;
   }
 
   touchChannelAccess(channelId: string) {
