@@ -142,55 +142,11 @@ function classifyAndOrderChannel(rawName, pageUrl) {
   const hasNum = (n) => {
     const arabicNums = ['', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩', '١٠', '١١', '١٢'];
     const arN = arabicNums[n] || '';
-    const reWord = new RegExp(`(?:\\b|_|-|\\s)${n}(?:\\b|_|-|\\s|$)`);
-    return reWord.test(slug) || (arN && r.includes(arN)) || new RegExp(`\\b${n}\\b`).test(r);
+    const reWord = new RegExp('(^|[^0-9])' + n + '([^0-9]|$)');
+    return reWord.test(slug) || (arN && r.includes(arN)) || reWord.test(r);
   };
 
-  // 1. beIN Sports Premium
-  if (combined.includes('premium') && (combined.includes('bein') || combined.includes('bn') || slug.includes('bein'))) {
-    if (hasNum(1) || combined.includes('1')) return { name: 'beIN Sports 1 Premium HD', group: 'قنوات beIN Sports (Premium & Max)', order: 20 };
-    if (hasNum(2) || combined.includes('2')) return { name: 'beIN Sports 2 Premium HD', group: 'قنوات beIN Sports (Premium & Max)', order: 21 };
-    if (hasNum(3) || combined.includes('3')) return { name: 'beIN Sports 3 Premium HD', group: 'قنوات beIN Sports (Premium & Max)', order: 22 };
-  }
-
-  // 2. beIN Sports Max
-  if (combined.includes('max') && (combined.includes('bein') || combined.includes('bn') || slug.includes('bein'))) {
-    if (hasNum(1)) return { name: 'beIN Sports Max 1 HD', group: 'قنوات beIN Sports (Premium & Max)', order: 25 };
-    if (hasNum(2)) return { name: 'beIN Sports Max 2 HD', group: 'قنوات beIN Sports (Premium & Max)', order: 26 };
-    if (hasNum(3)) return { name: 'beIN Sports Max 3 HD', group: 'قنوات beIN Sports (Premium & Max)', order: 27 };
-    if (hasNum(4)) return { name: 'beIN Sports Max 4 HD', group: 'قنوات beIN Sports (Premium & Max)', order: 28 };
-    if (hasNum(5)) return { name: 'beIN Sports Max 5 HD', group: 'قنوات beIN Sports (Premium & Max)', order: 29 };
-    if (hasNum(6)) return { name: 'beIN Sports Max 6 HD', group: 'قنوات beIN Sports (Premium & Max)', order: 30 };
-  }
-
-  // 3. beIN Sports Xtra
-  if (combined.includes('xtra')) {
-    if (hasNum(1)) return { name: 'beIN Sports 1 Xtra HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 35 };
-    if (hasNum(2)) return { name: 'beIN Sports 2 Xtra HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 36 };
-    if (hasNum(3)) return { name: 'beIN Sports 3 Xtra HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 37 };
-  }
-
-  // 4. beIN Events & Special (AFC / Asian Cup / AFCON / 4K / News / Open)
-  if (combined.includes('afc') && hasNum(1)) return { name: 'beIN Sports AFC 1 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 40 };
-  if (combined.includes('afc') && hasNum(2)) return { name: 'beIN Sports AFC 2 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 41 };
-  if (combined.includes('asia') && hasNum(1)) return { name: 'beIN Sports Asian Cup 1 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 42 };
-  if (combined.includes('asia') && hasNum(2)) return { name: 'beIN Sports Asian Cup 2 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 43 };
-  if (combined.includes('afcon') && hasNum(1)) return { name: 'beIN Sports AFCON 1 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 44 };
-  if (combined.includes('afcon') && hasNum(2)) return { name: 'beIN Sports AFCON 2 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 45 };
-  if (combined.includes('4k') || slug.includes('44444')) return { name: 'beIN Sports 4K', group: 'قنوات beIN Sports', order: 15 };
-  if (combined.includes('news') && (combined.includes('bein') || combined.includes('bn') || slug.includes('bein'))) return { name: 'beIN Sports الإخبارية HD', group: 'قنوات beIN Sports', order: 14 };
-  if (combined.includes('open') || slug.includes('beinsport-open')) return { name: 'beIN Sports المفتوحة HD', group: 'قنوات beIN Sports', order: 13 };
-
-  // 5. beIN Sports Main (1 to 12)
-  if (combined.includes('bein') || combined.includes('bn') || slug.includes('bein')) {
-    for (let n = 12; n >= 1; n--) {
-      if (hasNum(n)) {
-        return { name: `beIN Sports ${n} HD`, group: 'قنوات beIN Sports', order: n };
-      }
-    }
-  }
-
-  // 6. SSC Sports
+  // 1. SSC Sports (Checked first to prevent extrat collision with beIN xtra)
   if (combined.includes('ssc')) {
     if (combined.includes('news')) return { name: 'SSC News Sports HD', group: 'قنوات SSC الرياضية', order: 57 };
     if (combined.includes('extra') || combined.includes('extrat')) {
@@ -202,11 +158,11 @@ function classifyAndOrderChannel(rawName, pageUrl) {
     }
   }
 
-  // 7. Alkass (الكأس)
+  // 2. Alkass (Checked first to prevent extra collision with beIN xtra)
   if (combined.includes('kass') || combined.includes('كاس') || combined.includes('كأس')) {
     if (combined.includes('extra') || combined.includes('extrat')) {
       if (hasNum(1) || combined.includes('one')) return { name: 'قناة الكأس Extra 1 HD', group: 'قنوات الكأس الرياضية', order: 75 };
-      if (hasNum(2) || combined.includes('two')) return { name: 'قناة الكأس Extra 2 HD', group: 'قنوات الكأس الرياضية', order: 76 };
+      if (hasNum(2) || combined.includes('two') || slug.includes('extra-live')) return { name: 'قناة الكأس Extra 2 HD', group: 'قنوات الكأس الرياضية', order: 76 };
     }
     if (slug.includes('four') || hasNum(4)) return { name: 'قناة الكأس 4 HD', group: 'قنوات الكأس الرياضية', order: 64 };
     if (slug.includes('five') || hasNum(5)) return { name: 'قناة الكأس 5 HD', group: 'قنوات الكأس الرياضية', order: 65 };
@@ -222,7 +178,7 @@ function classifyAndOrderChannel(rawName, pageUrl) {
     if (slug.includes('three') || hasNum(3)) return { name: 'قناة الكأس 3 HD', group: 'قنوات الكأس الرياضية', order: 63 };
   }
 
-  // 8. Abu Dhabi Sports
+  // 3. Abu Dhabi Sports
   if (combined.includes('abudhabi') || combined.includes('abu-dhabi') || combined.includes('ابوظبي') || slug.includes('ad-sport')) {
     if (combined.includes('premium')) {
       if (hasNum(1)) return { name: 'أبوظبي الرياضية 1 Premium HD', group: 'قنوات أبوظبي الرياضية', order: 87 };
@@ -233,11 +189,11 @@ function classifyAndOrderChannel(rawName, pageUrl) {
     }
   }
 
-  // 9. ON Time Sports (أون تايم سبورت)
+  // 4. ON Time Sports (أون تايم سبورت)
   if (combined.includes('on-time') || combined.includes('on time') || combined.includes('on-sport') || combined.includes('on sport') || slug.includes('on-sport')) {
     if (combined.includes('plus')) return { name: 'ON Sport Plus HD', group: 'قنوات أون تايم سبورت', order: 104 };
     if (combined.includes('max')) return { name: 'ON Sport Max HD', group: 'قنوات أون تايم سبورت', order: 105 };
-    if (combined.includes('time') && hasNum(1)) return { name: 'ON Time Sports 1 HD', group: 'قنوات أون تايم سبورت', order: 100 };
+    if (combined.includes('time') && (hasNum(1) || combined.includes('egypt'))) return { name: 'ON Time Sports 1 HD', group: 'قنوات أون تايم سبورت', order: 100 };
     if (combined.includes('time') && hasNum(2)) return { name: 'ON Time Sports 2 HD', group: 'قنوات أون تايم سبورت', order: 101 };
     if (combined.includes('time') && hasNum(3)) return { name: 'ON Time Sports 3 HD', group: 'قنوات أون تايم سبورت', order: 102 };
     return { name: 'ON Sport HD', group: 'قنوات أون تايم سبورت', order: 103 };
@@ -283,7 +239,59 @@ function classifyAndOrderChannel(rawName, pageUrl) {
     return { name: 'الرياضية المغربية HD', group: 'قنوات الرياضية المغربية', order: 91 };
   }
 
-  // 12. International Sports (Sport TV)
+  // 7. beIN Sports Premium
+  if (combined.includes('premium') && (combined.includes('bein') || combined.includes('bn') || slug.includes('bein'))) {
+    if (hasNum(1) || combined.includes('1')) return { name: 'beIN Sports 1 Premium HD', group: 'قنوات beIN Sports (Premium & Max)', order: 20 };
+    if (hasNum(2) || combined.includes('2')) return { name: 'beIN Sports 2 Premium HD', group: 'قنوات beIN Sports (Premium & Max)', order: 21 };
+    if (hasNum(3) || combined.includes('3')) return { name: 'beIN Sports 3 Premium HD', group: 'قنوات beIN Sports (Premium & Max)', order: 22 };
+  }
+
+  // 8. beIN Sports Max
+  if (combined.includes('max') && (combined.includes('bein') || combined.includes('bn') || slug.includes('bein'))) {
+    for (let n = 6; n >= 1; n--) {
+      if (hasNum(n)) return { name: `beIN Sports Max ${n} HD`, group: 'قنوات beIN Sports (Premium & Max)', order: 24 + n };
+    }
+  }
+
+  // 9. beIN Sports Xtra (Explicitly verify bein/bn)
+  if ((combined.includes('bein') || combined.includes('bn') || slug.includes('bein')) && (combined.includes('xtra') || combined.includes('extra'))) {
+    if (hasNum(1)) return { name: 'beIN Sports 1 Xtra HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 35 };
+    if (hasNum(2)) return { name: 'beIN Sports 2 Xtra HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 36 };
+    if (hasNum(3)) return { name: 'beIN Sports 3 Xtra HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 37 };
+  }
+
+  // 10. AFCON (Checked BEFORE AFC because afcon contains afc)
+  if (combined.includes('afcon')) {
+    if (hasNum(1)) return { name: 'beIN Sports AFCON 1 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 44 };
+    if (hasNum(2)) return { name: 'beIN Sports AFCON 2 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 45 };
+  }
+
+  // 11. AFC
+  if (/\bafc\b/i.test(combined) || combined.includes('afc-')) {
+    if (hasNum(1)) return { name: 'beIN Sports AFC 1 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 40 };
+    if (hasNum(2)) return { name: 'beIN Sports AFC 2 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 41 };
+  }
+
+  // 12. Asian Cup
+  if (combined.includes('asia')) {
+    if (hasNum(1)) return { name: 'beIN Sports Asian Cup 1 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 42 };
+    if (hasNum(2)) return { name: 'beIN Sports Asian Cup 2 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 43 };
+  }
+
+  if (combined.includes('4k') || slug.includes('44444')) return { name: 'beIN Sports 4K', group: 'قنوات beIN Sports', order: 15 };
+  if (combined.includes('news') && (combined.includes('bein') || combined.includes('bn') || slug.includes('bein'))) return { name: 'beIN Sports الإخبارية HD', group: 'قنوات beIN Sports', order: 14 };
+  if (combined.includes('open') || slug.includes('beinsport-open')) return { name: 'beIN Sports المفتوحة HD', group: 'قنوات beIN Sports', order: 13 };
+
+  // 13. beIN Sports Main (1 to 12)
+  if (combined.includes('bein') || combined.includes('bn') || slug.includes('bein')) {
+    for (let n = 12; n >= 1; n--) {
+      if (hasNum(n)) {
+        return { name: `beIN Sports ${n} HD`, group: 'قنوات beIN Sports', order: n };
+      }
+    }
+  }
+
+  // 14. International Sports (Sport TV)
   if (combined.includes('sport-tv') || combined.includes('sport tv') || combined.includes('sport-tvv')) {
     for (let n = 5; n >= 1; n--) {
       if (hasNum(n)) return { name: `Sport TV ${n} HD`, group: 'قنوات رياضية دولية', order: 140 + (n - 1) };
