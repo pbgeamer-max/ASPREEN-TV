@@ -35,6 +35,8 @@ export interface HuntedStream {
   streamUrl: string;
   pageUrl: string;
   category: string;
+  groupTitle?: string;
+  orderIndex?: number;
   logo?: string;
   description?: string;
   referer?: string;
@@ -923,6 +925,12 @@ export class LiveHunterService {
       return result;
     }
 
+    // Wipe previous channels for this source first to ensure a 100% clean, non-duplicate list
+    console.log('[LiveHunter] 🗑️ حذف القنوات القديمة من مصدر koora_live لبدء استيراد نظيف 100%...');
+    const deletedCount = await channelRepository.deleteChannelsBySource(SOURCE_ID_KOORA).catch(() => 0);
+    result.deletedOldCount = deletedCount;
+    console.log(`[LiveHunter] 🗑️ تم حذف ${deletedCount} قناة سابقة بنجاح.`);
+
     // Sort priority sports channels first so they resolve quickly
     const priorityTerms = ['bein-sport', 'ssc', 'arryadia', 'abudhabi', 'alkass'];
     const sortedEntries = Array.from(matchLinks.entries()).sort(([a], [b]) => {
@@ -939,9 +947,10 @@ export class LiveHunterService {
           const vidMatch = matchUrl.match(/(?:_(\d+)\.html|vid=(\d+))/);
           const vid = vidMatch ? (vidMatch[1] || vidMatch[2]) : null;
 
-          const matchName = meta.title && meta.title.length > 2
-            ? meta.title.replace(/^مشاهدة\s+قناة\s+/i, '').replace(/^مشاهده\s+قناه\s+/i, '').replace(/^قناة\s+/i, '').trim()
-            : this.formatArabicChannelName(matchUrl);
+          const { name: cleanName, group, order } = this.classifyAndOrderSportChannel(
+            meta.title || '',
+            matchUrl
+          );
 
           const thumbnail = meta.logo || (vid ? `https://channel.aflam4you.net/uploads/thumbs/${vid}-1.jpg` : undefined);
 
@@ -954,10 +963,12 @@ export class LiveHunterService {
           if (!alive) return;
 
           const stream: HuntedStream = {
-            name: matchName,
+            name: cleanName,
             streamUrl,
             pageUrl: matchUrl,
-            category: this.categorizeChannel(matchName),
+            category: group,
+            groupTitle: group,
+            orderIndex: order,
             logo: thumbnail,
             referer: referer || 'https://lastvelvet.net/',
             isLive: true,
@@ -970,7 +981,7 @@ export class LiveHunterService {
           else if (updated) result.updatedCount++;
           else result.skippedCount++;
 
-          console.log(`[LiveHunter] ⚽ [${result.streams.length}/${matchLinks.size}] ${matchName} → ${streamUrl.substring(0, 65)}...`);
+          console.log(`[LiveHunter] ⚽ [${result.streams.length}/${matchLinks.size}] ${cleanName} (#${order}) → ${streamUrl.substring(0, 65)}...`);
         } catch (err: any) {
           result.errors.push(`${matchUrl}: ${err.message}`);
         }
@@ -978,10 +989,6 @@ export class LiveHunterService {
       8
     );
 
-    // Only purge stale entries if we found a healthy number of channels (>= 20)
-    if (result.streams.length >= 20) {
-      result.deletedOldCount = await this.purgeStaleEntries(SOURCE_ID_KOORA, result.streams.map((s) => s.name));
-    }
     console.log(`[LiveHunter] ✅ koora_live — تم إضافة ${result.addedCount}, تحديث ${result.updatedCount}, حذف ${result.deletedOldCount}, المجموع الحي ${result.streams.length}`);
 
     return result;
@@ -1051,20 +1058,23 @@ export class LiveHunterService {
       inputStatus: 'ONLINE' as const,
       transcodingStatus: 'STOPPED' as const,
       encryptedInputUrl: encrypt(finalStreamUrl),
-      groupTitle: stream.category,
+      groupTitle: stream.groupTitle || stream.category,
       logoUrl: stream.logo,
-      orderIndex: this.extractOrderIndex(stream.name),
+      orderIndex: stream.orderIndex !== undefined ? stream.orderIndex : this.extractOrderIndex(stream.name),
       enabled: true,
       preset: 'COPY' as const,
     };
 
     if (existing) {
       await channelRepository.updateChannel(existing.id, {
+        name: stream.name,
+        normalizedName: norm,
         externalIdentifier: stream.pageUrl,
         encryptedInputUrl: encrypt(finalStreamUrl),
         inputStatus: 'ONLINE',
-        groupTitle: stream.category,
+        groupTitle: stream.groupTitle || stream.category,
         logoUrl: stream.logo || existing.logoUrl,
+        orderIndex: stream.orderIndex !== undefined ? stream.orderIndex : existing.orderIndex,
         enabled: true,
       });
       return { added: false, updated: true };
@@ -1288,6 +1298,174 @@ export class LiveHunterService {
       .replace(/-live$/i, '')
       .replace(/-/g, ' ')
       .trim() || 'مباراة مباشرة';
+  }
+
+  public classifyAndOrderSportChannel(rawName: string, pageUrl: string): { name: string; group: string; order: number } {
+    const r = (rawName || '').trim();
+    const slug = pageUrl.split('/').pop()?.replace(/_\d+\.html$/, '').toLowerCase() || '';
+    const combined = (r + ' ' + slug).toLowerCase();
+
+    const hasNum = (n: number) => {
+      const arabicNums = ['', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩', '١٠', '١١', '١٢'];
+      const arN = arabicNums[n] || '';
+      const reWord = new RegExp(`(?:\\b|_|-|\\s)${n}(?:\\b|_|-|\\s|$)`);
+      return reWord.test(slug) || (arN && r.includes(arN)) || new RegExp(`\\b${n}\\b`).test(r);
+    };
+
+    // 1. beIN Sports Premium
+    if (combined.includes('premium') && (combined.includes('bein') || combined.includes('bn') || slug.includes('bein'))) {
+      if (hasNum(1) || combined.includes('1')) return { name: 'beIN Sports 1 Premium HD', group: 'قنوات beIN Sports (Premium & Max)', order: 20 };
+      if (hasNum(2) || combined.includes('2')) return { name: 'beIN Sports 2 Premium HD', group: 'قنوات beIN Sports (Premium & Max)', order: 21 };
+      if (hasNum(3) || combined.includes('3')) return { name: 'beIN Sports 3 Premium HD', group: 'قنوات beIN Sports (Premium & Max)', order: 22 };
+    }
+
+    // 2. beIN Sports Max
+    if (combined.includes('max') && (combined.includes('bein') || combined.includes('bn') || slug.includes('bein'))) {
+      if (hasNum(1)) return { name: 'beIN Sports Max 1 HD', group: 'قنوات beIN Sports (Premium & Max)', order: 25 };
+      if (hasNum(2)) return { name: 'beIN Sports Max 2 HD', group: 'قنوات beIN Sports (Premium & Max)', order: 26 };
+      if (hasNum(3)) return { name: 'beIN Sports Max 3 HD', group: 'قنوات beIN Sports (Premium & Max)', order: 27 };
+      if (hasNum(4)) return { name: 'beIN Sports Max 4 HD', group: 'قنوات beIN Sports (Premium & Max)', order: 28 };
+      if (hasNum(5)) return { name: 'beIN Sports Max 5 HD', group: 'قنوات beIN Sports (Premium & Max)', order: 29 };
+      if (hasNum(6)) return { name: 'beIN Sports Max 6 HD', group: 'قنوات beIN Sports (Premium & Max)', order: 30 };
+    }
+
+    // 3. beIN Sports Xtra
+    if (combined.includes('xtra')) {
+      if (hasNum(1)) return { name: 'beIN Sports 1 Xtra HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 35 };
+      if (hasNum(2)) return { name: 'beIN Sports 2 Xtra HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 36 };
+      if (hasNum(3)) return { name: 'beIN Sports 3 Xtra HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 37 };
+    }
+
+    // 4. beIN Events & Special (AFC / Asian Cup / AFCON / 4K / News / Open)
+    if (combined.includes('afc') && hasNum(1)) return { name: 'beIN Sports AFC 1 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 40 };
+    if (combined.includes('afc') && hasNum(2)) return { name: 'beIN Sports AFC 2 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 41 };
+    if (combined.includes('asia') && hasNum(1)) return { name: 'beIN Sports Asian Cup 1 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 42 };
+    if (combined.includes('asia') && hasNum(2)) return { name: 'beIN Sports Asian Cup 2 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 43 };
+    if (combined.includes('afcon') && hasNum(1)) return { name: 'beIN Sports AFCON 1 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 44 };
+    if (combined.includes('afcon') && hasNum(2)) return { name: 'beIN Sports AFCON 2 HD', group: 'قنوات beIN Sports (Xtra & Events)', order: 45 };
+    if (combined.includes('4k') || slug.includes('44444')) return { name: 'beIN Sports 4K', group: 'قنوات beIN Sports', order: 15 };
+    if (combined.includes('news') && (combined.includes('bein') || combined.includes('bn') || slug.includes('bein'))) return { name: 'beIN Sports الإخبارية HD', group: 'قنوات beIN Sports', order: 14 };
+    if (combined.includes('open') || slug.includes('beinsport-open')) return { name: 'beIN Sports المفتوحة HD', group: 'قنوات beIN Sports', order: 13 };
+
+    // 5. beIN Sports Main (1 to 12)
+    if (combined.includes('bein') || combined.includes('bn') || slug.includes('bein')) {
+      for (let n = 12; n >= 1; n--) {
+        if (hasNum(n)) {
+          return { name: `beIN Sports ${n} HD`, group: 'قنوات beIN Sports', order: n };
+        }
+      }
+    }
+
+    // 6. SSC Sports
+    if (combined.includes('ssc')) {
+      if (combined.includes('news')) return { name: 'SSC News Sports HD', group: 'قنوات SSC الرياضية', order: 57 };
+      if (combined.includes('extra') || combined.includes('extrat')) {
+        if (hasNum(1)) return { name: 'SSC Extra 1 Sports HD', group: 'قنوات SSC الرياضية', order: 55 };
+        if (hasNum(2)) return { name: 'SSC Extra 2 Sports HD', group: 'قنوات SSC الرياضية', order: 56 };
+      }
+      for (let n = 5; n >= 1; n--) {
+        if (hasNum(n)) return { name: `SSC ${n} Sports HD`, group: 'قنوات SSC الرياضية', order: 50 + (n - 1) };
+      }
+    }
+
+    // 7. Alkass (الكأس)
+    if (combined.includes('kass') || combined.includes('كاس') || combined.includes('كأس')) {
+      if (combined.includes('extra') || combined.includes('extrat')) {
+        if (hasNum(1) || combined.includes('one')) return { name: 'قناة الكأس Extra 1 HD', group: 'قنوات الكأس الرياضية', order: 75 };
+        if (hasNum(2) || combined.includes('two')) return { name: 'قناة الكأس Extra 2 HD', group: 'قنوات الكأس الرياضية', order: 76 };
+      }
+      if (slug.includes('four') || hasNum(4)) return { name: 'قناة الكأس 4 HD', group: 'قنوات الكأس الرياضية', order: 64 };
+      if (slug.includes('five') || hasNum(5)) return { name: 'قناة الكأس 5 HD', group: 'قنوات الكأس الرياضية', order: 65 };
+      if (slug.includes('six') || hasNum(6)) return { name: 'قناة الكأس 6 HD', group: 'قنوات الكأس الرياضية', order: 66 };
+      if (slug.includes('seven') || hasNum(7)) return { name: 'قناة الكأس 7 HD', group: 'قنوات الكأس الرياضية', order: 67 };
+      if (slug.includes('eighth') || hasNum(8)) return { name: 'قناة الكأس 8 HD', group: 'قنوات الكأس الرياضية', order: 68 };
+      if (slug.includes('nine') || hasNum(9)) return { name: 'قناة الكأس 9 HD', group: 'قنوات الكأس الرياضية', order: 69 };
+      if (slug.includes('ten') || hasNum(10)) return { name: 'قناة الكأس 10 HD', group: 'قنوات الكأس الرياضية', order: 70 };
+      if (slug.includes('eleventh') || hasNum(11)) return { name: 'قناة الكأس 11 HD', group: 'قنوات الكأس الرياضية', order: 71 };
+      if (slug.includes('twelfth') || hasNum(12)) return { name: 'قناة الكأس 12 HD', group: 'قنوات الكأس الرياضية', order: 72 };
+      if (slug.includes('one') || hasNum(1)) return { name: 'قناة الكأس 1 HD', group: 'قنوات الكأس الرياضية', order: 61 };
+      if (slug.includes('two') || hasNum(2)) return { name: 'قناة الكأس 2 HD', group: 'قنوات الكأس الرياضية', order: 62 };
+      if (slug.includes('three') || hasNum(3)) return { name: 'قناة الكأس 3 HD', group: 'قنوات الكأس الرياضية', order: 63 };
+    }
+
+    // 8. Abu Dhabi Sports
+    if (combined.includes('abudhabi') || combined.includes('abu-dhabi') || combined.includes('ابوظبي') || slug.includes('ad-sport')) {
+      if (combined.includes('premium')) {
+        if (hasNum(1)) return { name: 'أبوظبي الرياضية 1 Premium HD', group: 'قنوات أبوظبي الرياضية', order: 87 };
+        if (hasNum(2)) return { name: 'أبوظبي الرياضية 2 Premium HD', group: 'قنوات أبوظبي الرياضية', order: 88 };
+      }
+      for (let n = 6; n >= 1; n--) {
+        if (hasNum(n)) return { name: `أبوظبي الرياضية ${n} HD`, group: 'قنوات أبوظبي الرياضية', order: 80 + (n - 1) };
+      }
+    }
+
+    // 9. ON Time Sports (أون تايم سبورت)
+    if (combined.includes('on-time') || combined.includes('on time') || combined.includes('on-sport') || combined.includes('on sport') || slug.includes('on-sport')) {
+      if (combined.includes('plus')) return { name: 'ON Sport Plus HD', group: 'قنوات أون تايم سبورت', order: 104 };
+      if (combined.includes('max')) return { name: 'ON Sport Max HD', group: 'قنوات أون تايم سبورت', order: 105 };
+      if (combined.includes('time') && hasNum(1)) return { name: 'ON Time Sports 1 HD', group: 'قنوات أون تايم سبورت', order: 100 };
+      if (combined.includes('time') && hasNum(2)) return { name: 'ON Time Sports 2 HD', group: 'قنوات أون تايم سبورت', order: 101 };
+      if (combined.includes('time') && hasNum(3)) return { name: 'ON Time Sports 3 HD', group: 'قنوات أون تايم سبورت', order: 102 };
+      return { name: 'ON Sport HD', group: 'قنوات أون تايم سبورت', order: 103 };
+    }
+
+    // 10. Regional & Arab Specific Channels
+    if (combined.includes('dubai') || slug.includes('dubai')) {
+      if (hasNum(1)) return { name: 'دبي الرياضية 1 HD', group: 'قنوات رياضية عربية متنوعة', order: 116 };
+      if (hasNum(2)) return { name: 'دبي الرياضية 2 HD', group: 'قنوات رياضية عربية متنوعة', order: 117 };
+    }
+    if (combined.includes('bahrain') || slug.includes('bahrain') || combined.includes('بحرين')) {
+      if (hasNum(1)) return { name: 'البحرين الرياضية 1 HD', group: 'قنوات رياضية عربية متنوعة', order: 118 };
+      if (hasNum(2)) return { name: 'البحرين الرياضية 2 HD', group: 'قنوات رياضية عربية متنوعة', order: 119 };
+    }
+    if (combined.includes('thmanyah') || slug.includes('thmanyah') || combined.includes('ثمانية')) {
+      if (hasNum(1)) return { name: 'ثمانية 1 الرياضية HD', group: 'قنوات رياضية عربية متنوعة', order: 126 };
+      if (hasNum(2)) return { name: 'ثمانية 2 الرياضية HD', group: 'قنوات رياضية عربية متنوعة', order: 127 };
+      if (hasNum(3)) return { name: 'ثمانية 3 الرياضية HD', group: 'قنوات رياضية عربية متنوعة', order: 128 };
+    }
+    if (combined.includes('oman') || combined.includes('عمان')) return { name: 'عمان الرياضية HD', group: 'قنوات رياضية عربية متنوعة', order: 120 };
+    if (combined.includes('jordan') || combined.includes('الأردن')) return { name: 'الأردن الرياضية HD', group: 'قنوات رياضية عربية متنوعة', order: 121 };
+    if (combined.includes('sharjah') || combined.includes('الشارقة')) return { name: 'الشارقة الرياضية HD', group: 'قنوات رياضية عربية متنوعة', order: 122 };
+    if (combined.includes('watania') || combined.includes('الوطنية')) return { name: 'الوطنية الرياضية التونسية HD', group: 'قنوات رياضية عربية متنوعة', order: 123 };
+    if (combined.includes('diwan') || combined.includes('ديوان')) return { name: 'ديوان سبورت التونسية HD', group: 'قنوات رياضية عربية متنوعة', order: 124 };
+    if (combined.includes('haddaf') || combined.includes('الهداف')) return { name: 'الهداف الجزائرية TV HD', group: 'قنوات رياضية عربية متنوعة', order: 125 };
+    if (combined.includes('nile') || combined.includes('نايل')) return { name: 'قناة نايل سبورت المصرية HD', group: 'قنوات أون تايم سبورت', order: 106 };
+    if (combined.includes('ksa') || combined.includes('السعودية الرياضية')) return { name: 'السعودية الرياضية 1 HD', group: 'قنوات رياضية عربية متنوعة', order: 111 };
+    if (combined.includes('ahly') || combined.includes('الأهلي')) return { name: 'قناة الأهلي المصري HD', group: 'قنوات رياضية عربية متنوعة', order: 112 };
+    if (combined.includes('zamalek') || combined.includes('الزمالك')) return { name: 'قناة الزمالك TV HD', group: 'قنوات رياضية عربية متنوعة', order: 113 };
+    if (combined.includes('iraqia') || combined.includes('العراقية')) return { name: 'قناة العراقية الرياضية HD', group: 'قنوات رياضية عربية متنوعة', order: 114 };
+    if (combined.includes('rabiaa') || combined.includes('الرابعة')) return { name: 'قناة الرابعة الرياضية العراقية HD', group: 'قنوات رياضية عربية متنوعة', order: 115 };
+    if (combined.includes('mosari3') || combined.includes('مصارع')) return { name: 'قناة مصارع HD', group: 'قنوات رياضية عربية متنوعة', order: 129 };
+    if (combined.includes('اعادة') || combined.includes('caf2024')) return { name: 'إعادة المباريات الحصرية', group: 'قنوات رياضية عربية متنوعة', order: 130 };
+
+    // 11. Moroccan Arryadia (الرياضية المغربية)
+    if (combined.includes('arryadia') || combined.includes('arriadia') || slug.includes('arryadia') || slug.includes('arriadia') || r === 'الرياضية') {
+      if (combined.includes('tnt')) return { name: 'الرياضية المغربية TNT HD', group: 'قنوات الرياضية المغربية', order: 90 };
+      if (combined.includes('snrt') || slug.includes('maroc')) return { name: 'الرياضية المغربية (SNRT)', group: 'قنوات الرياضية المغربية', order: 91 };
+      if (hasNum(1) || slug.includes('hd-1')) return { name: 'الرياضية المغربية 1 HD', group: 'قنوات الرياضية المغربية', order: 92 };
+      if (hasNum(2)) return { name: 'الرياضية المغربية 2 HD', group: 'قنوات الرياضية المغربية', order: 93 };
+      if (hasNum(3)) return { name: 'الرياضية المغربية 3 HD', group: 'قنوات الرياضية المغربية', order: 94 };
+      if (hasNum(4)) return { name: 'الرياضية المغربية 4 HD', group: 'قنوات الرياضية المغربية', order: 95 };
+      return { name: 'الرياضية المغربية HD', group: 'قنوات الرياضية المغربية', order: 91 };
+    }
+
+    // 12. International Sports (Sport TV)
+    if (combined.includes('sport-tv') || combined.includes('sport tv') || combined.includes('sport-tvv')) {
+      for (let n = 5; n >= 1; n--) {
+        if (hasNum(n)) return { name: `Sport TV ${n} HD`, group: 'قنوات رياضية دولية', order: 140 + (n - 1) };
+      }
+    }
+
+    const clean = r
+      .replace(/^مشاهدة\s+قناة\s+/i, '')
+      .replace(/^مشاهده\s+قناه\s+/i, '')
+      .replace(/^قناة\s+/i, '')
+      .replace(/\s*بث\s*مباشر.*$/i, '')
+      .replace(/\s*live.*$/i, '')
+      .replace(/\s*[-|–]\s*(?:aflam4you|koora).*$/i, '')
+      .trim() || 'قناة رياضية مباشرة';
+
+    return { name: clean, group: 'قنوات رياضية متنوعة', order: 180 };
   }
 
   private extractOrderIndex(name: string): number {

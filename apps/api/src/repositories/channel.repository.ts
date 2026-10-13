@@ -306,6 +306,39 @@ export class ChannelRepository {
     return true;
   }
 
+  async deleteChannelsBySource(sourceId: string): Promise<number> {
+    const pool = getPool();
+    if (pool) {
+      const res = await pool.query('DELETE FROM channels WHERE source_id = $1 OR source_id = $2', [
+        sourceId,
+        sourceId === 'aflam4you/koora_live' ? 'aflam4you/koora' : sourceId,
+      ]);
+      return res.rowCount ?? 0;
+    }
+
+    const colRef = this.db.collection(CHANNELS_COLLECTION);
+    const snap = await colRef.where('sourceId', '==', sourceId).get();
+    const batch = this.db.batch();
+    snap.docs.forEach((d: any) => batch.delete(d.ref));
+    await batch.commit();
+    return snap.docs.length;
+  }
+
+  async deleteAllChannels(): Promise<number> {
+    const pool = getPool();
+    if (pool) {
+      const res = await pool.query('DELETE FROM channels');
+      return res.rowCount ?? 0;
+    }
+
+    const colRef = this.db.collection(CHANNELS_COLLECTION);
+    const snap = await colRef.get();
+    const batch = this.db.batch();
+    snap.docs.forEach((d: any) => batch.delete(d.ref));
+    await batch.commit();
+    return snap.docs.length;
+  }
+
   async findChannelByNormalizedName(normalizedName: string): Promise<Channel | null> {
     const pool = getPool();
     if (pool) {
