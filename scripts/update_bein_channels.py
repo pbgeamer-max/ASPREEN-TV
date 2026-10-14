@@ -30,11 +30,19 @@ print(f"Updated data/oscar_channels_live.json with {len(channels)} channels.")
 # Generate m3u8
 m3u_lines = ["#EXTM3U"]
 for name, data in channels.items():
+    stream_url = data["streamUrl"]
     group = "Sports" if any(k in name.lower() for k in ["sport", "bein", "كأس", "أون", "رياض"]) else "General"
     m3u_lines.append(f'#EXTINF:-1 tvg-name="{name}" group-title="{group}",{name}')
-    m3u_lines.append(data["streamUrl"])
+    
+    is_oscar = ".css" in stream_url or "workers.dev" in stream_url or data.get("ua") == "OSCARTV2021"
+    if is_oscar:
+        m3u_lines.append("#EXTVLCOPT:http-user-agent=OSCARTV2021")
+        m3u_lines.append("#EXTVLCOPT:http-referrer=http://speedcdn.me:8080/")
+        m3u_lines.append('#EXTHTTP:{"User-Agent":"OSCARTV2021","Referer":"http://speedcdn.me:8080/"}')
+
+    m3u_lines.append(stream_url)
 
 with open("data/oscar_channels.m3u8", "w", encoding="utf-8") as f:
     f.write("\n".join(m3u_lines) + "\n")
 
-print("Generated data/oscar_channels.m3u8 successfully.")
+print("Generated data/oscar_channels.m3u8 successfully with VLC header directives.")
