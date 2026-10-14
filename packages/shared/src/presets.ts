@@ -172,8 +172,6 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
       const isOscar = /\.css(?:[?#]|$)/i.test(actualInputUrl) || /workers\.dev|pushyourcss/i.test(actualInputUrl);
       if (isOscar) {
         args.push('-allowed_extensions', 'ALL');
-        args.push('-allowed_segment_extensions', 'ALL');
-        args.push('-extension_picky', '0');
         args.push('-f', 'hls');
       }
 

@@ -340,11 +340,27 @@ export async function createServer() {
         ? 'OSCARTV2021'
         : (effectiveHeaders['User-Agent'] || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
 
+      const oscarHlsFlags: string[] = [];
+      if (isOscarStream) {
+        oscarHlsFlags.push('-allowed_extensions', 'ALL');
+        try {
+          const { execSync } = require('child_process');
+          const help = execSync('ffmpeg -h demuxer=hls', { encoding: 'utf8', timeout: 3000 });
+          if (help.includes('allowed_segment_extensions')) {
+            oscarHlsFlags.push('-allowed_segment_extensions', 'ALL');
+          }
+          if (help.includes('extension_picky')) {
+            oscarHlsFlags.push('-extension_picky', '0');
+          }
+        } catch {}
+        oscarHlsFlags.push('-f', 'hls');
+      }
+
       const ffmpegArgs = [
         '-hide_banner',
         '-loglevel', 'warning',
         '-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls',
-        ...(isOscarStream ? ['-allowed_segment_extensions', 'ALL', '-extension_picky', '0', '-f', 'hls'] : []),
+        ...oscarHlsFlags,
         '-icy', '0',
         '-seekable', '0',
         '-multiple_requests', '1',
@@ -365,6 +381,12 @@ export async function createServer() {
 
       const proc = spawn('ffmpeg', ffmpegArgs, { windowsHide: true });
       let headersSent = false;
+      let ffmpegStderr = '';
+
+      proc.stderr?.on('data', (d) => {
+        ffmpegStderr += d.toString();
+        if (ffmpegStderr.length > 4000) ffmpegStderr = ffmpegStderr.slice(-4000);
+      });
 
       proc.stdout.once('data', (chunk) => {
         if (!reply.raw.headersSent) {
@@ -389,7 +411,8 @@ export async function createServer() {
       request.raw.on('error', cleanup);
       proc.on('close', (code) => {
         if (!headersSent && !reply.raw.headersSent) {
-          reply.status(502).send(`FFmpeg input failed (exit code ${code})`);
+          console.error(`[Stream Relay] FFmpeg failed with exit code ${code}. Stderr:\n${ffmpegStderr}`);
+          reply.status(502).send(`FFmpeg input failed (exit code ${code}): ${ffmpegStderr.slice(-300)}`);
         }
         cleanup();
       });

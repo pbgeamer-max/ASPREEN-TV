@@ -238,8 +238,23 @@ export async function appRoutes(server: FastifyInstance) {
 
     const m3uContent = lines.join('\n');
     reply.header('Content-Type', 'audio/x-mpegurl; charset=utf-8');
+    reply.header('Content-Disposition', 'attachment; filename="oscar_channels.m3u"');
     reply.header('Cache-Control', 'no-cache, no-store, must-revalidate');
     return reply.send(m3uContent);
+  });
+
+  /**
+   * GET /api/app/oscar/sync
+   * Public sync endpoint to instantly refresh Oscar channels in DB
+   */
+  server.get('/oscar/sync', async (_request, reply) => {
+    try {
+      const { oscarSyncService } = await import('../services/oscar-sync.service');
+      const result = await oscarSyncService.syncChannelsToDb();
+      return { success: true, ...result };
+    } catch (err: any) {
+      return reply.status(500).send({ error: 'Sync failed', message: err.message });
+    }
   });
 
   /**
