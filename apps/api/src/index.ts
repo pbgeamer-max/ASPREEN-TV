@@ -318,6 +318,16 @@ export async function createServer() {
         } catch {}
       }
 
+      const isOscarStream =
+        actualUrl.includes('.css') ||
+        actualUrl.includes('workers.dev') ||
+        effectiveHeaders['User-Agent'] === 'OSCARTV2021';
+
+      if (isOscarStream) {
+        if (!effectiveHeaders['Referer']) effectiveHeaders['Referer'] = 'http://speedcdn.me:8080/';
+        if (!effectiveHeaders['Origin']) effectiveHeaders['Origin'] = 'http://speedcdn.me:8080';
+      }
+
       let headersStr = 'Connection: keep-alive\r\n';
       for (const [k, v] of Object.entries(effectiveHeaders)) {
         const lower = k.toLowerCase();
@@ -325,11 +335,6 @@ export async function createServer() {
           headersStr += `${k}: ${v}\r\n`;
         }
       }
-
-      const isOscarStream =
-        actualUrl.includes('.css') ||
-        actualUrl.includes('workers.dev') ||
-        effectiveHeaders['User-Agent'] === 'OSCARTV2021';
 
       const uaToUse = isOscarStream
         ? 'OSCARTV2021'
