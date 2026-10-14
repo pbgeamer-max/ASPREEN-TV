@@ -1064,6 +1064,11 @@ export class LiveHunterService {
     };
 
     if (existing) {
+      // Never overwrite Oscar TV channels with web scraper streams
+      if (existing.sourceId === 'oscar-tv-live' || existing.externalIdentifier?.startsWith('oscar-')) {
+        return { added: false, updated: false };
+      }
+
       await channelRepository.updateChannel(existing.id, {
         name: stream.name,
         normalizedName: norm,

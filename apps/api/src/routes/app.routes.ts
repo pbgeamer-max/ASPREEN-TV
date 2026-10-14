@@ -189,10 +189,21 @@ export async function appRoutes(server: FastifyInstance) {
    * Dedicated M3U playlist for Oscar TV channels only
    */
   server.get('/oscar/playlist.m3u', async (request, reply: FastifyReply) => {
-    const channels = await channelRepository.listChannels();
-    const oscarChannels = channels.filter(
+    let channels = await channelRepository.listChannels();
+    let oscarChannels = channels.filter(
       (c) => c.enabled !== false && (c.sourceId === 'oscar-tv-live' || c.externalIdentifier?.startsWith('oscar-'))
     );
+
+    if (oscarChannels.length === 0) {
+      try {
+        const { oscarSyncService } = await import('../services/oscar-sync.service');
+        await oscarSyncService.syncChannelsToDb();
+        channels = await channelRepository.listChannels();
+        oscarChannels = channels.filter(
+          (c) => c.enabled !== false && (c.sourceId === 'oscar-tv-live' || c.externalIdentifier?.startsWith('oscar-'))
+        );
+      } catch {}
+    }
 
     const settings = await settingsRepository.getSettings();
     const reqHost = (request.headers['x-forwarded-host'] as string) || (request.headers.host as string);
@@ -236,10 +247,21 @@ export async function appRoutes(server: FastifyInstance) {
    * Returns clean, structured JSON of Oscar TV channels only for Android & web apps
    */
   server.get('/oscar/channels', async (request, reply) => {
-    const channels = await channelRepository.listChannels();
-    const oscarChannels = channels.filter(
+    let channels = await channelRepository.listChannels();
+    let oscarChannels = channels.filter(
       (c) => c.enabled !== false && (c.sourceId === 'oscar-tv-live' || c.externalIdentifier?.startsWith('oscar-'))
     );
+
+    if (oscarChannels.length === 0) {
+      try {
+        const { oscarSyncService } = await import('../services/oscar-sync.service');
+        await oscarSyncService.syncChannelsToDb();
+        channels = await channelRepository.listChannels();
+        oscarChannels = channels.filter(
+          (c) => c.enabled !== false && (c.sourceId === 'oscar-tv-live' || c.externalIdentifier?.startsWith('oscar-'))
+        );
+      } catch {}
+    }
 
     const settings = await settingsRepository.getSettings();
     const reqHost = (request.headers['x-forwarded-host'] as string) || (request.headers.host as string);

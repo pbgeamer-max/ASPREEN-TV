@@ -55,17 +55,29 @@ export default function OscarTvPage() {
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [generatingToken, setGeneratingToken] = useState(false);
 
-  const fetchOscarChannels = async () => {
+  const fetchOscarChannels = async (autoSyncIfEmpty = true) => {
     try {
       const allChannels = await api.getChannels();
-      // Filter for Oscar TV channels
-      const oscarOnly = allChannels.filter(
+      // Strictly filter for genuine Oscar TV channels ONLY (sourceId === 'oscar-tv-live')
+      let oscarOnly = allChannels.filter(
         (c) =>
           c.sourceId === 'oscar-tv-live' ||
-          c.externalIdentifier?.startsWith('oscar-') ||
-          c.groupTitle?.toLowerCase().includes('bein') ||
-          c.name.toLowerCase().includes('bein')
+          c.externalIdentifier?.startsWith('oscar-')
       );
+
+      // If no Oscar channels exist yet in DB, trigger auto-sync once
+      if (oscarOnly.length === 0 && autoSyncIfEmpty) {
+        try {
+          await api.syncOscarChannels();
+          const refreshed = await api.getChannels();
+          oscarOnly = refreshed.filter(
+            (c) =>
+              c.sourceId === 'oscar-tv-live' ||
+              c.externalIdentifier?.startsWith('oscar-')
+          );
+        } catch {}
+      }
+
       setChannels(oscarOnly);
     } catch (err) {
       console.error('Failed to fetch Oscar channels:', err);
