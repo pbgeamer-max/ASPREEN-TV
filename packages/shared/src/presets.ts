@@ -169,7 +169,15 @@ export function buildFfmpegArgs(params: HlsBuildParams): string[] {
       args.push('-reconnect', '1');
       args.push('-reconnect_delay_max', '2');
 
-      const isHls = /\.m3u8(?:[?#]|$)/i.test(actualInputUrl);
+      const isOscar = /\.css(?:[?#]|$)/i.test(actualInputUrl) || /workers\.dev|pushyourcss/i.test(actualInputUrl);
+      if (isOscar) {
+        args.push('-allowed_extensions', 'ALL');
+        args.push('-allowed_segment_extensions', 'ALL');
+        args.push('-extension_picky', '0');
+        args.push('-f', 'hls');
+      }
+
+      const isHls = /\.m3u8(?:[?#]|$)/i.test(actualInputUrl) || isOscar;
       if (!isHls) {
         // -reconnect_at_eof and -reconnect_streamed are ONLY for infinite MPEG-TS streams.
         // On HLS playlists, reconnect_at_eof causes infinite loops at the end of the playlist file!

@@ -8,6 +8,7 @@ export interface OscarChannelEntry {
   name: string;
   category?: string;
   streamUrl: string;
+  cookie?: string;
   ua?: string;
 }
 
@@ -59,11 +60,15 @@ export class OscarSyncService {
         const ua = entry.ua || 'OSCARTV2021';
         if (!finalStreamUrl.includes('|')) {
           finalStreamUrl = `${finalStreamUrl}|User-Agent=${ua}&Referer=http://speedcdn.me:8080/`;
+          if (entry.cookie) {
+            finalStreamUrl += `&Cookie=${entry.cookie}`;
+          }
         }
         const encrypted = encrypt(finalStreamUrl);
 
         if (existing) {
           await channelRepository.updateChannel(existing.id, {
+            sourceId: 'oscar-tv-live',
             encryptedInputUrl: encrypted,
             enabled: true,
             inputStatus: 'ONLINE',

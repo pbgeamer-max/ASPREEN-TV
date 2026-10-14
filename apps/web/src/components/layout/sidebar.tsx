@@ -15,14 +15,16 @@ import {
   Settings,
   LogOut,
   ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
 import { BRANDING } from '@aspreen/shared';
 import { useAuth } from '@/lib/auth-context';
 
 const NAV_ITEMS = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
-  { href: '/sources', label: 'Sources', icon: Radio },
-  { href: '/channels', label: 'Channels', icon: Tv },
+  { href: '/oscar-tv', label: '⭐ قنوات أوسكار (Oscar TV)', icon: Sparkles },
+  { href: '/channels', label: 'جميع القنوات (Channels)', icon: Tv },
+  { href: '/sources', label: 'المصادر (Sources)', icon: Radio },
   { href: '/movies', label: 'الأفلام (Movies)', icon: Film },
   { href: '/series', label: 'المسلسلات (Series)', icon: Clapperboard },
   { href: '/transcoding', label: 'Transcoding', icon: Cpu },

@@ -185,6 +185,108 @@ export async function appRoutes(server: FastifyInstance) {
   });
 
   /**
+   * GET /api/app/oscar/playlist.m3u
+   * Dedicated M3U playlist for Oscar TV channels only
+   */
+  server.get('/oscar/playlist.m3u', async (request, reply: FastifyReply) => {
+    const channels = await channelRepository.listChannels();
+    const oscarChannels = channels.filter(
+      (c) => c.enabled !== false && (c.sourceId === 'oscar-tv-live' || c.externalIdentifier?.startsWith('oscar-'))
+    );
+
+    const settings = await settingsRepository.getSettings();
+    const reqHost = (request.headers['x-forwarded-host'] as string) || (request.headers.host as string);
+    const reqProto = (request.headers['x-forwarded-proto'] as string) || 'https';
+    let effectiveBaseUrl = settings.publicStreamBaseUrl;
+    if ((!effectiveBaseUrl || effectiveBaseUrl.includes('localhost') || effectiveBaseUrl.includes('@')) && reqHost && !reqHost.includes('127.0.0.1')) {
+      effectiveBaseUrl = `${reqProto}://${reqHost}`;
+    }
+
+    const lines: string[] = ['#EXTM3U'];
+
+    for (const ch of oscarChannels) {
+      const publicOutputId = ch.activeOutputId || ch.id;
+      const rawToken = generateStreamToken();
+      const tokenHash = hashStreamToken(rawToken);
+
+      await tokenRepository.createToken({
+        channelId: ch.id,
+        name: `Oscar M3U - ${ch.name}`,
+        tokenHash,
+        publicOutputId,
+      });
+
+      const liveStreamUrl = buildTsPlaybackUrl(effectiveBaseUrl, publicOutputId, rawToken);
+      const proxiedLogo = ch.logoUrl ? `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}` : '';
+      const tvgLogo = proxiedLogo ? ` tvg-logo="${proxiedLogo}"` : '';
+      const groupTitle = ch.groupTitle ? ` group-title="${ch.groupTitle.replace(/"/g, "'")}"` : ' group-title="Oscar TV"';
+
+      lines.push(`#EXTINF:-1 tvg-id="" tvg-name="${ch.name.replace(/"/g, "'")}"${tvgLogo}${groupTitle},${ch.name}`);
+      lines.push(liveStreamUrl);
+    }
+
+    const m3uContent = lines.join('\n');
+    reply.header('Content-Type', 'audio/x-mpegurl; charset=utf-8');
+    reply.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+    return reply.send(m3uContent);
+  });
+
+  /**
+   * GET /api/app/oscar/channels
+   * Returns clean, structured JSON of Oscar TV channels only for Android & web apps
+   */
+  server.get('/oscar/channels', async (request, reply) => {
+    const channels = await channelRepository.listChannels();
+    const oscarChannels = channels.filter(
+      (c) => c.enabled !== false && (c.sourceId === 'oscar-tv-live' || c.externalIdentifier?.startsWith('oscar-'))
+    );
+
+    const settings = await settingsRepository.getSettings();
+    const reqHost = (request.headers['x-forwarded-host'] as string) || (request.headers.host as string);
+    const reqProto = (request.headers['x-forwarded-proto'] as string) || 'https';
+    let effectiveBaseUrl = settings.publicStreamBaseUrl;
+    if ((!effectiveBaseUrl || effectiveBaseUrl.includes('localhost') || effectiveBaseUrl.includes('@')) && reqHost && !reqHost.includes('127.0.0.1')) {
+      effectiveBaseUrl = `${reqProto}://${reqHost}`;
+    }
+
+    const appChannels = await Promise.all(
+      oscarChannels.map(async (ch) => {
+        const publicOutputId = ch.activeOutputId || ch.id;
+        const rawToken = generateStreamToken();
+        const tokenHash = hashStreamToken(rawToken);
+
+        await tokenRepository.createToken({
+          channelId: ch.id,
+          name: `Oscar App - ${ch.name}`,
+          tokenHash,
+          publicOutputId,
+        });
+
+        const liveStreamUrl = buildTsPlaybackUrl(effectiveBaseUrl, publicOutputId, rawToken);
+        const hlsStreamUrl = buildPlaybackUrl(effectiveBaseUrl, publicOutputId, rawToken);
+        const logoUrl = ch.logoUrl ? `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}` : null;
+
+        return {
+          id: ch.id,
+          name: ch.name,
+          category: ch.groupTitle || 'قنوات أوسكار',
+          logo: logoUrl,
+          streamUrl: liveStreamUrl,
+          hlsUrl: hlsStreamUrl,
+          status: ch.transcodingStatus || 'RUNNING',
+        };
+      })
+    );
+
+    return {
+      total: appChannels.length,
+      source: 'Oscar TV Hub',
+      serverTime: new Date().toISOString(),
+      channels: appChannels,
+    };
+  });
+
+  /**
    * POST /api/app/report-channel
    * Allows the Android app to report a broken channel, notifying Telegram bot immediately
    */

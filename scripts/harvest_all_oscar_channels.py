@@ -108,38 +108,46 @@ def double_back():
     run_adb("shell", "input", "keyevent", "4")
 
 def swipe_up():
-    run_adb("shell", "input", "swipe", "960", "800", "960", "300", "300")
+    run_adb("shell", "input", "swipe", "960", "900", "960", "300", "300")
 
 def swipe_down_grid():
     run_adb("shell", "input", "swipe", "960", "850", "960", "320", "400")
 
 def extract_stream_info():
     out = run_adb("shell", "dumpsys", "activity", "a", "com.tdm.manager/.activity.VideoPlayerActivity")
-    title_match = re.search(r"Extra:\s+title=([^\n,]+)", out) or re.search(r"title=([^\n,]+)", out)
+    title_match = re.search(r"title=([^\s&,]+)", out) or re.search(r"Extra:\s+title=([^\n,]+)", out)
     url_match = (
+        re.search(r"dat=tdmvideo://play\?url=([^\s&]+)", out) or
         re.search(r"Extra:\s+android\.intent\.extra\.TEXT=(https?://[^\s\n,]+)", out) or
-        re.search(r"(https?://[^\s\n\"']+\.workers\.dev[^\s\n\"']*)", out) or
-        re.search(r"(https?://[^\s\n\"']+\.css[^\s\n\"']*)", out) or
-        re.search(r"dat=tdmvideo://play\?url=([^\s&]+)", out)
+        re.search(r"(https?://[^\s\n\"']+\.workers\.dev[^\s\n\"'&]*)", out) or
+        re.search(r"(https?://[^\s\n\"']+\.css[^\s\n\"'&]*)", out)
     )
+    cookie_match = re.search(r"cookies=([^\s\n\"'&]+)", out)
+
     title = title_match.group(1).strip() if title_match else ""
     url = url_match.group(1).strip() if url_match else ""
-    return title, url
+    raw_cookie = cookie_match.group(1).strip() if cookie_match else ""
+    # Important: Decode URL-encoded cookie so ot%3D becomes ot=
+    cookie = urllib.parse.unquote(raw_cookie) if raw_cookie else ""
+    return title, url, cookie
 
-def verify_stream_url(stream_url):
+def verify_stream_url(stream_url, cookie=None):
     if not stream_url:
-        return False, "لا يوجد رابط"
+        return False, "لا يوجد رابط", ""
     headers = {
         "User-Agent": "OSCARTV2021",
         "Referer": "http://speedcdn.me:8080/"
     }
+    if cookie:
+        headers["Cookie"] = cookie
     try:
-        r = requests.get(stream_url, headers=headers, timeout=6)
+        r = requests.get(stream_url, headers=headers, timeout=8, allow_redirects=True)
         if r.status_code == 200 and ("#EXTM3U" in r.text or "#EXTINF" in r.text):
-            return True, "HLS شغال 100%"
-        return False, f"HTTP {r.status_code}"
+            direct_url = r.url if r.url != stream_url else ""
+            return True, "HLS شغال 100%", direct_url
+        return False, f"HTTP {r.status_code}", ""
     except Exception as e:
-        return False, str(e)
+        return False, str(e), ""
 
 def parse_bounds(b_str):
     m = re.match(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]", b_str)
@@ -157,79 +165,176 @@ def get_ui_tree():
     except Exception:
         return None
 
+def handle_potential_ad_and_start_playback(server_y=680):
+    """
+    Taps the server button, checks if a rewarded ad appears, closes the ad,
+    and taps the server button again to ensure playback starts.
+    """
+    tap(960, server_y)
+    time.sleep(1.8)
+
+    # Check current focus
+    focus = run_adb("shell", "dumpsys", "window")
+    if "AdActivity" in focus or "ads" in focus.lower():
+        # Rewarded ad detected! Dismiss by tapping close or back
+        tap(1868, 55)
+        time.sleep(0.5)
+        back()
+        time.sleep(0.8)
+        # After ad dismissal, tap the server button again to actually start the player
+        tap(960, server_y)
+        time.sleep(1.8)
+
+def switch_to_channels_tab():
+    print("[*] الانتقال إلى تبويب القنوات...", flush=True)
+    run_adb("shell", "am", "force-stop", "com.tdm.manager")
+
+    for attempt in range(5):
+        focus = run_adb("shell", "dumpsys", "window")
+        if "com.drama.mp4" not in focus:
+            run_adb("shell", "monkey", "-p", "com.drama.mp4", "-c", "android.intent.category.LAUNCHER", "1")
+            time.sleep(2.5)
+
+        tree = get_ui_tree()
+        if tree:
+            for n in tree.iter():
+                text = n.attrib.get("text", "")
+                bounds = n.attrib.get("bounds", "")
+                if text == "بي إن سبورتس" and parse_bounds(bounds) and parse_bounds(bounds)[1] < 400:
+                    return True
+                if text == "القنوات":
+                    center = parse_bounds(bounds)
+                    if center:
+                        tap(center[0], center[1])
+                        time.sleep(1.5)
+                        return True
+        # If stuck on movie/details page, press back
+        back()
+        time.sleep(1.0)
+        # Fallback to direct navigation icon coordinates for 'القنوات' (1528, 1042)
+        tap(1528, 1020)
+        time.sleep(1.5)
+
+    return False
+
+def open_bein_modal_and_get_channels():
+    switch_to_channels_tab()
+    for _ in range(4):
+        tree = get_ui_tree()
+        found = {}
+        if tree:
+            for n in tree.iter():
+                text = n.attrib.get("text", "").strip()
+                bounds = n.attrib.get("bounds", "")
+                if text.startswith("beIN Sports ") and parse_bounds(bounds):
+                    center = parse_bounds(bounds)
+                    found[text] = center
+            # Modal has all 9 channels
+            if len(found) >= 7:
+                return found
+        tap(1834, 354)
+        time.sleep(1.5)
+    return found
+
 def harvest_bein_cluster(channels_db):
     print("\n" + "=" * 60)
     print(" 📡 [1/2] سحب باقة beIN Sports المباشرة (beIN 1 إلى 9)")
     print("=" * 60)
 
-    # Click Channels tab at bottom (1528, 1042)
-    tap(1528, 1042)
-    time.sleep(2)
-
-    # Click beIN Sports collection logo at (1834, 250)
-    tap(1834, 250)
-    time.sleep(2)
-
-    bein_channels = [
-        {"num": 1, "name": "beIN Sports 1", "coord": (1324, 350)},
-        {"num": 2, "name": "beIN Sports 2", "coord": (960, 350)},
-        {"num": 3, "name": "beIN Sports 3", "coord": (596, 350)},
-        {"num": 4, "name": "beIN Sports 4", "coord": (1324, 600)},
-        {"num": 5, "name": "beIN Sports 5", "coord": (960, 600)},
-        {"num": 6, "name": "beIN Sports 6", "coord": (596, 600)},
-        {"num": 7, "name": "beIN Sports 7", "coord": (1324, 850)},
-        {"num": 8, "name": "beIN Sports 8", "coord": (960, 850)},
-        {"num": 9, "name": "beIN Sports 9", "coord": (596, 850)},
-    ]
-
-    for ch in bein_channels:
-        ch_name = ch["name"]
+    for num in range(1, 10):
+        ch_name = f"beIN Sports {num}"
         print(f"\n[*] جاري سحب {ch_name}...", end=" ", flush=True)
 
-        run_adb("shell", "am", "force-stop", "com.tdm.manager")
-        time.sleep(0.4)
+        channels_map = open_bein_modal_and_get_channels()
+        center = channels_map.get(ch_name)
 
-        tap(*ch["coord"])
+        if not center:
+            print("✗ لم يتم العثور على القناة في القائمة")
+            continue
+
+        run_adb("shell", "am", "force-stop", "com.tdm.manager")
+        time.sleep(0.2)
+
+        # Tap the channel card (center X, and tap slightly above text for the poster icon)
+        tap(center[0], center[1] - 40)
         time.sleep(1.8)
 
+        # Swipe up to reveal servers
         swipe_up()
         time.sleep(0.8)
 
-        # Tap main/720p/1080p server button
-        tap(960, 952)
-        time.sleep(3.5)
+        # Tap 720p server button with ad auto-handling
+        handle_potential_ad_and_start_playback(server_y=680)
 
-        title, url = extract_stream_info()
+        title, url, cookie = extract_stream_info()
         run_adb("shell", "am", "force-stop", "com.tdm.manager")
         time.sleep(0.3)
         back()
-        time.sleep(0.8)
-        # Re-open beIN modal for next channel
-        tap(1834, 250)
-        time.sleep(1.2)
+        time.sleep(1.0)
 
         if url:
-            valid, msg = verify_stream_url(url)
+            valid, msg, direct_url = verify_stream_url(url, cookie)
             print(f"✓ تم بنجاح! [{msg}]")
             channels_db[ch_name] = {
                 "name": ch_name,
                 "category": "قنوات beIN Sports",
                 "streamUrl": url,
+                "directUrl": direct_url,
+                "cookie": cookie,
                 "ua": "OSCARTV2021"
             }
         else:
             print("✗ تعذر استخراج الرابط")
 
-def harvest_grid_channels(channels_db, max_scrolls=8):
+    # Automatic retry for any missed beIN channel
+    missing = [num for num in range(1, 10) if f"beIN Sports {num}" not in channels_db or not channels_db[f"beIN Sports {num}"].get("streamUrl")]
+    if missing:
+        print(f"\n[*] إعادة محاولة سحب القنوات التي لم تكتمل: {missing}...")
+        for num in missing:
+            ch_name = f"beIN Sports {num}"
+            print(f"[*] جاري إعادة سحب {ch_name}...", end=" ", flush=True)
+            channels_map = open_bein_modal_and_get_channels()
+            center = channels_map.get(ch_name)
+            if not center:
+                print("✗ لم يتم العثور على القناة")
+                continue
+            run_adb("shell", "am", "force-stop", "com.tdm.manager")
+            time.sleep(0.3)
+            tap(center[0], center[1] - 40)
+            time.sleep(1.8)
+            swipe_up()
+            time.sleep(0.8)
+            handle_potential_ad_and_start_playback(server_y=680)
+            title, url, cookie = extract_stream_info()
+            run_adb("shell", "am", "force-stop", "com.tdm.manager")
+            time.sleep(0.3)
+            back()
+            time.sleep(1.0)
+            if url:
+                valid, msg, direct_url = verify_stream_url(url, cookie)
+                print(f"✓ تم بنجاح! [{msg}]")
+                channels_db[ch_name] = {
+                    "name": ch_name,
+                    "category": "قنوات beIN Sports",
+                    "streamUrl": url,
+                    "directUrl": direct_url,
+                    "cookie": cookie,
+                    "ua": "OSCARTV2021"
+                }
+            else:
+                print("✗ تعذر استخراج الرابط")
+
+def harvest_grid_channels(channels_db, max_scrolls=6):
     print("\n" + "=" * 60)
     print(" 📺 [2/2] مسح وسحب باقي القنوات من الشبكة العامة (A to Z)")
     print("=" * 60)
 
     # Return to main channels grid
-    double_back()
-    time.sleep(1)
-    tap(1528, 1042)
-    time.sleep(2)
+    run_adb("shell", "am", "force-stop", "com.tdm.manager")
+    back()
+    time.sleep(0.5)
+    switch_to_channels_tab()
+    time.sleep(1.5)
 
     visited = set(channels_db.keys())
 
@@ -257,24 +362,28 @@ def harvest_grid_channels(channels_db, max_scrolls=8):
         for ch_name, (cx, cy) in found_in_view:
             print(f"[*] سحب {ch_name}...", end=" ", flush=True)
             run_adb("shell", "am", "force-stop", "com.tdm.manager")
+            time.sleep(0.2)
             tap(cx, cy)
             time.sleep(1.8)
             swipe_up()
             time.sleep(0.8)
-            tap(960, 710)
-            time.sleep(3.2)
+            handle_potential_ad_and_start_playback(server_y=680)
 
-            _, url = extract_stream_info()
+            title, url, cookie = extract_stream_info()
             run_adb("shell", "am", "force-stop", "com.tdm.manager")
-            double_back()
+            time.sleep(0.3)
+            back()
             time.sleep(0.8)
 
             if url:
-                print("✓ تم!")
+                valid, msg, direct_url = verify_stream_url(url, cookie)
+                print(f"✓ تم! [{msg}]")
                 channels_db[ch_name] = {
                     "name": ch_name,
                     "category": "Live TV",
                     "streamUrl": url,
+                    "directUrl": direct_url,
+                    "cookie": cookie,
                     "ua": "OSCARTV2021"
                 }
             else:
@@ -296,15 +405,24 @@ def save_and_export(channels_db):
     m3u_lines = ["#EXTM3U"]
     for name, data in channels_db.items():
         url = data.get("streamUrl", "")
+        cookie = data.get("cookie", "")
         group = data.get("category", "Live TV")
-        if any(k in name.lower() for k in ["bein", "sport", "كأس", "ssc"]):
+        if any(k in name.lower() for k in ["bein", "sport", "كأس", "ssc", "رياض"]):
             group = "Sports"
         m3u_lines.append(f'#EXTINF:-1 tvg-name="{name}" group-title="{group}",{name}')
         if ".css" in url or "workers.dev" in url or data.get("ua") == "OSCARTV2021":
             m3u_lines.append("#EXTVLCOPT:http-user-agent=OSCARTV2021")
             m3u_lines.append("#EXTVLCOPT:http-referrer=http://speedcdn.me:8080/")
-            m3u_lines.append('#EXTHTTP:{"User-Agent":"OSCARTV2021","Referer":"http://speedcdn.me:8080/"}')
-        m3u_lines.append(url)
+            if cookie:
+                m3u_lines.append(f"#EXTVLCOPT:http-cookie={cookie}")
+                m3u_lines.append(f'#EXTHTTP:{{"User-Agent":"OSCARTV2021","Referer":"http://speedcdn.me:8080/","Cookie":"{cookie}"}}')
+                pipe_url = f"{url}|User-Agent=OSCARTV2021&Referer=http://speedcdn.me:8080/&Cookie={cookie}"
+            else:
+                m3u_lines.append('#EXTHTTP:{"User-Agent":"OSCARTV2021","Referer":"http://speedcdn.me:8080/"}')
+                pipe_url = f"{url}|User-Agent=OSCARTV2021&Referer=http://speedcdn.me:8080/"
+            m3u_lines.append(pipe_url)
+        else:
+            m3u_lines.append(url)
 
     m3u_path = os.path.abspath("data/oscar_channels.m3u8")
     with open(m3u_path, "w", encoding="utf-8") as f:
@@ -345,9 +463,12 @@ def main():
         return
 
     print(f"[✓] الجهاز المتصل: {device}")
-    print("[*] جارٍ تشغيل تطبيق Oscar TV...")
+    print("[*] جارٍ ضبط وإعادة تشغيل تطبيق Oscar TV في حالة نظيفة...")
+    run_adb("shell", "am", "force-stop", "com.tdm.manager")
+    run_adb("shell", "am", "force-stop", "com.drama.mp4")
+    time.sleep(0.5)
     run_adb("shell", "monkey", "-p", "com.drama.mp4", "-c", "android.intent.category.LAUNCHER", "1")
-    time.sleep(3.5)
+    time.sleep(4.0)
 
     # Load existing DB
     channels_db = {}
