@@ -45,13 +45,20 @@ export class OscarSyncService {
         if (!entry.name || !entry.streamUrl) continue;
 
         const normalized = entry.name.toLowerCase().trim();
-        const existing = existingMap.get(normalized);
+        const baseName = normalized.replace(/\s*hd\s*$/i, '').trim();
+        const existing =
+          existingMap.get(normalized) ||
+          existingMap.get(baseName) ||
+          existingMap.get(`${baseName} hd`) ||
+          existingMap.get(`${baseName} 1080p`);
+
         const logo = liveHunterService.getKnownLogo(entry.name);
 
         // Format stream URL with pipe headers if user agent is required
         let finalStreamUrl = entry.streamUrl;
-        if (entry.ua && !finalStreamUrl.includes('|')) {
-          finalStreamUrl = `${finalStreamUrl}|User-Agent=${entry.ua}`;
+        const ua = entry.ua || 'OSCARTV2021';
+        if (!finalStreamUrl.includes('|')) {
+          finalStreamUrl = `${finalStreamUrl}|User-Agent=${ua}&Referer=http://speedcdn.me:8080/`;
         }
         const encrypted = encrypt(finalStreamUrl);
 

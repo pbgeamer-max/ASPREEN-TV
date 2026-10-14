@@ -32,6 +32,8 @@ import {
   Trash2,
   RotateCcw,
   Bot,
+  Sparkles,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 export default function ChannelsPage() {
@@ -442,6 +444,36 @@ export default function ChannelsPage() {
     }
   };
 
+  const [syncOscarLoading, setSyncOscarLoading] = useState(false);
+  const [updatingLogos, setUpdatingLogos] = useState(false);
+
+  const handleSyncOscar = async () => {
+    setSyncOscarLoading(true);
+    try {
+      const res = await api.syncOscarChannels();
+      alert(`✅ تم مزامنة قنوات أوسكار بنجاح!\n- إجمالي القنوات المعتمدة: ${res.total}\n- قنوات مضافة: ${res.added}\n- قنوات تم تحديث روابطها وشعاراتها: ${res.updated}`);
+      await fetchChannels();
+    } catch (err: any) {
+      alert(`فشل مزامنة قنوات أوسكار: ${err.message}`);
+    } finally {
+      setSyncOscarLoading(false);
+    }
+  };
+
+  const handleUpdateLogos = async () => {
+    setUpdatingLogos(true);
+    try {
+      const res = await api.updateLogos();
+      alert(`🖼️ اكتمل تحديث الشعارات!\n${res.message}`);
+      await fetchChannels();
+    } catch (err: any) {
+      alert(`فشل تحديث الشعارات: ${err.message}`);
+    } finally {
+      setUpdatingLogos(false);
+    }
+  };
+
+
   const downloadFile = (content: string, filename: string, mime: string) => {
     const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
@@ -566,6 +598,26 @@ export default function ChannelsPage() {
               >
                 <Bot className={`w-3.5 h-3.5 ${autoPilotRunning ? 'animate-spin' : 'text-cyan-400'}`} />
                 <span>{autoPilotRunning ? 'جاري الفحص وإعادة البث...' : '🤖 تحديث وبث تلقائي'}</span>
+              </button>
+
+              <button
+                onClick={handleSyncOscar}
+                disabled={loading || syncOscarLoading}
+                className="py-1.5 px-3 text-xs gap-1.5 flex items-center rounded-md border border-emerald-600 text-emerald-200 bg-emerald-950/40 hover:bg-emerald-900/60 transition-colors disabled:opacity-50 shadow-sm"
+                title="مزامنة قنوات أوسكار TV المعتمدة (beIN 1-9، روتانا، وغيرها) مع روابطها وشعاراتها الأصلية"
+              >
+                <Sparkles className={`w-3.5 h-3.5 ${syncOscarLoading ? 'animate-spin' : 'text-emerald-400'}`} />
+                <span>{syncOscarLoading ? 'مزامنة أوسكار...' : '⚡ قنوات أوسكار'}</span>
+              </button>
+
+              <button
+                onClick={handleUpdateLogos}
+                disabled={loading || updatingLogos}
+                className="py-1.5 px-3 text-xs gap-1.5 flex items-center rounded-md border border-blue-600 text-blue-200 bg-blue-950/40 hover:bg-blue-900/60 transition-colors disabled:opacity-50 shadow-sm"
+                title="تحديث شعارات جميع القنوات الحالية إلى صور رسمية عالية الدقة"
+              >
+                <ImageIcon className={`w-3.5 h-3.5 ${updatingLogos ? 'animate-spin' : 'text-blue-400'}`} />
+                <span>{updatingLogos ? 'تحديث الصور...' : '🖼️ تحديث الشعارات'}</span>
               </button>
             </div>
           }

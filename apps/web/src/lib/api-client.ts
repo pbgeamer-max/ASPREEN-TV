@@ -410,7 +410,22 @@ class ApiClient {
       { method: 'POST' }
     );
   }
+
+  async syncOscarChannels() {
+    return this.request<{ success: boolean; total: number; added: number; updated: number }>(
+      '/channels/sync-oscar',
+      { method: 'POST' }
+    );
+  }
+
+  async updateLogos() {
+    return this.request<{ success: boolean; count: number; message: string }>(
+      '/channels/update-logos',
+      { method: 'POST' }
+    );
+  }
 }
 
 export const api = new ApiClient();
+
 

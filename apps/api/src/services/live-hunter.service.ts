@@ -1480,31 +1480,72 @@ export class LiveHunterService {
   }
 
   public getKnownLogo(name: string): string | undefined {
-    const n = (name || '').toLowerCase();
-    if (n.includes('bein sports news') || n.includes('الإخبارية')) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/2/26/BeIN_Sports_News_logo.png';
+    const n = (name || '').toLowerCase().trim();
+
+    // beIN Sports Special & Events
+    if (/bein.*(?:news|الإخبارية)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/31-1.jpg';
+    if (/bein.*(?:1001|xtra.*1|1.*xtra)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/1001-1.jpg';
+    if (/bein.*(?:1002|xtra.*2|2.*xtra)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/1002-1.jpg';
+    if (/bein.*(?:premium.*1|1.*premium|1010)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/1010-1.jpg';
+    if (/bein.*(?:premium.*2|2.*premium|2020)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/2020-1.jpg';
+    if (/bein.*(?:max.*1|1.*max|179)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/179-1.jpg';
+    if (/bein.*(?:max.*2|2.*max|180)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/180-1.jpg';
+    if (/bein.*(?:max.*3|3.*max|333)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/333-1.jpg';
+    if (/bein.*(?:max.*4|4.*max|444)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/444-1.jpg';
+    if (/bein.*(?:4k|44444)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/44444-1.jpg';
+    if (/bein.*(?:المفتوحة|open)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/117-1.jpg';
+
+    // beIN Sports 1 - 12
+    if (/bein.*(?:sports?\s*1\b|1\s*hd|\b1\b)/i.test(n) && !n.includes('10') && !n.includes('11') && !n.includes('12')) {
+      return 'https://channel.aflam4you.net/uploads/thumbs/68-1.jpg';
     }
-    if (n.includes('bein')) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/b/b9/BeIN_Sports_logo.svg';
-    }
-    if (n.includes('كأس') || n.includes('alkass') || n.includes('al kass')) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Alkass_Digital_Logo.png';
-    }
+    if (/bein.*(?:sports?\s*2\b|2\s*hd|\b2\b)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/2-1.jpg';
+    if (/bein.*(?:sports?\s*3\b|3\s*hd|\b3\b)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/1-1.jpg';
+    if (/bein.*(?:sports?\s*4\b|4\s*hd|\b4\b)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/3-1.jpg';
+    if (/bein.*(?:sports?\s*5\b|5\s*hd|\b5\b)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/73-1.jpg';
+    if (/bein.*(?:sports?\s*6\b|6\s*hd|\b6\b)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/74-1.jpg';
+    if (/bein.*(?:sports?\s*7\b|7\s*hd|\b7\b)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/75-1.jpg';
+    if (/bein.*(?:sports?\s*8\b|8\s*hd|\b8\b)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/76-1.jpg';
+    if (/bein.*(?:sports?\s*9\b|9\s*hd|\b9\b)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/69-1.jpg';
+    if (/bein.*(?:sports?\s*10\b|10\s*hd)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/30-1.jpg';
+    if (/bein.*(?:sports?\s*11\b|11\s*hd)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/28-1.jpg';
+    if (/bein.*(?:sports?\s*12\b|12\s*hd)/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/29-1.jpg';
+    if (/bein/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/68-1.jpg';
+
+    // Al Kass
+    if (/(?:كأس|alkass|al kass).*1/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/108-1.jpg';
+    if (/(?:كأس|alkass|al kass).*2/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/109-1.jpg';
+    if (/(?:كأس|alkass|al kass).*3/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/2352-1.jpg';
+    if (/(?:كأس|alkass|al kass).*4/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/2353-1.jpg';
+    if (/(?:كأس|alkass|al kass).*5/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/6424-1.jpg';
+    if (/(?:كأس|alkass|al kass).*6/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/8281-1.jpg';
+    if (/(?:كأس|alkass|al kass).*7/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/6909-1.jpg';
+    if (/(?:كأس|alkass|al kass).*8/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/9643-1.jpg';
+    if (/(?:كأس|alkass|al kass).*9/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/8078-1.jpg';
+    if (/كأس|alkass|al kass/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/108-1.jpg';
+
+    // SSC
+    if (/ssc.*1/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/167-1.jpg';
+    if (/ssc.*2/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/104-1.jpg';
+    if (/ssc.*3/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/105-1.jpg';
+    if (/ssc.*4/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/106-1.jpg';
+    if (/ssc.*5/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/116-1.jpg';
+    if (/ssc.*extra.*1/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/998-1.jpg';
+    if (/ssc.*extra.*2/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/999-1.jpg';
+    if (/ssc.*news/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/4538-1.jpg';
+    if (/ssc/i.test(n)) return 'https://channel.aflam4you.net/uploads/thumbs/167-1.jpg';
+
+    // Other sports
     if (n.includes('أبوظبي') || n.includes('abu dhabi')) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/5/52/Abu_Dhabi_Sports_logo.png';
+      return 'https://channel.aflam4you.net/uploads/thumbs/108-1.jpg';
     }
     if (n.includes('دبي') || n.includes('dubai')) {
-      return 'https://upload.wikimedia.org/wikipedia/en/b/b5/Dubai_Sports_Logo.png';
+      return 'https://channel.aflam4you.net/uploads/thumbs/108-1.jpg';
     }
     if (n.includes('on time') || n.includes('أون تايم') || n.includes('on sport')) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/8/87/ON_Time_Sports.png';
+      return 'https://channel.aflam4you.net/uploads/thumbs/108-1.jpg';
     }
-    if (n.includes('ssc') || n.includes('السعودية الرياضية') || n.includes('ksa')) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/a/a2/KSA_SPORTS_Logo.png';
-    }
-    if (n.includes('الرياضية المغربية') || n.includes('arryadia') || n.includes('snrt')) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/8/82/Arryadia_logo_2021.svg';
-    }
+
     return undefined;
   }
 
