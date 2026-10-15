@@ -219,7 +219,7 @@ export default function ChannelsPage() {
   const handlePlayPreview = async (channel: Channel) => {
     try {
       // 1. Direct proxy stream URL (zero delay, zero buttons)
-      const streamToPlay = channel.proxyUrl || `http://127.0.0.1:8080/live/${channel.id}.m3u8`;
+      const streamToPlay = `/live/${channel.id}.m3u8`;
       setActivePlayerUrl(streamToPlay);
       setActivePlayerName(channel.name);
       setPlayerModalOpen(true);
@@ -227,6 +227,7 @@ export default function ChannelsPage() {
       console.error('Play error:', err);
     }
   };
+
 
   const handleBulkStart = async () => {
     const targetDesc = selectedSourceId ? 'all channels in selected source' : 'ALL channels';

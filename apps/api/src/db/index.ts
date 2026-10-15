@@ -1,4 +1,24 @@
 import { Pool, PoolConfig } from 'pg';
+import * as fs from 'fs';
+import * as path from 'path';
+import { encrypt } from '../security/encryption';
+
+function findChannelsJsonPath(): string | null {
+  const candidates = [
+    path.resolve(process.cwd(), 'channels.json'),
+    path.resolve(process.cwd(), 'apps/api/channels.json'),
+    path.resolve(process.cwd(), '../../channels.json'),
+    path.resolve(__dirname, '../../../../channels.json'),
+    path.resolve(__dirname, '../../../channels.json'),
+    path.resolve('/app/channels.json'),
+    path.resolve('/app/apps/api/channels.json'),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  return null;
+}
+
 
 let pool: Pool | null = null;
 let isInitialized = false;
@@ -193,6 +213,64 @@ export async function initDatabase(force = false): Promise<boolean> {
         DROP TABLE IF EXISTS series CASCADE;
         DROP TABLE IF EXISTS movies CASCADE;
       `);
+
+      // Auto-seed 325 Channels and Yacine TV Source if table is empty
+      try {
+        const countRes = await client.query('SELECT COUNT(*) as count FROM channels');
+        const currentCount = parseInt(countRes.rows[0]?.count || '0', 10);
+        if (currentCount === 0) {
+          const jsonPath = findChannelsJsonPath();
+          if (jsonPath && fs.existsSync(jsonPath)) {
+            console.log(`[PostgreSQL] 0 channels detected. Auto-seeding from ${jsonPath}...`);
+            const raw = fs.readFileSync(jsonPath, 'utf-8');
+            const list = JSON.parse(raw);
+
+            // 1. Ensure source exists
+            await client.query(`
+              INSERT INTO sources (
+                id, name, type, sanitized_hostname, encrypted_url, enabled, connection_status, channel_count, created_at, updated_at
+              ) VALUES (
+                'yacine-website', 'Yacine TV (325 قنوات)', 'M3U', 'yacine.website', $1, true, 'ONLINE', $2, NOW(), NOW()
+              ) ON CONFLICT (id) DO UPDATE SET channel_count = $2, connection_status = 'ONLINE'
+
+            `, [encrypt('https://yacine.website/'), list.length]);
+
+            // 2. Insert channels
+            for (let i = 0; i < list.length; i++) {
+              const item = list[i];
+              const cid = String(item.id || item.vid);
+              const stream = item.streamUrl || item.directM3u8 || '';
+              const encStream = encrypt(stream);
+              const name = item.name || 'قناة غير معنونة';
+              const normName = name.toLowerCase().trim();
+              const grp = item.groupTitle || 'عام';
+              const logo = item.logoUrl || null;
+              const order = item.orderIndex || (i + 1);
+
+              await client.query(`
+                INSERT INTO channels (
+                  id, source_id, external_identifier, name, normalized_name, group_title, logo_url,
+                  input_type, encrypted_input_url, enabled, input_status, transcoding_status,
+                  preset, proxy_url, order_index, created_at, updated_at
+                ) VALUES (
+                  $1, 'yacine-website', $1, $2, $3, $4, $5,
+                  'HLS', $6, true, 'ONLINE', 'RUNNING',
+                  'COPY', $7, $8, NOW(), NOW()
+                ) ON CONFLICT (id) DO UPDATE SET
+                  enabled = true,
+                  input_status = 'ONLINE',
+                  transcoding_status = 'RUNNING',
+                  proxy_url = $7
+              `, [cid, name, normName, grp, logo, encStream, `/live/${cid}.m3u8`, order]);
+            }
+            console.log(`[PostgreSQL] Successfully auto-seeded ${list.length} channels into database!`);
+          } else {
+            console.warn('[PostgreSQL] Could not find channels.json for auto-seeding.');
+          }
+        }
+      } catch (seedErr: any) {
+        console.error('[PostgreSQL] Auto-seed failed:', seedErr.message);
+      }
 
       isInitialized = true;
       console.log('[PostgreSQL] Database schema verified and ready for high-performance operations.');

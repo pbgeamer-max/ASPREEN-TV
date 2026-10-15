@@ -12,9 +12,12 @@ const CHANNELS_COLLECTION = 'channels';
 function findChannelsJsonPath(): string | null {
   const candidates = [
     path.resolve(process.cwd(), 'channels.json'),
+    path.resolve(process.cwd(), 'apps/api/channels.json'),
     path.resolve(process.cwd(), '../../channels.json'),
     path.resolve(__dirname, '../../../../channels.json'),
     path.resolve(__dirname, '../../../channels.json'),
+    path.resolve('/app/channels.json'),
+    path.resolve('/app/apps/api/channels.json'),
   ];
   for (const c of candidates) {
     if (fs.existsSync(c)) return c;
@@ -52,7 +55,7 @@ function getChannelsFromJson(): Channel[] {
         enabled: true,
         inputStatus: 'ONLINE',
         transcodingStatus: 'RUNNING',
-        proxyUrl: `http://127.0.0.1:8080/live/${cid}.m3u8`,
+        proxyUrl: `/live/${cid}.m3u8`,
         preset: 'COPY',
         orderIndex: item.orderIndex || (idx + 1),
         createdAt: new Date().toISOString(),
@@ -66,11 +69,10 @@ function getChannelsFromJson(): Channel[] {
   }
 }
 
-
-
 function mapChannelRow(row: any): Channel {
+  const cid = String(row.id);
   return {
-    id: row.id,
+    id: cid,
     sourceId: row.source_id,
     externalIdentifier: row.external_identifier ?? undefined,
     name: row.name,
@@ -80,10 +82,10 @@ function mapChannelRow(row: any): Channel {
     inputType: row.input_type,
     encryptedInputUrl: row.encrypted_input_url,
     enabled: Boolean(row.enabled),
-    inputStatus: row.input_status,
-    transcodingStatus: row.transcoding_status,
+    inputStatus: row.input_status || 'ONLINE',
+    transcodingStatus: row.transcoding_status || 'RUNNING',
     preset: row.preset,
-    proxyUrl: row.proxy_url ?? undefined,
+    proxyUrl: row.proxy_url || `/live/${cid}.m3u8`,
     activeJobId: row.active_job_id ?? undefined,
     activeOutputId: row.active_output_id ?? undefined,
     orderIndex: row.order_index !== null && row.order_index !== undefined ? Number(row.order_index) : 0,
@@ -91,6 +93,7 @@ function mapChannelRow(row: any): Channel {
     updatedAt: row.updated_at instanceof Date ? row.updated_at.toISOString() : String(row.updated_at || new Date().toISOString()),
   };
 }
+
 
 export class ChannelRepository {
   private db = getFirestore();

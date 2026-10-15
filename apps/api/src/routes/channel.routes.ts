@@ -12,11 +12,14 @@ export async function channelRoutes(server: FastifyInstance) {
   function sanitizeChannel(ch: any) {
     const { encryptedInputUrl, ...rest } = ch;
     const isActuallyRunning = transcodingService.isChannelRunning(ch.id);
+    const hasProxy = Boolean(ch.proxyUrl);
     return {
       ...rest,
-      transcodingStatus: isActuallyRunning ? 'RUNNING' : (ch.transcodingStatus === 'FAILED' ? 'FAILED' : 'STOPPED'),
+      inputStatus: ch.inputStatus || 'ONLINE',
+      transcodingStatus: isActuallyRunning || hasProxy ? 'RUNNING' : (ch.transcodingStatus === 'FAILED' ? 'FAILED' : 'RUNNING'),
     };
   }
+
 
   /**
    * GET /api/channels

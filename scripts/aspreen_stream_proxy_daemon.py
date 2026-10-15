@@ -35,9 +35,10 @@ DATA_DIR = os.path.join(WORKSPACE_DIR, "data")
 CONFIG_FILE = os.path.join(WORKSPACE_DIR, "telegram_config.json")
 CHANNELS_JSON_PATH = os.path.join(WORKSPACE_DIR, "channels.json")
 
-PORT = 8080
+PORT = int(os.environ.get("STREAM_PROXY_PORT", os.environ.get("PORT", "8088")))
 AUTO_RENEW_INTERVAL_SECONDS = 30 * 60  # Renew every 30 minutes
 TELEGRAM_HEARTBEAT_HOURS = 12          # Telegram report every 12 hours
+
 
 # Load Telegram Config
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -293,17 +294,32 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         # 2. Master Dynamic Playlist (all channels)
         if path == "/playlist.m3u" or path == "/channels.m3u":
-            root_m3u = os.path.join(WORKSPACE_DIR, "channels.m3u")
-            if os.path.exists(root_m3u):
-                with open(root_m3u, "rb") as f:
-                    content = f.read()
-                self.send_response(200)
-                self.send_cors_headers()
-                self.send_header("Content-Type", "application/vnd.apple.mpegurl; charset=utf-8")
-                self.send_header("Content-Length", str(len(content)))
-                self.end_headers()
-                self.wfile.write(content)
-                return
+            host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", f"127.0.0.1:{PORT}"))
+            proto = self.headers.get("X-Forwarded-Proto", "https" if ("railway" in host or "443" in host) else "http")
+            base_origin = f"{proto}://{host}"
+            with cache_lock:
+                channels_list = list(channels_cache.values())
+                channels_list.sort(key=lambda x: x.get("orderIndex", 0))
+
+            m3u_lines = ["#EXTM3U"]
+            for ch in channels_list:
+                cid = ch.get("id") or ch.get("vid")
+                name = ch.get("name", "Channel").replace('"', "'")
+                group = ch.get("groupTitle", "Live TV").replace('"', "'")
+                logo = ch.get("logoUrl", "")
+                proxy_stream_url = f"{base_origin}/live/{cid}.m3u8"
+                extinf = f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{name}" tvg-logo="{logo}" group-title="{group}",{name}'
+                m3u_lines.append(extinf)
+                m3u_lines.append(proxy_stream_url)
+
+            content = ("\n".join(m3u_lines) + "\n").encode("utf-8")
+            self.send_response(200)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "application/vnd.apple.mpegurl; charset=utf-8")
+            self.send_header("Content-Length", str(len(content)))
+            self.end_headers()
+            self.wfile.write(content)
+            return
 
         # 3. Live Channel Playlist: /live/<channel_id>.m3u8
         match = re.match(r"^/live/(\d+)\.m3u8$", path)
@@ -312,17 +328,20 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.handle_channel_playlist(cid)
             return
 
-        # 4. Proxy Segment Chunk: /ts?url=<encoded_url>&ref=<encoded_ref>
-        if self.path.startswith("/ts?") or self.path.startswith("/ts/"):
+        # 4. Proxy Segment Chunk: /ts or /live/ts
+        if self.path.startswith("/ts?") or self.path.startswith("/live/ts?") or self.path.startswith("/ts/") or self.path.startswith("/live/ts/"):
             parsed_ts = urllib.parse.urlparse(self.path)
             qs_ts = urllib.parse.parse_qs(parsed_ts.query)
             target_url = qs_ts.get("url", [""])[0]
             ref_override = qs_ts.get("ref", [""])[0]
             if not target_url and self.path.startswith("/ts?url="):
                 target_url = urllib.parse.unquote(self.path[8:])
+            elif not target_url and self.path.startswith("/live/ts?url="):
+                target_url = urllib.parse.unquote(self.path[13:])
             if target_url:
                 self.handle_ts_segment(target_url, ref_override)
                 return
+
 
         # Fallback 404
         self.send_response(404)
@@ -471,8 +490,9 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
                 encoded_seg = urllib.parse.quote(seg_full, safe="")
                 encoded_ref = urllib.parse.quote(channel_referer, safe="")
-                rewritten_seg = f"{base_origin}/ts?url={encoded_seg}&ref={encoded_ref}"
+                rewritten_seg = f"/live/ts?url={encoded_seg}&ref={encoded_ref}"
                 rewritten.append(rewritten_seg)
+
 
         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
         self.send_response(200)
@@ -549,7 +569,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
                             encoded_seg = urllib.parse.quote(seg_full, safe="")
                             encoded_ref = urllib.parse.quote(referer, safe="")
-                            rewritten.append(f"{base_origin}/ts?url={encoded_seg}&ref={encoded_ref}")
+                            rewritten.append(f"/live/ts?url={encoded_seg}&ref={encoded_ref}")
+
 
                     out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
                     self.send_response(200)
