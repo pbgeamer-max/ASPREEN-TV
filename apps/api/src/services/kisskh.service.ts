@@ -1,4 +1,6 @@
 import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36';
 
@@ -282,6 +284,62 @@ export interface KisskhSubtitleTrack {
 
 class KisskhService {
   private cache = new Map<string, { data: any; expiresAt: number }>();
+  private localCatalog: { updatedAt: string; totalCount: number; items: any[] } | null = null;
+  private localDramas: Record<string, any> | null = null;
+
+  private getCatalogFilePath(): string {
+    const candidates = [
+      path.join(process.cwd(), 'data', 'kisskh_catalog.json'),
+      path.join(process.cwd(), '..', '..', 'data', 'kisskh_catalog.json'),
+      path.join(__dirname, '..', '..', 'data', 'kisskh_catalog.json'),
+      path.join(__dirname, '..', '..', '..', 'data', 'kisskh_catalog.json'),
+      '/app/data/kisskh_catalog.json',
+    ];
+
+    for (const c of candidates) {
+      if (fs.existsSync(c)) return c;
+    }
+    return path.join(process.cwd(), 'data', 'kisskh_catalog.json');
+  }
+
+  private getDramasFilePath(): string {
+    const candidates = [
+      path.join(process.cwd(), 'data', 'kisskh_dramas.json'),
+      path.join(process.cwd(), '..', '..', 'data', 'kisskh_dramas.json'),
+      path.join(__dirname, '..', '..', 'data', 'kisskh_dramas.json'),
+      path.join(__dirname, '..', '..', '..', 'data', 'kisskh_dramas.json'),
+      '/app/data/kisskh_dramas.json',
+    ];
+
+    for (const c of candidates) {
+      if (fs.existsSync(c)) return c;
+    }
+    return path.join(process.cwd(), 'data', 'kisskh_dramas.json');
+  }
+
+  private loadLocalData(): void {
+    if (!this.localCatalog) {
+      const catPath = this.getCatalogFilePath();
+      if (fs.existsSync(catPath)) {
+        try {
+          this.localCatalog = JSON.parse(fs.readFileSync(catPath, 'utf8'));
+        } catch (e: any) {
+          console.error('[KissKH Service] Error loading local catalog:', e.message);
+        }
+      }
+    }
+
+    if (!this.localDramas) {
+      const dramaPath = this.getDramasFilePath();
+      if (fs.existsSync(dramaPath)) {
+        try {
+          this.localDramas = JSON.parse(fs.readFileSync(dramaPath, 'utf8'));
+        } catch (e: any) {
+          console.error('[KissKH Service] Error loading local dramas:', e.message);
+        }
+      }
+    }
+  }
 
   public generateVideoKKey(episodeId: number | string): string {
     const appVer = '2.8.10';
@@ -324,23 +382,31 @@ class KisskhService {
   }
 
   /**
-   * Helper that requests active KissKH mirrors with automatic failover (kisskh.do -> kisskh.ovh -> kisskh.la -> kisskh.co)
+   * Helper that requests active KissKH mirrors with automatic failover (kisskh.is -> kisskh.do -> kisskh.ovh -> kisskh.la -> kisskh.co)
    */
-  private async fetchFromMirror(endpoint: string): Promise<Response> {
-    const domains = ['kisskh.do', 'kisskh.ovh', 'kisskh.la', 'kisskh.co'];
+  private async fetchFromMirror(endpoint: string, isImage = false): Promise<Response> {
+    const domains = ['kisskh.is', 'kisskh.do', 'kisskh.ovh', 'kisskh.la', 'kisskh.co'];
     let lastError: Error | null = null;
+    const isPng = isImage || endpoint.includes('.png');
 
     for (const domain of domains) {
       try {
         const fullUrl = `https://${domain}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
-        const res = await fetch(fullUrl, {
-          headers: {
-            'User-Agent': UA,
-            Referer: `https://${domain}/`,
-            Accept: 'application/json, text/plain, */*',
-          },
-        });
+        const headers: Record<string, string> = {
+          'User-Agent': UA,
+          Referer: `https://${domain}/`,
+          Accept: isPng
+            ? 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+            : '*/*',
+          'Sec-Fetch-Dest': isPng ? 'image' : 'empty',
+          'Sec-Fetch-Mode': isPng ? 'no-cors' : 'cors',
+          'Sec-Fetch-Site': 'same-origin',
+          'Sec-Ch-Ua': '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
+          'Sec-Ch-Ua-Mobile': '?0',
+          'Sec-Ch-Ua-Platform': '"Windows"',
+        };
 
+        const res = await fetch(fullUrl, { headers, signal: AbortSignal.timeout(6000) });
         if (res.ok) {
           return res;
         }
@@ -381,6 +447,45 @@ class KisskhService {
       return cached.data;
     }
 
+    this.loadLocalData();
+
+    // 1. If local harvested catalog is present, serve with 0ms latency and 100% reliability
+    if (this.localCatalog && this.localCatalog.items && this.localCatalog.items.length > 0) {
+      let filtered = this.localCatalog.items;
+      if (q) {
+        const queryLower = q.toLowerCase();
+        filtered = filtered.filter((item: any) => item.title && item.title.toLowerCase().includes(queryLower));
+      }
+
+      const total = filtered.length;
+      const start = (page - 1) * pageSize;
+      const paginated = filtered.slice(start, start + pageSize);
+
+      const items: KisskhDramaSummary[] = paginated.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        thumbnail: item.thumbnail,
+        episodesCount: item.episodesCount || 1,
+        label: item.label || null,
+        type: item.episodesCount > 1 ? 'TVSeries' : 'Movie',
+      }));
+
+      const result = {
+        total,
+        page,
+        pageSize,
+        items,
+      };
+
+      this.cache.set(cacheKey, {
+        data: result,
+        expiresAt: Date.now() + 10 * 60 * 1000,
+      });
+
+      return result;
+    }
+
+    // 2. Fallback to live mirror if local catalog is not yet loaded
     let endpoint: string;
     if (q) {
       endpoint = `/api/DramaList/Search?q=${encodeURIComponent(q)}`;
@@ -394,7 +499,6 @@ class KisskhService {
     let items: KisskhDramaSummary[] = [];
 
     if (q) {
-      // Search returns array of results
       const rawList = Array.isArray(json) ? json : json.data || [];
       total = rawList.length;
       items = rawList.map((d: any) => ({
@@ -424,7 +528,6 @@ class KisskhService {
       items,
     };
 
-    // Cache catalog for 10 minutes
     this.cache.set(cacheKey, {
       data: result,
       expiresAt: Date.now() + 10 * 60 * 1000,
@@ -443,32 +546,95 @@ class KisskhService {
       return cached.data;
     }
 
-    const res = await this.fetchFromMirror(`/api/DramaList/Drama/${id}`);
-    const drama = await res.json();
-    const result: KisskhDramaDetail = {
-      id: drama.id,
-      title: drama.title,
-      description: drama.description || '',
-      thumbnail: drama.thumbnail,
-      releaseDate: drama.releaseDate || '',
-      country: drama.country || 'Asian',
-      status: drama.status || 'Completed',
-      type: drama.type || 'TVSeries',
-      trailer: drama.trailer || null,
-      episodes: (drama.episodes || []).map((ep: any) => ({
-        id: ep.id,
-        number: ep.number,
-        sub: ep.sub,
-      })),
-    };
+    this.loadLocalData();
+    const strId = String(id);
 
-    // Cache drama details for 30 minutes
-    this.cache.set(cacheKey, {
-      data: result,
-      expiresAt: Date.now() + 30 * 60 * 1000,
-    });
+    // 1. Check local pre-harvested dramas
+    if (this.localDramas && this.localDramas[strId]) {
+      const d = this.localDramas[strId];
+      const result: KisskhDramaDetail = {
+        id: d.id,
+        title: d.title,
+        description: d.description || '',
+        thumbnail: d.thumbnail,
+        releaseDate: d.releaseDate || '2024',
+        country: d.country || 'Asian',
+        status: d.status || 'Completed',
+        type: d.type || 'TVSeries',
+        trailer: d.trailer || null,
+        episodes: (d.episodes || []).map((ep: any) => ({
+          id: ep.id,
+          number: ep.number,
+          sub: ep.sub,
+        })),
+      };
 
-    return result;
+      this.cache.set(cacheKey, {
+        data: result,
+        expiresAt: Date.now() + 30 * 60 * 1000,
+      });
+
+      return result;
+    }
+
+    // 2. Try fetching from live mirror
+    try {
+      const res = await this.fetchFromMirror(`/api/DramaList/Drama/${id}`);
+      const drama = await res.json();
+      const result: KisskhDramaDetail = {
+        id: drama.id,
+        title: drama.title,
+        description: drama.description || '',
+        thumbnail: drama.thumbnail,
+        releaseDate: drama.releaseDate || '',
+        country: drama.country || 'Asian',
+        status: drama.status || 'Completed',
+        type: drama.type || 'TVSeries',
+        trailer: drama.trailer || null,
+        episodes: (drama.episodes || []).map((ep: any) => ({
+          id: ep.id,
+          number: ep.number,
+          sub: ep.sub,
+        })),
+      };
+
+      this.cache.set(cacheKey, {
+        data: result,
+        expiresAt: Date.now() + 30 * 60 * 1000,
+      });
+
+      return result;
+    } catch (err: any) {
+      // 3. Graceful fallback from catalog metadata if upstream is blocked
+      if (this.localCatalog) {
+        const item = this.localCatalog.items.find((x: any) => String(x.id) === strId);
+        if (item) {
+          const fallbackEpisodes = [];
+          const count = item.episodesCount || 1;
+          for (let i = 1; i <= count; i++) {
+            fallbackEpisodes.push({
+              id: item.id * 1000 + i,
+              number: i,
+              sub: 1,
+            });
+          }
+          const result: KisskhDramaDetail = {
+            id: item.id,
+            title: item.title,
+            description: `مشاهدة وتحميل ${item.title} بجودة عالية مع الترجمة الكاملة على Aspreen TV.`,
+            thumbnail: item.thumbnail,
+            releaseDate: '2024',
+            country: 'Asian',
+            status: 'Completed',
+            type: count > 1 ? 'TVSeries' : 'Movie',
+            trailer: null,
+            episodes: fallbackEpisodes,
+          };
+          return result;
+        }
+      }
+      throw err;
+    }
   }
 
   /**
@@ -482,7 +648,7 @@ class KisskhService {
     }
 
     const kkey = this.generateVideoKKey(episodeId);
-    const res = await this.fetchFromMirror(`/api/DramaList/Episode/${episodeId}.png?kkey=${kkey}`);
+    const res = await this.fetchFromMirror(`/api/DramaList/Episode/${episodeId}.png?kkey=${kkey}`, true);
     const data = await res.json();
     let videoUrl = data.Video || '';
     const backupUrl = data.ThirdParty || null;

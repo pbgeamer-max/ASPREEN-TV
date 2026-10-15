@@ -5,6 +5,8 @@ data/*
 !data/.gitkeep
 !data/3isk_catalog.json
 !data/channels.json
+!data/kisskh_catalog.json
+!data/kisskh_dramas.json
 scripts/*.html
 scripts/inspect_*.js
 scripts/test_*.js
