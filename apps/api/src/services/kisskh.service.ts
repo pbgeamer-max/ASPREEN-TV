@@ -287,6 +287,7 @@ class KisskhService {
   private localCatalog: { updatedAt: string; totalCount: number; items: any[] } | null = null;
   private localDramas: Record<string, any> | null = null;
   private localStreams: Record<string, { videoUrl: string; backupUrl: string | null; type: number }> | null = null;
+  private localSubtitles: Record<string, KisskhSubtitleTrack[]> | null = null;
 
   private getCatalogFilePath(): string {
     const candidates = [
@@ -333,6 +334,21 @@ class KisskhService {
     return path.join(process.cwd(), 'data', 'kisskh_streams.json');
   }
 
+  private getSubtitlesFilePath(): string {
+    const candidates = [
+      path.join(process.cwd(), 'data', 'kisskh_subtitles.json'),
+      path.join(process.cwd(), '..', '..', 'data', 'kisskh_subtitles.json'),
+      path.join(__dirname, '..', '..', 'data', 'kisskh_subtitles.json'),
+      path.join(__dirname, '..', '..', '..', 'data', 'kisskh_subtitles.json'),
+      '/app/data/kisskh_subtitles.json',
+    ];
+
+    for (const c of candidates) {
+      if (fs.existsSync(c)) return c;
+    }
+    return path.join(process.cwd(), 'data', 'kisskh_subtitles.json');
+  }
+
   private loadLocalData(): void {
     if (!this.localCatalog) {
       const catPath = this.getCatalogFilePath();
@@ -363,6 +379,17 @@ class KisskhService {
           this.localStreams = JSON.parse(fs.readFileSync(streamPath, 'utf8'));
         } catch (e: any) {
           console.error('[KissKH Service] Error loading local streams:', e.message);
+        }
+      }
+    }
+
+    if (!this.localSubtitles) {
+      const subPath = this.getSubtitlesFilePath();
+      if (fs.existsSync(subPath)) {
+        try {
+          this.localSubtitles = JSON.parse(fs.readFileSync(subPath, 'utf8'));
+        } catch (e: any) {
+          console.error('[KissKH Service] Error loading local subtitles:', e.message);
         }
       }
     }
@@ -765,6 +792,31 @@ class KisskhService {
     const cached = this.cache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) {
       return cached.data;
+    }
+
+    this.loadLocalData();
+    const strId = String(episodeId);
+    if (this.localSubtitles && this.localSubtitles[strId]) {
+      const tracks = this.localSubtitles[strId];
+      this.cache.set(cacheKey, {
+        data: tracks,
+        expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+      });
+      return tracks;
+    }
+
+    // Auto-map fallback composite episode IDs (e.g. 13581001 -> drama 13581, ep 1)
+    const numId = Number(episodeId);
+    if (numId > 1000000) {
+      const dramaId = Math.floor(numId / 1000);
+      const epNum = numId % 1000;
+      const dramaObj = this.localDramas?.[String(dramaId)];
+      if (dramaObj && Array.isArray(dramaObj.episodes)) {
+        const matchingEp = dramaObj.episodes.find((e: any) => Math.floor(Number(e.number)) === epNum);
+        if (matchingEp && matchingEp.id) {
+          return this.getSubtitles(matchingEp.id);
+        }
+      }
     }
 
     try {

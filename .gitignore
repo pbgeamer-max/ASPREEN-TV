@@ -8,6 +8,7 @@ data/*
 !data/kisskh_catalog.json
 !data/kisskh_dramas.json
 !data/kisskh_streams.json
+!data/kisskh_subtitles.json
 scripts/*.html
 scripts/inspect_*.js
 scripts/test_*.js
