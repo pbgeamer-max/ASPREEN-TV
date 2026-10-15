@@ -17,7 +17,6 @@ import { logRepository } from '../repositories/log.repository';
 import { tokenRepository } from '../repositories/token.repository';
 import { generateStreamToken, hashStreamToken } from '../security/token';
 import { encrypt, decrypt } from '../security/encryption';
-import { liveHunterService } from './live-hunter.service';
 import { config } from '../config';
 
 interface RunningProcess {
@@ -216,46 +215,6 @@ export class TranscodingService {
     let rawInputUrl = decrypt(channel.encryptedInputUrl);
     if (!rawInputUrl) {
       throw new Error('Channel input URL could not be decrypted');
-    }
-
-    // Dynamic stream refresh for expiring tokens (aflam4you/koora_live or LastVelvet/CuttingFame CDNs)
-    const isExpiringTokenStream = 
-      channel.sourceId === 'aflam4you/koora_live' ||
-      channel.sourceId === 'live-hunter-koora' ||
-      channel.sourceId === 'live-hunter-alokal' ||
-      /:8443(?:\/hls\/|$)/i.test(rawInputUrl) ||
-      /\.net:8443/i.test(rawInputUrl) ||
-      /7odxv0l067ka|awqb0f40a9yo|5gkygx509kqv|lastvelvet|cuttingfame/i.test(rawInputUrl);
-
-    if (isExpiringTokenStream) {
-      let targetPage: string | null | undefined = channel.externalIdentifier;
-      if (!targetPage && rawInputUrl.includes('PageUrl=')) {
-        const m = rawInputUrl.match(/PageUrl=([^|&\s]+)/);
-        if (m) targetPage = decodeURIComponent(m[1]);
-      }
-      if (!targetPage) {
-        targetPage = liveHunterService.getCachedPageUrl(channel.name);
-      }
-      if (!targetPage) {
-        targetPage = liveHunterService.findPageUrlByName(channel.name);
-      }
-      if (targetPage) {
-        try {
-          const fresh = await Promise.race([
-            liveHunterService.resolveFreshStream(targetPage),
-            new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
-          ]);
-          if (fresh?.streamUrl) {
-            const isCf = /cuttingfame/i.test(fresh.streamUrl) || fresh.referer?.includes('cuttingfame');
-            const ref = fresh.referer || (isCf ? 'https://cuttingfame.net/' : 'https://lastvelvet.net/');
-            const orig = isCf ? 'https://cuttingfame.net' : 'https://lastvelvet.net';
-            rawInputUrl = `${fresh.streamUrl}|Referer=${ref}|Origin=${orig}|PageUrl=${encodeURIComponent(targetPage)}`;
-            await channelRepository.updateChannel(channel.id, {
-              encryptedInputUrl: encrypt(rawInputUrl),
-            }).catch(() => {});
-          }
-        } catch {}
-      }
     }
 
     // Guard: Prevent spawning FFmpeg on web player pages when no live match stream is active
@@ -522,41 +481,9 @@ export class TranscodingService {
           if (this.intentionalStops.has(channel.id)) return;
 
           try {
-            if (isAuthOrLimitExceeded) {
-              let targetPage: string | null | undefined = channel.externalIdentifier;
-              if (!targetPage && params.rawInputUrl.includes('PageUrl=')) {
-                const m = params.rawInputUrl.match(/PageUrl=([^|&\s]+)/);
-                if (m) targetPage = decodeURIComponent(m[1]);
-              }
-              if (!targetPage) {
-                targetPage = liveHunterService.getCachedPageUrl(channel.name);
-              }
-              if (!targetPage) {
-                targetPage = liveHunterService.findPageUrlByName(channel.name);
-              }
-              if (targetPage) {
-                console.log(`[Stream Healing] 🔄 Attempting dynamic stream re-resolution for "${channel.name}" (${targetPage})...`);
-                const fresh = await Promise.race([
-                  liveHunterService.resolveFreshStream(targetPage),
-                  new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
-                ]).catch(() => null);
-                if (fresh?.streamUrl) {
-                  const isCf = /cuttingfame/i.test(fresh.streamUrl) || fresh.referer?.includes('cuttingfame');
-                  const ref = fresh.referer || (isCf ? 'https://cuttingfame.net/' : 'https://lastvelvet.net/');
-                  const orig = isCf ? 'https://cuttingfame.net' : 'https://lastvelvet.net';
-                  const freshUrl = `${fresh.streamUrl}|Referer=${ref}|Origin=${orig}|PageUrl=${encodeURIComponent(targetPage)}`;
-                  params.rawInputUrl = freshUrl;
-                  await channelRepository.updateChannel(channel.id, {
-                    encryptedInputUrl: encrypt(freshUrl),
-                  }).catch(() => {});
-                  console.log(`[Stream Healing] ✅ Fresh stream URL retrieved for "${channel.name}"!`);
-                }
-              }
-            }
-
             await this.spawnFfmpegWorker(params);
           } catch (err: any) {
-            console.error(`[Stream Healing] Failed to auto-recover channel ${channel.id}:`, err.message);
+            console.error(`[Stream Recovery] Failed to auto-recover channel ${channel.id}:`, err.message);
           }
         }, delayMs);
 

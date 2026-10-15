@@ -26,14 +26,7 @@ import { tokenRoutes } from './routes/token.routes';
 import { settingsRoutes } from './routes/settings.routes';
 import { hlsAuthRoutes } from './routes/hls-auth.routes';
 import { appRoutes } from './routes/app.routes';
-import { vodRoutes } from './routes/vod.routes';
 import { telegramService } from './services/telegram.service';
-import { feederService } from './services/feeder.service';
-import { topCinemaService } from './services/topcinema.service';
-import { fiveTvService } from './services/fivetv.service';
-import { autoPilotService } from './services/auto-pilot.service';
-import { liveHunterService } from './services/live-hunter.service';
-import { oscarSyncService } from './services/oscar-sync.service';
 import { tokenRepository } from './repositories/token.repository';
 import { channelRepository } from './repositories/channel.repository';
 import { settingsRepository } from './repositories/settings.repository';
@@ -99,7 +92,6 @@ export async function createServer() {
   await server.register(settingsRoutes, { prefix: '/api' });
   await server.register(hlsAuthRoutes, { prefix: '/api' });
   await server.register(appRoutes, { prefix: '/api/app' });
-  await server.register(vodRoutes, { prefix: '/api/vod' });
 
   // Helper function to stream live MPEG-TS relay using FFmpeg
   async function streamLiveMpegTs(
@@ -293,39 +285,10 @@ export async function createServer() {
         }
       }
 
-      const isLastVelvetCdn = 
-        /:8443(?:\/hls\/|$)/i.test(actualUrl) ||
-        /\.net:8443/i.test(actualUrl) ||
-        /lastvelvet|cuttingfame|5gkygx509kqv|awqb0f40a9yo|7odxv0l067ka/i.test(actualUrl) ||
-        (effectiveHeaders['Referer'] && /lastvelvet|cuttingfame/i.test(effectiveHeaders['Referer']));
-
-      const isCuttingFame = /cuttingfame/i.test(actualUrl) || (effectiveHeaders['Referer'] && /cuttingfame/i.test(effectiveHeaders['Referer']));
-
-      if (isCuttingFame) {
-        effectiveHeaders['Referer'] = 'https://cuttingfame.net/';
-        effectiveHeaders['Origin'] = 'https://cuttingfame.net';
-      } else if (isLastVelvetCdn) {
-        if (!effectiveHeaders['Referer'] || /baranewssumsel|alokalive/i.test(effectiveHeaders['Referer'])) {
-          effectiveHeaders['Referer'] = 'https://lastvelvet.net/';
-        }
-        effectiveHeaders['Origin'] = 'https://lastvelvet.net';
-      } else if (/baranewssumsel|sportsurges|alokalive/i.test(actualUrl) || (effectiveHeaders['Referer'] && /alokalive/i.test(effectiveHeaders['Referer']))) {
-        if (!effectiveHeaders['Referer']) effectiveHeaders['Referer'] = 'https://www.alokalive.com/';
-        if (!effectiveHeaders['Origin']) effectiveHeaders['Origin'] = 'https://www.alokalive.com';
-      } else if (effectiveHeaders['Referer'] && !effectiveHeaders['Origin']) {
+      if (effectiveHeaders['Referer'] && !effectiveHeaders['Origin']) {
         try {
           effectiveHeaders['Origin'] = new URL(effectiveHeaders['Referer']).origin;
         } catch {}
-      }
-
-      const isOscarStream =
-        actualUrl.includes('.css') ||
-        actualUrl.includes('workers.dev') ||
-        effectiveHeaders['User-Agent'] === 'OSCARTV2021';
-
-      if (isOscarStream) {
-        if (!effectiveHeaders['Referer']) effectiveHeaders['Referer'] = 'http://speedcdn.me:8080/';
-        if (!effectiveHeaders['Origin']) effectiveHeaders['Origin'] = 'http://speedcdn.me:8080';
       }
 
       let headersStr = 'Connection: keep-alive\r\n';
@@ -336,31 +299,12 @@ export async function createServer() {
         }
       }
 
-      const uaToUse = isOscarStream
-        ? 'OSCARTV2021'
-        : (effectiveHeaders['User-Agent'] || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
-
-      const oscarHlsFlags: string[] = [];
-      if (isOscarStream) {
-        oscarHlsFlags.push('-allowed_extensions', 'ALL');
-        try {
-          const { execSync } = require('child_process');
-          const help = execSync('ffmpeg -h demuxer=hls', { encoding: 'utf8', timeout: 3000 });
-          if (help.includes('allowed_segment_extensions')) {
-            oscarHlsFlags.push('-allowed_segment_extensions', 'ALL');
-          }
-          if (help.includes('extension_picky')) {
-            oscarHlsFlags.push('-extension_picky', '0');
-          }
-        } catch {}
-        oscarHlsFlags.push('-f', 'hls');
-      }
+      const uaToUse = effectiveHeaders['User-Agent'] || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
 
       const ffmpegArgs = [
         '-hide_banner',
         '-loglevel', 'warning',
         '-protocol_whitelist', 'file,crypto,data,http,https,tcp,tls',
-        ...oscarHlsFlags,
         '-icy', '0',
         '-seekable', '0',
         '-multiple_requests', '1',
@@ -557,17 +501,11 @@ async function start() {
     await server.listen({ port: config.port, host: config.host });
     console.log(`[Aspreen TV API] Server running at http://${config.host}:${config.port}`);
 
-    // Initialize Telegram Bot, Background Health Feeder, and TopCinema Auto-Updater
+    // Initialize Telegram Bot (if configured)
     try {
       telegramService.init();
-      feederService.start();
-      topCinemaService.startAutoUpdater(30);
-      fiveTvService.startAutoUpdater(30);
-      autoPilotService.start(3);
-      liveHunterService.updateAllExistingLogos().catch(() => {});
-      oscarSyncService.syncChannelsToDb().catch(() => {});
     } catch (e: any) {
-      console.warn('[Services] Service init warning:', e.message);
+      console.warn('[Services] Telegram init warning:', e.message);
     }
   } catch (err) {
     server.log.error(err);

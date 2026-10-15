@@ -7,26 +7,20 @@ import {
   LayoutDashboard,
   Radio,
   Tv,
-  Film,
-  Clapperboard,
   Cpu,
   KeyRound,
   FileText,
   Settings,
   LogOut,
   ShieldCheck,
-  Sparkles,
 } from 'lucide-react';
 import { BRANDING } from '@aspreen/shared';
 import { useAuth } from '@/lib/auth-context';
 
 const NAV_ITEMS = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
-  { href: '/oscar-tv', label: '⭐ قنوات أوسكار (Oscar TV)', icon: Sparkles },
   { href: '/channels', label: 'جميع القنوات (Channels)', icon: Tv },
   { href: '/sources', label: 'المصادر (Sources)', icon: Radio },
-  { href: '/movies', label: 'الأفلام (Movies)', icon: Film },
-  { href: '/series', label: 'المسلسلات (Series)', icon: Clapperboard },
   { href: '/transcoding', label: 'Transcoding', icon: Cpu },
   { href: '/tokens', label: 'Stream Links', icon: KeyRound },
   { href: '/logs', label: 'Activity Logs', icon: FileText },

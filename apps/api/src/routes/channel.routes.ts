@@ -202,33 +202,6 @@ export async function channelRoutes(server: FastifyInstance) {
       return reply.status(400).send({ error: 'Failed to restart', message: err.message });
     }
   });
-
-  /**
-   * POST /api/channels/sync-oscar
-   * Syncs verified Oscar channels into the database with valid working streams & logos
-   */
-  server.post('/sync-oscar', async (_request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const { oscarSyncService } = await import('../services/oscar-sync.service');
-      const result = await oscarSyncService.syncChannelsToDb();
-      return { success: true, ...result };
-    } catch (err: any) {
-      return reply.status(500).send({ error: 'Failed to sync Oscar channels', message: err.message });
-    }
-  });
-
-  /**
-   * POST /api/channels/update-logos
-   * Scans and updates all existing channels with valid, high-resolution official logos
-   */
-  server.post('/update-logos', async (_request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const { liveHunterService } = await import('../services/live-hunter.service');
-      const count = await liveHunterService.updateAllExistingLogos();
-      return { success: true, count, message: `تم تحديث شعارات ${count} قناة بنجاح.` };
-    } catch (err: any) {
-      return reply.status(500).send({ error: 'Failed to update channel logos', message: err.message });
-    }
-  });
 }
+
 
