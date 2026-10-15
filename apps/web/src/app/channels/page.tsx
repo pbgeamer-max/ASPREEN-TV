@@ -51,6 +51,8 @@ export default function ChannelsPage() {
   const [playerModalOpen, setPlayerModalOpen] = useState(false);
   const [activePlayerUrl, setActivePlayerUrl] = useState('');
   const [activePlayerName, setActivePlayerName] = useState('');
+  const [copiedChannelId, setCopiedChannelId] = useState<string | null>(null);
+
 
   // Inspect modal
   const [inspectModalOpen, setInspectModalOpen] = useState(false);
@@ -554,6 +556,32 @@ export default function ChannelsPage() {
                               <Play className="w-3.5 h-3.5 fill-current" />
                               <span>Watch Live</span>
                             </button>
+
+                            {/* Copy Rebroadcast Link Button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const fullUrl = `${window.location.origin}/live/${ch.id}.m3u8`;
+                                navigator.clipboard.writeText(fullUrl);
+                                setCopiedChannelId(ch.id);
+                                setTimeout(() => setCopiedChannelId(null), 2000);
+                              }}
+                              title="نسخ رابط البث المعاد الخاص بموقعك"
+                              className="px-2.5 py-1 rounded bg-[#1A1A1A] hover:bg-[#262626] text-[#D4D4D8] hover:text-white flex items-center gap-1.5 font-medium text-xs transition-colors border border-[#2A2A2A]"
+                            >
+                              {copiedChannelId === ch.id ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                  <span className="text-emerald-400">تم النسخ</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3.5 h-3.5 text-[#A1A1AA]" />
+                                  <span>رابط البث</span>
+                                </>
+                              )}
+                            </button>
+
 
                             {/* Issue Token */}
                             <button

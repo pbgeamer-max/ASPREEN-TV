@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Hls from 'hls.js';
-import { X, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
+import { X, AlertCircle, RefreshCw, Loader2, Copy, Check } from 'lucide-react';
 
 interface HlsPlayerModalProps {
   streamUrl: string;
@@ -17,6 +17,19 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [copied, setCopied] = useState(false);
+
+  const fullStreamUrl = useMemo(() => {
+    if (typeof window === 'undefined') return streamUrl;
+    if (streamUrl.startsWith('http://') || streamUrl.startsWith('https://')) return streamUrl;
+    return `${window.location.origin}${streamUrl.startsWith('/') ? streamUrl : `/${streamUrl}`}`;
+  }, [streamUrl]);
+
+  const handleCopyUrl = useCallback(() => {
+    navigator.clipboard.writeText(fullStreamUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [fullStreamUrl]);
 
   const handleRetry = useCallback(() => {
     setError(null);
@@ -24,6 +37,7 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
     setIsPlaying(false);
     setReloadKey((prev) => prev + 1);
   }, []);
+
 
   useEffect(() => {
     if (!isOpen || !streamUrl) return;
@@ -185,8 +199,8 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
             <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center p-6 text-center gap-3 z-10">
               <AlertCircle className="w-8 h-8 text-rose-400" />
               <p className="text-sm text-[#F5F5F5] font-medium">{error}</p>
-              <p className="text-xs text-[#71717A] max-w-md">
-                Ensure transcoding is currently running for this channel and segments have been generated.
+              <p className="text-xs text-[#A1A1AA] max-w-md">
+                ملاحظة: القنوات التي لا تبث مباريات حالياً تتوقف من المصدر الرسمي تلقائياً وتعود للعمل فور انطلاق الفعاليات.
               </p>
               <button
                 onClick={handleRetry}
@@ -200,15 +214,32 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
         </div>
 
         {/* Diagnostics & Info */}
-        <div className="px-5 py-3 border-t border-[#262626] bg-[#0A0A0A] flex flex-col gap-1.5">
-          <div className="flex items-center justify-between text-[11px] text-[#A1A1AA]">
-            <span className="font-mono truncate max-w-xl">URL: {streamUrl}</span>
-            <span className={`shrink-0 font-mono font-semibold ${isPlaying ? 'text-emerald-400' : 'text-amber-400'}`}>
-              STATUS: {isPlaying ? 'PLAYING' : isLoading ? 'BUFFERING' : 'READY'}
-            </span>
+        <div className="px-5 py-3 border-t border-[#262626] bg-[#0A0A0A] flex flex-col gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-[#A1A1AA]">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
+                بث معاد من موقعك 24/7
+              </span>
+              <span className="font-mono truncate text-neutral-300 select-all" title={fullStreamUrl}>
+                {fullStreamUrl}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={handleCopyUrl}
+                className="px-2.5 py-1 rounded bg-[#1F1F1F] hover:bg-[#2A2A2A] text-white flex items-center gap-1.5 transition-colors border border-white/10 text-xs font-medium"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copied ? 'تم النسخ!' : 'نسخ رابط البث المعاد'}</span>
+              </button>
+              <span className={`font-mono font-semibold ${isPlaying ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {isPlaying ? '● LIVE' : isLoading ? 'BUFFERING' : 'READY'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
+

@@ -230,9 +230,8 @@ export async function initDatabase(force = false): Promise<boolean> {
               INSERT INTO sources (
                 id, name, type, sanitized_hostname, encrypted_url, enabled, connection_status, channel_count, created_at, updated_at
               ) VALUES (
-                'yacine-website', 'Yacine TV (325 قنوات)', 'M3U', 'yacine.website', $1, true, 'ONLINE', $2, NOW(), NOW()
-              ) ON CONFLICT (id) DO UPDATE SET channel_count = $2, connection_status = 'ONLINE'
-
+                'yacine-website', 'Yacine TV (325 قنوات)', 'M3U', 'yacine.website', $1::text, true, 'ONLINE', $2::integer, NOW(), NOW()
+              ) ON CONFLICT (id) DO UPDATE SET channel_count = EXCLUDED.channel_count, connection_status = 'ONLINE'
             `, [encrypt('https://yacine.website/'), list.length]);
 
             // 2. Insert channels
@@ -253,16 +252,17 @@ export async function initDatabase(force = false): Promise<boolean> {
                   input_type, encrypted_input_url, enabled, input_status, transcoding_status,
                   preset, proxy_url, order_index, created_at, updated_at
                 ) VALUES (
-                  $1, 'yacine-website', $1, $2, $3, $4, $5,
-                  'HLS', $6, true, 'ONLINE', 'RUNNING',
-                  'COPY', $7, $8, NOW(), NOW()
+                  $1::varchar, 'yacine-website', $2::text, $3::text, $4::text, $5::text, $6::text,
+                  'HLS', $7::text, true, 'ONLINE', 'RUNNING',
+                  'COPY', $8::text, $9::integer, NOW(), NOW()
                 ) ON CONFLICT (id) DO UPDATE SET
                   enabled = true,
                   input_status = 'ONLINE',
                   transcoding_status = 'RUNNING',
-                  proxy_url = $7
-              `, [cid, name, normName, grp, logo, encStream, `/live/${cid}.m3u8`, order]);
+                  proxy_url = EXCLUDED.proxy_url
+              `, [cid, cid, name, normName, grp, logo, encStream, `/live/${cid}.m3u8`, order]);
             }
+
             console.log(`[PostgreSQL] Successfully auto-seeded ${list.length} channels into database!`);
           } else {
             console.warn('[PostgreSQL] Could not find channels.json for auto-seeding.');

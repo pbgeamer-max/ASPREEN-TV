@@ -139,9 +139,16 @@ def renew_single_channel_stream(cid):
                         ch["status"] = "live"
                         ch["lastRenewed"] = time.time()
                 return True
+            else:
+                msg = data.get("message", "القناة غير متوفرة حالياً من المصدر")
+                with cache_lock:
+                    if cid in channels_cache:
+                        channels_cache[cid]["status"] = "event_only"
+                        channels_cache[cid]["status_message"] = msg
+        return False
     except Exception:
-        pass
-    return False
+        return False
+
 
 
 def background_auto_renew_loop():
@@ -461,11 +468,14 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 m3u_text = fetch_m3u(target_fetch_url, req_ua)
 
         if not m3u_text or "#EXTM3U" not in m3u_text:
-            self.send_response(502)
+            err_msg = ch.get("status_message", "القناة غير متوفرة حالياً من المصدر الأصلي")
+            self.send_response(503)
             self.send_cors_headers()
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
             self.end_headers()
-            self.wfile.write(b"No Playlist Data")
+            self.wfile.write(f"Channel Offline: {err_msg}".encode("utf-8"))
             return
+
 
         # Rewrite Playlist: route relative TS segments through /ts?url=...&ref=...
         host = self.headers.get("Host", f"127.0.0.1:{PORT}")
