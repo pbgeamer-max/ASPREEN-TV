@@ -365,7 +365,8 @@ class KisskhService {
     });
 
     if (!res.ok) {
-      throw new Error(`KissKH API returned status ${res.status}`);
+      const errText = await res.text().catch(() => '');
+      throw new Error(`KissKH API returned status ${res.status}: ${errText.substring(0, 250)}`);
     }
 
     const json = await res.json();
