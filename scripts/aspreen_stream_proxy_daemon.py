@@ -143,6 +143,8 @@ def renew_single_channel_stream(cid):
                             ch["directM3u8"] = raw_url
                         ch["userAgent"] = ua or DEFAULT_UA
                         ch["status"] = "live"
+                        ch["source"] = "yacine.website"
+                        ch["referer"] = f"https://yacine.website/channel/{cid}/live"
                         ch["lastRenewed"] = time.time()
                 return True
             else:
@@ -176,8 +178,8 @@ def background_auto_renew_loop():
                     stream_url = ch_info.get("streamUrl", "")
                     ch_source = ch_info.get("source", "")
                 
-                # Only renew dynamic yacine event streams; NEVER overwrite 24/7 worker or CDN channels!
-                if ch_source == "yacine.website" and "workers.dev" not in stream_url and "edgenextcdn.net" not in stream_url:
+                # Renew dynamic yacine event streams; NEVER overwrite dedicated CDN channels like edgenextcdn
+                if (ch_source == "yacine.website" or len(cid) >= 15) and "edgenextcdn.net" not in stream_url:
                     if renew_single_channel_stream(cid):
                         success_count += 1
                     time.sleep(0.08)
@@ -385,7 +387,9 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             return
 
         ch_ref = ch.get("referer")
-        if ch_ref:
+        if ch.get("source") == "yacine.website" or "yacine.website" in str(ch.get("playUrl", "")) or len(cid) >= 15:
+            channel_referer = f"https://yacine.website/channel/{cid}/live"
+        elif ch_ref:
             channel_referer = ch_ref
         elif "workers.dev" in str(ch.get("streamUrl", "")) or ".css" in str(ch.get("streamUrl", "")) or "speedcdn" in str(ch.get("streamUrl", "")):
             channel_referer = "http://speedcdn.me:8080/"
@@ -398,6 +402,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             stream_url = channel_obj.get("streamUrl", "")
             ua_candidate = channel_obj.get("userAgent", "")
 
+            # Always prefer playUrl because upstream direct streamUrl (new-redirect.online) returns 403 Forbidden!
             if play_url and "play.php" in play_url:
                 target = play_url
             elif "new-redirect.online" in stream_url:
@@ -405,6 +410,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 ua_for_param = ua_candidate or DEFAULT_UA
                 b64_ua = base64.b64encode(ua_for_param.encode()).decode()
                 target = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
+            elif play_url:
+                target = play_url
             else:
                 target = stream_url
 
@@ -428,7 +435,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         target_fetch_url, req_ua = build_target_and_ua(ch)
         now = time.time()
         last_renewed = ch.get("lastRenewed", 0)
-        is_dynamic_yacine = ch.get("source") == "yacine.website" and "workers.dev" not in target_fetch_url and "edgenextcdn.net" not in target_fetch_url
+        is_dynamic_yacine = (ch.get("source") == "yacine.website" or len(cid) >= 15) and "edgenextcdn.net" not in target_fetch_url
 
         # Tokens are valid for 5 hours; renew dynamic streams every 30 minutes to stay fresh
         if is_dynamic_yacine and (now - last_renewed > 1800 or not target_fetch_url or target_fetch_url.startswith("http://127.0.0.1")):
@@ -436,6 +443,12 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             with cache_lock:
                 ch = channels_cache.get(cid, {})
                 target_fetch_url, req_ua = build_target_and_ua(ch)
+
+        if not target_fetch_url:
+            if renew_single_channel_stream(cid):
+                with cache_lock:
+                    ch = channels_cache.get(cid, {})
+                    target_fetch_url, req_ua = build_target_and_ua(ch)
 
         if not target_fetch_url:
             self.send_response(502)
@@ -446,14 +459,16 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         def fetch_m3u(url, user_agent, max_retries=3):
             headers = {
-                "User-Agent": user_agent,
+                "User-Agent": user_agent or DEFAULT_UA,
                 "Referer": channel_referer,
                 "Accept": "*/*"
             }
             if "edgenextcdn.net" in url:
                 headers.pop("Referer", None)
-            elif "yacine.website" in url:
+            elif "yacine.website" in url or "new-redirect.online" in url:
                 headers["X-Forwarded-For"] = "105.100.1.1"
+                headers["CF-Connecting-IP"] = "105.100.1.1"
+                headers["X-Real-IP"] = "105.100.1.1"
 
             for attempt in range(max_retries):
                 try:
@@ -477,7 +492,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         # If expired or returned error, auto-renew fresh token if dynamic yacine channel
         if not m3u_text or "#EXTM3U" not in m3u_text or "No URLs available" in m3u_text:
-            if is_dynamic_yacine and renew_single_channel_stream(cid):
+            if renew_single_channel_stream(cid):
                 with cache_lock:
                     ch = channels_cache.get(cid, {})
                     target_fetch_url, req_ua = build_target_and_ua(ch)
@@ -492,7 +507,6 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(f"Channel Offline: {err_msg}".encode("utf-8"))
             return
-
 
         # Rewrite Playlist: route relative TS segments through /live/ts?url=...&ref=...
         lines = m3u_text.splitlines()
@@ -556,8 +570,10 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         }
         if "edgenextcdn.net" in target_url:
             headers.pop("Referer", None)
-        elif "yacine.website" in target_url:
+        elif "yacine.website" in target_url or "new-redirect.online" in target_url:
             headers["X-Forwarded-For"] = "105.100.1.1"
+            headers["CF-Connecting-IP"] = "105.100.1.1"
+            headers["X-Real-IP"] = "105.100.1.1"
 
         req = urllib.request.Request(target_url, headers=headers)
 
@@ -627,6 +643,9 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                             break
                         self.wfile.write(chunk)
                     return
+            except (BrokenPipeError, ConnectionResetError):
+                # Client disconnected or seeked in player - normal in live streaming
+                return
             except Exception as e:
                 if attempt < 2:
                     time.sleep(0.8)

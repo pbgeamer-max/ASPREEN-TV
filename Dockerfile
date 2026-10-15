@@ -51,8 +51,8 @@ COPY --from=builder /app/apps/web/next.config.js ./apps/web/next.config.js
 COPY channels.json ./channels.json
 COPY channels.json ./apps/api/channels.json
 COPY data ./data
+COPY scripts ./scripts
 COPY scripts/start-railway.sh ./start-railway.sh
-COPY scripts/aspreen_stream_proxy_daemon.py ./scripts/aspreen_stream_proxy_daemon.py
 
 RUN chmod +x ./start-railway.sh
 RUN mkdir -p /app/data/hls

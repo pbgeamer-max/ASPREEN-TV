@@ -23,4 +23,5 @@ scratch_*
 AndroidManifest.xml
 resources.arsc
 assets/
-
+__pycache__/
+*.pyc
