@@ -213,27 +213,69 @@ export async function appRoutes(server: FastifyInstance) {
       effectiveBaseUrl = `${reqProto}://${reqHost}`;
     }
 
+    const mode = ((request.query as any)?.mode || 'direct').toLowerCase();
     const lines: string[] = ['#EXTM3U'];
 
     for (const ch of oscarChannels) {
-      const publicOutputId = ch.activeOutputId || ch.id;
-      const rawToken = generateStreamToken();
-      const tokenHash = hashStreamToken(rawToken);
-
-      await tokenRepository.createToken({
-        channelId: ch.id,
-        name: `Oscar M3U - ${ch.name}`,
-        tokenHash,
-        publicOutputId,
-      });
-
-      const liveStreamUrl = buildTsPlaybackUrl(effectiveBaseUrl, publicOutputId, rawToken);
       const proxiedLogo = ch.logoUrl ? `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}` : '';
       const tvgLogo = proxiedLogo ? ` tvg-logo="${proxiedLogo}"` : '';
       const groupTitle = ch.groupTitle ? ` group-title="${ch.groupTitle.replace(/"/g, "'")}"` : ' group-title="Oscar TV"';
 
       lines.push(`#EXTINF:-1 tvg-id="" tvg-name="${ch.name.replace(/"/g, "'")}"${tvgLogo}${groupTitle},${ch.name}`);
-      lines.push(liveStreamUrl);
+
+      if (mode === 'relay') {
+        const publicOutputId = ch.activeOutputId || ch.id;
+        const rawToken = generateStreamToken();
+        const tokenHash = hashStreamToken(rawToken);
+
+        await tokenRepository.createToken({
+          channelId: ch.id,
+          name: `Oscar M3U - ${ch.name}`,
+          tokenHash,
+          publicOutputId,
+        });
+
+        const liveStreamUrl = buildTsPlaybackUrl(effectiveBaseUrl, publicOutputId, rawToken);
+        lines.push(liveStreamUrl);
+      } else {
+        // Direct mode: Includes full VLC & IPTV headers for zero-delay native playback
+        let rawUrl = '';
+        try {
+          const { decrypt } = await import('../security/encryption');
+          rawUrl = decrypt(ch.encryptedInputUrl);
+        } catch {}
+
+        let streamUrl = rawUrl;
+        let ua = 'OSCARTV2021';
+        let ref = 'http://speedcdn.me:8080/';
+        let cookie = '';
+
+        if (rawUrl.includes('|')) {
+          const parts = rawUrl.split('|');
+          streamUrl = parts[0];
+          for (let i = 1; i < parts.length; i++) {
+            const sub = parts[i].split('&');
+            for (const s of sub) {
+              const eq = s.indexOf('=');
+              if (eq !== -1) {
+                const k = s.substring(0, eq).trim().toLowerCase();
+                const v = s.substring(eq + 1).trim();
+                if (k === 'user-agent') ua = v;
+                else if (k === 'referer') ref = v;
+                else if (k === 'cookie') cookie = v;
+              }
+            }
+          }
+        }
+
+        if (ua) lines.push(`#EXTVLCOPT:http-user-agent=${ua}`);
+        if (ref) lines.push(`#EXTVLCOPT:http-referrer=${ref}`);
+        if (cookie) lines.push(`#EXTVLCOPT:http-cookie=${cookie}`);
+        if (cookie) {
+          lines.push(`#EXTHTTP:{"User-Agent":"${ua}","Referer":"${ref}","Cookie":"${cookie}"}`);
+        }
+        lines.push(`${streamUrl}|User-Agent=${ua}&Referer=${ref}${cookie ? '&Cookie=' + cookie : ''}`);
+      }
     }
 
     const m3uContent = lines.join('\n');
