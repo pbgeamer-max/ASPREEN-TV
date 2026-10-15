@@ -544,76 +544,82 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         req = urllib.request.Request(target_url, headers=headers)
 
-        try:
-            with urllib.request.urlopen(req, timeout=10) as upstream:
-                first_chunk = upstream.read(64 * 1024)
-                if not first_chunk or first_chunk.startswith(b"No URLs available") or first_chunk.startswith(b"<html>") or first_chunk.startswith(b"<html") or first_chunk.startswith(b"<!DOCTYPE"):
-                    self.send_response(502)
-                    self.send_cors_headers()
-                    self.end_headers()
-                    return
-
-                # Handle Nested / Variant M3U8 (Adaptive bitrates e.g. MBC, Rotana)
-                if first_chunk.startswith(b"#EXTM3U"):
-                    rest = upstream.read()
-                    full_m3u = (first_chunk + rest).decode("utf-8", errors="ignore")
-                    host = self.headers.get("Host", f"127.0.0.1:{PORT}")
-                    base_origin = f"http://{host}"
-
-                    target_dir = target_url.rsplit("/", 1)[0]
-                    lines = full_m3u.splitlines()
-                    rewritten = []
-                    for line in lines:
-                        l = line.strip()
-                        if not l:
-                            continue
-                        if l.startswith("#"):
-                            rewritten.append(l)
-                        else:
-                            if l.startswith("http://") or l.startswith("https://"):
-                                seg_full = l
-                            elif l.startswith("/"):
-                                seg_full = f"{urllib.parse.urlsplit(target_url).scheme}://{urllib.parse.urlsplit(target_url).netloc}{l}"
-                            else:
-                                seg_full = f"{target_dir}/{l}"
-
-                            encoded_seg = urllib.parse.quote(seg_full, safe="")
-                            encoded_ref = urllib.parse.quote(referer, safe="")
-                            rewritten.append(f"/live/ts?url={encoded_seg}&ref={encoded_ref}")
-
-
-                    out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
-                    self.send_response(200)
-                    self.send_cors_headers()
-                    self.send_header("Content-Type", "application/vnd.apple.mpegurl")
-                    self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-                    self.send_header("Content-Length", str(len(out_body)))
-                    self.end_headers()
-                    self.wfile.write(out_body)
-                    return
-
-                status = upstream.getcode()
-                content_len = upstream.headers.get("Content-Length")
-                self.send_response(status)
-                self.send_cors_headers()
-                self.send_header("Content-Type", "video/mp2t")
-                if content_len:
-                    self.send_header("Content-Length", content_len)
-                self.end_headers()
-
-                self.wfile.write(first_chunk)
-                while True:
-                    chunk = upstream.read(64 * 1024)
-                    if not chunk:
-                        break
-                    self.wfile.write(chunk)
-        except Exception as e:
-            print(f" [!] TS Segment exception for {target_url[:60]}: {e}")
+        for attempt in range(3):
             try:
-                self.send_response(502)
-                self.end_headers()
-            except Exception:
-                pass
+                with urllib.request.urlopen(req, timeout=10) as upstream:
+                    first_chunk = upstream.read(64 * 1024)
+                    if not first_chunk or first_chunk.startswith(b"No URLs available") or first_chunk.startswith(b"<html>") or first_chunk.startswith(b"<html") or first_chunk.startswith(b"<!DOCTYPE"):
+                        if attempt < 2:
+                            time.sleep(0.8)
+                            continue
+                        self.send_response(502)
+                        self.send_cors_headers()
+                        self.end_headers()
+                        return
+
+                    # Handle Nested / Variant M3U8 (Adaptive bitrates e.g. MBC, Rotana)
+                    if first_chunk.startswith(b"#EXTM3U"):
+                        rest = upstream.read()
+                        full_m3u = (first_chunk + rest).decode("utf-8", errors="ignore")
+                        target_dir = target_url.rsplit("/", 1)[0]
+                        lines = full_m3u.splitlines()
+                        rewritten = []
+                        for line in lines:
+                            l = line.strip()
+                            if not l:
+                                continue
+                            if l.startswith("#"):
+                                rewritten.append(l)
+                            else:
+                                if l.startswith("http://") or l.startswith("https://"):
+                                    seg_full = l
+                                elif l.startswith("/"):
+                                    seg_full = f"{urllib.parse.urlsplit(target_url).scheme}://{urllib.parse.urlsplit(target_url).netloc}{l}"
+                                else:
+                                    seg_full = f"{target_dir}/{l}"
+
+                                encoded_seg = urllib.parse.quote(seg_full, safe="")
+                                encoded_ref = urllib.parse.quote(referer, safe="")
+                                rewritten.append(f"/live/ts?url={encoded_seg}&ref={encoded_ref}")
+
+                        out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
+                        self.send_response(200)
+                        self.send_cors_headers()
+                        self.send_header("Content-Type", "application/vnd.apple.mpegurl")
+                        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                        self.send_header("Content-Length", str(len(out_body)))
+                        self.end_headers()
+                        self.wfile.write(out_body)
+                        return
+
+                    status = upstream.getcode()
+                    content_len = upstream.headers.get("Content-Length")
+                    self.send_response(status)
+                    self.send_cors_headers()
+                    self.send_header("Content-Type", "video/mp2t")
+                    if content_len:
+                        self.send_header("Content-Length", content_len)
+                    self.end_headers()
+
+                    self.wfile.write(first_chunk)
+                    while True:
+                        chunk = upstream.read(64 * 1024)
+                        if not chunk:
+                            break
+                        self.wfile.write(chunk)
+                    return
+            except Exception as e:
+                if attempt < 2:
+                    time.sleep(0.8)
+                    continue
+                print(f" [!] TS Segment exception for {target_url[:60]}: {e}")
+                try:
+                    self.send_response(502)
+                    self.end_headers()
+                except Exception:
+                    pass
+                return
+
 
 
 def start_server():
