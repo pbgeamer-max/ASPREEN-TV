@@ -90,7 +90,36 @@ export async function appRoutes(server: FastifyInstance) {
    * High-speed, professional JSON API endpoint for Android & iOS apps
    * Returns all channels with permanent rebroadcast URLs, proxied logos, and categories.
    */
-  server.get('/channels', async (request: FastifyRequest<{ Querystring: { group?: string; category?: string; q?: string; limit?: string } }>, reply) => {
+  server.get('/channels', async (request: FastifyRequest<{ Querystring: { group?: string; category?: string; q?: string; limit?: string; api_key?: string } }>, reply) => {
+    const settings = await settingsRepository.getSettings();
+
+    // 1. Check if Master API is disabled by admin
+    if (settings.masterApiEnabled === false) {
+      reply.header('Access-Control-Allow-Origin', '*');
+      return reply.status(403).send({
+        success: false,
+        error: 'API_DISABLED',
+        message: 'خدمة الـ API متوقفة حالياً بقرار من إدارة الموقع',
+      });
+    }
+
+    // 2. Check API Key if configured
+    const configuredKey = (settings.masterApiKey || '').trim();
+    if (configuredKey !== '') {
+      const incomingKey = (request.query as any).api_key ||
+                          request.headers['x-api-key'] ||
+                          (request.headers.authorization ? request.headers.authorization.replace(/^Bearer\s+/i, '') : '');
+
+      if (!incomingKey || incomingKey !== configuredKey) {
+        reply.header('Access-Control-Allow-Origin', '*');
+        return reply.status(401).send({
+          success: false,
+          error: 'UNAUTHORIZED',
+          message: 'مفتاح الـ API غير صالح أو تم تغييره من لوحة التحكم',
+        });
+      }
+    }
+
     const { group, category, q, limit } = request.query;
     const limitNum = limit ? parseInt(limit, 10) : 5000;
     const channels = await channelRepository.listChannels(undefined, limitNum);
@@ -112,7 +141,6 @@ export async function appRoutes(server: FastifyInstance) {
       );
     }
 
-    const settings = await settingsRepository.getSettings();
     const reqHost = (request.headers['x-forwarded-host'] as string) || (request.headers.host as string);
     const reqProto = (request.headers['x-forwarded-proto'] as string) || 'https';
     let effectiveBaseUrl = settings.publicStreamBaseUrl;

@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { href: '/sources', label: 'المصادر (Sources)', icon: Radio },
   { href: '/transcoding', label: 'Transcoding', icon: Cpu },
   { href: '/tokens', label: 'Stream Links', icon: KeyRound },
+  { href: '/api-manager', label: 'إدارة الـ API (Master API)', icon: ShieldCheck },
   { href: '/logs', label: 'Activity Logs', icon: FileText },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];

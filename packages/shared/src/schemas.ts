@@ -69,6 +69,8 @@ export const AdminSettingsUpdateSchema = z.object({
   defaultTokenLifetime: z.number().int().min(0).max(8760).optional(),
   outputRetentionHours: z.number().int().min(1).max(168).optional(),
   defaultProxyUrl: z.string().max(500).or(z.literal('')).optional(),
+  masterApiEnabled: z.boolean().optional(),
+  masterApiKey: z.string().max(255).or(z.literal('')).optional(),
 });
 
 export const LoginSchema = z.object({

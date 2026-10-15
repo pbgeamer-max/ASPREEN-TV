@@ -48,6 +48,8 @@ export interface AdminSettings {
   defaultTokenLifetime: number; // in hours, 0 = indefinite
   outputRetentionHours: number;
   defaultProxyUrl?: string;
+  masterApiEnabled?: boolean;
+  masterApiKey?: string;
   updatedAt: string; // ISO String
 }
 

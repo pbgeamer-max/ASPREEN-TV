@@ -20,6 +20,8 @@ const DEFAULT_SETTINGS: AdminSettings = {
   defaultTokenLifetime: 0,
   outputRetentionHours: 24,
   defaultProxyUrl: '',
+  masterApiEnabled: true,
+  masterApiKey: '',
   updatedAt: new Date().toISOString(),
 };
 
