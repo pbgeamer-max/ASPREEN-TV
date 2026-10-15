@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   ShieldCheck,
+  Film,
 } from 'lucide-react';
 import { BRANDING } from '@aspreen/shared';
 import { useAuth } from '@/lib/auth-context';
@@ -20,6 +21,7 @@ import { useAuth } from '@/lib/auth-context';
 const NAV_ITEMS = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
   { href: '/channels', label: 'جميع القنوات (Channels)', icon: Tv },
+  { href: '/3isk', label: 'قصة عشق (مسلسلات وأفلام)', icon: Film },
   { href: '/sources', label: 'المصادر (Sources)', icon: Radio },
   { href: '/transcoding', label: 'Transcoding', icon: Cpu },
   { href: '/tokens', label: 'Stream Links', icon: KeyRound },

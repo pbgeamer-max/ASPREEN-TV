@@ -3,6 +3,12 @@ node_modules/
 dist/
 data/*
 !data/.gitkeep
+!data/3isk_catalog.json
+!data/channels.json
+scripts/*.html
+scripts/inspect_*.js
+scripts/test_*.js
+
 *.log
 *.tsbuildinfo
 .env
