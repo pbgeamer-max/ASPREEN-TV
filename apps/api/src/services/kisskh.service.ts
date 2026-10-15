@@ -2,44 +2,19 @@ import * as crypto from 'crypto';
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36';
 
-// Reconstructed KissKH token generator algorithm
-function _0x3a8d(_0x526f3f: number, _0x5658cb?: any): any {
-  const _0x54b945 = _0x54b9();
-  _0x526f3f = _0x526f3f - 0x10a;
-  return _0x54b945[_0x526f3f];
-}
+// Static lookup table from KissKH deobfuscation
+const shiftedArr: string[] = [
+  '39aXORCP', 'toUpperCase', '87280owbbkp', '6AzawBg', 'fromCharCode',
+  'toString', 'splice', 'mg3c3b04ba', 'substr', '9634ttJadP',
+  'length', 'referrer', '499416bEetdB', 'platform', 'appCodeName',
+  'navigator', '359664FzBQCJ', '12yJxJzi', 'userAgent', '1065160icGOUk',
+  'toLowerCase', 'document', 'push', 'charCodeAt', 'undefined',
+  '178276lBUtOp', 'join', '1766601DKvkfN'
+];
 
-function _0x54b9(): string[] {
-  return [
-    'join', '1766601DKvkfN', '39aXORCP', 'toUpperCase', '87280owbbkp',
-    '6AzawBg', 'fromCharCode', 'toString', 'splice', 'mg3c3b04ba',
-    'substr', '9634ttJadP', 'length', 'referrer', '499416bEetdB',
-    'platform', 'appCodeName', 'navigator', '359664FzBQCJ', '12yJxJzi',
-    'userAgent', '1065160icGOUk', 'toLowerCase', 'document', 'push',
-    'charCodeAt', 'undefined', '178276lBUtOp'
-  ];
+function _0x3a8d(idx: number): string {
+  return shiftedArr[idx - 0x10a];
 }
-
-(function (_0x2a0650: any, _0x28a91e: number) {
-  const _0xd45308 = _0x3a8d;
-  const _0x4955cd = _0x2a0650();
-  while (true) {
-    try {
-      const _0x2eca83 =
-        (parseInt(_0xd45308(0x10a)) / 0x1) * (parseInt(_0xd45308(0x113)) / 0x2) +
-        (-parseInt(_0xd45308(0x10d)) / 0x3) * (parseInt(_0xd45308(0x116)) / 0x4) +
-        (-parseInt(_0xd45308(0x10c)) / 0x5) * (-parseInt(_0xd45308(0x11b)) / 0x6) +
-        parseInt(_0xd45308(0x123)) / 0x7 +
-        parseInt(_0xd45308(0x11a)) / 0x8 +
-        parseInt(_0xd45308(0x125)) / 0x9 +
-        -parseInt(_0xd45308(0x11d)) / 0xa;
-      if (_0x2eca83 === _0x28a91e) break;
-      else _0x4955cd['push'](_0x4955cd['shift']());
-    } catch (_0x1d75b5) {
-      _0x4955cd['push'](_0x4955cd['shift']());
-    }
-  }
-})(_0x54b9, 0x20892);
 
 const _0x54b991 = (function () {
   function _0x1b25b9(_0x3378d3: string): [number[], number] {
