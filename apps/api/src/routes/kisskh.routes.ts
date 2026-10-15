@@ -259,8 +259,12 @@ export async function kisskhRoutes(server: FastifyInstance) {
         targetUrl = resolved.videoUrl || resolved.backupUrl || '';
       }
 
-      if (!targetUrl) {
-        return reply.status(404).send({ error: 'Stream URL could not be resolved' });
+      if (!targetUrl || targetUrl.includes('tickcounter') || targetUrl.includes('countdown') || targetUrl.startsWith('//')) {
+        reply.header('Access-Control-Allow-Origin', '*');
+        return reply.status(404).send({
+          error: 'UNRELEASED_CONTENT',
+          message: 'هذا العمل لم يتم طرحه بعد وهو في مرحلة العد التنازلي (Upcoming)',
+        });
       }
 
       const settings = await settingsRepository.getSettings();

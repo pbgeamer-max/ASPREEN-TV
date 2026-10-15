@@ -523,8 +523,14 @@ export default function KisskhPage() {
                       <span className="px-2.5 py-1 rounded-lg bg-[#181818] border border-[#27272A] text-[#D4D4D8]">
                         الدولة: {selectedDrama.country}
                       </span>
-                      <span className="px-2.5 py-1 rounded-lg bg-[#181818] border border-[#27272A] text-emerald-400">
-                        {selectedDrama.status}
+                      <span
+                        className={`px-2.5 py-1 rounded-lg bg-[#181818] border ${
+                          selectedDrama.status === 'Upcoming'
+                            ? 'border-amber-500/40 text-amber-400 font-bold'
+                            : 'border-[#27272A] text-emerald-400'
+                        }`}
+                      >
+                        {selectedDrama.status === 'Upcoming' ? 'قريباً (لم يُعرض بعد)' : selectedDrama.status}
                       </span>
                       {selectedDrama.release_date && (
                         <span className="px-2.5 py-1 rounded-lg bg-[#181818] border border-[#27272A] text-[#A1A1AA]">
@@ -541,36 +547,52 @@ export default function KisskhPage() {
                   </div>
                 </div>
 
-                {/* Episodes Grid */}
+                {/* Episodes Grid or Upcoming Notice */}
                 <div className="space-y-3 pt-2 border-t border-[#1C1C1C]">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs md:text-sm font-bold text-white flex items-center gap-2">
-                      <Tv className="w-4 h-4 text-[#E50914]" />
-                      <span>قائمة الحلقات المتاحة ({selectedDrama.episodes?.length || 0})</span>
-                    </h4>
-                    <span className="text-[11px] text-[#71717A]">اضغط على أي حلقة لتشغيل البث الفوري</span>
-                  </div>
-
-                  {selectedDrama.episodes && selectedDrama.episodes.length > 0 ? (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-64 overflow-y-auto p-1">
-                      {selectedDrama.episodes.map((ep) => (
-                        <button
-                          key={ep.id}
-                          onClick={() => handlePlayEpisode(selectedDrama, ep)}
-                          className="group flex flex-col items-center justify-center py-3 px-2 rounded-xl bg-[#141414] hover:bg-[#E50914] border border-[#222222] hover:border-[#E50914] text-white transition-all shadow-sm"
-                        >
-                          <Play className="w-4 h-4 mb-1 text-[#A1A1AA] group-hover:text-white group-hover:fill-white transition-colors" />
-                          <span className="text-xs font-semibold">{ep.title}</span>
-                          <span className="text-[9px] text-[#71717A] group-hover:text-white/80 font-mono mt-0.5">
-                            {ep.subtitles_count > 0 ? `${ep.subtitles_count} ترجمات` : 'HLS VIP'}
-                          </span>
-                        </button>
-                      ))}
+                  {selectedDrama.status === 'Upcoming' ? (
+                    <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 text-amber-400 text-lg">
+                        ⏳
+                      </div>
+                      <div>
+                        <p className="font-bold text-white text-sm">هذا العمل قيد الانتظار ولم يُعرض بعد في المصدر الأصلي</p>
+                        <p className="text-[11px] text-amber-300/80 mt-1">
+                          تاريخ الإصدار المتوقع: {selectedDrama.release_date || 'قريباً'}. سيتم إضافة روابط البث المباشر فور انطلاق عرضه الرسمي تلقائياً.
+                        </p>
+                      </div>
                     </div>
                   ) : (
-                    <div className="p-6 text-center text-xs text-[#71717A] bg-[#121212] rounded-xl border border-[#222222]">
-                      لا توجد حلقات متاحة حالياً لهذا العمل
-                    </div>
+                    <>
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs md:text-sm font-bold text-white flex items-center gap-2">
+                          <Tv className="w-4 h-4 text-[#E50914]" />
+                          <span>قائمة الحلقات المتاحة ({selectedDrama.episodes?.length || 0})</span>
+                        </h4>
+                        <span className="text-[11px] text-[#71717A]">اضغط على أي حلقة لتشغيل البث الفوري</span>
+                      </div>
+
+                      {selectedDrama.episodes && selectedDrama.episodes.length > 0 ? (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-64 overflow-y-auto p-1">
+                          {selectedDrama.episodes.map((ep) => (
+                            <button
+                              key={ep.id}
+                              onClick={() => handlePlayEpisode(selectedDrama, ep)}
+                              className="group flex flex-col items-center justify-center py-3 px-2 rounded-xl bg-[#141414] hover:bg-[#E50914] border border-[#222222] hover:border-[#E50914] text-white transition-all shadow-sm"
+                            >
+                              <Play className="w-4 h-4 mb-1 text-[#A1A1AA] group-hover:text-white group-hover:fill-white transition-colors" />
+                              <span className="text-xs font-semibold">{ep.title}</span>
+                              <span className="text-[9px] text-[#71717A] group-hover:text-white/80 font-mono mt-0.5">
+                                {ep.subtitles_count > 0 ? `${ep.subtitles_count} ترجمات` : 'HLS VIP'}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-6 text-center text-xs text-[#71717A] bg-[#121212] rounded-xl border border-[#222222]">
+                          لا توجد حلقات متاحة حالياً لهذا العمل
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
