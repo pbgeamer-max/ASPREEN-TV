@@ -27,6 +27,7 @@ import { settingsRoutes } from './routes/settings.routes';
 import { hlsAuthRoutes } from './routes/hls-auth.routes';
 import { appRoutes } from './routes/app.routes';
 import { iskRoutes } from './routes/3isk.routes';
+import { threeIskSyncService } from './services/3isk-sync.service';
 import { telegramService } from './services/telegram.service';
 import { tokenRepository } from './repositories/token.repository';
 import { channelRepository } from './repositories/channel.repository';
@@ -504,6 +505,13 @@ async function start() {
 
     await server.listen({ port: config.port, host: config.host });
     console.log(`[Aspreen TV API] Server running at http://${config.host}:${config.port}`);
+
+    // Initialize 24/7 3isk Auto-Sync Daemon (syncs latest drama, movies, and episodes every 15 min)
+    try {
+      threeIskSyncService.startCron(15 * 60 * 1000);
+    } catch (e: any) {
+      console.warn('[3isk Sync] Failed to start auto-sync daemon:', e.message);
+    }
 
     // Initialize Telegram Bot (if configured)
     try {

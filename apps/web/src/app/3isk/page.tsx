@@ -20,6 +20,7 @@ import {
   ChevronRight,
   BookOpen,
   Filter,
+  RefreshCw,
 } from 'lucide-react';
 
 interface Episode {
@@ -54,6 +55,8 @@ export default function ThreeIskPage() {
   const [series, setSeries] = useState<CatalogItem[]>([]);
   const [movies, setMovies] = useState<CatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string>('');
 
   // Selected Series for episodes drawer/modal
   const [selectedSeries, setSelectedSeries] = useState<CatalogItem | null>(null);
@@ -68,16 +71,35 @@ export default function ThreeIskPage() {
 
   const fetchCatalog = async () => {
     try {
-      const res = await fetch('/api/app/3isk/catalog');
+      const res = await fetch('/api/app/3isk/catalog', { credentials: 'include' });
       const data = await res.json();
       if (data && data.success) {
         setSeries(data.series || []);
         setMovies(data.movies || []);
+        if (data.updated_at) setLastUpdated(data.updated_at);
       }
     } catch (err) {
       console.error('Failed to load 3isk catalog:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleManualSync = async () => {
+    try {
+      setSyncing(true);
+      const res = await fetch('/api/app/3isk/sync', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (data && data.success) {
+        await fetchCatalog();
+      }
+    } catch (err) {
+      console.error('Manual sync failed:', err);
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -157,6 +179,15 @@ export default function ThreeIskPage() {
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <button
+                onClick={handleManualSync}
+                disabled={syncing}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-semibold text-xs transition-colors shrink-0 shadow-lg shadow-red-600/20"
+              >
+                <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+                <span>{syncing ? 'جاري فحص وتحديث قصة عشق...' : 'تحديث الأعمال الآن'}</span>
+              </button>
+
+              <button
                 onClick={copyApiUrl}
                 className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-[#E4E4E7] text-black font-semibold text-xs transition-colors shrink-0"
               >
@@ -167,7 +198,7 @@ export default function ThreeIskPage() {
           </div>
 
           {/* Quick Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-4 rounded-xl bg-[#121212] border border-[#262626] flex items-center justify-between">
               <div>
                 <p className="text-[11px] text-[#71717A] uppercase font-mono tracking-wider">إجمالي المسلسلات</p>
@@ -195,6 +226,17 @@ export default function ThreeIskPage() {
               </div>
               <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                 <Layers className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#121212] border border-[#262626] flex items-center justify-between">
+              <div>
+                <p className="text-[11px] text-[#71717A] uppercase font-mono tracking-wider">التحديث التلقائي (Auto-Sync)</p>
+                <p className="text-sm font-bold text-cyan-400 mt-1">نشط كل 15 دقيقة</p>
+                <p className="text-[10px] text-[#71717A] mt-0.5">يعمل 24/7 بدون تدخل</p>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                <RefreshCw className="w-5 h-5" />
               </div>
             </div>
           </div>

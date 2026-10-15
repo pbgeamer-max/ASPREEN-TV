@@ -142,28 +142,28 @@ async function resolve3iskStream(watchPageUrl: string): Promise<string> {
   return streamUrl;
 }
 
+import { threeIskSyncService } from '../services/3isk-sync.service';
+
 export async function iskRoutes(server: FastifyInstance) {
   /**
-   * Helper to load catalog from disk
+   * POST /api/app/3isk/sync
+   * Manually triggers a sync crawl for latest episodes, movies, and series
    */
-  function loadCatalog(): { series: any[]; movies: any[]; updatedAt: string } {
-    const possiblePaths = [
-      path.join(process.cwd(), 'data', '3isk_catalog.json'),
-      path.join(process.cwd(), '..', '..', 'data', '3isk_catalog.json'),
-      path.join(__dirname, '..', '..', 'data', '3isk_catalog.json'),
-      '/app/data/3isk_catalog.json',
-    ];
-
-    for (const p of possiblePaths) {
-      if (fs.existsSync(p)) {
-        try {
-          return JSON.parse(fs.readFileSync(p, 'utf8'));
-        } catch {}
-      }
+  server.post('/sync', async (_request, reply) => {
+    try {
+      const stats = await threeIskSyncService.syncLatest();
+      return {
+        success: true,
+        message: 'تم فحص قصة عشق وتحديث الأعمال الجديدة بنجاح',
+        stats,
+      };
+    } catch (err: any) {
+      return reply.status(500).send({
+        success: false,
+        error: err.message,
+      });
     }
-
-    return { series: [], movies: [], updatedAt: new Date().toISOString() };
-  }
+  });
 
   /**
    * GET /api/app/3isk/catalog
@@ -171,7 +171,7 @@ export async function iskRoutes(server: FastifyInstance) {
    */
   server.get('/catalog', async (request: FastifyRequest<{ Querystring: { type?: string; q?: string; category?: string; api_key?: string } }>, reply) => {
     const { type, q, category } = request.query;
-    const catalog = loadCatalog();
+    const catalog = threeIskSyncService.getCatalog();
 
     const settings = await settingsRepository.getSettings();
 
@@ -185,14 +185,21 @@ export async function iskRoutes(server: FastifyInstance) {
       });
     }
 
-    // 2. Check API Key if configured
+    // 2. Check API Key
     const configuredKey = (settings.masterApiKey || '').trim();
     const incomingKey = (request.query as any).api_key ||
                         request.headers['x-api-key'] ||
                         (request.headers.authorization ? request.headers.authorization.replace(/^Bearer\s+/i, '') : '');
 
     const referer = (request.headers.referer || '');
-    const isInternalWeb = referer.includes('/3isk') || referer.includes('localhost') || referer.includes('railway.app');
+    const hasAdminCookie = Boolean(request.cookies && (request.cookies.__session || request.cookies.token));
+    const isInternalWeb = hasAdminCookie ||
+                          referer.includes('/3isk') ||
+                          referer.includes('localhost') ||
+                          referer.includes('railway.app') ||
+                          request.ip === '127.0.0.1' ||
+                          request.ip === '::1' ||
+                          request.ip === '::ffff:127.0.0.1';
 
     if (configuredKey !== '' && !isInternalWeb) {
       if (!incomingKey || incomingKey !== configuredKey) {
