@@ -6249,6 +6249,56 @@
     "backupUrl": null,
     "type": 0
   },
+  "218265": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/Family-Register-2026-Ep1/index.m3u8?v=74913dd5-95f7-44d1-be49-6ad2c01d5420",
+    "backupUrl": null,
+    "type": 1
+  },
+  "218266": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/Family-Register-2026-Ep2/index.m3u8?v=e40806fd-f28c-41ea-a7f8-37716fa1efc2",
+    "backupUrl": null,
+    "type": 1
+  },
+  "218311": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/Family-Register-2026-Ep3/index.m3u8?v=78f6751d-edd8-4787-acad-ef041d23d468",
+    "backupUrl": null,
+    "type": 1
+  },
+  "218407": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/Family-Register-2026-Ep4/index.m3u8?v=56c59280-fef8-4ae5-bc22-7e0e6d2c6b39",
+    "backupUrl": null,
+    "type": 1
+  },
+  "218520": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/Family-Register-2026-Ep5/index.m3u8?v=72a83b2e-9e9f-4d04-8d6c-8691d3ed5b58",
+    "backupUrl": null,
+    "type": 1
+  },
+  "218743": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/Family-Register-2026-Ep6/index.m3u8?v=eaa655e4-78af-4a9a-912e-72d52c3e1c42",
+    "backupUrl": null,
+    "type": 1
+  },
+  "218846": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/Family-Register-2026-Ep7/index.m3u8?v=2c27d0e3-b960-4de8-a913-91879ce238b5",
+    "backupUrl": null,
+    "type": 1
+  },
+  "218944": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/Family-Register-2026-Ep8/index.m3u8?v=1257d742-2f36-4d7b-8ad3-9024fbf8335e",
+    "backupUrl": null,
+    "type": 1
+  },
+  "219006": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/Family-Register-2026-Ep9/index.m3u8?v=3361ff8d-7d4e-47a4-a7c9-c3ff4c9f2e6a",
+    "backupUrl": null,
+    "type": 1
+  },
+  "219134": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/Family-Register-2026-Ep10/index.m3u8?v=f1626b6b-fbb7-4998-a0cd-48ff9774cecf",
+    "backupUrl": null,
+    "type": 1
+  },
   "221841": {
     "videoUrl": "https://tmp.cdnvideo11.shop/tmp/A-Trap-Called-Desire-2026-Ep1/index.m3u8?v=1e1ec25a-4d9a-4cb6-b06c-44b15bfa5478",
     "backupUrl": null,
@@ -6256,6 +6306,16 @@
   },
   "221888": {
     "videoUrl": "https://tmp.cdnvideo11.shop/tmp/A-Trap-Called-Desire-2026-Ep2/index.m3u8?v=2a74e57b-cc52-4579-aa0b-81903bdef14b",
+    "backupUrl": null,
+    "type": 1
+  },
+  "221946": {
+    "videoUrl": "https://hls08.cdnvideo11.shop/hls08/13498/Ep1.v509_index.m3u8",
+    "backupUrl": null,
+    "type": 1
+  },
+  "221949": {
+    "videoUrl": "https://hls08.cdnvideo11.shop/hls08/13498/Ep2.v433_index.m3u8",
     "backupUrl": null,
     "type": 1
   },
@@ -6271,6 +6331,51 @@
   },
   "222153": {
     "videoUrl": "https://tmp.cdnvideo11.shop/tmp/A-Trap-Called-Desire-2026-Ep5/index.m3u8?v=ff301052-0467-4242-95e6-c2eeae8de417",
+    "backupUrl": null,
+    "type": 1
+  },
+  "222610": {
+    "videoUrl": "https://hls08.cdnvideo11.shop/hls08/13498/Ep3.v990_index.m3u8",
+    "backupUrl": null,
+    "type": 1
+  },
+  "223117": {
+    "videoUrl": "https://hls08.cdnvideo11.shop/hls08/13498/Ep4.v772_index.m3u8",
+    "backupUrl": null,
+    "type": 1
+  },
+  "223302": {
+    "videoUrl": "//www.tickcounter.com/widget/countdown/7870303",
+    "backupUrl": null,
+    "type": 2
+  },
+  "223594": {
+    "videoUrl": "https://hls08.cdnvideo11.shop/hls08/13498/Ep5.v986_index.m3u8",
+    "backupUrl": null,
+    "type": 1
+  },
+  "224178": {
+    "videoUrl": "https://hls08.cdnvideo11.shop/hls08/13498/Ep6.v190_index.m3u8",
+    "backupUrl": null,
+    "type": 1
+  },
+  "224602": {
+    "videoUrl": "https://hls08.cdnvideo11.shop/hls08/13498/Ep7.v834_index.m3u8",
+    "backupUrl": null,
+    "type": 1
+  },
+  "225139": {
+    "videoUrl": "https://hls08.cdnvideo11.shop/hls08/13498/Ep8.v445_index.m3u8",
+    "backupUrl": null,
+    "type": 1
+  },
+  "225602": {
+    "videoUrl": "https://hls08.cdnvideo11.shop/hls08/13498/Ep9.v117_index.m3u8",
+    "backupUrl": null,
+    "type": 1
+  },
+  "226121": {
+    "videoUrl": "https://hls08.cdnvideo11.shop/hls08/13498/Ep10.v946_index.m3u8",
     "backupUrl": null,
     "type": 1
   }

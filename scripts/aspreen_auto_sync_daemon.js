@@ -32,27 +32,16 @@ async function sleep(ms) {
 
 // Helper to fetch an episode stream with retry & backoff
 async function fetchEpisodeStream(epId, retries = 2) {
-  const kkey = kisskhService.generateVideoKKey(epId);
-  const url = `https://kisskh.co/api/DramaList/Episode/${epId}.png?kkey=${kkey}`;
-
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent': 'Dart/3.0 (dart:io)',
-          Accept: '*/*',
-        },
-        signal: AbortSignal.timeout(7000),
-      });
-
-      if (res.status === 429) {
-        // Rate limited, wait 3 seconds and retry
-        await sleep(3000);
-        continue;
+      const resolved = await kisskhService.resolveEpisode(epId);
+      if (resolved && (resolved.videoUrl || resolved.backupUrl)) {
+        return {
+          Video: resolved.videoUrl,
+          ThirdParty: resolved.backupUrl,
+          Type: resolved.type,
+        };
       }
-
-      if (!res.ok) return null;
-      return await res.json();
     } catch {
       if (attempt < retries) await sleep(1000);
     }

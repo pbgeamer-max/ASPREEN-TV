@@ -412,7 +412,7 @@ class KisskhService {
    * Helper that requests active KissKH mirrors with automatic failover (kisskh.is -> kisskh.do -> kisskh.ovh -> kisskh.la -> kisskh.co)
    */
   private async fetchFromMirror(endpoint: string, isImage = false): Promise<Response> {
-    const domains = ['kisskh.co', 'kisskh.is', 'kisskh.vip', 'kisskh.do', 'kisskh.ovh', 'kisskh.la'];
+    const domains = ['kisskh.id', 'kisskh.co', 'kisskh.is', 'kisskh.vip', 'kisskh.do', 'kisskh.ovh', 'kisskh.la'];
     const mobileUas = ['Dart/3.0 (dart:io)', 'okhttp/4.9.3', 'KissKH/2.8.10', UA];
     let lastError: Error | null = null;
     const isPng = isImage || endpoint.includes('.png');

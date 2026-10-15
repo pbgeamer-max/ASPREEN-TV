@@ -98,9 +98,7 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
     });
 
     const isDirectVideo =
-      streamUrl.toLowerCase().includes('.mp4') ||
-      streamUrl.includes('/kisskh/') ||
-      streamUrl.includes('ts-proxy') ||
+      (streamUrl.toLowerCase().includes('.mp4') && !streamUrl.includes('.m3u8')) ||
       streamUrl.includes('format=mp4');
 
     if (!isDirectVideo && Hls.isSupported()) {
