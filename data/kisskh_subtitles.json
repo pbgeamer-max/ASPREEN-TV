@@ -318,5 +318,37 @@
       "land": "km",
       "default": false
     }
+  ],
+  "227208": [
+    {
+      "src": "https://sub.cdnvideo11.shop/auto-upload/13355/62/fed82380b0075fdbe799609c6d915ba1.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/auto-upload/13355/62/fed82380b0075fdbe799609c6d915ba1.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/auto-upload/13355/62/fed82380b0075fdbe799609c6d915ba1.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/auto-upload/13355/62/fed82380b0075fdbe799609c6d915ba1.ms.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/auto-upload/13355/62/fed82380b0075fdbe799609c6d915ba1.km.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    }
   ]
 }

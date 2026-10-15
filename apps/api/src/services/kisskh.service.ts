@@ -436,10 +436,10 @@ class KisskhService {
   }
 
   /**
-   * Helper that requests active KissKH mirrors with automatic failover (kisskh.is -> kisskh.do -> kisskh.ovh -> kisskh.la -> kisskh.co)
+   * Helper that requests active KissKH mirrors with mobile Dart UA (kisskh.co -> kisskh.is -> kisskh.do -> kisskh.ovh)
    */
   private async fetchFromMirror(endpoint: string, isImage = false): Promise<Response> {
-    const domains = ['kisskh.id', 'kisskh.co', 'kisskh.is', 'kisskh.vip', 'kisskh.do', 'kisskh.ovh', 'kisskh.la'];
+    const domains = ['kisskh.co', 'kisskh.is', 'kisskh.do', 'kisskh.ovh', 'kisskh.la', 'kisskh.id'];
     const mobileUas = ['Dart/3.0 (dart:io)', 'okhttp/4.9.3', 'KissKH/2.8.10', UA];
     let lastError: Error | null = null;
     const isPng = isImage || endpoint.includes('.png');
@@ -450,11 +450,13 @@ class KisskhService {
           const fullUrl = `https://${domain}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
           const headers: Record<string, string> = {
             'User-Agent': userAgent,
-            Accept: isPng
-              ? 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
-              : 'application/json, text/plain, */*',
-            Referer: `https://${domain}/`,
+            Accept: '*/*',
           };
+
+          // Only send Referer if not a mobile dart/okhttp client
+          if (!userAgent.includes('Dart') && !userAgent.includes('okhttp')) {
+            headers['Referer'] = `https://${domain}/`;
+          }
 
           const res = await fetch(fullUrl, { headers, signal: AbortSignal.timeout(6000) });
           if (res.ok) {

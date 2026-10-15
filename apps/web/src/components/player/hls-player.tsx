@@ -234,10 +234,19 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
         handleReady();
       });
 
+      let networkErrorCount = 0;
       hls.on(Hls.Events.ERROR, (_event, data) => {
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
+              networkErrorCount++;
+              if (networkErrorCount >= 3) {
+                console.error('[HlsPlayer] Fatal network error limit reached:', data.details);
+                setError('تعذر تحميل رابط البث من السيرفر. اضغط على زر إعادة المحاولة.');
+                setIsLoading(false);
+                hls?.destroy();
+                break;
+              }
               console.warn('[HlsPlayer] Network error during segment load, auto-recovering...', data.details);
               hls?.startLoad();
               break;
