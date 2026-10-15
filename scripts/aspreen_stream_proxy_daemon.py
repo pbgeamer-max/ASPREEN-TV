@@ -480,10 +480,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             return
 
 
-        # Rewrite Playlist: route relative TS segments through /ts?url=...&ref=...
-        host = self.headers.get("Host", f"127.0.0.1:{PORT}")
-        base_origin = f"http://{host}"
-
+        # Rewrite Playlist: route relative TS segments through /live/ts?url=...&ref=...
         lines = m3u_text.splitlines()
         rewritten = []
         for line in lines:
@@ -491,21 +488,23 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             if not line:
                 continue
             if line.startswith("#"):
-                rewritten.append(line)
-            else:
-                # Segment URL line
-                if line.startswith("http://") or line.startswith("https://"):
-                    seg_full = line
-                elif line.startswith("/"):
-                    seg_full = f"https://yacine.website{line}"
+                if 'URI="' in line:
+                    def replace_uri(m):
+                        u = m.group(1)
+                        full_u = urllib.parse.urljoin(target_fetch_url, u)
+                        enc_u = urllib.parse.quote(full_u, safe="")
+                        enc_r = urllib.parse.quote(channel_referer, safe="")
+                        return f'URI="/live/ts?url={enc_u}&ref={enc_r}"'
+                    rewritten.append(re.sub(r'URI="([^"]+)"', replace_uri, line))
                 else:
-                    seg_full = f"https://yacine.website/{line}"
-
+                    rewritten.append(line)
+            else:
+                # Segment or Sub-manifest URL line
+                seg_full = urllib.parse.urljoin(target_fetch_url, line)
                 encoded_seg = urllib.parse.quote(seg_full, safe="")
                 encoded_ref = urllib.parse.quote(channel_referer, safe="")
                 rewritten_seg = f"/live/ts?url={encoded_seg}&ref={encoded_ref}"
                 rewritten.append(rewritten_seg)
-
 
         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
         self.send_response(200)
@@ -531,8 +530,13 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 pass
 
         referer = ref_override or "https://yacine.website/"
+        ua = decoded_ua or DEFAULT_UA
+        if "workers.dev" in target_url or ".css" in target_url or "getmycssfiles" in target_url or "alljava" in target_url or "ourjav" in target_url:
+            ua = "OSCARTV2021"
+            referer = "http://speedcdn.me:8080/"
+
         headers = {
-            "User-Agent": decoded_ua or DEFAULT_UA,
+            "User-Agent": ua,
             "Referer": referer,
             "X-Forwarded-For": "105.100.1.1",
             "CF-Connecting-IP": "105.100.1.1",
@@ -564,7 +568,6 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     if first_chunk.startswith(b"#EXTM3U"):
                         rest = upstream.read()
                         full_m3u = (first_chunk + rest).decode("utf-8", errors="ignore")
-                        target_dir = target_url.rsplit("/", 1)[0]
                         lines = full_m3u.splitlines()
                         rewritten = []
                         for line in lines:
@@ -572,15 +575,18 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                             if not l:
                                 continue
                             if l.startswith("#"):
-                                rewritten.append(l)
-                            else:
-                                if l.startswith("http://") or l.startswith("https://"):
-                                    seg_full = l
-                                elif l.startswith("/"):
-                                    seg_full = f"{urllib.parse.urlsplit(target_url).scheme}://{urllib.parse.urlsplit(target_url).netloc}{l}"
+                                if 'URI="' in l:
+                                    def replace_sub_uri(m):
+                                        u = m.group(1)
+                                        full_u = urllib.parse.urljoin(target_url, u)
+                                        enc_u = urllib.parse.quote(full_u, safe="")
+                                        enc_r = urllib.parse.quote(referer, safe="")
+                                        return f'URI="/live/ts?url={enc_u}&ref={enc_r}"'
+                                    rewritten.append(re.sub(r'URI="([^"]+)"', replace_sub_uri, l))
                                 else:
-                                    seg_full = f"{target_dir}/{l}"
-
+                                    rewritten.append(l)
+                            else:
+                                seg_full = urllib.parse.urljoin(target_url, l)
                                 encoded_seg = urllib.parse.quote(seg_full, safe="")
                                 encoded_ref = urllib.parse.quote(referer, safe="")
                                 rewritten.append(f"/live/ts?url={encoded_seg}&ref={encoded_ref}")

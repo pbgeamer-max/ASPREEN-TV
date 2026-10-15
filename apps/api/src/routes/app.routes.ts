@@ -103,9 +103,22 @@ export async function appRoutes(server: FastifyInstance) {
       });
     }
 
-    // 2. Check API Key if configured
+    // 2. Check API Key if configured (allow internal web dashboard requests)
     const configuredKey = (settings.masterApiKey || '').trim();
-    if (configuredKey !== '') {
+    const referer = request.headers.referer || '';
+    const hasAdminCookie = Boolean(request.cookies && (request.cookies.__session || request.cookies.token));
+    const isInternalWeb =
+      hasAdminCookie ||
+      referer.includes('/channels') ||
+      referer.includes('/kisskh') ||
+      referer.includes('/3isk') ||
+      referer.includes('localhost') ||
+      referer.includes('railway.app') ||
+      request.ip === '127.0.0.1' ||
+      request.ip === '::1' ||
+      request.ip === '::ffff:127.0.0.1';
+
+    if (configuredKey !== '' && !isInternalWeb) {
       const incomingKey = (request.query as any).api_key ||
                           request.headers['x-api-key'] ||
                           (request.headers.authorization ? request.headers.authorization.replace(/^Bearer\s+/i, '') : '');
