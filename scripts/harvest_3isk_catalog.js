@@ -22,7 +22,7 @@ async function harvestMovies() {
         const url = m[1];
         const inner = m[2];
         const titleMatch = inner.match(/<div class="item_title">([^<]+)<\/div>/);
-        const imgMatch = inner.match(/data-src="([^"]+)"/) || inner.match(/src="([^"]+)"/);
+        const imgMatch = inner.match(/data-image="([^"]+)"/) || inner.match(/data-src="([^"]+)"/) || inner.match(/src="([^"]+)"/);
         if (titleMatch) {
           const title = titleMatch[1].trim();
           const poster = imgMatch ? imgMatch[1] : '';
@@ -61,7 +61,7 @@ async function harvestSeries() {
         const url = m[1];
         const inner = m[2];
         const titleMatch = inner.match(/<div class="item_title">([^<]+)<\/div>/);
-        const imgMatch = inner.match(/data-src="([^"]+)"/) || inner.match(/src="([^"]+)"/);
+        const imgMatch = inner.match(/data-image="([^"]+)"/) || inner.match(/data-src="([^"]+)"/) || inner.match(/src="([^"]+)"/);
         if (titleMatch) {
           const title = titleMatch[1].trim();
           const poster = imgMatch ? imgMatch[1] : '';
