@@ -324,6 +324,38 @@ class KisskhService {
   }
 
   /**
+   * Helper that requests active KissKH mirrors with automatic failover (kisskh.do -> kisskh.ovh -> kisskh.la -> kisskh.co)
+   */
+  private async fetchFromMirror(endpoint: string): Promise<Response> {
+    const domains = ['kisskh.do', 'kisskh.ovh', 'kisskh.la', 'kisskh.co'];
+    let lastError: Error | null = null;
+
+    for (const domain of domains) {
+      try {
+        const fullUrl = `https://${domain}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+        const res = await fetch(fullUrl, {
+          headers: {
+            'User-Agent': UA,
+            Referer: `https://${domain}/`,
+            Accept: 'application/json, text/plain, */*',
+          },
+        });
+
+        if (res.ok) {
+          return res;
+        }
+
+        const errText = await res.text().catch(() => '');
+        lastError = new Error(`${domain} returned HTTP ${res.status}: ${errText.substring(0, 100)}`);
+      } catch (err: any) {
+        lastError = err;
+      }
+    }
+
+    throw lastError || new Error('All KissKH mirror endpoints failed');
+  }
+
+  /**
    * Retrieves paginated Asian drama & movie catalog or searches titles
    */
   public async getCatalog(params: {
@@ -349,26 +381,14 @@ class KisskhService {
       return cached.data;
     }
 
-    let url: string;
+    let endpoint: string;
     if (q) {
-      url = `https://kisskh.co/api/DramaList/Search?q=${encodeURIComponent(q)}`;
+      endpoint = `/api/DramaList/Search?q=${encodeURIComponent(q)}`;
     } else {
-      url = `https://kisskh.co/api/DramaList/List?page=${page}&type=${type}&sub=0&country=${country}&status=${status}&order=${order}&pageSize=${pageSize}`;
+      endpoint = `/api/DramaList/List?page=${page}&type=${type}&sub=0&country=${country}&status=${status}&order=${order}&pageSize=${pageSize}`;
     }
 
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': UA,
-        Referer: 'https://kisskh.co/',
-        Accept: 'application/json, text/plain, */*',
-      },
-    });
-
-    if (!res.ok) {
-      const errText = await res.text().catch(() => '');
-      throw new Error(`KissKH API returned status ${res.status}: ${errText.substring(0, 250)}`);
-    }
-
+    const res = await this.fetchFromMirror(endpoint);
     const json = await res.json();
     let total = 0;
     let items: KisskhDramaSummary[] = [];
@@ -423,19 +443,7 @@ class KisskhService {
       return cached.data;
     }
 
-    const url = `https://kisskh.co/api/DramaList/Drama/${id}`;
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': UA,
-        Referer: 'https://kisskh.co/',
-        Accept: 'application/json, text/plain, */*',
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Drama details request failed with status ${res.status}`);
-    }
-
+    const res = await this.fetchFromMirror(`/api/DramaList/Drama/${id}`);
     const drama = await res.json();
     const result: KisskhDramaDetail = {
       id: drama.id,
@@ -474,20 +482,7 @@ class KisskhService {
     }
 
     const kkey = this.generateVideoKKey(episodeId);
-    const url = `https://kisskh.co/api/DramaList/Episode/${episodeId}.png?kkey=${kkey}`;
-
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': UA,
-        Referer: 'https://kisskh.co/',
-        Accept: 'application/json, text/plain, */*',
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to resolve episode stream (HTTP ${res.status})`);
-    }
-
+    const res = await this.fetchFromMirror(`/api/DramaList/Episode/${episodeId}.png?kkey=${kkey}`);
     const data = await res.json();
     let videoUrl = data.Video || '';
     const backupUrl = data.ThirdParty || null;
@@ -540,19 +535,7 @@ class KisskhService {
 
     try {
       const subKey = this.generateSubKKey(episodeId);
-      const url = `https://kisskh.co/api/Sub/${episodeId}?kkey=${subKey}`;
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent': UA,
-          Referer: 'https://kisskh.co/',
-          Accept: 'application/json, text/plain, */*',
-        },
-      });
-
-      if (!res.ok) {
-        return [];
-      }
-
+      const res = await this.fetchFromMirror(`/api/Sub/${episodeId}?kkey=${subKey}`);
       const list = await res.json();
       if (!Array.isArray(list)) return [];
 
