@@ -52,9 +52,11 @@ if os.path.exists(CONFIG_FILE):
     except Exception:
         pass
 
+DEFAULT_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+
 # Geo-Bypass Headers
 BYPASS_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "User-Agent": DEFAULT_UA,
     "Referer": "https://yacine.website/",
     "X-Forwarded-For": "105.100.1.1",  # Algeria IP bypass (official licenser)
     "CF-Connecting-IP": "105.100.1.1",
@@ -108,9 +110,16 @@ def load_channels_from_disk():
 def renew_single_channel_stream(cid):
     """Fetches a fresh stream URL for a single channel from upstream API"""
     api_url = f"https://yacine.website/index.php?get_channel_stream={cid}"
-    req = urllib.request.Request(api_url, headers=BYPASS_HEADERS)
+    headers = dict(BYPASS_HEADERS)
+    with cache_lock:
+        ch = channels_cache.get(cid, {})
+        name = ch.get("name", "live")
+    slug = re.sub(r'[^a-zA-Z0-9]+', '-', name).strip('-') or 'live'
+    headers["Referer"] = f"https://yacine.website/channel/{cid}/{slug}"
+
+    req = urllib.request.Request(api_url, headers=headers)
     try:
-        with urllib.request.urlopen(req, timeout=8) as r:
+        with urllib.request.urlopen(req, timeout=10) as r:
             data = json.loads(r.read().decode("utf-8", errors="ignore"))
             if data.get("status") == "success":
                 raw_url = data.get("raw_url", "").strip()
@@ -121,12 +130,11 @@ def renew_single_channel_stream(cid):
                     if cid in channels_cache:
                         ch = channels_cache[cid]
                         if play_url:
-                            ch["playUrl"] = f"https://yacine.website{play_url}"
+                            ch["playUrl"] = play_url if play_url.startswith("http") else f"https://yacine.website{play_url}"
                         if raw_url:
                             ch["streamUrl"] = raw_url
                             ch["directM3u8"] = raw_url
-                        if ua:
-                            ch["userAgent"] = ua
+                        ch["userAgent"] = ua or DEFAULT_UA
                         ch["status"] = "live"
                         ch["lastRenewed"] = time.time()
                 return True
@@ -138,7 +146,7 @@ def renew_single_channel_stream(cid):
 def background_auto_renew_loop():
     """24/7 Background thread that renews all channels periodically"""
     global last_renew_time, total_refreshes
-    time.sleep(5)  # initial wait
+    time.sleep(AUTO_RENEW_INTERVAL_SECONDS)  # Channels are fresh on startup, wait 30 mins
 
     while True:
         try:
@@ -148,11 +156,13 @@ def background_auto_renew_loop():
                 cids = list(channels_cache.keys())
 
             success_count = 0
-            # Renew in parallel batches of 10
             from concurrent.futures import ThreadPoolExecutor
-            with ThreadPoolExecutor(max_workers=10) as executor:
-                results = list(executor.map(renew_single_channel_stream, cids))
-                success_count = sum(1 for r in results if r)
+            with ThreadPoolExecutor(max_workers=3) as executor:
+                for cid in cids:
+                    if renew_single_channel_stream(cid):
+                        success_count += 1
+                    time.sleep(0.08)
+
 
             last_renew_time = time.time()
             total_refreshes += 1
@@ -302,13 +312,17 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.handle_channel_playlist(cid)
             return
 
-        # 4. Proxy Segment Chunk: /ts?url=<encoded_url>
-        if self.path.startswith("/ts?url="):
-            target_url = urllib.parse.unquote(self.path[8:])
+        # 4. Proxy Segment Chunk: /ts?url=<encoded_url>&ref=<encoded_ref>
+        if self.path.startswith("/ts?") or self.path.startswith("/ts/"):
+            parsed_ts = urllib.parse.urlparse(self.path)
+            qs_ts = urllib.parse.parse_qs(parsed_ts.query)
+            target_url = qs_ts.get("url", [""])[0]
+            ref_override = qs_ts.get("ref", [""])[0]
+            if not target_url and self.path.startswith("/ts?url="):
+                target_url = urllib.parse.unquote(self.path[8:])
             if target_url:
-                self.handle_ts_segment(target_url)
+                self.handle_ts_segment(target_url, ref_override)
                 return
-
 
         # Fallback 404
         self.send_response(404)
@@ -322,7 +336,6 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             ch = channels_cache.get(cid)
 
         if not ch:
-            # Try reloading from disk
             load_channels_from_disk()
             with cache_lock:
                 ch = channels_cache.get(cid)
@@ -334,26 +347,47 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Channel Not Found")
             return
 
-        # Determine upstream URL
-        play_url = ch.get("playUrl")
-        stream_url = ch.get("streamUrl", "")
-        ua = ch.get("userAgent", BYPASS_HEADERS["User-Agent"])
+        slug = re.sub(r'[^a-zA-Z0-9]+', '-', ch.get('name', 'live')).strip('-') or 'live'
+        channel_referer = f"https://yacine.website/channel/{cid}/{slug}"
 
-        if play_url and "play.php" in play_url:
-            target_fetch_url = play_url
-        elif "new-redirect.online" in stream_url:
-            b64_url = base64.b64encode(stream_url.encode()).decode()
-            b64_ua = base64.b64encode(ua.encode()).decode()
-            target_fetch_url = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
-        else:
-            target_fetch_url = stream_url
+        def build_target_and_ua(channel_obj):
+            play_url = channel_obj.get("playUrl", "")
+            stream_url = channel_obj.get("streamUrl", "")
+            ua_candidate = channel_obj.get("userAgent", "")
 
-        if not target_fetch_url or target_fetch_url.startswith("http://127.0.0.1"):
+            if play_url and "play.php" in play_url:
+                target = play_url
+            elif "new-redirect.online" in stream_url:
+                b64_url = base64.b64encode(stream_url.encode()).decode()
+                ua_for_param = ua_candidate or DEFAULT_UA
+                b64_ua = base64.b64encode(ua_for_param.encode()).decode()
+                target = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
+            else:
+                target = stream_url
+
+            # Extract exact UA if encoded in query string
+            extracted_ua = ""
+            if "ua=" in target:
+                parsed_q = urllib.parse.parse_qs(urllib.parse.urlparse(target).query)
+                encoded_ua = parsed_q.get("ua", [""])[0]
+                if encoded_ua:
+                    try:
+                        extracted_ua = base64.b64decode(encoded_ua).decode("utf-8", errors="ignore")
+                    except Exception:
+                        pass
+
+            final_ua = extracted_ua or ua_candidate or DEFAULT_UA
+            return target, final_ua
+
+        target_fetch_url, req_ua = build_target_and_ua(ch)
+        now = time.time()
+        last_renewed = ch.get("lastRenewed", 0)
+        # Tokens are valid for 5 hours; renew every 30 minutes to stay fresh
+        if now - last_renewed > 1800 or not target_fetch_url or target_fetch_url.startswith("http://127.0.0.1"):
             renew_single_channel_stream(cid)
             with cache_lock:
                 ch = channels_cache.get(cid, {})
-                target_fetch_url = ch.get("playUrl") or ch.get("streamUrl")
-
+                target_fetch_url, req_ua = build_target_and_ua(ch)
 
         if not target_fetch_url:
             self.send_response(502)
@@ -362,53 +396,59 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Upstream Unavailable")
             return
 
-        # Fetch upstream M3U8 with appropriate headers
-        req_headers = {"User-Agent": ua}
-        if "yacine.website" in target_fetch_url:
-            req_headers.update({
-                "Referer": "https://yacine.website/",
+        def fetch_m3u(url, user_agent, max_retries=3):
+            headers = {
+                "User-Agent": user_agent,
+                "Referer": channel_referer,
                 "X-Forwarded-For": "105.100.1.1",
                 "CF-Connecting-IP": "105.100.1.1",
-                "X-Real-IP": "105.100.1.1"
-            })
+                "X-Real-IP": "105.100.1.1",
+                "Accept": "*/*"
+            }
+            if "edgenextcdn.net" in url:
+                headers.pop("Referer", None)
+                headers.pop("X-Forwarded-For", None)
+                headers.pop("CF-Connecting-IP", None)
+                headers.pop("X-Real-IP", None)
 
-        def fetch_m3u(url, headers):
-            try:
-                r = urllib.request.Request(url, headers=headers)
-                with urllib.request.urlopen(r, timeout=6) as resp:
-                    return resp.read().decode("utf-8", errors="ignore")
-            except Exception:
-                return ""
+            for attempt in range(max_retries):
+                try:
+                    r = urllib.request.Request(url, headers=headers)
+                    with urllib.request.urlopen(r, timeout=10) as resp:
+                        content = resp.read().decode("utf-8", errors="ignore")
+                        if "#EXTM3U" in content:
+                            return content
+                        # Token propagation delay: wait 1.2s and retry
+                        if ("No URLs available" in content or not content) and attempt < max_retries - 1:
+                            time.sleep(1.2)
+                            continue
+                        return content
+                except Exception as e:
+                    if attempt < max_retries - 1:
+                        time.sleep(1.0)
+                        continue
+            return ""
 
-        m3u_text = fetch_m3u(target_fetch_url, req_headers)
+        m3u_text = fetch_m3u(target_fetch_url, req_ua)
 
+        # If expired or returned error, auto-renew fresh token and retry immediately
         if not m3u_text or "#EXTM3U" not in m3u_text or "No URLs available" in m3u_text:
-            # Token might be stale - trigger immediate fresh token renewal
             renew_single_channel_stream(cid)
+            time.sleep(1.2)  # Wait for edge CDN propagation
             with cache_lock:
                 ch = channels_cache.get(cid, {})
-                target_fetch_url = ch.get("playUrl") or ch.get("streamUrl", "")
+                target_fetch_url, req_ua = build_target_and_ua(ch)
             if target_fetch_url:
-                if "yacine.website" in target_fetch_url:
-                    req_headers.update({
-                        "Referer": "https://yacine.website/",
-                        "X-Forwarded-For": "105.100.1.1",
-                        "CF-Connecting-IP": "105.100.1.1",
-                        "X-Real-IP": "105.100.1.1"
-                    })
-                m3u_text = fetch_m3u(target_fetch_url, req_headers)
+                m3u_text = fetch_m3u(target_fetch_url, req_ua)
 
         if not m3u_text or "#EXTM3U" not in m3u_text:
-            print(f" [!] Channel {cid} playlist fetch failed. target_url: {target_fetch_url} | text: {m3u_text[:80]}")
             self.send_response(502)
             self.send_cors_headers()
             self.end_headers()
             self.wfile.write(b"No Playlist Data")
             return
 
-
-
-        # Rewrite Playlist: route relative TS segments through /ts?url=...
+        # Rewrite Playlist: route relative TS segments through /ts?url=...&ref=...
         host = self.headers.get("Host", f"127.0.0.1:{PORT}")
         base_origin = f"http://{host}"
 
@@ -430,7 +470,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     seg_full = f"https://yacine.website/{line}"
 
                 encoded_seg = urllib.parse.quote(seg_full, safe="")
-                rewritten_seg = f"{base_origin}/ts?url={encoded_seg}"
+                encoded_ref = urllib.parse.quote(channel_referer, safe="")
+                rewritten_seg = f"{base_origin}/ts?url={encoded_seg}&ref={encoded_ref}"
                 rewritten.append(rewritten_seg)
 
         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
@@ -444,9 +485,27 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(out_body)
 
-    def handle_ts_segment(self, target_url):
-        """Pipes upstream TS segment chunks to client seamlessly"""
-        headers = dict(BYPASS_HEADERS)
+    def handle_ts_segment(self, target_url, ref_override=""):
+        """Pipes upstream TS segment chunks to client seamlessly with exact headers"""
+        decoded_ua = ""
+        if "ua=" in target_url:
+            try:
+                parsed_q = urllib.parse.parse_qs(urllib.parse.urlparse(target_url).query)
+                encoded_ua = parsed_q.get("ua", [""])[0]
+                if encoded_ua:
+                    decoded_ua = base64.b64decode(encoded_ua).decode("utf-8", errors="ignore")
+            except Exception:
+                pass
+
+        referer = ref_override or "https://yacine.website/"
+        headers = {
+            "User-Agent": decoded_ua or DEFAULT_UA,
+            "Referer": referer,
+            "X-Forwarded-For": "105.100.1.1",
+            "CF-Connecting-IP": "105.100.1.1",
+            "X-Real-IP": "105.100.1.1",
+            "Accept": "*/*"
+        }
         if "edgenextcdn.net" in target_url:
             headers.pop("Referer", None)
             headers.pop("X-Forwarded-For", None)
@@ -456,7 +515,52 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         req = urllib.request.Request(target_url, headers=headers)
 
         try:
-            with urllib.request.urlopen(req, timeout=8) as upstream:
+            with urllib.request.urlopen(req, timeout=10) as upstream:
+                first_chunk = upstream.read(64 * 1024)
+                if not first_chunk or first_chunk.startswith(b"No URLs available") or first_chunk.startswith(b"<html>") or first_chunk.startswith(b"<html") or first_chunk.startswith(b"<!DOCTYPE"):
+                    self.send_response(502)
+                    self.send_cors_headers()
+                    self.end_headers()
+                    return
+
+                # Handle Nested / Variant M3U8 (Adaptive bitrates e.g. MBC, Rotana)
+                if first_chunk.startswith(b"#EXTM3U"):
+                    rest = upstream.read()
+                    full_m3u = (first_chunk + rest).decode("utf-8", errors="ignore")
+                    host = self.headers.get("Host", f"127.0.0.1:{PORT}")
+                    base_origin = f"http://{host}"
+
+                    target_dir = target_url.rsplit("/", 1)[0]
+                    lines = full_m3u.splitlines()
+                    rewritten = []
+                    for line in lines:
+                        l = line.strip()
+                        if not l:
+                            continue
+                        if l.startswith("#"):
+                            rewritten.append(l)
+                        else:
+                            if l.startswith("http://") or l.startswith("https://"):
+                                seg_full = l
+                            elif l.startswith("/"):
+                                seg_full = f"{urllib.parse.urlsplit(target_url).scheme}://{urllib.parse.urlsplit(target_url).netloc}{l}"
+                            else:
+                                seg_full = f"{target_dir}/{l}"
+
+                            encoded_seg = urllib.parse.quote(seg_full, safe="")
+                            encoded_ref = urllib.parse.quote(referer, safe="")
+                            rewritten.append(f"{base_origin}/ts?url={encoded_seg}&ref={encoded_ref}")
+
+                    out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
+                    self.send_response(200)
+                    self.send_cors_headers()
+                    self.send_header("Content-Type", "application/vnd.apple.mpegurl")
+                    self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                    self.send_header("Content-Length", str(len(out_body)))
+                    self.end_headers()
+                    self.wfile.write(out_body)
+                    return
+
                 status = upstream.getcode()
                 content_len = upstream.headers.get("Content-Length")
                 self.send_response(status)
@@ -466,13 +570,14 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     self.send_header("Content-Length", content_len)
                 self.end_headers()
 
-                # Stream buffer chunks
+                self.wfile.write(first_chunk)
                 while True:
                     chunk = upstream.read(64 * 1024)
                     if not chunk:
                         break
                     self.wfile.write(chunk)
-        except Exception:
+        except Exception as e:
+            print(f" [!] TS Segment exception for {target_url[:60]}: {e}")
             try:
                 self.send_response(502)
                 self.end_headers()

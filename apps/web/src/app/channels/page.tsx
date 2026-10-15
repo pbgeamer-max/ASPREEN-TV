@@ -218,19 +218,13 @@ export default function ChannelsPage() {
 
   const handlePlayPreview = async (channel: Channel) => {
     try {
-      if (channel.transcodingStatus !== 'RUNNING') {
-        await api.startChannel(channel.id);
-      }
-      const res = await api.createStreamToken(channel.id, {
-        name: 'Console Preview Temporary Token',
-        lifetimeHours: 1,
-      });
-      setActivePlayerUrl(res.playbackUrl);
+      // 1. Direct proxy stream URL (zero delay, zero buttons)
+      const streamToPlay = channel.proxyUrl || `http://127.0.0.1:8080/live/${channel.id}.m3u8`;
+      setActivePlayerUrl(streamToPlay);
       setActivePlayerName(channel.name);
       setPlayerModalOpen(true);
-      fetchChannels();
     } catch (err: any) {
-      alert(`Failed to prepare preview link: ${err.message}`);
+      console.error('Play error:', err);
     }
   };
 
@@ -488,7 +482,11 @@ export default function ChannelsPage() {
                   </thead>
                   <tbody className="divide-y divide-[#1A1A1A]">
                     {paginatedChannels.map((ch) => (
-                      <tr key={ch.id} className="hover:bg-[#141414] transition-colors">
+                      <tr
+                        key={ch.id}
+                        onClick={() => handlePlayPreview(ch)}
+                        className="hover:bg-[#1A1A1A] cursor-pointer transition-colors group"
+                      >
                         <td className="py-3 px-4 font-medium text-[#F5F5F5]">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-md bg-neutral-900 border border-neutral-800 flex items-center justify-center overflow-hidden shrink-0">
@@ -513,7 +511,7 @@ export default function ChannelsPage() {
                               )}
                             </div>
                             <div className="flex flex-col">
-                              <span className="font-medium text-white">{ch.name}</span>
+                              <span className="font-medium text-white group-hover:text-red-400 transition-colors">{ch.name}</span>
                               {ch.orderIndex !== undefined && ch.orderIndex > 0 && (
                                 <span className="text-[10px] font-mono text-[#71717A]">#{ch.orderIndex}</span>
                               )}
@@ -544,57 +542,35 @@ export default function ChannelsPage() {
                             {ch.transcodingStatus}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-right">
-                          <div className="inline-flex items-center gap-1.5">
-                            {/* Start or Stop Transcoding */}
-                            {ch.transcodingStatus === 'RUNNING' ? (
-                              <button
-                                onClick={() => handleStop(ch.id)}
-                                disabled={actionInProgress === ch.id}
-                                title="Stop Transcoding"
-                                className="p-1 rounded text-[#A1A1AA] hover:text-white hover:bg-[#1E1E1E] transition-colors"
-                              >
-                                <Square className="w-3.5 h-3.5" />
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => handleStart(ch.id)}
-                                disabled={actionInProgress === ch.id}
-                                title="Start Transcoding"
-                                className="p-1 rounded text-[#A1A1AA] hover:text-white hover:bg-[#1E1E1E] transition-colors"
-                              >
-                                <Play className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-
-                            {/* Inspect Stream */}
+                        <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                          <div className="inline-flex items-center gap-2">
+                            {/* Instant 24/7 Watch Button */}
                             <button
-                              onClick={() => handleInspect(ch)}
-                              title="Inspect Codec & Media Info"
-                              className="p-1 rounded text-[#A1A1AA] hover:text-white hover:bg-[#1E1E1E] transition-colors"
+                              onClick={() => handlePlayPreview(ch)}
+                              title="Watch Live Stream 24/7"
+                              className="px-3 py-1 rounded bg-[#E50914] hover:bg-[#b80710] text-white flex items-center gap-1.5 font-medium text-xs transition-colors shadow-sm"
                             >
-                              <Info className="w-3.5 h-3.5" />
+                              <Play className="w-3.5 h-3.5 fill-current" />
+                              <span>Watch Live</span>
                             </button>
 
                             {/* Issue Token */}
                             <button
                               onClick={() => handleOpenTokenModal(ch)}
                               title="Generate Protected Playback Token"
-                              className="p-1 rounded text-[#A1A1AA] hover:text-white hover:bg-[#1E1E1E] transition-colors"
+                              className="p-1 rounded text-[#71717A] hover:text-white hover:bg-[#1E1E1E] transition-colors"
                             >
                               <KeyRound className="w-3.5 h-3.5" />
                             </button>
 
-                            {/* Stream Preview (If Running) */}
-                            {ch.transcodingStatus === 'RUNNING' && (
-                              <button
-                                onClick={() => handlePlayPreview(ch)}
-                                title="Watch Stream Preview"
-                                className="p-1 rounded text-white bg-[#1A1A1A] hover:bg-[#262626] border border-[#333333] transition-colors"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                              </button>
-                            )}
+                            {/* Inspect Stream */}
+                            <button
+                              onClick={() => handleInspect(ch)}
+                              title="Inspect Codec & Media Info"
+                              className="p-1 rounded text-[#71717A] hover:text-white hover:bg-[#1E1E1E] transition-colors"
+                            >
+                              <Info className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </td>
                       </tr>
