@@ -27,6 +27,7 @@ import { settingsRoutes } from './routes/settings.routes';
 import { hlsAuthRoutes } from './routes/hls-auth.routes';
 import { appRoutes } from './routes/app.routes';
 import { iskRoutes } from './routes/3isk.routes';
+import { kisskhRoutes } from './routes/kisskh.routes';
 import { threeIskSyncService } from './services/3isk-sync.service';
 import { telegramService } from './services/telegram.service';
 import { tokenRepository } from './repositories/token.repository';
@@ -97,6 +98,8 @@ export async function createServer() {
   await server.register(appRoutes, { prefix: '/api/v1' });
   await server.register(iskRoutes, { prefix: '/api/app/3isk' });
   await server.register(iskRoutes, { prefix: '/api/v1/3isk' });
+  await server.register(kisskhRoutes, { prefix: '/api/app/kisskh' });
+  await server.register(kisskhRoutes, { prefix: '/api/v1/kisskh' });
 
   // Helper function to stream live MPEG-TS relay using FFmpeg
   async function streamLiveMpegTs(

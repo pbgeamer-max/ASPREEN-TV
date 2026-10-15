@@ -23,6 +23,8 @@ import {
   Smartphone,
   Globe,
   AlertTriangle,
+  Film,
+  Sparkles,
 } from 'lucide-react';
 
 export default function ApiManagerPage() {
@@ -33,6 +35,8 @@ export default function ApiManagerPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
+  const [copied3isk, setCopied3isk] = useState(false);
+  const [copiedKisskh, setCopiedKisskh] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
   const [customKey, setCustomKey] = useState('');
   const [testResult, setTestResult] = useState<any>(null);
@@ -65,9 +69,19 @@ export default function ApiManagerPage() {
   const isEnabled = settings?.masterApiEnabled !== false;
   const currentKey = (settings?.masterApiKey || '').trim();
 
-  const fullApiUrl = currentKey
+  const channelsApiUrl = currentKey
     ? `${baseUrl}/api/app/channels?api_key=${encodeURIComponent(currentKey)}`
     : `${baseUrl}/api/app/channels`;
+
+  const iskApiUrl = currentKey
+    ? `${baseUrl}/api/app/3isk/catalog?api_key=${encodeURIComponent(currentKey)}`
+    : `${baseUrl}/api/app/3isk/catalog`;
+
+  const kisskhApiUrl = currentKey
+    ? `${baseUrl}/api/app/kisskh/catalog?api_key=${encodeURIComponent(currentKey)}`
+    : `${baseUrl}/api/app/kisskh/catalog`;
+
+  const fullApiUrl = channelsApiUrl;
 
   // Toggle API On/Off
   const handleToggleApi = async () => {
@@ -290,13 +304,13 @@ export default function ApiManagerPage() {
             </div>
           </div>
 
-          {/* Master API URL Card */}
-          <div className="p-6 rounded-2xl bg-[#121212] border border-[#262626] space-y-4">
-            <div className="flex items-center justify-between">
+          {/* Master API URL Cards */}
+          <div className="p-6 rounded-2xl bg-[#121212] border border-[#262626] space-y-6">
+            <div className="flex items-center justify-between border-b border-[#202020] pb-3">
               <div>
-                <h3 className="text-sm font-semibold text-white">رابط الـ API الأساسي (الذي يوضع في التطبيق والموقع)</h3>
+                <h3 className="text-sm font-semibold text-white">روابط الـ Master API الشاملة (للتطبيقات والمواقع الخارجية)</h3>
                 <p className="text-xs text-[#71717A] mt-0.5">
-                  هذا الرابط يجلب أسماء القنوات، روابط البث الثابتة المُعاد بثها، وصور الشعارات بتنسيق JSON مرتب.
+                  جميع الروابط موحدة وتدعم مفتاح الأمان، وتوفر قوائم القنوات والمسلسلات والأفلام مع روابط البث المُعاد بثها بدون تقطيع.
                 </p>
               </div>
               <button
@@ -305,24 +319,98 @@ export default function ApiManagerPage() {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1E1E1E] hover:bg-[#282828] text-xs font-medium text-white border border-[#333] transition-colors"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${testing ? 'animate-spin' : ''}`} />
-                <span>اختبار الرابط فحص مباشر</span>
+                <span>اختبار القنوات فحص مباشر</span>
               </button>
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                readOnly
-                value={fullApiUrl}
-                className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-emerald-400 select-all focus:outline-none"
-              />
-              <button
-                onClick={() => copyToClipboard(fullApiUrl, 'url')}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-[#E4E4E7] text-black font-semibold text-xs transition-colors shrink-0"
-              >
-                {copiedUrl ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                <span>{copiedUrl ? 'تم النسخ!' : 'نسخ الرابط'}</span>
-              </button>
+            {/* 1. Channels API */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
+                  <Tv className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>1. رابط قنوات البث المباشر (Live TV Channels API)</span>
+                </span>
+                <span className="text-[10px] text-[#71717A]">325+ قناة رياضية وعامة</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={channelsApiUrl}
+                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-emerald-400 select-all focus:outline-none"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(channelsApiUrl);
+                    setCopiedUrl(true);
+                    setTimeout(() => setCopiedUrl(false), 2000);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-[#E4E4E7] text-black font-semibold text-xs transition-colors shrink-0"
+                >
+                  {copiedUrl ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                  <span>{copiedUrl ? 'تم النسخ!' : 'نسخ الرابط'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 2. 3isk Turkish Dramas & Movies API */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
+                  <Film className="w-3.5 h-3.5 text-amber-400" />
+                  <span>2. رابط مسلسلات وأفلام قصة عشق (3isk Turkish Catalog API)</span>
+                </span>
+                <span className="text-[10px] text-[#71717A]">983+ مسلسل وفيلم تركي</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={iskApiUrl}
+                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-amber-300 select-all focus:outline-none"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(iskApiUrl);
+                    setCopied3isk(true);
+                    setTimeout(() => setCopied3isk(false), 2000);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#222222] hover:bg-[#2C2C2C] text-white border border-[#3A3A3A] font-semibold text-xs transition-colors shrink-0"
+                >
+                  {copied3isk ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  <span>{copied3isk ? 'تم النسخ!' : 'نسخ الرابط'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 3. KissKH Asian Dramas & Movies API */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#E50914]" />
+                  <span>3. رابط الدراما والسينما والأنمي الآسيوي (KissKH Asian Catalog API)</span>
+                </span>
+                <span className="text-[10px] text-[#71717A]">+13,000 مسلسل وفيلم وأنمي</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={kisskhApiUrl}
+                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-[#FF5A5F] select-all focus:outline-none"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(kisskhApiUrl);
+                    setCopiedKisskh(true);
+                    setTimeout(() => setCopiedKisskh(false), 2000);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#E50914] hover:bg-[#B81D24] text-white font-semibold text-xs transition-colors shrink-0 shadow-md shadow-[#E50914]/20"
+                >
+                  {copiedKisskh ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4" />}
+                  <span>{copiedKisskh ? 'تم النسخ!' : 'نسخ الرابط'}</span>
+                </button>
+              </div>
             </div>
           </div>
 
