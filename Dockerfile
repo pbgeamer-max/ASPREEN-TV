@@ -16,7 +16,7 @@ COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
 COPY apps/web ./apps/web
 COPY services/worker ./services/worker
-COPY data ./data
+RUN mkdir -p /app/data/hls
 
 RUN mkdir -p apps/web/public
 
@@ -47,7 +47,6 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/web/.next ./apps/web/.next
 COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder /app/apps/web/next.config.js ./apps/web/next.config.js
-COPY --from=builder /app/data ./data
 COPY scripts/start-railway.sh ./start-railway.sh
 
 RUN chmod +x ./start-railway.sh

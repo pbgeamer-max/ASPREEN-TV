@@ -2,8 +2,7 @@ node_modules/
 .next/
 dist/
 data/*
-!data/oscar_channels_live.json
-!data/oscar_channels.m3u8
+!data/.gitkeep
 *.log
 *.tsbuildinfo
 .env
