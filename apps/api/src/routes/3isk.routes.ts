@@ -7,7 +7,28 @@ import { settingsRepository } from '../repositories/settings.repository';
 const streamCache = new Map<string, { url: string; expiresAt: number }>();
 
 /**
- * Resolves watch page on 3isk to direct HLS master.m3u8
+ * Unpacks Dean Edwards packed JavaScript code (used by JWPlayer on MiraVD/GRZCDN)
+ */
+function unpackDeanEdwards(packed: string): string | null {
+  const match = packed.match(/}\s*\('([\s\S]*?)',\s*(\d+),\s*(\d+),\s*'([\s\S]*?)'\.split\('\|'\)/);
+  if (!match) return null;
+  let p = match[1];
+  const a = parseInt(match[2], 10);
+  let c = parseInt(match[3], 10);
+  const k = match[4].split('|');
+  const e = (d: number): string => {
+    return (d < a ? '' : e(Math.floor(d / a))) + ((d = d % a) > 35 ? String.fromCharCode(d + 29) : d.toString(36));
+  };
+  while (c--) {
+    if (k[c]) {
+      p = p.replace(new RegExp('\\b' + e(c) + '\\b', 'g'), k[c]);
+    }
+  }
+  return p;
+}
+
+/**
+ * Universal multi-host resolver: converts any 3isk watch page to direct high-speed HLS master.m3u8
  */
 async function resolve3iskStream(watchPageUrl: string): Promise<string> {
   const cached = streamCache.get(watchPageUrl);
@@ -97,49 +118,101 @@ async function resolve3iskStream(watchPageUrl: string): Promise<string> {
     throw new Error('Embed iframe not found in gate 2');
   }
 
-  // Step 4: Embed -> ukrcdn
+  // Step 4: Embed -> player iframe
   const embedRes = await fetch(iframeMatch[1], {
     headers: { 'User-Agent': ua, 'Referer': nextUrlMatch[1] },
   });
   const embedHtml = await embedRes.text();
-  const cdnMatch = embedHtml.match(/<iframe[^>]+src="([^"]+ukrcdn[^"]+)"/i);
-  if (!cdnMatch) {
-    throw new Error('CDN player iframe not found in embed');
+
+  const playerIframeMatch = embedHtml.match(/<iframe[^>]+src="([^"]+)"/i);
+  if (!playerIframeMatch) {
+    throw new Error('Player iframe not found in embed');
   }
 
-  // Step 5: ukrcdn -> playback API
-  const cdnRes = await fetch(cdnMatch[1], {
-    headers: { 'User-Agent': ua, 'Referer': 'https://3iskk.xyz/' },
-  });
-  const cdnHtml = await cdnRes.text();
-  const playbackMatch = cdnHtml.match(/fetch\("([^"]+playback[^"]+)"/i);
-  if (!playbackMatch) {
-    throw new Error('Playback API URL not found in player');
+  const cdnPlayerUrl = playerIframeMatch[1];
+  let directStreamUrl = '';
+
+  // Host 1: UkrCDN / S4 CDN
+  if (cdnPlayerUrl.includes('ukrcdn')) {
+    try {
+      const cdnRes = await fetch(cdnPlayerUrl, {
+        headers: { 'User-Agent': ua, 'Referer': 'https://3iskk.xyz/' },
+      });
+      const cdnHtml = await cdnRes.text();
+      const playbackMatch = cdnHtml.match(/fetch\("([^"]+playback[^"]+)"/i);
+      if (playbackMatch) {
+        const playbackUrl = playbackMatch[1].replace(/\\/g, '');
+        const playRes = await fetch(playbackUrl, {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': ua,
+            'Referer': cdnPlayerUrl,
+          },
+        });
+        const playJson: any = await playRes.json();
+        if (playJson && playJson.url) {
+          directStreamUrl = playJson.url;
+        }
+      }
+    } catch {}
   }
 
-  const playbackUrl = playbackMatch[1].replace(/\\/g, '');
+  // Host 2: MiraVD / GRZCDN / JWPlayer Dean Edwards packed player
+  if (!directStreamUrl) {
+    try {
+      const miraRes = await fetch(cdnPlayerUrl, {
+        headers: { 'User-Agent': ua, 'Referer': 'https://3iskk.xyz/' },
+      });
+      const miraHtml = await miraRes.text();
 
-  // Step 6: Playback API -> master.m3u8
-  const playRes = await fetch(playbackUrl, {
-    headers: {
-      'Accept': 'application/json',
-      'User-Agent': ua,
-      'Referer': cdnMatch[1],
-    },
-  });
-  const playJson: any = await playRes.json();
-  if (!playJson || !playJson.url) {
-    throw new Error('Playback API failed to return direct stream');
+      const packedMatch = miraHtml.match(/eval\(function\(p,a,c,k,e,d\)[\s\S]*?\.split\('\|'\)\)\)/);
+      if (packedMatch) {
+        const unpacked = unpackDeanEdwards(packedMatch[0]);
+        if (unpacked) {
+          const m3u8Match = unpacked.match(/https?:\/\/[^"'\s]+\.m3u8[^"'\s]*/i) ||
+                            unpacked.match(/file\s*:\s*["']([^"']+)["']/i);
+          if (m3u8Match) {
+            directStreamUrl = m3u8Match[1] || m3u8Match[0];
+          }
+        }
+      }
+
+      if (!directStreamUrl) {
+        const directM3u8 = miraHtml.match(/https?:\/\/[^"'\s]+\.m3u8[^"'\s]*/i) ||
+                           miraHtml.match(/https?:\/\/[^"'\s]+\.mp4[^"'\s]*/i);
+        if (directM3u8) {
+          directStreamUrl = directM3u8[0];
+        }
+      }
+    } catch {}
   }
 
-  const streamUrl = playJson.url;
-  // Cache for 2 hours
+  // Host 3: Generic fallback
+  if (!directStreamUrl) {
+    try {
+      const genRes = await fetch(cdnPlayerUrl, {
+        headers: { 'User-Agent': ua, 'Referer': 'https://3iskk.xyz/' },
+      });
+      const genHtml = await genRes.text();
+      const anyM3u8 = genHtml.match(/https?:\/\/[^"'\s]+\.m3u8[^"'\s]*/i) ||
+                      genHtml.match(/https?:\/\/[^"'\s]+\.mp4[^"'\s]*/i);
+      if (anyM3u8) {
+        directStreamUrl = anyM3u8[0];
+      }
+    } catch {}
+  }
+
+  if (!directStreamUrl) {
+    throw new Error(`Unable to extract playable stream from player: ${cdnPlayerUrl}`);
+  }
+
+  // Cache resolved stream for 2 hours
   streamCache.set(watchPageUrl, {
-    url: streamUrl,
+    url: directStreamUrl,
     expiresAt: Date.now() + 2 * 60 * 60 * 1000,
   });
 
-  return streamUrl;
+  return directStreamUrl;
 }
 
 import { threeIskSyncService } from '../services/3isk-sync.service';
@@ -163,6 +236,55 @@ export async function iskRoutes(server: FastifyInstance) {
         error: err.message,
       });
     }
+  });
+
+  /**
+   * GET /api/app/3isk/series/:id/episodes
+   * Loads full episodes on-demand for any series from A to Z
+   */
+  server.get('/series/:id/episodes', async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    const { id } = request.params;
+    const catalog = threeIskSyncService.getCatalog();
+    const s = catalog.series.find((item) => item.id === id);
+
+    if (!s) {
+      return reply.status(404).send({ success: false, error: 'Series not found' });
+    }
+
+    if (!s.episodes || s.episodes.length === 0) {
+      try {
+        const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+        const sRes = await fetch(s.seriesUrl, { headers: { 'User-Agent': ua, 'Referer': 'https://3iskk.xyz/' } });
+        const sHtml = await sRes.text();
+        const epLinks = [...sHtml.matchAll(/<a[^>]*href=['"](https:\/\/3iskk\.xyz\/watch\/episodes\/[^'"]+)['"][^>]*>([\s\S]*?)<\/a>/gi)];
+        const eps: any[] = [];
+        for (const ep of epLinks) {
+          const epUrl = ep[1];
+          const epInner = ep[2].replace(/<[^>]+>/g, '').trim();
+          const epNumMatch = epUrl.match(/episode-(\d+)/i) || epInner.match(/(\d+)/);
+          const epNum = epNumMatch ? parseInt(epNumMatch[1], 10) : (eps.length + 1);
+          eps.push({
+            episodeNumber: epNum,
+            title: `الحلقة ${epNum}`,
+            watchUrl: epUrl,
+          });
+        }
+        eps.sort((a, b) => a.episodeNumber - b.episodeNumber);
+        s.episodes = eps;
+        s.episodes_count = eps.length;
+      } catch (err: any) {
+        console.warn(`Failed on-demand episodes fetch for ${id}:`, err.message);
+      }
+    }
+
+    reply.header('Access-Control-Allow-Origin', '*');
+    return {
+      success: true,
+      series_id: id,
+      title: s.title,
+      episodes_count: s.episodes?.length || 0,
+      episodes: s.episodes || [],
+    };
   });
 
   /**

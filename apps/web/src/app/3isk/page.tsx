@@ -56,6 +56,7 @@ export default function ThreeIskPage() {
   const [movies, setMovies] = useState<CatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [loadingEpisodes, setLoadingEpisodes] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
   // Selected Series for episodes drawer/modal
@@ -82,6 +83,31 @@ export default function ThreeIskPage() {
       console.error('Failed to load 3isk catalog:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSelectSeries = async (item: CatalogItem) => {
+    setSelectedSeries(item);
+    if (!item.episodes || item.episodes.length === 0) {
+      setLoadingEpisodes(true);
+      try {
+        const res = await fetch(`/api/app/3isk/series/${item.id}/episodes`, { credentials: 'include' });
+        const data = await res.json();
+        if (data && data.success && data.episodes) {
+          const origin = typeof window !== 'undefined' ? window.location.origin : '';
+          const eps: Episode[] = data.episodes.map((ep: any) => ({
+            episode_number: ep.episodeNumber,
+            title: ep.title,
+            watch_url: ep.watchUrl,
+            stream_url: `${origin}/api/app/3isk/stream?url=${encodeURIComponent(ep.watchUrl)}`,
+          }));
+          setSelectedSeries((prev) => (prev ? { ...prev, episodes: eps, episodes_count: eps.length } : prev));
+        }
+      } catch (err) {
+        console.error('Failed to load on-demand episodes:', err);
+      } finally {
+        setLoadingEpisodes(false);
+      }
     }
   };
 
@@ -318,7 +344,7 @@ export default function ThreeIskPage() {
               {displayedItems.map((item) => (
                 <div
                   key={item.id}
-                  onClick={() => (item.type === 'SERIES' ? setSelectedSeries(item) : handlePlayMovie(item))}
+                  onClick={() => (item.type === 'SERIES' ? handleSelectSeries(item) : handlePlayMovie(item))}
                   className="group bg-[#121212] hover:bg-[#1A1A1A] border border-[#222] hover:border-red-600/50 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 flex flex-col"
                 >
                   {/* Poster Wrapper */}
@@ -422,7 +448,12 @@ export default function ThreeIskPage() {
                     <span className="text-[11px] text-[#71717A]">اضغط على أي حلقة لبدء البث الفوري</span>
                   </div>
 
-                  {(!selectedSeries.episodes || selectedSeries.episodes.length === 0) ? (
+                  {loadingEpisodes ? (
+                    <div className="p-12 text-center text-xs text-[#A1A1AA] bg-[#0A0A0A] rounded-xl border border-[#222] flex flex-col items-center justify-center gap-2">
+                      <RefreshCw className="w-5 h-5 animate-spin text-red-500" />
+                      <span>جاري جلب جميع حلقات المسلسل من قصة عشق...</span>
+                    </div>
+                  ) : (!selectedSeries.episodes || selectedSeries.episodes.length === 0) ? (
                     <div className="p-8 text-center text-xs text-[#71717A] bg-[#0A0A0A] rounded-xl border border-[#222]">
                       لا توجد حلقات مدرجة لهذا المسلسل حالياً.
                     </div>

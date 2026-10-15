@@ -12,12 +12,13 @@ async function fetchHtml(url) {
 async function harvestMovies() {
   console.log('--- جلب الأفلام من قصة عشق ---');
   const movies = [];
-  // Harvest page 1 and page 2
-  for (let page = 1; page <= 2; page++) {
+  // Harvest all available pages of movies (up to page 16)
+  for (let page = 1; page <= 16; page++) {
     const pageUrl = page === 1 ? 'https://3iskk.xyz/w-mvs/' : `https://3iskk.xyz/w-mvs/page/${page}/`;
     try {
       const html = await fetchHtml(pageUrl);
       const linkMatches = [...html.matchAll(/<a href="(https:\/\/3iskk\.xyz\/watch\/movies\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/g)];
+      if (linkMatches.length === 0) break;
       for (const m of linkMatches) {
         const url = m[1];
         const inner = m[2];
@@ -40,23 +41,26 @@ async function harvestMovies() {
       }
     } catch (e) {
       console.error(`Error page ${page}:`, e.message);
+      break;
     }
   }
 
   // Deduplicate
   const uniqueMovies = Array.from(new Map(movies.map(m => [m.id, m])).values());
-  console.log(`[✓] تم استخراج ${uniqueMovies.length} فيلماً بنجاح.`);
+  console.log(`[✓] تم استخراج ${uniqueMovies.length} فيلماً بنجاح من الألف إلى الياء.`);
   return uniqueMovies;
 }
 
 async function harvestSeries() {
-  console.log('--- جلب المسلسلات من قصة عشق ---');
+  console.log('--- جلب كافة المسلسلات من قصة عشق (من الألف إلى الياء) ---');
   const seriesList = [];
-  for (let page = 1; page <= 2; page++) {
+  // Harvest all pages of series (up to page 20)
+  for (let page = 1; page <= 20; page++) {
     const pageUrl = page === 1 ? 'https://3iskk.xyz/w-srs/' : `https://3iskk.xyz/w-srs/page/${page}/`;
     try {
       const html = await fetchHtml(pageUrl);
       const linkMatches = [...html.matchAll(/<a href="(https:\/\/3iskk\.xyz\/watch\/(?:tvshows|series)\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/g)];
+      if (linkMatches.length === 0) break;
       for (const m of linkMatches) {
         const url = m[1];
         const inner = m[2];
@@ -80,15 +84,16 @@ async function harvestSeries() {
       }
     } catch (e) {
       console.error(`Error page ${page}:`, e.message);
+      break;
     }
   }
 
   const uniqueSeries = Array.from(new Map(seriesList.map(s => [s.id, s])).values());
-  console.log(`[✓] تم استخراج ${uniqueSeries.length} مسلسلاً.`);
+  console.log(`[✓] تم استخراج ${uniqueSeries.length} مسلسلاً من الألف إلى الياء.`);
 
-  // For the first 15 series, fetch their episode list and description
+  // For the first 35 series, fetch their episode list and description
   console.log('جلب تفاصيل الحلقات والوصف للمسلسلات الأولى...');
-  for (let i = 0; i < Math.min(uniqueSeries.length, 15); i++) {
+  for (let i = 0; i < Math.min(uniqueSeries.length, 35); i++) {
     const s = uniqueSeries[i];
     try {
       const sHtml = await fetchHtml(s.seriesUrl);
