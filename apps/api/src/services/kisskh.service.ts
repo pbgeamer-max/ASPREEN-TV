@@ -412,36 +412,37 @@ class KisskhService {
    * Helper that requests active KissKH mirrors with automatic failover (kisskh.is -> kisskh.do -> kisskh.ovh -> kisskh.la -> kisskh.co)
    */
   private async fetchFromMirror(endpoint: string, isImage = false): Promise<Response> {
-    const domains = ['kisskh.is', 'kisskh.do', 'kisskh.ovh', 'kisskh.la', 'kisskh.co'];
+    const domains = ['kisskh.co', 'kisskh.is', 'kisskh.vip', 'kisskh.do', 'kisskh.ovh', 'kisskh.la'];
+    const mobileUas = ['Dart/3.0 (dart:io)', 'okhttp/4.9.3', 'KissKH/2.8.10', UA];
     let lastError: Error | null = null;
     const isPng = isImage || endpoint.includes('.png');
 
     for (const domain of domains) {
-      try {
-        const fullUrl = `https://${domain}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
-        const headers: Record<string, string> = {
-          'User-Agent': UA,
-          Referer: `https://${domain}/`,
-          Accept: isPng
-            ? 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
-            : '*/*',
-          'Sec-Fetch-Dest': isPng ? 'image' : 'empty',
-          'Sec-Fetch-Mode': isPng ? 'no-cors' : 'cors',
-          'Sec-Fetch-Site': 'same-origin',
-          'Sec-Ch-Ua': '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
-          'Sec-Ch-Ua-Mobile': '?0',
-          'Sec-Ch-Ua-Platform': '"Windows"',
-        };
+      for (const userAgent of mobileUas) {
+        try {
+          const fullUrl = `https://${domain}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+          const headers: Record<string, string> = {
+            'User-Agent': userAgent,
+            Accept: isPng
+              ? 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+              : 'application/json, text/plain, */*',
+            Referer: `https://${domain}/`,
+          };
 
-        const res = await fetch(fullUrl, { headers, signal: AbortSignal.timeout(6000) });
-        if (res.ok) {
-          return res;
+          const res = await fetch(fullUrl, { headers, signal: AbortSignal.timeout(6000) });
+          if (res.ok) {
+            return res;
+          }
+
+          const errText = await res.text().catch(() => '');
+          lastError = new Error(`${domain} returned HTTP ${res.status}: ${errText.substring(0, 100)}`);
+          if (res.status === 403 || res.status === 429) {
+            // Try next User-Agent or mirror
+            continue;
+          }
+        } catch (err: any) {
+          lastError = err;
         }
-
-        const errText = await res.text().catch(() => '');
-        lastError = new Error(`${domain} returned HTTP ${res.status}: ${errText.substring(0, 100)}`);
-      } catch (err: any) {
-        lastError = err;
       }
     }
 
@@ -688,6 +689,30 @@ class KisskhService {
         expiresAt: Date.now() + 2 * 60 * 60 * 1000,
       });
       return result;
+    }
+
+    // Auto-map fallback composite episode IDs (e.g. 13581001 -> drama 13581, ep 1)
+    const numId = Number(episodeId);
+    if (numId > 1000000) {
+      const dramaId = Math.floor(numId / 1000);
+      const epNum = numId % 1000;
+      let dramaObj = this.localDramas?.[String(dramaId)];
+      if (!dramaObj) {
+        try {
+          dramaObj = await this.getDrama(dramaId);
+        } catch {}
+      }
+      if (dramaObj && Array.isArray(dramaObj.episodes)) {
+        const matchingEp = dramaObj.episodes.find((e: any) => Math.floor(Number(e.number)) === epNum);
+        if (matchingEp && matchingEp.id) {
+          const resolved = await this.resolveEpisode(matchingEp.id);
+          this.cache.set(cacheKey, {
+            data: resolved,
+            expiresAt: Date.now() + 2 * 60 * 60 * 1000,
+          });
+          return resolved;
+        }
+      }
     }
 
     const kkey = this.generateVideoKKey(episodeId);

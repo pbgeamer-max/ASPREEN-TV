@@ -9,9 +9,8 @@ async function fetchStream(epId) {
   const url = `https://kisskh.co/api/DramaList/Episode/${epId}.png?kkey=${kkey}`;
   const res = await fetch(url, {
     headers: {
-      'User-Agent': UA,
-      Referer: 'https://kisskh.co/',
-      Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+      'User-Agent': 'Dart/3.0 (dart:io)',
+      Accept: '*/*',
     },
     signal: AbortSignal.timeout(6000),
   });

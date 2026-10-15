@@ -7,8 +7,7 @@ async function fetchDrama(id) {
   const url = `https://kisskh.co/api/DramaList/Drama/${id}`;
   const res = await fetch(url, {
     headers: {
-      'User-Agent': UA,
-      Referer: 'https://kisskh.co/',
+      'User-Agent': 'Dart/3.0 (dart:io)',
       Accept: 'application/json, text/plain, */*',
     },
     signal: AbortSignal.timeout(8000),

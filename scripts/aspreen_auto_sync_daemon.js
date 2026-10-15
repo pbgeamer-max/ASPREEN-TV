@@ -39,9 +39,8 @@ async function fetchEpisodeStream(epId, retries = 2) {
     try {
       const res = await fetch(url, {
         headers: {
-          'User-Agent': UA,
-          Referer: 'https://kisskh.co/',
-          Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+          'User-Agent': 'Dart/3.0 (dart:io)',
+          Accept: '*/*',
         },
         signal: AbortSignal.timeout(7000),
       });
@@ -67,7 +66,7 @@ async function syncLatestKisskh() {
     log('🔄 فحص التحديثات الأخيرة للمسلسلات والسينما الآسيوية (Latest Releases)...');
     const url = 'https://kisskh.co/api/DramaList/List?page=1&pageSize=40&order=2';
     const res = await fetch(url, {
-      headers: { 'User-Agent': UA, Referer: 'https://kisskh.co/' },
+      headers: { 'User-Agent': 'Dart/3.0 (dart:io)' },
       signal: AbortSignal.timeout(8000),
     });
 

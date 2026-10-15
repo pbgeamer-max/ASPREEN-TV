@@ -6248,5 +6248,30 @@
     "videoUrl": "https://hls03.videocdndelivery05.site/47/Where-Stars-Land.2021.Ep32.mp4?ip=94.249.249.60&verify=1792092626-LOO8vs78Mwpk6hSH%2br3HMVbwKdTLYtgaqCfpQRGOdjM%3d",
     "backupUrl": null,
     "type": 0
+  },
+  "221841": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/A-Trap-Called-Desire-2026-Ep1/index.m3u8?v=1e1ec25a-4d9a-4cb6-b06c-44b15bfa5478",
+    "backupUrl": null,
+    "type": 1
+  },
+  "221888": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/A-Trap-Called-Desire-2026-Ep2/index.m3u8?v=2a74e57b-cc52-4579-aa0b-81903bdef14b",
+    "backupUrl": null,
+    "type": 1
+  },
+  "221969": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/A-Trap-Called-Desire-2026-Ep3/index.m3u8?v=c3b4fdf3-47ca-4fb5-bee9-4bf32fa46606",
+    "backupUrl": null,
+    "type": 1
+  },
+  "222053": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/A-Trap-Called-Desire-2026-Ep4/index.m3u8?v=0cb3e8bc-9e0f-4c0e-9d90-768a99d008f8",
+    "backupUrl": null,
+    "type": 1
+  },
+  "222153": {
+    "videoUrl": "https://tmp.cdnvideo11.shop/tmp/A-Trap-Called-Desire-2026-Ep5/index.m3u8?v=ff301052-0467-4242-95e6-c2eeae8de417",
+    "backupUrl": null,
+    "type": 1
   }
 }
