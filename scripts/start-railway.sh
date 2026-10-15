@@ -47,6 +47,18 @@ run_web() {
   done
 }
 
+# 4. Run Master Content Auto-Sync Daemon
+run_auto_sync() {
+  sleep 15
+  while true; do
+    echo "[Aspreen TV] Starting Master Content Auto-Sync Daemon..."
+    node scripts/aspreen_auto_sync_daemon.js
+    CODE=$?
+    echo "[Aspreen TV] Auto-Sync Daemon exited with code ${CODE}. Auto-restarting in 10s..."
+    sleep 10
+  done
+}
+
 run_stream_proxy &
 PROXY_PID=$!
 
@@ -59,12 +71,16 @@ sleep 3
 run_web &
 WEB_PID=$!
 
+run_auto_sync &
+SYNC_PID=$!
+
 cleanup() {
   echo "[Aspreen TV] Shutting down services cleanly..."
-  kill -TERM "$PROXY_PID" "$API_PID" "$WEB_PID" 2>/dev/null || true
+  kill -TERM "$PROXY_PID" "$API_PID" "$WEB_PID" "$SYNC_PID" 2>/dev/null || true
   pkill -P "$PROXY_PID" 2>/dev/null || true
   pkill -P "$API_PID" 2>/dev/null || true
   pkill -P "$WEB_PID" 2>/dev/null || true
+  pkill -P "$SYNC_PID" 2>/dev/null || true
   exit 0
 }
 

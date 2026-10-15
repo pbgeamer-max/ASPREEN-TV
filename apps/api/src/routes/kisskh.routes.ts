@@ -6,6 +6,9 @@ import * as https from 'https';
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36';
 
+const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 120, maxFreeSockets: 30, timeout: 30000 });
+const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 120, maxFreeSockets: 30, timeout: 30000 });
+
 export async function kisskhRoutes(server: FastifyInstance) {
   /**
    * Helper to verify Master API authorization (aligned with 3isk and Channels)
@@ -384,6 +387,7 @@ export async function kisskhRoutes(server: FastifyInstance) {
           {
             method: 'GET',
             headers: upstreamHeaders,
+            agent: isHttps ? httpsAgent : httpAgent,
             timeout: 25000,
           },
           (res) => {
