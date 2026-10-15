@@ -375,21 +375,21 @@ export async function kisskhRoutes(server: FastifyInstance) {
           (res) => {
             reply.raw.statusCode = res.statusCode || 200;
 
-            reply.header('Access-Control-Allow-Origin', '*');
-            reply.header('Access-Control-Allow-Headers', 'Range, Accept-Ranges, Content-Type');
-            reply.header('Access-Control-Expose-Headers', 'Content-Range, Content-Length, Accept-Ranges');
-            reply.header('Accept-Ranges', 'bytes');
+            reply.raw.setHeader('Access-Control-Allow-Origin', '*');
+            reply.raw.setHeader('Access-Control-Allow-Headers', 'Range, Accept-Ranges, Content-Type');
+            reply.raw.setHeader('Access-Control-Expose-Headers', 'Content-Range, Content-Length, Accept-Ranges');
+            reply.raw.setHeader('Accept-Ranges', 'bytes');
 
             if (res.headers['content-type']) {
-              reply.header('Content-Type', res.headers['content-type']);
+              reply.raw.setHeader('Content-Type', res.headers['content-type']);
             }
             if (res.headers['content-length']) {
-              reply.header('Content-Length', res.headers['content-length']);
+              reply.raw.setHeader('Content-Length', res.headers['content-length']);
             }
             if (res.headers['content-range']) {
-              reply.header('Content-Range', res.headers['content-range']);
+              reply.raw.setHeader('Content-Range', res.headers['content-range']);
             }
-            reply.header('Cache-Control', 'public, max-age=86400');
+            reply.raw.setHeader('Cache-Control', 'public, max-age=86400');
 
             res.pipe(reply.raw);
             res.on('end', () => resolve());
