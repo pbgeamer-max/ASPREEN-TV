@@ -190,14 +190,18 @@ export async function kisskhRoutes(server: FastifyInstance) {
           ? `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(drama.thumbnail)}`
           : null;
 
-        const episodes = drama.episodes.map((ep) => ({
-          id: ep.id,
-          episode_number: ep.number,
-          title: `الحلقة ${ep.number}`,
-          subtitles_count: ep.sub,
-          stream_url: `${effectiveBaseUrl}/api/app/kisskh/stream?epId=${ep.id}${keyParam}`,
-          subtitles_url: `${effectiveBaseUrl}/api/app/kisskh/subtitles?epId=${ep.id}${keyParam}`,
-        }));
+        const episodes = drama.episodes.map((ep) => {
+          const cachedStream = (kisskhService as any).localStreams?.[String(ep.id)];
+          return {
+            id: ep.id,
+            episode_number: ep.number,
+            title: `الحلقة ${ep.number}`,
+            subtitles_count: ep.sub,
+            stream_url: `${effectiveBaseUrl}/api/app/kisskh/stream?epId=${ep.id}${keyParam}`,
+            backup_url: cachedStream?.backupUrl || null,
+            subtitles_url: `${effectiveBaseUrl}/api/app/kisskh/subtitles?epId=${ep.id}${keyParam}`,
+          };
+        });
 
         reply.header('Access-Control-Allow-Origin', '*');
         reply.header('Cache-Control', 'public, max-age=300');
@@ -233,104 +237,114 @@ export async function kisskhRoutes(server: FastifyInstance) {
    * GET /stream?epId=...
    * Rewrites HLS .m3u8 playlist through Aspreen TV rebroadcasting engine with CORS
    */
-  server.get(
-    '/stream',
-    async (
-      request: FastifyRequest<{
-        Querystring: { epId?: string; url?: string; api_key?: string };
-      }>,
-      reply
-    ) => {
-      const epId = request.query.epId;
-      let targetUrl = request.query.url;
+  const streamHandler = async (
+    request: FastifyRequest<{
+      Querystring: { epId?: string; url?: string; api_key?: string };
+    }>,
+    reply: FastifyReply
+  ) => {
+    const epId = request.query.epId;
+    let targetUrl = request.query.url;
 
-      if (!epId && !targetUrl) {
-        return reply.status(400).send({ error: 'Missing epId or url parameter' });
-      }
-
-      try {
-        if (epId) {
-          const resolved = await kisskhService.resolveEpisode(epId);
-          targetUrl = resolved.videoUrl || resolved.backupUrl || '';
-        }
-
-        if (!targetUrl) {
-          return reply.status(404).send({ error: 'Stream URL could not be resolved' });
-        }
-
-        const settings = await settingsRepository.getSettings();
-        const effectiveBaseUrl = getEffectiveBaseUrl(request, settings);
-        const incomingKey = (request.query as any)?.api_key;
-        const keyParam = incomingKey ? `&api_key=${encodeURIComponent(incomingKey)}` : '';
-
-        // If targetUrl is an MP4 video or direct CDN stream, stream via ts-proxy with 206 Partial Content
-        if (targetUrl.toLowerCase().includes('.mp4') || targetUrl.includes('verify=')) {
-          reply.header('Access-Control-Allow-Origin', '*');
-          const proxiedVideo = `${effectiveBaseUrl}/api/app/kisskh/ts-proxy?url=${encodeURIComponent(targetUrl)}`;
-          return reply.redirect(proxiedVideo, 302);
-        }
-
-        // Fetch upstream playlist
-        const m3u8Res = await fetch(targetUrl, {
-          headers: {
-            'User-Agent': UA,
-            Referer: 'https://kisskh.co/',
-            Origin: 'https://kisskh.co',
-          },
-        });
-
-        if (!m3u8Res.ok) {
-          return reply.status(m3u8Res.status).send({ error: 'Upstream stream request failed' });
-        }
-
-        const rawM3u8 = await m3u8Res.text();
-        if (!rawM3u8.includes('#EXTM3U')) {
-          reply.header('Access-Control-Allow-Origin', '*');
-          const proxiedVideo = `${effectiveBaseUrl}/api/app/kisskh/ts-proxy?url=${encodeURIComponent(targetUrl)}`;
-          return reply.redirect(proxiedVideo, 302);
-        }
-
-        const baseUri = new URL(targetUrl);
-        const lines = rawM3u8.split('\n');
-        const rewritten = lines
-          .map((line) => {
-            const trimmed = line.trim();
-            if (!trimmed) return line;
-
-            // Handle URI attributes in tags (e.g. #EXT-X-KEY:METHOD=...,URI="...")
-            if (trimmed.startsWith('#')) {
-              if (trimmed.includes('URI="')) {
-                return trimmed.replace(/URI="([^"]+)"/g, (_match, uri) => {
-                  const fullUri = new URL(uri, baseUri).href;
-                  return `URI="${effectiveBaseUrl}/api/app/kisskh/ts-proxy?url=${encodeURIComponent(fullUri)}"`;
-                });
-              }
-              return line;
-            }
-
-            // Normal URI line (segment or sub-playlist)
-            const absoluteUrl = new URL(trimmed, baseUri).href;
-            if (absoluteUrl.toLowerCase().includes('.m3u8')) {
-              return `${effectiveBaseUrl}/api/app/kisskh/stream?url=${encodeURIComponent(absoluteUrl)}${keyParam}`;
-            }
-            return `${effectiveBaseUrl}/api/app/kisskh/ts-proxy?url=${encodeURIComponent(absoluteUrl)}`;
-          })
-          .join('\n');
-
-        reply.header('Content-Type', 'application/vnd.apple.mpegurl; charset=utf-8');
-        reply.header('Access-Control-Allow-Origin', '*');
-        reply.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-        reply.header('Cache-Control', 'public, max-age=10');
-
-        return reply.send(rewritten);
-      } catch (err: any) {
-        return reply.status(502).send({
-          error: 'STREAM_RESOLVE_FAILED',
-          message: err.message,
-        });
-      }
+    if (!epId && !targetUrl) {
+      return reply.status(400).send({ error: 'Missing epId or url parameter' });
     }
-  );
+
+    try {
+      if (epId) {
+        const resolved = await kisskhService.resolveEpisode(epId);
+        targetUrl = resolved.videoUrl || resolved.backupUrl || '';
+      }
+
+      if (!targetUrl) {
+        return reply.status(404).send({ error: 'Stream URL could not be resolved' });
+      }
+
+      const settings = await settingsRepository.getSettings();
+      const effectiveBaseUrl = getEffectiveBaseUrl(request, settings);
+      const incomingKey = (request.query as any)?.api_key;
+      const keyParam = incomingKey ? `&api_key=${encodeURIComponent(incomingKey)}` : '';
+
+      // If target is an embed page (e.g. StreamWish/dwish.pro), redirect directly
+      if (targetUrl.includes('/e/') || targetUrl.includes('dwish.pro') || targetUrl.includes('streamwish')) {
+        reply.header('Access-Control-Allow-Origin', '*');
+        return reply.redirect(targetUrl, 302);
+      }
+
+      // If targetUrl is an MP4 video or direct CDN stream, stream via ts-proxy with 206 Partial Content
+      if (targetUrl.toLowerCase().includes('.mp4') || targetUrl.includes('verify=')) {
+        reply.header('Access-Control-Allow-Origin', '*');
+        const proxiedVideo = `${effectiveBaseUrl}/api/app/kisskh/ts-proxy?url=${encodeURIComponent(targetUrl)}`;
+        return reply.redirect(proxiedVideo, 302);
+      }
+
+      // Fetch upstream playlist
+      const m3u8Res = await fetch(targetUrl, {
+        headers: {
+          'User-Agent': UA,
+          Referer: 'https://kisskh.co/',
+          Origin: 'https://kisskh.co',
+        },
+      });
+
+      if (!m3u8Res.ok) {
+        return reply.status(m3u8Res.status).send({ error: 'Upstream stream request failed' });
+      }
+
+      const rawM3u8 = await m3u8Res.text();
+      if (!rawM3u8.includes('#EXTM3U')) {
+        reply.header('Access-Control-Allow-Origin', '*');
+        const proxiedVideo = `${effectiveBaseUrl}/api/app/kisskh/ts-proxy?url=${encodeURIComponent(targetUrl)}`;
+        return reply.redirect(proxiedVideo, 302);
+      }
+
+      const baseUri = new URL(targetUrl);
+      const lines = rawM3u8.split('\n');
+      const rewritten = lines
+        .map((line) => {
+          const trimmed = line.trim();
+          if (!trimmed) return line;
+
+          // Handle URI attributes in tags (e.g. #EXT-X-KEY:METHOD=...,URI="...")
+          if (trimmed.startsWith('#')) {
+            if (trimmed.includes('URI="')) {
+              return trimmed.replace(/URI="([^"]+)"/g, (_match, uri) => {
+                const fullUri = new URL(uri, baseUri).href;
+                return `URI="${effectiveBaseUrl}/api/app/kisskh/ts-proxy?url=${encodeURIComponent(fullUri)}"`;
+              });
+            }
+            return line;
+          }
+
+          // Normal URI line (segment or sub-playlist)
+          const absoluteUrl = new URL(trimmed, baseUri).href;
+          if (absoluteUrl.toLowerCase().includes('.m3u8')) {
+            return `${effectiveBaseUrl}/api/app/kisskh/stream?url=${encodeURIComponent(absoluteUrl)}${keyParam}`;
+          }
+          return `${effectiveBaseUrl}/api/app/kisskh/ts-proxy?url=${encodeURIComponent(absoluteUrl)}`;
+        })
+        .join('\n');
+
+      reply.header('Content-Type', 'application/vnd.apple.mpegurl; charset=utf-8');
+      reply.header('Access-Control-Allow-Origin', '*');
+      reply.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      reply.header('Cache-Control', 'public, max-age=10');
+
+      return reply.send(rewritten);
+    } catch (err: any) {
+      return reply.status(502).send({
+        error: 'STREAM_RESOLVE_FAILED',
+        message: err.message,
+      });
+    }
+  };
+
+  /**
+   * GET /stream, /stream.mp4, /stream.m3u8
+   */
+  server.get('/stream', streamHandler);
+  server.get('/stream.mp4', streamHandler);
+  server.get('/stream.m3u8', streamHandler);
 
   /**
    * GET /ts-proxy?url=...

@@ -2,22 +2,24 @@
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Hls from 'hls.js';
-import { X, AlertCircle, RefreshCw, Loader2, Copy, Check } from 'lucide-react';
+import { X, AlertCircle, RefreshCw, Loader2, Copy, Check, Tv, ExternalLink } from 'lucide-react';
 
 interface HlsPlayerModalProps {
   streamUrl: string;
+  backupUrl?: string | null;
   channelName: string;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsPlayerModalProps) {
+export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onClose }: HlsPlayerModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [activeServer, setActiveServer] = useState<'main' | 'backup'>('main');
 
   const fullStreamUrl = useMemo(() => {
     if (typeof window === 'undefined') return streamUrl;
@@ -26,10 +28,10 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
   }, [streamUrl]);
 
   const handleCopyUrl = useCallback(() => {
-    navigator.clipboard.writeText(fullStreamUrl);
+    navigator.clipboard.writeText(activeServer === 'main' ? fullStreamUrl : backupUrl || fullStreamUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [fullStreamUrl]);
+  }, [fullStreamUrl, backupUrl, activeServer]);
 
   const handleRetry = useCallback(() => {
     setError(null);
@@ -38,9 +40,13 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
     setReloadKey((prev) => prev + 1);
   }, []);
 
+  // Reset server to main on new stream
+  useEffect(() => {
+    setActiveServer('main');
+  }, [streamUrl]);
 
   useEffect(() => {
-    if (!isOpen || !streamUrl) return;
+    if (!isOpen || !streamUrl || activeServer !== 'main') return;
 
     setError(null);
     setIsLoading(true);
@@ -58,6 +64,14 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
       setIsPlaying(true);
     };
 
+    const handleReady = () => {
+      setError(null);
+      setIsLoading(false);
+    };
+
+    video.addEventListener('loadeddata', handleReady);
+    video.addEventListener('canplay', handleReady);
+    video.addEventListener('canplaythrough', handleReady);
     video.addEventListener('playing', clearErrorAndPlay);
     video.addEventListener('play', clearErrorAndPlay);
     video.addEventListener('timeupdate', () => {
@@ -65,18 +79,33 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
         clearErrorAndPlay();
       }
     });
+    video.addEventListener('waiting', () => {
+      setIsLoading(true);
+    });
     video.addEventListener('pause', () => {
       setIsPlaying(false);
     });
+    video.addEventListener('error', () => {
+      if (video.currentTime === 0) {
+        const mediaError = video.error;
+        console.error('[HlsPlayer] Video element error:', mediaError);
+        setError(mediaError?.message || 'تعذر تشغيل الفيديو من المصدر الأساسي.');
+        setIsLoading(false);
+      }
+    });
 
-    const isMp4 = streamUrl.toLowerCase().includes('.mp4');
+    const isDirectVideo =
+      streamUrl.toLowerCase().includes('.mp4') ||
+      streamUrl.includes('/kisskh/') ||
+      streamUrl.includes('ts-proxy') ||
+      streamUrl.includes('format=mp4');
 
-    if (!isMp4 && Hls.isSupported()) {
+    if (!isDirectVideo && Hls.isSupported()) {
       hls = new Hls({
         enableWorker: true,
         lowLatencyMode: false,
         manifestLoadingTimeOut: 15000,
-        manifestLoadingMaxRetry: 15,
+        manifestLoadingMaxRetry: 10,
         manifestLoadingRetryDelay: 1000,
         levelLoadingTimeOut: 15000,
         levelLoadingMaxRetry: 10,
@@ -88,27 +117,25 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_LOADED, () => {
-        setError(null);
-        setIsLoading(false);
+        handleReady();
       });
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        setError(null);
-        setIsLoading(false);
-        video.play().catch(() => {});
+        handleReady();
+        video.play().catch((err) => {
+          console.log('[HlsPlayer] Autoplay blocked, waiting for user click:', err);
+          setIsLoading(false);
+        });
       });
 
       hls.on(Hls.Events.FRAG_LOADED, () => {
-        setError(null);
-        setIsLoading(false);
+        handleReady();
       });
 
       hls.on(Hls.Events.ERROR, (_event, data) => {
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              // For on-demand live streams, initial playlist takes a few seconds to generate on disk.
-              // Keep recovering automatically with startLoad().
               console.warn('[HlsPlayer] Network error during segment load, auto-recovering...', data.details);
               hls?.startLoad();
               break;
@@ -122,7 +149,8 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
                 console.log('[HlsPlayer] Direct video stream detected, switching to native player...');
                 hls?.destroy();
                 video.src = streamUrl;
-                video.play().catch(() => {});
+                video.load();
+                video.play().catch(() => setIsLoading(false));
                 return;
               }
               if (video.currentTime === 0) {
@@ -134,112 +162,178 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
         }
       });
 
-      // Timeout: If after 18 seconds stream hasn't produced any frames, show error
       initialLoadTimer = setTimeout(() => {
         if (video.currentTime === 0 && !video.paused) {
-          // Check if video is playing or still unbuffered
           if (video.readyState < 2) {
-            setError('Network error: Unable to connect or stream segments not yet generated.');
+            setError('تعذر استقبال مقاطع البث من السيرفر. يمكنك التبديل إلى السيرفر البديل.');
             setIsLoading(false);
           }
         }
-      }, 18000);
-
+      }, 15000);
     } else {
+      // Direct native HTML5 video playback
       video.src = streamUrl;
-      video.addEventListener('loadedmetadata', () => {
-        video.play().catch(() => {});
+      video.load();
+      video.play().catch((err) => {
+        console.log('[HlsPlayer] Autoplay blocked, user interaction required:', err);
+        setIsLoading(false);
       });
     }
 
     return () => {
       if (initialLoadTimer) clearTimeout(initialLoadTimer);
+      video.removeEventListener('loadeddata', handleReady);
+      video.removeEventListener('canplay', handleReady);
+      video.removeEventListener('canplaythrough', handleReady);
       video.removeEventListener('playing', clearErrorAndPlay);
       video.removeEventListener('play', clearErrorAndPlay);
       if (hls) {
         hls.destroy();
       }
     };
-  }, [isOpen, streamUrl, reloadKey]);
+  }, [isOpen, streamUrl, reloadKey, activeServer]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-[#111111] border border-[#262626] rounded-lg max-w-3xl w-full overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 md:p-6" dir="rtl">
+      <div className="bg-[#111111] border border-[#262626] rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
         {/* Modal Header */}
-        <div className="px-5 py-4 border-b border-[#262626] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`w-2.5 h-2.5 rounded-full ${isPlaying ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
-            <h3 className="text-sm font-semibold text-[#F5F5F5]">{channelName} — Stream Preview</h3>
+        <div className="px-4 md:px-5 py-3.5 border-b border-[#222222] flex items-center justify-between bg-[#141414]">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${isPlaying || activeServer === 'backup' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
+            <h3 className="text-xs md:text-sm font-bold text-white truncate max-w-lg">
+              {channelName}
+            </h3>
           </div>
-          <button
-            onClick={onClose}
-            className="text-[#71717A] hover:text-[#F5F5F5] transition-colors p-1 rounded hover:bg-[#1A1A1A]"
-          >
-            <X className="w-4 h-4" />
-          </button>
+
+          <div className="flex items-center gap-2">
+            {/* Server Switcher */}
+            {backupUrl && (
+              <div className="flex items-center bg-[#1E1E1E] border border-[#333333] rounded-xl p-0.5 text-xs">
+                <button
+                  onClick={() => {
+                    setActiveServer('main');
+                    handleRetry();
+                  }}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+                    activeServer === 'main'
+                      ? 'bg-[#E50914] text-white shadow-sm'
+                      : 'text-[#A1A1AA] hover:text-white'
+                  }`}
+                >
+                  سيرفر 1 (HD مباشر)
+                </button>
+                <button
+                  onClick={() => setActiveServer('backup')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+                    activeServer === 'backup'
+                      ? 'bg-[#E50914] text-white shadow-sm'
+                      : 'text-[#A1A1AA] hover:text-white'
+                  }`}
+                >
+                  سيرفر 2 (بديل)
+                </button>
+              </div>
+            )}
+
+            <button
+              onClick={onClose}
+              className="text-[#71717A] hover:text-[#F5F5F5] transition-colors p-1.5 rounded-lg hover:bg-[#222222]"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Video Player Container */}
-        <div className="relative bg-black aspect-video flex items-center justify-center">
-          <video
-            ref={videoRef}
-            className="w-full h-full object-contain"
-            controls
-            playsInline
-            autoPlay
-          />
+        {/* Video / Embed Player Container */}
+        <div className="relative bg-black aspect-video w-full flex items-center justify-center overflow-hidden">
+          {activeServer === 'backup' && backupUrl ? (
+            <iframe
+              src={backupUrl}
+              className="w-full h-full border-0"
+              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <>
+              <video
+                ref={videoRef}
+                className="w-full h-full object-contain"
+                controls
+                playsInline
+                autoPlay
+                crossOrigin="anonymous"
+              />
 
-          {/* Loading Indicator during startup buffering */}
-          {isLoading && !isPlaying && !error && (
-            <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-6 text-center gap-3 pointer-events-none">
-              <Loader2 className="w-8 h-8 text-white/80 animate-spin" />
-              <p className="text-xs text-white/80 font-mono">جاري استقبال وتحضير البث المباشر...</p>
-              <p className="text-[11px] text-white/40">Initial segments generating in FFmpeg</p>
-            </div>
-          )}
+              {/* Loading Indicator */}
+              {isLoading && !isPlaying && !error && (
+                <div className="absolute inset-0 bg-black/75 flex flex-col items-center justify-center p-6 text-center gap-3 pointer-events-none z-10">
+                  <Loader2 className="w-8 h-8 text-[#E50914] animate-spin" />
+                  <p className="text-xs text-white/90 font-medium">جاري تجهيز البث فائق السرعة...</p>
+                  <p className="text-[11px] text-[#A1A1AA]">Aspreen High-Speed Stream Rebroadcast</p>
+                </div>
+              )}
 
-          {/* Error Screen (only shown if not actively playing) */}
-          {error && !isPlaying && (
-            <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center p-6 text-center gap-3 z-10">
-              <AlertCircle className="w-8 h-8 text-rose-400" />
-              <p className="text-sm text-[#F5F5F5] font-medium">{error}</p>
-              <p className="text-xs text-[#A1A1AA] max-w-md">
-                ملاحظة: القنوات التي لا تبث مباريات حالياً تتوقف من المصدر الرسمي تلقائياً وتعود للعمل فور انطلاق الفعاليات.
-              </p>
-              <button
-                onClick={handleRetry}
-                className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                إعادة المحاولة (Retry)
-              </button>
-            </div>
+              {/* Error Screen with fallback button */}
+              {error && !isPlaying && (
+                <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center p-6 text-center gap-3 z-20">
+                  <AlertCircle className="w-8 h-8 text-rose-500" />
+                  <p className="text-xs md:text-sm text-[#F5F5F5] font-medium">{error}</p>
+
+                  <div className="flex items-center gap-2 mt-2">
+                    <button
+                      onClick={handleRetry}
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>إعادة المحاولة</span>
+                    </button>
+
+                    {backupUrl && (
+                      <button
+                        onClick={() => setActiveServer('backup')}
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#E50914] hover:bg-[#B81D24] text-white text-xs font-semibold shadow-md transition-colors"
+                      >
+                        <Tv className="w-3.5 h-3.5" />
+                        <span>التبديل إلى السيرفر البديل</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* Diagnostics & Info */}
-        <div className="px-5 py-3 border-t border-[#262626] bg-[#0A0A0A] flex flex-col gap-2">
+        {/* Diagnostics & Controls Footer */}
+        <div className="px-4 md:px-5 py-3 border-t border-[#222222] bg-[#0C0C0C] flex flex-col gap-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-[#A1A1AA]">
             <div className="flex items-center gap-2 overflow-hidden">
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
-                بث معاد من موقعك 24/7
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
+                بث معاد 24/7 VIP
               </span>
-              <span className="font-mono truncate text-neutral-300 select-all" title={fullStreamUrl}>
-                {fullStreamUrl}
+              <span className="font-mono truncate text-neutral-300 select-all" dir="ltr" title={fullStreamUrl}>
+                {activeServer === 'main' ? fullStreamUrl : backupUrl}
               </span>
             </div>
+
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={handleCopyUrl}
-                className="px-2.5 py-1 rounded bg-[#1F1F1F] hover:bg-[#2A2A2A] text-white flex items-center gap-1.5 transition-colors border border-white/10 text-xs font-medium"
+                className="px-2.5 py-1 rounded-lg bg-[#1C1C1C] hover:bg-[#282828] text-white flex items-center gap-1.5 transition-colors border border-white/10 text-xs font-medium"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'تم النسخ!' : 'نسخ رابط البث المعاد'}</span>
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-[#A1A1AA]" />}
+                <span>{copied ? 'تم النسخ!' : 'نسخ رابط البث'}</span>
               </button>
-              <span className={`font-mono font-semibold ${isPlaying ? 'text-emerald-400' : 'text-amber-400'}`}>
-                {isPlaying ? '● LIVE' : isLoading ? 'BUFFERING' : 'READY'}
+              <span className={`font-mono font-semibold px-2 py-0.5 rounded text-[10px] ${
+                activeServer === 'backup'
+                  ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                  : isPlaying
+                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                  : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+              }`}>
+                {activeServer === 'backup' ? '● SERVER 2' : isPlaying ? '● LIVE' : isLoading ? 'BUFFERING' : 'READY'}
               </span>
             </div>
           </div>
@@ -248,4 +342,3 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
     </div>
   );
 }
-
