@@ -20,9 +20,15 @@ import time
 import base64
 import socket
 import threading
+import ssl
 import urllib.request
 import urllib.parse
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+
+# Unverified SSL context for upstream IPTV streams with self-signed or expired certs
+SSL_CTX = ssl.create_default_context()
+SSL_CTX.check_hostname = False
+SSL_CTX.verify_mode = ssl.CERT_NONE
 
 # Ensure UTF-8 and line-buffered output on Windows console
 if sys.platform == "win32":
@@ -120,7 +126,7 @@ def renew_single_channel_stream(cid):
 
     req = urllib.request.Request(api_url, headers=headers)
     try:
-        with urllib.request.urlopen(req, timeout=10) as r:
+        with urllib.request.urlopen(req, timeout=10, context=SSL_CTX) as r:
             data = json.loads(r.read().decode("utf-8", errors="ignore"))
             if data.get("status") == "success":
                 raw_url = data.get("raw_url", "").strip()
@@ -164,9 +170,14 @@ def background_auto_renew_loop():
                 cids = list(channels_cache.keys())
 
             success_count = 0
-            from concurrent.futures import ThreadPoolExecutor
-            with ThreadPoolExecutor(max_workers=3) as executor:
-                for cid in cids:
+            for cid in cids:
+                with cache_lock:
+                    ch_info = channels_cache.get(cid, {})
+                    stream_url = ch_info.get("streamUrl", "")
+                    ch_source = ch_info.get("source", "")
+                
+                # Only renew dynamic yacine event streams; NEVER overwrite 24/7 worker or CDN channels!
+                if ch_source == "yacine.website" and "workers.dev" not in stream_url and "edgenextcdn.net" not in stream_url:
                     if renew_single_channel_stream(cid):
                         success_count += 1
                     time.sleep(0.08)
@@ -373,8 +384,14 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Channel Not Found")
             return
 
-        slug = re.sub(r'[^a-zA-Z0-9]+', '-', ch.get('name', 'live')).strip('-') or 'live'
-        channel_referer = f"https://yacine.website/channel/{cid}/{slug}"
+        ch_ref = ch.get("referer")
+        if ch_ref:
+            channel_referer = ch_ref
+        elif "workers.dev" in str(ch.get("streamUrl", "")) or ".css" in str(ch.get("streamUrl", "")) or "speedcdn" in str(ch.get("streamUrl", "")):
+            channel_referer = "http://speedcdn.me:8080/"
+        else:
+            slug = re.sub(r'[^a-zA-Z0-9]+', '-', ch.get('name', 'live')).strip('-') or 'live'
+            channel_referer = f"https://yacine.website/channel/{cid}/{slug}"
 
         def build_target_and_ua(channel_obj):
             play_url = channel_obj.get("playUrl", "")
@@ -402,14 +419,19 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     except Exception:
                         pass
 
-            final_ua = extracted_ua or ua_candidate or DEFAULT_UA
+            if "workers.dev" in target or ".css" in target or "speedcdn" in target:
+                final_ua = "OSCARTV2021"
+            else:
+                final_ua = extracted_ua or ua_candidate or DEFAULT_UA
             return target, final_ua
 
         target_fetch_url, req_ua = build_target_and_ua(ch)
         now = time.time()
         last_renewed = ch.get("lastRenewed", 0)
-        # Tokens are valid for 5 hours; renew every 30 minutes to stay fresh
-        if now - last_renewed > 1800 or not target_fetch_url or target_fetch_url.startswith("http://127.0.0.1"):
+        is_dynamic_yacine = ch.get("source") == "yacine.website" and "workers.dev" not in target_fetch_url and "edgenextcdn.net" not in target_fetch_url
+
+        # Tokens are valid for 5 hours; renew dynamic streams every 30 minutes to stay fresh
+        if is_dynamic_yacine and (now - last_renewed > 1800 or not target_fetch_url or target_fetch_url.startswith("http://127.0.0.1")):
             renew_single_channel_stream(cid)
             with cache_lock:
                 ch = channels_cache.get(cid, {})
@@ -426,49 +448,41 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             headers = {
                 "User-Agent": user_agent,
                 "Referer": channel_referer,
-                "X-Forwarded-For": "105.100.1.1",
-                "CF-Connecting-IP": "105.100.1.1",
-                "X-Real-IP": "105.100.1.1",
                 "Accept": "*/*"
             }
             if "edgenextcdn.net" in url:
                 headers.pop("Referer", None)
-                headers.pop("X-Forwarded-For", None)
-                headers.pop("CF-Connecting-IP", None)
-                headers.pop("X-Real-IP", None)
+            elif "yacine.website" in url:
+                headers["X-Forwarded-For"] = "105.100.1.1"
 
             for attempt in range(max_retries):
                 try:
                     r = urllib.request.Request(url, headers=headers)
-                    with urllib.request.urlopen(r, timeout=10) as resp:
+                    with urllib.request.urlopen(r, timeout=10, context=SSL_CTX) as resp:
                         content = resp.read().decode("utf-8", errors="ignore")
                         if "#EXTM3U" in content:
                             return content
-                        # Token propagation delay: wait 1.2s and retry
+                        # Token propagation delay: wait 0.5s and retry
                         if ("No URLs available" in content or not content) and attempt < max_retries - 1:
-                            time.sleep(1.2)
+                            time.sleep(0.5)
                             continue
                         return content
                 except Exception as e:
                     if attempt < max_retries - 1:
-                        time.sleep(1.0)
+                        time.sleep(0.5)
                         continue
             return ""
 
         m3u_text = fetch_m3u(target_fetch_url, req_ua)
 
-        # If expired or returned error, auto-renew fresh token and retry immediately
+        # If expired or returned error, auto-renew fresh token if dynamic yacine channel
         if not m3u_text or "#EXTM3U" not in m3u_text or "No URLs available" in m3u_text:
-            if renew_single_channel_stream(cid):
-                for retry_attempt in range(3):
-                    time.sleep(1.0 + retry_attempt * 0.6)
-                    with cache_lock:
-                        ch = channels_cache.get(cid, {})
-                        target_fetch_url, req_ua = build_target_and_ua(ch)
-                    if target_fetch_url:
-                        m3u_text = fetch_m3u(target_fetch_url, req_ua)
-                        if m3u_text and "#EXTM3U" in m3u_text and "No URLs available" not in m3u_text:
-                            break
+            if is_dynamic_yacine and renew_single_channel_stream(cid):
+                with cache_lock:
+                    ch = channels_cache.get(cid, {})
+                    target_fetch_url, req_ua = build_target_and_ua(ch)
+                if target_fetch_url:
+                    m3u_text = fetch_m3u(target_fetch_url, req_ua, max_retries=2)
 
         if not m3u_text or "#EXTM3U" not in m3u_text:
             err_msg = ch.get("status_message", "القناة غير متوفرة حالياً من المصدر الأصلي")
@@ -531,29 +545,25 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         referer = ref_override or "https://yacine.website/"
         ua = decoded_ua or DEFAULT_UA
-        if "workers.dev" in target_url or ".css" in target_url or "getmycssfiles" in target_url or "alljava" in target_url or "ourjav" in target_url:
+        if "workers.dev" in target_url or ".css" in target_url or "getmycssfiles" in target_url or "alljava" in target_url or "ourjav" in target_url or "allmyfilescss" in target_url or "assetsfileslocal" in target_url or "pushyourcss" in target_url:
             ua = "OSCARTV2021"
             referer = "http://speedcdn.me:8080/"
 
         headers = {
             "User-Agent": ua,
             "Referer": referer,
-            "X-Forwarded-For": "105.100.1.1",
-            "CF-Connecting-IP": "105.100.1.1",
-            "X-Real-IP": "105.100.1.1",
             "Accept": "*/*"
         }
         if "edgenextcdn.net" in target_url:
             headers.pop("Referer", None)
-            headers.pop("X-Forwarded-For", None)
-            headers.pop("CF-Connecting-IP", None)
-            headers.pop("X-Real-IP", None)
+        elif "yacine.website" in target_url:
+            headers["X-Forwarded-For"] = "105.100.1.1"
 
         req = urllib.request.Request(target_url, headers=headers)
 
         for attempt in range(3):
             try:
-                with urllib.request.urlopen(req, timeout=10) as upstream:
+                with urllib.request.urlopen(req, timeout=10, context=SSL_CTX) as upstream:
                     first_chunk = upstream.read(64 * 1024)
                     if not first_chunk or first_chunk.startswith(b"No URLs available") or first_chunk.startswith(b"<html>") or first_chunk.startswith(b"<html") or first_chunk.startswith(b"<!DOCTYPE"):
                         if attempt < 2:

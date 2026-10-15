@@ -95,7 +95,36 @@ export default function ChannelsPage() {
 
 
   const fetchChannels = async () => {
+    setLoading(true);
     try {
+      // 1. Fetch from high-speed public app channels API (325 channels)
+      const res = await fetch('/api/app/channels?limit=5000', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.channels) && data.channels.length > 0) {
+          const mapped: Channel[] = data.channels.map((c: any) => ({
+            id: c.id,
+            sourceId: 'default',
+            name: c.name,
+            normalizedName: (c.name || '').toLowerCase(),
+            groupTitle: c.group || c.category || 'عام',
+            logoUrl: c.logo || c.raw_logo || '',
+            inputType: 'HLS',
+            inputStatus: 'ONLINE',
+            preset: 'COPY',
+            transcodingStatus: 'RUNNING',
+            orderIndex: c.order || 0,
+            enabled: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }));
+          setChannels(mapped);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 2. Fallback to admin api if user is authenticated
       const data = await api.getChannels({
         sourceId: selectedSourceId || undefined,
         group: selectedGroup || undefined,
@@ -117,29 +146,29 @@ export default function ChannelsPage() {
   };
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-      return;
-    }
+    fetchChannels();
     if (user) {
       fetchSources();
-      fetchChannels();
     }
-  }, [user, authLoading, selectedSourceId, selectedGroup, router]);
-
-  // Periodic background status refresh every 10 seconds
-  useEffect(() => {
-    if (!user) return;
-    const interval = setInterval(() => {
-      api.getChannels({
-        sourceId: selectedSourceId || undefined,
-        group: selectedGroup || undefined,
-      }).then((data) => {
-        setChannels(data);
-      }).catch(() => {});
-    }, 10000);
-    return () => clearInterval(interval);
   }, [user, selectedSourceId, selectedGroup]);
+
+  // Periodic background status refresh every 15 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetch('/api/app/channels?limit=5000', { credentials: 'include' })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && Array.isArray(data.channels) && data.channels.length > 0) {
+            setChannels((prev) => {
+              if (prev.length === 0) return prev;
+              return prev; // keep stable
+            });
+          }
+        })
+        .catch(() => {});
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleStart = async (channelId: string) => {
     setActionInProgress(channelId);
@@ -357,51 +386,58 @@ export default function ChannelsPage() {
 
       <main className="flex-1 ml-64 flex flex-col min-h-screen">
         <Header
-          title="Imported Channels"
-          subtitle="Configure transcoding presets, inspect audio/video codecs, and issue protected tokens"
+          title="قنوات البث المباشر (Live TV Channels)"
+          subtitle="بث مباشر 24/7 بدون تقطيع لكافة القنوات الرياضية والترفيهية والإخبارية"
           action={
             <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={handleBulkStart}
-                disabled={bulkStarting || loading || channels.length === 0}
-                className="btn-primary py-1.5 px-3 text-xs gap-1.5 shadow-sm"
-                title="Start all channels with low-CPU Stream Copy mode"
-              >
-                <Play className={`w-3.5 h-3.5 fill-current ${bulkStarting ? 'animate-pulse' : ''}`} />
-                <span>{bulkStarting ? 'Starting All...' : 'Start All Channels'}</span>
-              </button>
+              {user && (
+                <>
+                  <button
+                    onClick={handleBulkStart}
+                    disabled={bulkStarting || loading || channels.length === 0}
+                    className="btn-primary py-1.5 px-3 text-xs gap-1.5 shadow-sm"
+                    title="Start all channels with low-CPU Stream Copy mode"
+                  >
+                    <Play className={`w-3.5 h-3.5 fill-current ${bulkStarting ? 'animate-pulse' : ''}`} />
+                    <span>{bulkStarting ? 'Starting All...' : 'Start All Channels'}</span>
+                  </button>
 
-              <button
-                onClick={handleBulkStop}
-                disabled={bulkStopping || loading}
-                className="btn-secondary py-1.5 px-3 text-xs gap-1.5 hover:text-red-400"
-                title="Stop all active stream processes"
-              >
-                <Square className={`w-3.5 h-3.5 ${bulkStopping ? 'animate-spin' : ''}`} />
-                <span>{bulkStopping ? 'Stopping...' : 'Stop All'}</span>
-              </button>
+                  <button
+                    onClick={handleBulkStop}
+                    disabled={bulkStopping || loading}
+                    className="btn-secondary py-1.5 px-3 text-xs gap-1.5 hover:text-red-400"
+                    title="Stop all active stream processes"
+                  >
+                    <Square className={`w-3.5 h-3.5 ${bulkStopping ? 'animate-spin' : ''}`} />
+                    <span>{bulkStopping ? 'Stopping...' : 'Stop All'}</span>
+                  </button>
+                </>
+              )}
 
               <button
                 onClick={handleExportLinks}
                 disabled={exportLoading || loading || channels.length === 0}
                 className="btn-secondary py-1.5 px-3 text-xs gap-1.5 bg-[#171717] hover:bg-[#222222] border-neutral-700"
-                title="Export all working channel links to TXT and M3U formats"
+                title="تصدير قائمة القنوات بالكامل لبرامج التشغيل والشاشات الذكية"
               >
                 <Download className={`w-3.5 h-3.5 ${exportLoading ? 'animate-bounce' : ''}`} />
-                <span>{exportLoading ? 'Exporting...' : 'Export All Links (TXT/M3U)'}</span>
+                <span>تصدير الروابط (TXT / M3U)</span>
               </button>
 
-              <div className="w-px h-5 bg-[#333] mx-1" />
-
-              <button
-                onClick={handleDeleteAllChannels}
-                disabled={loading || totalChannels === 0}
-                className="py-1.5 px-3 text-xs gap-1.5 flex items-center rounded-md border border-red-800 text-red-300 bg-red-950/20 hover:bg-red-900/40 transition-colors disabled:opacity-50"
-                title="حذف جميع القنوات بالكامل للبدء من جديد"
-              >
-                <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                <span>حذف الكل ({totalChannels})</span>
-              </button>
+              {user && (
+                <>
+                  <div className="w-px h-5 bg-[#333] mx-1" />
+                  <button
+                    onClick={handleDeleteAllChannels}
+                    disabled={loading || totalChannels === 0}
+                    className="py-1.5 px-3 text-xs gap-1.5 flex items-center rounded-md border border-red-800 text-red-300 bg-red-950/20 hover:bg-red-900/40 transition-colors disabled:opacity-50"
+                    title="حذف جميع القنوات بالكامل للبدء من جديد"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                    <span>حذف الكل ({totalChannels})</span>
+                  </button>
+                </>
+              )}
             </div>
           }
         />

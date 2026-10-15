@@ -107,8 +107,14 @@ export async function appRoutes(server: FastifyInstance) {
     const configuredKey = (settings.masterApiKey || '').trim();
     const referer = request.headers.referer || '';
     const hasAdminCookie = Boolean(request.cookies && (request.cookies.__session || request.cookies.token));
+    const origin = (request.headers.origin as string) || '';
+    const secFetchSite = (request.headers['sec-fetch-site'] as string) || '';
     const isInternalWeb =
       hasAdminCookie ||
+      secFetchSite === 'same-origin' ||
+      secFetchSite === 'same-site' ||
+      origin.includes('railway.app') ||
+      origin.includes('localhost') ||
       referer.includes('/channels') ||
       referer.includes('/kisskh') ||
       referer.includes('/3isk') ||
