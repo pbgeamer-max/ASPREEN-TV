@@ -11,9 +11,7 @@ Thumbs.db
 scratch/
 scratch_*
 *.apk
-channels.m3u
-channels.m3u8
-channels.json
 AndroidManifest.xml
 resources.arsc
 assets/
+

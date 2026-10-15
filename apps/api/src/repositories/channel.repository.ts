@@ -1,10 +1,71 @@
 import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Channel } from '@aspreen/shared';
 import { getFirestore } from '../firebase/admin';
 import { cleanUndefined } from '../firebase/utils';
 import { getPool } from '../db';
+import { encrypt } from '../security/encryption';
 
 const CHANNELS_COLLECTION = 'channels';
+
+function findChannelsJsonPath(): string | null {
+  const candidates = [
+    path.resolve(process.cwd(), 'channels.json'),
+    path.resolve(process.cwd(), '../../channels.json'),
+    path.resolve(__dirname, '../../../../channels.json'),
+    path.resolve(__dirname, '../../../channels.json'),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  return null;
+}
+
+let cachedJsonChannels: Channel[] | null = null;
+let lastJsonLoadTime = 0;
+
+function getChannelsFromJson(): Channel[] {
+  const p = findChannelsJsonPath();
+  if (!p) return [];
+
+  const now = Date.now();
+  if (cachedJsonChannels && now - lastJsonLoadTime < 60000) {
+    return cachedJsonChannels;
+  }
+
+  try {
+    const raw = fs.readFileSync(p, 'utf-8');
+    const list = JSON.parse(raw);
+    cachedJsonChannels = list.map((item: any, idx: number): Channel => {
+      const cid = String(item.id || item.vid);
+      const stream = item.streamUrl || item.directM3u8 || '';
+      return {
+        id: cid,
+        sourceId: 'yacine-website',
+        name: item.name || 'قناة غير معنونة',
+        normalizedName: (item.name || '').toLowerCase().trim(),
+        groupTitle: item.groupTitle || 'عام',
+        logoUrl: item.logoUrl || undefined,
+        inputType: 'HLS',
+        encryptedInputUrl: encrypt(stream),
+        enabled: true,
+        inputStatus: 'ONLINE',
+        transcodingStatus: 'STOPPED',
+        preset: 'COPY',
+        orderIndex: item.orderIndex || (idx + 1),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    });
+    lastJsonLoadTime = now;
+    return cachedJsonChannels || [];
+  } catch {
+    return cachedJsonChannels || [];
+  }
+}
+
+
 
 function mapChannelRow(row: any): Channel {
   return {
@@ -87,18 +148,24 @@ export class ChannelRepository {
     const pool = getPool();
     if (pool) {
       const res = await pool.query('SELECT * FROM channels WHERE id = $1', [id]);
-      if (res.rows.length === 0) return null;
-      return mapChannelRow(res.rows[0]);
+      if (res.rows.length > 0) return mapChannelRow(res.rows[0]);
+    } else {
+      try {
+        const docRef = await this.db.collection(CHANNELS_COLLECTION).doc(id);
+        const snap = await docRef.get();
+        if (snap.exists) return snap.data() as Channel;
+      } catch {}
     }
 
-    const docRef = await this.db.collection(CHANNELS_COLLECTION).doc(id);
-    const snap = await docRef.get();
-    if (!snap.exists) return null;
-    return snap.data() as Channel;
+    // Fallback to channels.json
+    const jsonChannels = getChannelsFromJson();
+    return jsonChannels.find((c) => c.id === id || (c as any).externalIdentifier === id) || null;
   }
 
   async listChannels(sourceId?: string, limitCount?: number): Promise<Channel[]> {
     const pool = getPool();
+    let channels: Channel[] = [];
+
     if (pool) {
       let res;
       if (sourceId) {
@@ -120,26 +187,42 @@ export class ChannelRepository {
           res = await pool.query('SELECT * FROM channels ORDER BY order_index ASC, created_at ASC, id ASC');
         }
       }
-      return res.rows.map(mapChannelRow);
+      channels = res.rows.map(mapChannelRow);
+    } else {
+      try {
+        const colRef = this.db.collection(CHANNELS_COLLECTION);
+        let snap: any;
+        if (sourceId) {
+          if (limitCount && limitCount > 0) {
+            snap = await colRef.where('sourceId', '==', sourceId).limit(limitCount).get();
+          } else {
+            snap = await colRef.where('sourceId', '==', sourceId).get();
+          }
+        } else {
+          if (limitCount && limitCount > 0) {
+            snap = await colRef.limit(limitCount).get();
+          } else {
+            snap = await colRef.get();
+          }
+        }
+        channels = snap.docs.map((d: any) => d.data() as Channel);
+      } catch {}
     }
 
-    const colRef = this.db.collection(CHANNELS_COLLECTION);
-    let snap: any;
-    if (sourceId) {
-      if (limitCount && limitCount > 0) {
-        snap = await colRef.where('sourceId', '==', sourceId).limit(limitCount).get();
-      } else {
-        snap = await colRef.where('sourceId', '==', sourceId).get();
+    // If database has 0 channels, seamlessly serve from channels.json
+    if (channels.length === 0) {
+      channels = getChannelsFromJson();
+      if (sourceId) {
+        channels = channels.filter((c) => c.sourceId === sourceId);
       }
-    } else {
       if (limitCount && limitCount > 0) {
-        snap = await colRef.limit(limitCount).get();
-      } else {
-        snap = await colRef.get();
+        channels = channels.slice(0, limitCount);
       }
     }
-    return snap.docs.map((d: any) => d.data() as Channel);
+
+    return channels;
   }
+
 
   async updateChannel(id: string, data: Partial<Channel>): Promise<Channel | null> {
     const existing = await this.getChannel(id);
