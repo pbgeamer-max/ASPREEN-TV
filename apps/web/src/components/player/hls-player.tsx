@@ -31,6 +31,8 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
   const [copied, setCopied] = useState(false);
   const [selectedSub, setSelectedSub] = useState<string>('auto');
   const [showSubMenu, setShowSubMenu] = useState(false);
+  const [internalSubtitles, setInternalSubtitles] = useState<SubtitleTrack[]>(subtitles || []);
+  const [loadingSubtitles, setLoadingSubtitles] = useState(false);
 
   const fullStreamUrl = useMemo(() => {
     if (typeof window === 'undefined') return streamUrl;
@@ -51,6 +53,34 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
     setReloadKey((prev) => prev + 1);
   }, []);
 
+  // Update internal subtitles when props change
+  useEffect(() => {
+    if (subtitles && subtitles.length > 0) {
+      setInternalSubtitles(subtitles);
+    }
+  }, [subtitles]);
+
+  // Autonomously auto-fetch subtitles if streamUrl contains epId
+  useEffect(() => {
+    if (!isOpen || !streamUrl) return;
+    try {
+      const match = streamUrl.match(/epId=([0-9]+)/);
+      if (match && match[1]) {
+        const epId = match[1];
+        setLoadingSubtitles(true);
+        fetch(`/api/app/kisskh/subtitles?epId=${epId}`, { credentials: 'include' })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data && data.success && Array.isArray(data.tracks) && data.tracks.length > 0) {
+              setInternalSubtitles(data.tracks);
+            }
+          })
+          .catch(() => {})
+          .finally(() => setLoadingSubtitles(false));
+      }
+    } catch {}
+  }, [isOpen, streamUrl]);
+
   // Close subtitle dropdown on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -62,26 +92,34 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const effectiveSubtitles = useMemo(() => {
+    return internalSubtitles.length > 0 ? internalSubtitles : subtitles;
+  }, [internalSubtitles, subtitles]);
+
+  const isKisskh = useMemo(() => {
+    return streamUrl.includes('kisskh') || streamUrl.includes('epId=');
+  }, [streamUrl]);
+
   // Compute active subtitle track (prioritizing Arabic by default)
   const activeTrack = useMemo(() => {
-    if (!subtitles || subtitles.length === 0 || selectedSub === 'off') {
+    if (!effectiveSubtitles || effectiveSubtitles.length === 0 || selectedSub === 'off') {
       return null;
     }
     if (selectedSub !== 'auto') {
-      return subtitles.find((s) => s.src === selectedSub) || null;
+      return effectiveSubtitles.find((s) => s.src === selectedSub) || null;
     }
-    const ar = subtitles.find(
+    const ar = effectiveSubtitles.find(
       (s) => s.land?.toLowerCase() === 'ar' || s.label?.toLowerCase().includes('arab')
     );
     if (ar) return ar;
-    const def = subtitles.find((s) => s.default);
+    const def = effectiveSubtitles.find((s) => s.default);
     if (def) return def;
-    const en = subtitles.find(
+    const en = effectiveSubtitles.find(
       (s) => s.land?.toLowerCase() === 'en' || s.label?.toLowerCase().includes('eng')
     );
     if (en) return en;
-    return subtitles[0] || null;
-  }, [subtitles, selectedSub]);
+    return effectiveSubtitles[0] || null;
+  }, [effectiveSubtitles, selectedSub]);
 
   // Ensure text tracks are set to showing mode
   useEffect(() => {
@@ -270,24 +308,32 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
 
           <div className="flex items-center gap-2">
             {/* Subtitle Selector Button */}
-            {subtitles && subtitles.length > 0 && (
+            {(isKisskh || (effectiveSubtitles && effectiveSubtitles.length > 0)) && (
               <div className="relative" ref={subMenuRef}>
                 <button
                   type="button"
                   onClick={() => setShowSubMenu((prev) => !prev)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                     activeTrack
-                      ? 'bg-[#E50914]/20 border-[#E50914] text-white shadow-sm'
+                      ? 'bg-[#E50914]/20 border-[#E50914] text-white shadow-sm ring-1 ring-[#E50914]/40'
                       : 'bg-[#1C1C1C] border-white/10 text-[#A1A1AA] hover:text-white hover:bg-[#282828]'
                   }`}
-                  title="خيارات ولغات الترجمة"
+                  title="خيارات ولغات الترجمة (Subtitles)"
                 >
-                  <Subtitles className="w-3.5 h-3.5 text-[#E50914]" />
+                  {loadingSubtitles ? (
+                    <Loader2 className="w-3.5 h-3.5 text-[#E50914] animate-spin" />
+                  ) : (
+                    <Subtitles className="w-3.5 h-3.5 text-[#E50914]" />
+                  )}
                   <span className="hidden sm:inline">
-                    {activeTrack ? `الترجمة: ${activeTrack.label}` : 'الترجمة (CC)'}
+                    {loadingSubtitles
+                      ? 'جاري جلب الترجمة...'
+                      : activeTrack
+                      ? `الترجمة: ${activeTrack.label}`
+                      : 'الترجمة (CC)'}
                   </span>
                   <span className="sm:hidden font-mono text-[11px]">
-                    {activeTrack ? activeTrack.land.toUpperCase() : 'CC'}
+                    {loadingSubtitles ? '...' : activeTrack ? activeTrack.land.toUpperCase() : 'CC'}
                   </span>
                   <ChevronDown className={`w-3 h-3 text-[#A1A1AA] transition-transform ${showSubMenu ? 'rotate-180' : ''}`} />
                 </button>
@@ -297,7 +343,9 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
                   <div className="absolute left-0 mt-2 w-56 rounded-xl bg-[#161616] border border-[#2E2E2E] shadow-2xl z-50 p-1.5 space-y-1 backdrop-blur-xl">
                     <div className="px-2.5 py-1.5 text-[10px] font-bold text-[#888888] uppercase tracking-wider border-b border-white/5 flex items-center justify-between">
                       <span>اختر لغة الترجمة</span>
-                      <span className="text-[9px] text-[#A1A1AA]">({subtitles.length} لغات متاحة)</span>
+                      <span className="text-[9px] text-[#A1A1AA]">
+                        {loadingSubtitles ? 'جاري الفحص...' : `(${effectiveSubtitles.length} لغات)`}
+                      </span>
                     </div>
 
                     <button
@@ -318,36 +366,47 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
 
                     <div className="my-1 border-t border-white/5" />
 
-                    {subtitles.map((track) => {
-                      const isSelected = activeTrack?.src === track.src;
-                      const isAr = track.land?.toLowerCase() === 'ar' || track.label?.toLowerCase().includes('arab');
-                      return (
-                        <button
-                          key={track.src}
-                          type="button"
-                          onClick={() => {
-                            setSelectedSub(track.src);
-                            setShowSubMenu(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                            isSelected
-                              ? 'bg-[#E50914]/20 text-white font-bold border border-[#E50914]/50'
-                              : 'text-[#D4D4D8] hover:bg-[#242424] hover:text-white'
-                          }`}
-                        >
-                          <span className="flex items-center gap-2">
-                            <span>{isAr ? '🇸🇦' : track.land === 'en' ? '🇬🇧' : '🌐'}</span>
-                            <span>{track.label}</span>
-                            {isAr && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold">
-                                مستحسن
-                              </span>
-                            )}
-                          </span>
-                          {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400" />}
-                        </button>
-                      );
-                    })}
+                    {loadingSubtitles ? (
+                      <div className="p-3 text-center text-xs text-[#A1A1AA] flex items-center justify-center gap-2">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#E50914]" />
+                        <span>جاري جلب ملفات الترجمة...</span>
+                      </div>
+                    ) : effectiveSubtitles.length === 0 ? (
+                      <div className="p-3 text-center text-xs text-[#71717A]">
+                        لا تتوفر ترجمات إضافية لهذه الحلقة
+                      </div>
+                    ) : (
+                      effectiveSubtitles.map((track) => {
+                        const isSelected = activeTrack?.src === track.src;
+                        const isAr = track.land?.toLowerCase() === 'ar' || track.label?.toLowerCase().includes('arab');
+                        return (
+                          <button
+                            key={track.src}
+                            type="button"
+                            onClick={() => {
+                              setSelectedSub(track.src);
+                              setShowSubMenu(false);
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                              isSelected
+                                ? 'bg-[#E50914]/20 text-white font-bold border border-[#E50914]/50'
+                                : 'text-[#D4D4D8] hover:bg-[#242424] hover:text-white'
+                            }`}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span>{isAr ? '🇸🇦' : track.land === 'en' ? '🇬🇧' : '🌐'}</span>
+                              <span>{track.label}</span>
+                              {isAr && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold">
+                                  مستحسن
+                                </span>
+                              )}
+                            </span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                          </button>
+                        );
+                      })
+                    )}
                   </div>
                 )}
               </div>
