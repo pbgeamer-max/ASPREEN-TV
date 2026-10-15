@@ -68,7 +68,10 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
       if (match && match[1]) {
         const epId = match[1];
         setLoadingSubtitles(true);
-        fetch(`/api/app/kisskh/subtitles?epId=${epId}`, { credentials: 'include' })
+        fetch(`/api/app/kisskh/subtitles?epId=${epId}&_t=${Date.now()}`, {
+          cache: 'no-store',
+          credentials: 'include',
+        })
           .then((res) => res.json())
           .then((data) => {
             if (data && data.success && Array.isArray(data.tracks) && data.tracks.length > 0) {

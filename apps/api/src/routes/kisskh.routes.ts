@@ -471,7 +471,7 @@ export async function kisskhRoutes(server: FastifyInstance) {
         }));
 
         reply.header('Access-Control-Allow-Origin', '*');
-        reply.header('Cache-Control', 'public, max-age=3600');
+        reply.header('Cache-Control', 'no-cache, no-store, must-revalidate');
 
         return {
           success: true,

@@ -186,7 +186,10 @@ export default function KisskhPage() {
 
     // Fetch subtitles in background
     try {
-      const subRes = await fetch(`/api/app/kisskh/subtitles?epId=${ep.id}`, { credentials: 'include' });
+      const subRes = await fetch(`/api/app/kisskh/subtitles?epId=${ep.id}&_t=${Date.now()}`, {
+        cache: 'no-store',
+        credentials: 'include',
+      });
       const subData = await subRes.json();
       if (subData && subData.success && Array.isArray(subData.tracks)) {
         setSubtitles(subData.tracks);
