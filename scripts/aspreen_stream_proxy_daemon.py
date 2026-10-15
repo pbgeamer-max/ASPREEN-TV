@@ -154,7 +154,7 @@ def renew_single_channel_stream(cid):
 def background_auto_renew_loop():
     """24/7 Background thread that renews all channels periodically"""
     global last_renew_time, total_refreshes
-    time.sleep(AUTO_RENEW_INTERVAL_SECONDS)  # Channels are fresh on startup, wait 30 mins
+    time.sleep(15)  # Wait 15s for server startup, then perform initial refresh
 
     while True:
         try:
@@ -459,13 +459,16 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         # If expired or returned error, auto-renew fresh token and retry immediately
         if not m3u_text or "#EXTM3U" not in m3u_text or "No URLs available" in m3u_text:
-            renew_single_channel_stream(cid)
-            time.sleep(1.2)  # Wait for edge CDN propagation
-            with cache_lock:
-                ch = channels_cache.get(cid, {})
-                target_fetch_url, req_ua = build_target_and_ua(ch)
-            if target_fetch_url:
-                m3u_text = fetch_m3u(target_fetch_url, req_ua)
+            if renew_single_channel_stream(cid):
+                for retry_attempt in range(3):
+                    time.sleep(1.0 + retry_attempt * 0.6)
+                    with cache_lock:
+                        ch = channels_cache.get(cid, {})
+                        target_fetch_url, req_ua = build_target_and_ua(ch)
+                    if target_fetch_url:
+                        m3u_text = fetch_m3u(target_fetch_url, req_ua)
+                        if m3u_text and "#EXTM3U" in m3u_text and "No URLs available" not in m3u_text:
+                            break
 
         if not m3u_text or "#EXTM3U" not in m3u_text:
             err_msg = ch.get("status_message", "القناة غير متوفرة حالياً من المصدر الأصلي")
