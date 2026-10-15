@@ -286,6 +286,7 @@ class KisskhService {
   private cache = new Map<string, { data: any; expiresAt: number }>();
   private localCatalog: { updatedAt: string; totalCount: number; items: any[] } | null = null;
   private localDramas: Record<string, any> | null = null;
+  private localStreams: Record<string, { videoUrl: string; backupUrl: string | null; type: number }> | null = null;
 
   private getCatalogFilePath(): string {
     const candidates = [
@@ -317,6 +318,21 @@ class KisskhService {
     return path.join(process.cwd(), 'data', 'kisskh_dramas.json');
   }
 
+  private getStreamsFilePath(): string {
+    const candidates = [
+      path.join(process.cwd(), 'data', 'kisskh_streams.json'),
+      path.join(process.cwd(), '..', '..', 'data', 'kisskh_streams.json'),
+      path.join(__dirname, '..', '..', 'data', 'kisskh_streams.json'),
+      path.join(__dirname, '..', '..', '..', 'data', 'kisskh_streams.json'),
+      '/app/data/kisskh_streams.json',
+    ];
+
+    for (const c of candidates) {
+      if (fs.existsSync(c)) return c;
+    }
+    return path.join(process.cwd(), 'data', 'kisskh_streams.json');
+  }
+
   private loadLocalData(): void {
     if (!this.localCatalog) {
       const catPath = this.getCatalogFilePath();
@@ -336,6 +352,17 @@ class KisskhService {
           this.localDramas = JSON.parse(fs.readFileSync(dramaPath, 'utf8'));
         } catch (e: any) {
           console.error('[KissKH Service] Error loading local dramas:', e.message);
+        }
+      }
+    }
+
+    if (!this.localStreams) {
+      const streamPath = this.getStreamsFilePath();
+      if (fs.existsSync(streamPath)) {
+        try {
+          this.localStreams = JSON.parse(fs.readFileSync(streamPath, 'utf8'));
+        } catch (e: any) {
+          console.error('[KissKH Service] Error loading local streams:', e.message);
         }
       }
     }
@@ -645,6 +672,22 @@ class KisskhService {
     const cached = this.cache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) {
       return cached.data;
+    }
+
+    this.loadLocalData();
+    const strId = String(episodeId);
+    if (this.localStreams && this.localStreams[strId]) {
+      const s = this.localStreams[strId];
+      const result: KisskhResolvedEpisode = {
+        videoUrl: s.videoUrl,
+        backupUrl: s.backupUrl || null,
+        type: s.type || 0,
+      };
+      this.cache.set(cacheKey, {
+        data: result,
+        expiresAt: Date.now() + 2 * 60 * 60 * 1000,
+      });
+      return result;
     }
 
     const kkey = this.generateVideoKKey(episodeId);

@@ -7,6 +7,7 @@ data/*
 !data/channels.json
 !data/kisskh_catalog.json
 !data/kisskh_dramas.json
+!data/kisskh_streams.json
 scripts/*.html
 scripts/inspect_*.js
 scripts/test_*.js

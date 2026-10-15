@@ -69,7 +69,9 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
       setIsPlaying(false);
     });
 
-    if (Hls.isSupported()) {
+    const isMp4 = streamUrl.toLowerCase().includes('.mp4');
+
+    if (!isMp4 && Hls.isSupported()) {
       hls = new Hls({
         enableWorker: true,
         lowLatencyMode: false,
@@ -116,6 +118,13 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
               break;
             default:
               console.error('[HlsPlayer] Fatal stream error:', data.details);
+              if (data.details === 'manifestParsingError') {
+                console.log('[HlsPlayer] Direct video stream detected, switching to native player...');
+                hls?.destroy();
+                video.src = streamUrl;
+                video.play().catch(() => {});
+                return;
+              }
               if (video.currentTime === 0) {
                 setError(`Fatal streaming error: ${data.details}`);
               }
@@ -136,14 +145,11 @@ export function HlsPlayerModal({ streamUrl, channelName, isOpen, onClose }: HlsP
         }
       }, 18000);
 
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    } else {
       video.src = streamUrl;
       video.addEventListener('loadedmetadata', () => {
         video.play().catch(() => {});
       });
-    } else {
-      setError('HLS playback is not supported by your current browser.');
-      setIsLoading(false);
     }
 
     return () => {

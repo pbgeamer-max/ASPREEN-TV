@@ -258,6 +258,18 @@ export async function kisskhRoutes(server: FastifyInstance) {
           return reply.status(404).send({ error: 'Stream URL could not be resolved' });
         }
 
+        const settings = await settingsRepository.getSettings();
+        const effectiveBaseUrl = getEffectiveBaseUrl(request, settings);
+        const incomingKey = (request.query as any)?.api_key;
+        const keyParam = incomingKey ? `&api_key=${encodeURIComponent(incomingKey)}` : '';
+
+        // If targetUrl is an MP4 video or direct CDN stream, stream via ts-proxy with 206 Partial Content
+        if (targetUrl.toLowerCase().includes('.mp4') || targetUrl.includes('verify=')) {
+          reply.header('Access-Control-Allow-Origin', '*');
+          const proxiedVideo = `${effectiveBaseUrl}/api/app/kisskh/ts-proxy?url=${encodeURIComponent(targetUrl)}`;
+          return reply.redirect(proxiedVideo, 302);
+        }
+
         // Fetch upstream playlist
         const m3u8Res = await fetch(targetUrl, {
           headers: {
@@ -273,15 +285,10 @@ export async function kisskhRoutes(server: FastifyInstance) {
 
         const rawM3u8 = await m3u8Res.text();
         if (!rawM3u8.includes('#EXTM3U')) {
-          // If upstream returns direct MP4 or non-HLS, redirect
           reply.header('Access-Control-Allow-Origin', '*');
-          return reply.redirect(targetUrl, 302);
+          const proxiedVideo = `${effectiveBaseUrl}/api/app/kisskh/ts-proxy?url=${encodeURIComponent(targetUrl)}`;
+          return reply.redirect(proxiedVideo, 302);
         }
-
-        const settings = await settingsRepository.getSettings();
-        const effectiveBaseUrl = getEffectiveBaseUrl(request, settings);
-        const incomingKey = (request.query as any)?.api_key;
-        const keyParam = incomingKey ? `&api_key=${encodeURIComponent(incomingKey)}` : '';
 
         const baseUri = new URL(targetUrl);
         const lines = rawM3u8.split('\n');
