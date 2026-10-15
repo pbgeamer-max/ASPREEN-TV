@@ -2,7 +2,15 @@
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Hls from 'hls.js';
-import { X, AlertCircle, RefreshCw, Loader2, Copy, Check } from 'lucide-react';
+import { X, AlertCircle, RefreshCw, Loader2, Copy, Check, Subtitles, ChevronDown } from 'lucide-react';
+
+export interface SubtitleTrack {
+  src: string;
+  vtt_url?: string;
+  label: string;
+  land: string;
+  default?: boolean;
+}
 
 interface HlsPlayerModalProps {
   streamUrl: string;
@@ -10,15 +18,19 @@ interface HlsPlayerModalProps {
   channelName: string;
   isOpen: boolean;
   onClose: () => void;
+  subtitles?: SubtitleTrack[];
 }
 
-export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onClose }: HlsPlayerModalProps) {
+export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onClose, subtitles = [] }: HlsPlayerModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const subMenuRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [selectedSub, setSelectedSub] = useState<string>('auto');
+  const [showSubMenu, setShowSubMenu] = useState(false);
 
   const fullStreamUrl = useMemo(() => {
     if (typeof window === 'undefined') return streamUrl;
@@ -38,6 +50,54 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
     setIsPlaying(false);
     setReloadKey((prev) => prev + 1);
   }, []);
+
+  // Close subtitle dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (subMenuRef.current && !subMenuRef.current.contains(event.target as Node)) {
+        setShowSubMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Compute active subtitle track (prioritizing Arabic by default)
+  const activeTrack = useMemo(() => {
+    if (!subtitles || subtitles.length === 0 || selectedSub === 'off') {
+      return null;
+    }
+    if (selectedSub !== 'auto') {
+      return subtitles.find((s) => s.src === selectedSub) || null;
+    }
+    const ar = subtitles.find(
+      (s) => s.land?.toLowerCase() === 'ar' || s.label?.toLowerCase().includes('arab')
+    );
+    if (ar) return ar;
+    const def = subtitles.find((s) => s.default);
+    if (def) return def;
+    const en = subtitles.find(
+      (s) => s.land?.toLowerCase() === 'en' || s.label?.toLowerCase().includes('eng')
+    );
+    if (en) return en;
+    return subtitles[0] || null;
+  }, [subtitles, selectedSub]);
+
+  // Ensure text tracks are set to showing mode
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const applySubMode = () => {
+      if (video.textTracks && video.textTracks.length > 0) {
+        for (let i = 0; i < video.textTracks.length; i++) {
+          video.textTracks[i].mode = activeTrack ? 'showing' : 'disabled';
+        }
+      }
+    };
+    applySubMode();
+    const t = setTimeout(applySubMode, 600);
+    return () => clearTimeout(t);
+  }, [activeTrack, isPlaying]);
 
   useEffect(() => {
     if (!isOpen || !streamUrl) return;
@@ -209,9 +269,94 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Subtitle Selector Button */}
+            {subtitles && subtitles.length > 0 && (
+              <div className="relative" ref={subMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowSubMenu((prev) => !prev)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                    activeTrack
+                      ? 'bg-[#E50914]/20 border-[#E50914] text-white shadow-sm'
+                      : 'bg-[#1C1C1C] border-white/10 text-[#A1A1AA] hover:text-white hover:bg-[#282828]'
+                  }`}
+                  title="خيارات ولغات الترجمة"
+                >
+                  <Subtitles className="w-3.5 h-3.5 text-[#E50914]" />
+                  <span className="hidden sm:inline">
+                    {activeTrack ? `الترجمة: ${activeTrack.label}` : 'الترجمة (CC)'}
+                  </span>
+                  <span className="sm:hidden font-mono text-[11px]">
+                    {activeTrack ? activeTrack.land.toUpperCase() : 'CC'}
+                  </span>
+                  <ChevronDown className={`w-3 h-3 text-[#A1A1AA] transition-transform ${showSubMenu ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Subtitle Dropdown Menu */}
+                {showSubMenu && (
+                  <div className="absolute left-0 mt-2 w-56 rounded-xl bg-[#161616] border border-[#2E2E2E] shadow-2xl z-50 p-1.5 space-y-1 backdrop-blur-xl">
+                    <div className="px-2.5 py-1.5 text-[10px] font-bold text-[#888888] uppercase tracking-wider border-b border-white/5 flex items-center justify-between">
+                      <span>اختر لغة الترجمة</span>
+                      <span className="text-[9px] text-[#A1A1AA]">({subtitles.length} لغات متاحة)</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedSub('off');
+                        setShowSubMenu(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        !activeTrack
+                          ? 'bg-white/10 text-white font-bold'
+                          : 'text-[#A1A1AA] hover:bg-[#242424] hover:text-white'
+                      }`}
+                    >
+                      <span>إيقاف الترجمة (Off)</span>
+                      {!activeTrack && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                    </button>
+
+                    <div className="my-1 border-t border-white/5" />
+
+                    {subtitles.map((track) => {
+                      const isSelected = activeTrack?.src === track.src;
+                      const isAr = track.land?.toLowerCase() === 'ar' || track.label?.toLowerCase().includes('arab');
+                      return (
+                        <button
+                          key={track.src}
+                          type="button"
+                          onClick={() => {
+                            setSelectedSub(track.src);
+                            setShowSubMenu(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                            isSelected
+                              ? 'bg-[#E50914]/20 text-white font-bold border border-[#E50914]/50'
+                              : 'text-[#D4D4D8] hover:bg-[#242424] hover:text-white'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span>{isAr ? '🇸🇦' : track.land === 'en' ? '🇬🇧' : '🌐'}</span>
+                            <span>{track.label}</span>
+                            {isAr && (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold">
+                                مستحسن
+                              </span>
+                            )}
+                          </span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
             <button
               onClick={onClose}
               className="text-[#71717A] hover:text-[#F5F5F5] transition-colors p-1.5 rounded-lg hover:bg-[#222222]"
+              title="إغلاق"
             >
               <X className="w-4 h-4" />
             </button>
@@ -227,7 +372,18 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
             playsInline
             autoPlay
             crossOrigin="anonymous"
-          />
+          >
+            {activeTrack && (
+              <track
+                key={activeTrack.src}
+                kind="subtitles"
+                src={activeTrack.vtt_url || `/api/app/kisskh/sub-vtt?url=${encodeURIComponent(activeTrack.src)}`}
+                srcLang={activeTrack.land || 'ar'}
+                label={activeTrack.label}
+                default
+              />
+            )}
+          </video>
 
           {/* Loading Indicator */}
           {isLoading && !isPlaying && !error && (
@@ -262,6 +418,12 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
               <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
                 بث معاد 24/7 VIP
               </span>
+              {activeTrack && (
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#E50914]/15 text-[#FF5A5F] border border-[#E50914]/30 shrink-0 flex items-center gap-1">
+                  <Subtitles className="w-3 h-3" />
+                  <span>مترجم ({activeTrack.label})</span>
+                </span>
+              )}
               <span className="font-mono truncate text-neutral-300 select-all" dir="ltr" title={fullStreamUrl}>
                 {fullStreamUrl}
               </span>

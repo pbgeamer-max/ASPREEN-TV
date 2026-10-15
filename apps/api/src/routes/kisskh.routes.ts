@@ -459,19 +459,76 @@ export async function kisskhRoutes(server: FastifyInstance) {
 
       try {
         const tracks = await kisskhService.getSubtitles(epId);
+        const settings = await settingsRepository.getSettings();
+        const effectiveBaseUrl = getEffectiveBaseUrl(request, settings);
+
+        const mappedTracks = tracks.map((track) => ({
+          src: track.src,
+          vtt_url: `${effectiveBaseUrl}/api/app/kisskh/sub-vtt?url=${encodeURIComponent(track.src)}`,
+          label: track.label,
+          land: track.land,
+          default: track.default,
+        }));
+
         reply.header('Access-Control-Allow-Origin', '*');
         reply.header('Cache-Control', 'public, max-age=3600');
 
         return {
           success: true,
           episode_id: epId,
-          tracks,
+          tracks: mappedTracks,
         };
       } catch (err: any) {
         return reply.status(502).send({
           success: false,
           error: err.message,
         });
+      }
+    }
+  );
+
+  /**
+   * GET /sub-vtt?url=...
+   * Fetches upstream .srt subtitle and converts to clean WebVTT (.vtt) format with CORS
+   */
+  server.get(
+    '/sub-vtt',
+    async (
+      request: FastifyRequest<{
+        Querystring: { url: string };
+      }>,
+      reply
+    ) => {
+      const targetUrl = request.query.url;
+      if (!targetUrl) {
+        return reply.status(400).send({ error: 'Missing url parameter' });
+      }
+
+      try {
+        const subRes = await fetch(targetUrl, {
+          headers: {
+            'User-Agent': UA,
+            Referer: 'https://kisskh.co/',
+          },
+          signal: AbortSignal.timeout(10000),
+        });
+
+        if (!subRes.ok) {
+          return reply.status(subRes.status).send({ error: 'Failed to fetch upstream subtitle' });
+        }
+
+        const srtText = await subRes.text();
+        // Convert SRT to WebVTT
+        let vtt = 'WEBVTT\n\n' + srtText.replace(/\r\n|\r/g, '\n').trim();
+        vtt = vtt.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2');
+
+        reply.header('Access-Control-Allow-Origin', '*');
+        reply.header('Content-Type', 'text/vtt; charset=utf-8');
+        reply.header('Cache-Control', 'public, max-age=86400');
+
+        return reply.send(vtt);
+      } catch (err: any) {
+        return reply.status(502).send({ error: 'Subtitle conversion failed', message: err.message });
       }
     }
   );

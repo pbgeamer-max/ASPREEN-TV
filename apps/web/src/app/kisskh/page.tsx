@@ -583,6 +583,7 @@ export default function KisskhPage() {
         streamUrl={playerStreamUrl}
         backupUrl={playerBackupUrl}
         channelName={playerTitle}
+        subtitles={subtitles}
       />
     </div>
   );
