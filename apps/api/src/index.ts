@@ -92,6 +92,7 @@ export async function createServer() {
   await server.register(settingsRoutes, { prefix: '/api' });
   await server.register(hlsAuthRoutes, { prefix: '/api' });
   await server.register(appRoutes, { prefix: '/api/app' });
+  await server.register(appRoutes, { prefix: '/api/v1' });
 
   // Helper function to stream live MPEG-TS relay using FFmpeg
   async function streamLiveMpegTs(

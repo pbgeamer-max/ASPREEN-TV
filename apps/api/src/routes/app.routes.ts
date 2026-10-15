@@ -86,13 +86,31 @@ export async function appRoutes(server: FastifyInstance) {
   });
 
   /**
-   * GET /api/app/channels
-   * Returns clean, structured JSON channels for Android / Mobile clients
+   * GET /api/app/channels (or /api/v1/channels)
+   * High-speed, professional JSON API endpoint for Android & iOS apps
+   * Returns all channels with permanent rebroadcast URLs, proxied logos, and categories.
    */
-  server.get('/channels', async (request: FastifyRequest<{ Querystring: { group?: string; limit?: string } }>, reply) => {
-    const limitNum = request.query.limit ? parseInt(request.query.limit, 10) : 5000;
+  server.get('/channels', async (request: FastifyRequest<{ Querystring: { group?: string; category?: string; q?: string; limit?: string } }>, reply) => {
+    const { group, category, q, limit } = request.query;
+    const limitNum = limit ? parseInt(limit, 10) : 5000;
     const channels = await channelRepository.listChannels(undefined, limitNum);
-    const enabled = channels.filter((c) => c.enabled !== false);
+    let enabled = channels.filter((c) => c.enabled !== false);
+
+    // Filter by group or category
+    const filterCat = category || group;
+    if (filterCat) {
+      enabled = enabled.filter((c) => c.groupTitle?.toLowerCase() === filterCat.toLowerCase());
+    }
+
+    // Filter by search query
+    if (q) {
+      const query = q.toLowerCase();
+      enabled = enabled.filter((c) =>
+        c.name.toLowerCase().includes(query) ||
+        (c.normalizedName && c.normalizedName.includes(query)) ||
+        (c.groupTitle && c.groupTitle.toLowerCase().includes(query))
+      );
+    }
 
     const settings = await settingsRepository.getSettings();
     const reqHost = (request.headers['x-forwarded-host'] as string) || (request.headers.host as string);
@@ -101,40 +119,52 @@ export async function appRoutes(server: FastifyInstance) {
     if ((!effectiveBaseUrl || effectiveBaseUrl.includes('localhost') || effectiveBaseUrl.includes('@')) && reqHost && !reqHost.includes('127.0.0.1')) {
       effectiveBaseUrl = `${reqProto}://${reqHost}`;
     }
+    if (!effectiveBaseUrl) {
+      effectiveBaseUrl = 'https://aspreen-tv-production.up.railway.app';
+    }
 
-    const appChannels = await Promise.all(
-      enabled.map(async (ch) => {
-        const publicOutputId = ch.activeOutputId || ch.id;
-        const rawToken = generateStreamToken();
-        const tokenHash = hashStreamToken(rawToken);
+    // Extract unique categories with channel counts
+    const categoryCounts: Record<string, number> = {};
+    channels.forEach((c) => {
+      const grp = c.groupTitle || 'عام';
+      categoryCounts[grp] = (categoryCounts[grp] || 0) + 1;
+    });
 
-        await tokenRepository.createToken({
-          channelId: ch.id,
-          name: `App Token - ${ch.name}`,
-          tokenHash,
-          publicOutputId,
-        });
+    const categoriesList = Object.keys(categoryCounts).map((catName) => ({
+      name: catName,
+      count: categoryCounts[catName],
+    }));
 
-        const liveStreamUrl = buildTsPlaybackUrl(effectiveBaseUrl, publicOutputId, rawToken);
-        const hlsStreamUrl = buildPlaybackUrl(effectiveBaseUrl, publicOutputId, rawToken);
+    const appChannels = enabled.map((ch, idx) => {
+      const permStreamUrl = `${effectiveBaseUrl}/live/${ch.id}.m3u8`;
+      const proxiedLogo = ch.logoUrl ? `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}` : null;
+      const order = ch.orderIndex || (idx + 1);
 
-        const logoUrl = ch.logoUrl ? `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}` : null;
+      return {
+        id: ch.id,
+        name: ch.name,
+        category: ch.groupTitle || 'عام',
+        group: ch.groupTitle || 'عام',
+        logo: proxiedLogo,
+        raw_logo: ch.logoUrl || null,
+        stream_url: permStreamUrl,
+        streamUrl: permStreamUrl,
+        playback_url: permStreamUrl,
+        status: ch.inputStatus === 'OFFLINE' ? 'OFFLINE' : 'ONLINE',
+        order,
+      };
+    });
 
-        return {
-          id: ch.id,
-          name: ch.name,
-          category: ch.groupTitle || 'عام',
-          logo: logoUrl,
-          streamUrl: liveStreamUrl,
-          hlsUrl: hlsStreamUrl,
-          status: ch.transcodingStatus || 'RUNNING',
-        };
-      })
-    );
+    reply.header('Cache-Control', 'public, max-age=30, s-maxage=30');
+    reply.header('Access-Control-Allow-Origin', '*');
 
     return {
-      total: appChannels.length,
-      serverTime: new Date().toISOString(),
+      success: true,
+      server: 'Aspreen TV Production API',
+      timestamp: new Date().toISOString(),
+      total_channels: appChannels.length,
+      total_categories: categoriesList.length,
+      categories: categoriesList,
       channels: appChannels,
     };
   });
@@ -154,35 +184,29 @@ export async function appRoutes(server: FastifyInstance) {
     if ((!effectiveBaseUrl || effectiveBaseUrl.includes('localhost') || effectiveBaseUrl.includes('@')) && reqHost && !reqHost.includes('127.0.0.1')) {
       effectiveBaseUrl = `${reqProto}://${reqHost}`;
     }
+    if (!effectiveBaseUrl) {
+      effectiveBaseUrl = 'https://aspreen-tv-production.up.railway.app';
+    }
 
     const lines: string[] = ['#EXTM3U'];
 
     for (const ch of enabled) {
-      const publicOutputId = ch.activeOutputId || ch.id;
-      const rawToken = generateStreamToken();
-      const tokenHash = hashStreamToken(rawToken);
-
-      await tokenRepository.createToken({
-        channelId: ch.id,
-        name: `App M3U - ${ch.name}`,
-        tokenHash,
-        publicOutputId,
-      });
-
-      const liveStreamUrl = buildTsPlaybackUrl(effectiveBaseUrl, publicOutputId, rawToken);
+      const liveStreamUrl = `${effectiveBaseUrl}/live/${ch.id}.m3u8`;
       const proxiedLogo = ch.logoUrl ? `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}` : '';
       const tvgLogo = proxiedLogo ? ` tvg-logo="${proxiedLogo}"` : '';
       const groupTitle = ch.groupTitle ? ` group-title="${ch.groupTitle.replace(/"/g, "'")}"` : '';
 
-      lines.push(`#EXTINF:-1 tvg-id="" tvg-name="${ch.name.replace(/"/g, "'")}"${tvgLogo}${groupTitle},${ch.name}`);
+      lines.push(`#EXTINF:-1 tvg-id="${ch.id}" tvg-name="${ch.name.replace(/"/g, "'")}"${tvgLogo}${groupTitle},${ch.name}`);
       lines.push(liveStreamUrl);
     }
 
     const m3uContent = lines.join('\n');
-    reply.header('Content-Type', 'audio/x-mpegurl; charset=utf-8');
-    reply.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+    reply.header('Content-Type', 'application/vnd.apple.mpegurl; charset=utf-8');
+    reply.header('Cache-Control', 'public, max-age=60');
+    reply.header('Access-Control-Allow-Origin', '*');
     return reply.send(m3uContent);
   });
+
 
   /**
    * POST /api/app/report-channel
