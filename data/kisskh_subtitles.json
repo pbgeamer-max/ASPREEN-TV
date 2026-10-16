@@ -10943,6 +10943,230 @@
       "default": false
     }
   ],
+  "1628": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep7.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep7.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep7.ms.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep7.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/naf5tdij.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    }
+  ],
+  "1629": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep6.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep6.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep6.ms.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep6.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/nxeyoi21.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    }
+  ],
+  "1630": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep5.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep5.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep5.ms.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep5.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/tpmxqu3k.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    }
+  ],
+  "1631": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep4.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep4.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep4.ms.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep4.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/zibiq2nx.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    }
+  ],
+  "1632": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep3.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep3.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep3.ms.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep3.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/0v0ozloz.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    }
+  ],
+  "1633": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep2.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep2.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep2.ms.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep2.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/xx3rulim.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    }
+  ],
+  "1634": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep21.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep21.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep21.ms.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep21.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/aowilepn.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    }
+  ],
   "1636": [
     {
       "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep23.en.srt",
@@ -11290,6 +11514,38 @@
     },
     {
       "src": "https://sub.cdnvideo11.shop/mul/km/hz3xaw1i.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    }
+  ],
+  "1647": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep1.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep1.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep1.ms.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Love-Designer.2020.Ep1.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/iyhlvhtp.srt",
       "label": "Khmer",
       "land": "km",
       "default": false
