@@ -212,10 +212,10 @@ async function resolve3iskStream(watchPageUrl: string): Promise<string> {
     throw new Error(`Unable to extract playable stream from player: ${cdnPlayerUrl}`);
   }
 
-  // Cache resolved stream for 2 hours
+  // Cache resolved stream for 20 minutes (aligns with upstream CDN session token duration)
   streamCache.set(watchPageUrl, {
     url: directStreamUrl,
-    expiresAt: Date.now() + 2 * 60 * 60 * 1000,
+    expiresAt: Date.now() + 20 * 60 * 1000,
   });
 
   return directStreamUrl;
@@ -461,6 +461,7 @@ export async function iskRoutes(server: FastifyInstance) {
     });
 
     if (!upstreamRes.ok) {
+      streamCache.clear();
       return reply.status(upstreamRes.status).send({ error: 'Upstream m3u8 fetch failed' });
     }
 
