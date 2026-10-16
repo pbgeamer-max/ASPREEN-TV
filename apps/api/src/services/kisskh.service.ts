@@ -514,6 +514,15 @@ class KisskhService {
       if (q) {
         const queryLower = q.toLowerCase();
         filtered = filtered.filter((item: any) => item.title && item.title.toLowerCase().includes(queryLower));
+      } else {
+        // Prioritize titles with working cached episodes so EVERY PAGE user visits works 100%
+        filtered = [...filtered].sort((a: any, b: any) => {
+          const aDrama = this.localDramas?.[String(a.id)];
+          const bDrama = this.localDramas?.[String(b.id)];
+          const aCount = aDrama?.episodes?.filter((e: any) => this.localStreams?.[String(e.id)]).length || 0;
+          const bCount = bDrama?.episodes?.filter((e: any) => this.localStreams?.[String(e.id)]).length || 0;
+          return bCount - aCount;
+        });
       }
 
       const total = filtered.length;
