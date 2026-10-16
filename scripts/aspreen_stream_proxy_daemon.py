@@ -584,29 +584,14 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             rewritten.insert(idx, f"#EXT-X-MEDIA-SEQUENCE:{media_seq}")
 
         for inf, seg_url in seg_pairs:
-            real_seg_url = seg_url
-            if "url=" in seg_url:
-                try:
-                    enc_u = seg_url.split("url=")[1].split("&")[0]
-                    clean_b64 = urllib.parse.unquote(enc_u)
-                    clean_b64 += "=" * ((4 - len(clean_b64) % 4) % 4)
-                    dec_u = base64.b64decode(clean_b64).decode("utf-8", errors="ignore")
-                    if dec_u.startswith("http://") or dec_u.startswith("https://"):
-                        real_seg_url = dec_u
-                except Exception:
-                    pass
+            # Resolve relative segment URL against playlist URL
+            seg_full = urllib.parse.urljoin(target_fetch_url, seg_url)
 
-            # Attach query token if missing
-            if stream_query_token and "?" not in real_seg_url:
-                real_seg_url = f"{real_seg_url}?{stream_query_token}"
-
-            # If it's a new-redirect / Yacine stream, wrap it in play.php so upstream CDN accepts it
-            if "new-redirect.online" in real_seg_url or "yacine.website" in target_fetch_url:
-                b64_url = base64.b64encode(real_seg_url.encode()).decode()
+            # If it's a raw new-redirect.online url without play.php, wrap it
+            if "new-redirect.online" in seg_full and "play.php" not in seg_full:
+                b64_url = base64.b64encode(seg_full.encode()).decode()
                 b64_ua = base64.b64encode((req_ua or DEFAULT_UA).encode()).decode()
                 seg_full = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
-            else:
-                seg_full = urllib.parse.urljoin(target_fetch_url, real_seg_url)
 
             encoded_seg = urllib.parse.quote(seg_full, safe="")
             encoded_ref = urllib.parse.quote(channel_referer, safe="")
