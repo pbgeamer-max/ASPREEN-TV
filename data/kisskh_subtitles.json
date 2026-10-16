@@ -9823,6 +9823,358 @@
       "default": false
     }
   ],
+  "1212": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep12.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep12.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep12.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/o11ynf1e.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/t1cnvb5w.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    }
+  ],
+  "1213": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep11.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep11.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep11.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/1ztpztim.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/pzamlbz2.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    }
+  ],
+  "1214": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep10.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep10.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep10.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/tz4yizyq.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/jkc421sb.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    }
+  ],
+  "1215": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep9.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep9.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep9.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/fceflcgi.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/qmjvz1ls.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    }
+  ],
+  "1216": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep8.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep8.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep8.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/1dqm2qjf.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/0uja0wp4.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    }
+  ],
+  "1217": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep7.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep7.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep7.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/k0wf1gsn.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/30homrks.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    }
+  ],
+  "1218": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep6.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep6.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep6.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/04ldh50b.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/2ge3ank3.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    }
+  ],
+  "1219": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep5.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep5.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep5.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/qhfndxjo.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/dyqwyp4u.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    }
+  ],
+  "1220": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep4.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep4.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep4.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/llzr05vf.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/dvcb0ots.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    }
+  ],
+  "1221": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep3.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep3.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep3.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/wlfib5ie.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/lxi01skp.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    }
+  ],
+  "1222": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep2.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep2.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep2.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/it3kqhko.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/xmnb2zpl.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    }
+  ],
   "1223": [
     {
       "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep19.en.srt",
@@ -10202,6 +10554,38 @@
     },
     {
       "src": "https://sub.cdnvideo11.shop/mul/km/ljw0d13w.srt",
+      "label": "Malay",
+      "land": "ms",
+      "default": false
+    }
+  ],
+  "1235": [
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep1.en.srt",
+      "label": "English",
+      "land": "en",
+      "default": true
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep1.id.srt",
+      "label": "Indonesia",
+      "land": "id",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/Go-Go-Squid.2019.Ep1.ar.srt",
+      "label": "Arabic",
+      "land": "ar",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/13wiil2s.srt",
+      "label": "Khmer",
+      "land": "km",
+      "default": false
+    },
+    {
+      "src": "https://sub.cdnvideo11.shop/mul/km/gqfve4zy.srt",
       "label": "Malay",
       "land": "ms",
       "default": false
