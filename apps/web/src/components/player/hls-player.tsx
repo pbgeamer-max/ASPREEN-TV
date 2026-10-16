@@ -622,36 +622,6 @@ export function HlsPlayerModal({
             </video>
           )}
 
-          {/* 1. TVARUA Official Broadcast Logo (Top-Right: Completely Masks beIN Sports Logo) */}
-          {!isEmbed && (
-            <div className="absolute top-[4%] right-[3.5%] z-20 pointer-events-none select-none flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0a0c10] border border-[#2a303c]/90 shadow-2xl">
-              <img
-                src="/tvarua_logo.png"
-                alt="TVARUA"
-                className="h-7 w-auto object-contain filter drop-shadow brightness-110"
-              />
-              <div className="flex flex-col text-left border-l border-white/20 pl-2">
-                <span className="text-[10px] font-black tracking-widest text-white leading-none">TVARUA</span>
-                <span className="text-[8px] font-bold text-emerald-400 tracking-wider uppercase leading-tight mt-0.5">LIVE HD</span>
-              </div>
-            </div>
-          )}
-
-          {/* 2. TVARUA Brand Mask (Bottom-Left: Completely Masks Yacine TV QR Code & Text) */}
-          {!isEmbed && (
-            <div className="absolute bottom-0 left-0 z-20 pointer-events-none select-none flex flex-col items-center justify-center w-[16.5%] min-w-[130px] max-w-[175px] h-[23.5%] min-h-[100px] max-h-[140px] rounded-tr-2xl bg-[#0a0c10] border-t border-r border-[#2a303c]/90 shadow-2xl p-2 text-center">
-              <img
-                src="/tvarua_logo.png"
-                alt="TVARUA"
-                className="h-10 w-auto object-contain mb-1 filter drop-shadow brightness-110"
-              />
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#141e19] border border-emerald-500/50 text-emerald-400 text-[9px] font-extrabold tracking-wider">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>TVARUA SPORTS</span>
-              </div>
-            </div>
-          )}
-
           {/* Muted Autoplay Banner (Click to Unmute) */}
           {isMuted && isPlaying && !isEmbed && (
             <button

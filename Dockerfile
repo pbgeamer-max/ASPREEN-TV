@@ -51,6 +51,8 @@ COPY --from=builder /app/apps/web/next.config.js ./apps/web/next.config.js
 COPY channels.json ./channels.json
 COPY channels.json ./apps/api/channels.json
 COPY data ./data
+COPY tvarua_logo_clean_alpha.png ./tvarua_logo_clean_alpha.png
+COPY tvarua_logo.png ./tvarua_logo.png
 COPY scripts ./scripts
 COPY scripts/start-railway.sh ./start-railway.sh
 

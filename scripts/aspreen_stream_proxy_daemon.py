@@ -20,6 +20,7 @@ import time
 import base64
 import socket
 import threading
+import subprocess
 import ssl
 import urllib.request
 import urllib.parse
@@ -88,6 +89,86 @@ cache_lock = threading.Lock()
 server_start_time = time.time()
 last_renew_time = 0
 total_refreshes = 0
+
+# Video Processing & Re-encoding Configuration (TVARUA Broadcast Branding)
+LOGO_PATHS = [
+    os.path.join(WORKSPACE_DIR, "tvarua_logo_clean_alpha.png"),
+    os.path.join(WORKSPACE_DIR, "data", "tvarua_logo.png"),
+    os.path.join(WORKSPACE_DIR, "tvarua_logo.png"),
+    os.path.join(WORKSPACE_DIR, "apps", "web", "public", "tvarua_logo_clean_alpha.png"),
+    os.path.join(WORKSPACE_DIR, "apps", "web", "public", "tvarua_logo.png"),
+]
+EFFECTIVE_LOGO_PATH = next((p for p in LOGO_PATHS if os.path.exists(p)), "")
+
+FILTER_COMPLEX_STR = (
+    '[0:v]scale=1280:720[base];'
+    '[base]delogo=x=1065:y=20:w=165:h=92[no_bein];'
+    '[no_bein]delogo=x=25:y=595:w=135:h=115[clean];'
+    '[1:v]scale=140:-1[logo];'
+    '[clean][logo]overlay=W-w-35:22[outv]'
+)
+
+segment_cache = {}
+segment_cache_order = []
+segment_cache_lock = threading.Lock()
+MAX_SEGMENT_CACHE = 25
+
+def transcode_ts_segment(raw_bytes: bytes, cache_key: str = "") -> bytes:
+    """Burns TVARUA transparent logo & delogo watermarks directly into MPEG-TS video frames."""
+    if not raw_bytes or len(raw_bytes) < 8000:
+        return raw_bytes
+    logo_file = EFFECTIVE_LOGO_PATH
+    if not logo_file or not os.path.exists(logo_file):
+        logo_file = next((p for p in LOGO_PATHS if os.path.exists(p)), "")
+    if not logo_file:
+        return raw_bytes
+
+    if cache_key:
+        with segment_cache_lock:
+            if cache_key in segment_cache:
+                return segment_cache[cache_key]
+
+    cmd = [
+        'ffmpeg', '-y',
+        '-loglevel', 'error',
+        '-i', 'pipe:0',
+        '-i', logo_file,
+        '-filter_complex', FILTER_COMPLEX_STR,
+        '-map', '[outv]',
+        '-map', '0:a?',
+        '-c:v', 'libx264',
+        '-preset', 'ultrafast',
+        '-tune', 'zerolatency',
+        '-b:v', '2200k',
+        '-maxrate', '2500k',
+        '-bufsize', '4000k',
+        '-c:a', 'copy',
+        '-f', 'mpegts',
+        'pipe:1'
+    ]
+
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL
+        )
+        out, _ = proc.communicate(input=raw_bytes, timeout=4.5)
+        if proc.returncode == 0 and len(out) > 5000:
+            if cache_key:
+                with segment_cache_lock:
+                    if len(segment_cache_order) >= MAX_SEGMENT_CACHE:
+                        oldest = segment_cache_order.pop(0)
+                        segment_cache.pop(oldest, None)
+                    segment_cache[cache_key] = out
+                    segment_cache_order.append(cache_key)
+            return out
+    except Exception:
+        # Fallback seamlessly to raw bytes on any timeout or FFmpeg edge case
+        pass
+
+    return raw_bytes
 
 
 def send_telegram_message(text: str):
@@ -699,22 +780,27 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                             pass
                         return
 
+                    # Read all bytes of this TS segment
+                    rest_chunks = []
+                    while True:
+                        chunk = upstream.read(64 * 1024)
+                        if not chunk:
+                            break
+                        rest_chunks.append(chunk)
+                    full_raw_ts = first_chunk + b"".join(rest_chunks)
+
+                    # Transcode TS chunk through FFmpeg to burn in TVARUA transparent logo & delogo watermarks
+                    processed_ts = transcode_ts_segment(full_raw_ts, cache_key=target_url)
+
                     status = upstream.getcode()
-                    content_len = upstream.headers.get("Content-Length")
                     self.send_response(status if status else 200)
                     self.send_cors_headers()
                     self.send_header("Content-Type", "video/mp2t")
-                    if content_len:
-                        self.send_header("Content-Length", content_len)
+                    self.send_header("Content-Length", str(len(processed_ts)))
                     self.end_headers()
 
                     try:
-                        self.wfile.write(first_chunk)
-                        while True:
-                            chunk = upstream.read(64 * 1024)
-                            if not chunk:
-                                break
-                            self.wfile.write(chunk)
+                        self.wfile.write(processed_ts)
                     except (BrokenPipeError, ConnectionResetError):
                         return
                     return
