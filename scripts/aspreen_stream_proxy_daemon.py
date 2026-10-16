@@ -559,10 +559,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             headers = {
                 "User-Agent": user_agent or DEFAULT_UA,
                 "Referer": channel_referer,
+                "Origin": "https://yacine.website",
+                "Sec-Fetch-Dest": "empty",
+                "Sec-Fetch-Mode": "cors",
+                "Sec-Fetch-Site": "same-origin",
                 "Accept": "*/*"
             }
             if "edgenextcdn.net" in url:
                 headers.pop("Referer", None)
+                headers.pop("Origin", None)
             elif "yacine.website" in url or "new-redirect.online" in url or ".buzz" in url or ".lol" in url:
                 headers["X-Forwarded-For"] = "156.200.1.1"
                 headers["CF-Connecting-IP"] = "156.200.1.1"
@@ -713,24 +718,29 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         headers = {
             "User-Agent": ua,
             "Referer": referer,
+            "Origin": "https://yacine.website",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
             "Accept": "*/*"
         }
         if "edgenextcdn.net" in target_url:
             headers.pop("Referer", None)
+            headers.pop("Origin", None)
         elif "yacine.website" in target_url or "new-redirect.online" in target_url or ".buzz" in target_url or ".lol" in target_url:
             headers["X-Forwarded-For"] = "156.200.1.1"
             headers["CF-Connecting-IP"] = "156.200.1.1"
             headers["X-Real-IP"] = "156.200.1.1"
 
-        req = urllib.request.Request(target_url, headers=headers)
-
         for attempt in range(3):
             try:
+                req = urllib.request.Request(target_url, headers=headers)
                 with PROXY_OPENER.open(req, timeout=10) as upstream:
                     first_chunk = upstream.read(64 * 1024)
                     if not first_chunk or first_chunk.startswith(b"No URLs available") or first_chunk.startswith(b"<html>") or first_chunk.startswith(b"<html") or first_chunk.startswith(b"<!DOCTYPE"):
                         if attempt < 2:
-                            time.sleep(0.4)
+                            headers["Referer"] = "https://yacine.website/"
+                            time.sleep(0.3)
                             continue
                         # Return empty TS segment with 200 to prevent HLS.js crashing on expired live segments
                         self.send_response(200)
@@ -780,27 +790,22 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                             pass
                         return
 
-                    # Read all bytes of this TS segment
-                    rest_chunks = []
-                    while True:
-                        chunk = upstream.read(64 * 1024)
-                        if not chunk:
-                            break
-                        rest_chunks.append(chunk)
-                    full_raw_ts = first_chunk + b"".join(rest_chunks)
-
-                    # Transcode TS chunk through FFmpeg to burn in TVARUA transparent logo & delogo watermarks
-                    processed_ts = transcode_ts_segment(full_raw_ts, cache_key=target_url)
-
                     status = upstream.getcode()
+                    content_len = upstream.headers.get("Content-Length")
                     self.send_response(status if status else 200)
                     self.send_cors_headers()
                     self.send_header("Content-Type", "video/mp2t")
-                    self.send_header("Content-Length", str(len(processed_ts)))
+                    if content_len:
+                        self.send_header("Content-Length", content_len)
                     self.end_headers()
 
                     try:
-                        self.wfile.write(processed_ts)
+                        self.wfile.write(first_chunk)
+                        while True:
+                            chunk = upstream.read(64 * 1024)
+                            if not chunk:
+                                break
+                            self.wfile.write(chunk)
                     except (BrokenPipeError, ConnectionResetError):
                         return
                     return

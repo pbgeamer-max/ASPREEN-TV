@@ -622,6 +622,29 @@ export function HlsPlayerModal({
             </video>
           )}
 
+          {/* TVARUA VIP Clean Alpha Watermark (Masks beIN Sports Watermark - No Black Box) */}
+          {isPlaying && !isEmbed && (
+            <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 pointer-events-none select-none flex items-center justify-center">
+              <div className="backdrop-blur-md bg-black/20 rounded-xl p-1 border border-white/10 shadow-lg transition-transform duration-300">
+                <img
+                  src="/tvarua_logo_clean_alpha.png"
+                  alt="TVARUA VIP"
+                  className="h-7 sm:h-9 md:h-11 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* TVARUA VIP Broadcast Badge (Masks Yacine TV watermarks - Transparent, No Black Box) */}
+          {isPlaying && !isEmbed && (
+            <div className="absolute bottom-12 left-3 sm:bottom-14 sm:left-4 z-20 pointer-events-none select-none">
+              <div className="backdrop-blur-md bg-black/30 rounded-lg px-2.5 py-1 border border-emerald-500/30 flex items-center gap-1.5 shadow-md">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[10px] sm:text-xs font-bold text-white tracking-wide">TVARUA VIP</span>
+              </div>
+            </div>
+          )}
+
           {/* Muted Autoplay Banner (Click to Unmute) */}
           {isMuted && isPlaying && !isEmbed && (
             <button
