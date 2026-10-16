@@ -82,8 +82,10 @@ export async function createServer() {
   });
 
   await server.register(rateLimit, {
-    max: 1000,
+    global: false,
+    max: 100000,
     timeWindow: '1 minute',
+    allowList: ['127.0.0.1', '::1', '::ffff:127.0.0.1', 'localhost'],
   });
 
   // Gracefully handle empty JSON bodies from proxies/rewrites, allow up to 50MB

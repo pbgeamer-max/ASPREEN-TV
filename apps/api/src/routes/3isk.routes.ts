@@ -509,6 +509,13 @@ export async function iskRoutes(server: FastifyInstance) {
    * Remuxes HLS live/VOD stream to progressive fragmented MP4 in real-time using FFmpeg
    * Plays natively on all browsers and devices with zero HLS key or buffering errors!
    */
+  server.options('/video.mp4', async (_req, reply) => {
+    reply.header('Access-Control-Allow-Origin', '*');
+    reply.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    reply.header('Access-Control-Allow-Headers', '*');
+    return reply.status(204).send();
+  });
+
   server.get('/video.mp4', async (request: FastifyRequest<{ Querystring: { url: string; api_key?: string } }>, reply: FastifyReply) => {
     const rawUrl = request.query.url;
     if (!rawUrl || !/^https?:\/\//i.test(rawUrl)) {
@@ -551,6 +558,7 @@ export async function iskRoutes(server: FastifyInstance) {
         headersSent = true;
         reply.raw.writeHead(200, {
           'Content-Type': 'video/mp4',
+          'Accept-Ranges': 'bytes',
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
           'Access-Control-Allow-Headers': '*',

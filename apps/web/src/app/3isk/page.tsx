@@ -28,6 +28,7 @@ interface Episode {
   title: string;
   watch_url: string;
   stream_url: string;
+  hls_stream_url?: string;
 }
 
 interface CatalogItem {
@@ -42,6 +43,7 @@ interface CatalogItem {
   episodes?: Episode[];
   watch_url?: string;
   stream_url?: string;
+  hls_stream_url?: string;
 }
 
 export default function ThreeIskPage() {
@@ -66,6 +68,7 @@ export default function ThreeIskPage() {
   const [playerOpen, setPlayerOpen] = useState(false);
   const [playerTitle, setPlayerTitle] = useState('');
   const [playerStreamUrl, setPlayerStreamUrl] = useState('');
+  const [playerBackupUrl, setPlayerBackupUrl] = useState<string | null>(null);
 
   // Copy API state
   const [copiedApi, setCopiedApi] = useState(false);
@@ -100,6 +103,7 @@ export default function ThreeIskPage() {
             title: ep.title,
             watch_url: ep.watchUrl,
             stream_url: `${origin}/api/app/3isk/video.mp4?url=${encodeURIComponent(ep.watchUrl)}`,
+            hls_stream_url: `${origin}/api/app/3isk/stream?url=${encodeURIComponent(ep.watchUrl)}`,
           }));
           setSelectedSeries((prev) => (prev ? { ...prev, episodes: eps, episodes_count: eps.length } : prev));
         }
@@ -160,12 +164,14 @@ export default function ThreeIskPage() {
   const handlePlayMovie = (movie: CatalogItem) => {
     setPlayerTitle(movie.title);
     setPlayerStreamUrl(movie.stream_url || '');
+    setPlayerBackupUrl(movie.hls_stream_url || null);
     setPlayerOpen(true);
   };
 
   const handlePlayEpisode = (ep: Episode, seriesTitle: string) => {
     setPlayerTitle(`${seriesTitle} - ${ep.title}`);
     setPlayerStreamUrl(ep.stream_url);
+    setPlayerBackupUrl(ep.hls_stream_url || null);
     setPlayerOpen(true);
   };
 
@@ -483,6 +489,7 @@ export default function ThreeIskPage() {
               isOpen={playerOpen}
               onClose={() => setPlayerOpen(false)}
               streamUrl={playerStreamUrl}
+              backupUrl={playerBackupUrl}
               channelName={playerTitle}
             />
           )}

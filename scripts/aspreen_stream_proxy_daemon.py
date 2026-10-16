@@ -600,7 +600,14 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             if stream_query_token and "?" not in real_seg_url:
                 real_seg_url = f"{real_seg_url}?{stream_query_token}"
 
-            seg_full = urllib.parse.urljoin(target_fetch_url, real_seg_url)
+            # If it's a new-redirect / Yacine stream, wrap it in play.php so upstream CDN accepts it
+            if "new-redirect.online" in real_seg_url or "yacine.website" in target_fetch_url:
+                b64_url = base64.b64encode(real_seg_url.encode()).decode()
+                b64_ua = base64.b64encode((req_ua or DEFAULT_UA).encode()).decode()
+                seg_full = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
+            else:
+                seg_full = urllib.parse.urljoin(target_fetch_url, real_seg_url)
+
             encoded_seg = urllib.parse.quote(seg_full, safe="")
             encoded_ref = urllib.parse.quote(channel_referer, safe="")
             rewritten.append(inf)
@@ -622,19 +629,11 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
     def handle_ts_segment(self, target_url, ref_override=""):
         """Pipes upstream TS segment chunks to client seamlessly with exact headers"""
-        # If target_url still has an encoded url= inside, decode it directly
-        if "url=" in target_url:
-            try:
-                parsed_q = urllib.parse.parse_qs(urllib.parse.urlparse(target_url).query)
-                enc_param = parsed_q.get("url", [""])[0]
-                if enc_param:
-                    clean_b64 = urllib.parse.unquote(enc_param)
-                    clean_b64 += "=" * ((4 - len(clean_b64) % 4) % 4)
-                    dec_u = base64.b64decode(clean_b64).decode("utf-8", errors="ignore")
-                    if dec_u.startswith("http://") or dec_u.startswith("https://"):
-                        target_url = dec_u
-            except Exception:
-                pass
+        # If target is raw new-redirect.online without play.php, wrap it in play.php
+        if "new-redirect.online" in target_url and "play.php" not in target_url:
+            b64_t = base64.b64encode(target_url.encode()).decode()
+            b64_u = base64.b64encode(DEFAULT_UA.encode()).decode()
+            target_url = f"https://yacine.website/play.php?url={b64_t}&ua={b64_u}"
 
         decoded_ua = ""
         if "ua=" in target_url:
