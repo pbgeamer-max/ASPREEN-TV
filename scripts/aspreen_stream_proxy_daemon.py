@@ -251,37 +251,33 @@ def renew_single_channel_stream(cid):
 
 
 
+m3u8_cache = {}  # cid -> (content_bytes, expire_timestamp)
+m3u8_cache_lock = threading.Lock()
+
 def background_auto_renew_loop():
-    """24/7 Background thread that renews all channels periodically"""
+    """24/7 Background thread that renews active channels periodically with gentle pacing"""
     global last_renew_time, total_refreshes
-    time.sleep(15)  # Wait 15s for server startup, then perform initial refresh
+    time.sleep(15)  # Wait 15s for server startup
 
     while True:
         try:
-            print(f"\n🔄 [{time.strftime('%H:%M:%S')}] بدء جولة التجديد التلقائي لروابط القنوات (24/7 Auto-Renew)...")
-            start_round = time.time()
+            now = time.time()
             with cache_lock:
-                cids = list(channels_cache.keys())
+                primary_sports = {"207119423132628321", "207119423133708072", "207119423130423959", "207119423131118230"}
+                cids_to_renew = [
+                    cid for cid, ch in channels_cache.items()
+                    if (ch.get("lastRenewed", 0) > (now - 3600) or cid in primary_sports)
+                    and "edgenextcdn.net" not in ch.get("streamUrl", "")
+                ]
 
             success_count = 0
-            for cid in cids:
-                with cache_lock:
-                    ch_info = channels_cache.get(cid, {})
-                    stream_url = ch_info.get("streamUrl", "")
-                    ch_source = ch_info.get("source", "")
-                
-                # Renew dynamic yacine event streams; NEVER overwrite dedicated CDN channels like edgenextcdn
-                if (ch_source == "yacine.website" or len(cid) >= 15) and "edgenextcdn.net" not in stream_url:
-                    if renew_single_channel_stream(cid):
-                        success_count += 1
-                    time.sleep(0.08)
-
+            for cid in cids_to_renew:
+                if renew_single_channel_stream(cid):
+                    success_count += 1
+                time.sleep(1.5)  # 1.5s gentle delay prevents Yacine Cloudflare IP rate-limiting
 
             last_renew_time = time.time()
             total_refreshes += 1
-            round_duration = round(time.time() - start_round, 1)
-
-            print(f" [✓] اكتملت جولة التجديد: تم تحديث {success_count}/{len(cids)} قناة في {round_duration} ثانية.")
 
             # Update channels.json and channels.m3u
             save_channels_to_disk()
@@ -466,6 +462,24 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
     def handle_channel_playlist(self, cid):
         """Fetches upstream M3U8, rewrites segment URLs, and returns to client"""
+        now_ts = time.time()
+        with m3u8_cache_lock:
+            cached_data = m3u8_cache.get(cid)
+            if cached_data and now_ts < cached_data[1]:
+                self.send_response(200)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "application/vnd.apple.mpegurl")
+                self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                self.send_header("Pragma", "no-cache")
+                self.send_header("Expires", "0")
+                self.send_header("Content-Length", str(len(cached_data[0])))
+                self.end_headers()
+                try:
+                    self.wfile.write(cached_data[0])
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+                return
+
         with cache_lock:
             ch = channels_cache.get(cid)
 
@@ -678,6 +692,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             rewritten.append(f"/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
 
         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
+        with m3u8_cache_lock:
+            m3u8_cache[cid] = (out_body, time.time() + 3.0)
         self.send_response(200)
         self.send_cors_headers()
         self.send_header("Content-Type", "application/vnd.apple.mpegurl")
