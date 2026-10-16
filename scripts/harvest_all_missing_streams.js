@@ -6,75 +6,79 @@ const STREAMS_PATH = path.join(__dirname, '..', 'data', 'kisskh_streams.json');
 const SUBS_PATH = path.join(__dirname, '..', 'data', 'kisskh_subtitles.json');
 const DRAMAS_PATH = path.join(__dirname, '..', 'data', 'kisskh_dramas.json');
 
+const mirrors = ['kisskh.do', 'kisskh.la', 'kisskh.id', 'kisskh.is', 'kisskh.ovh', 'kisskh.co'];
+let mirrorIndex = 0;
+
 async function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function fetchEpStream(epId, retries = 2) {
+async function fetchEpStream(epId) {
   const kkey = kisskhService.generateVideoKKey(epId);
-  const url = `https://kisskh.co/api/DramaList/Episode/${epId}.png?kkey=${kkey}`;
 
-  for (let attempt = 0; attempt <= retries; attempt++) {
+  for (let i = 0; i < mirrors.length; i++) {
+    const domain = mirrors[(mirrorIndex++) % mirrors.length];
+    const url = `https://${domain}/api/DramaList/Episode/${epId}.png?kkey=${kkey}`;
+
     try {
       const res = await fetch(url, {
         headers: {
           'User-Agent': 'Dart/3.0 (dart:io)',
           'Accept': '*/*',
         },
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(4500),
       });
 
-      if (!res.ok) {
-        if (res.status === 429) {
-          await sleep(2500);
-          continue;
+      if (res.ok) {
+        const json = await res.json();
+        if (json && (json.Video || json.ThirdParty)) {
+          return {
+            videoUrl: json.Video || '',
+            backupUrl: json.ThirdParty || null,
+            type: json.Type || 1,
+          };
         }
         return null;
       }
 
-      const json = await res.json();
-      if (json && (json.Video || json.ThirdParty)) {
-        return {
-          videoUrl: json.Video || '',
-          backupUrl: json.ThirdParty || null,
-          type: json.Type || 1,
-        };
+      if (res.status === 429) {
+        // This mirror is rate limited; try next mirror
+        continue;
       }
-      return null;
-    } catch {
-      if (attempt < retries) await sleep(800);
-    }
+    } catch {}
   }
   return null;
 }
 
-async function fetchEpSubs(epId, retries = 2) {
+async function fetchEpSubs(epId) {
   const subKey = kisskhService.generateSubKKey(epId);
-  const url = `https://kisskh.co/api/Sub/${epId}?kkey=${subKey}`;
 
-  for (let attempt = 0; attempt <= retries; attempt++) {
+  for (let i = 0; i < mirrors.length; i++) {
+    const domain = mirrors[(mirrorIndex++) % mirrors.length];
+    const url = `https://${domain}/api/Sub/${epId}?kkey=${subKey}`;
+
     try {
       const res = await fetch(url, {
         headers: {
           'User-Agent': 'Dart/3.0 (dart:io)',
           'Accept': '*/*',
         },
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(4500),
       });
 
-      if (!res.ok) return [];
-      const list = await res.json();
-      if (!Array.isArray(list)) return [];
-
-      return list.map((item) => ({
-        src: item.src,
-        label: item.label || 'Sub',
-        land: item.land || 'en',
-        default: Boolean(item.default),
-      }));
-    } catch {
-      if (attempt < retries) await sleep(800);
-    }
+      if (res.ok) {
+        const list = await res.json();
+        if (Array.isArray(list)) {
+          return list.map((item) => ({
+            src: item.src,
+            label: item.label || 'Sub',
+            land: item.land || 'en',
+            default: Boolean(item.default),
+          }));
+        }
+        return [];
+      }
+    } catch {}
   }
   return [];
 }
@@ -100,8 +104,8 @@ async function run() {
   // Find all missing episodes
   const queue = [];
 
-  // Prioritize active dramas (like A Trap Called Desire, Family Register, Moonshadow)
-  const priorityIds = ['13581', '13355', '13498'];
+  // Prioritize active & requested dramas (Master Devil Do Not Kiss Me 1 & 2, A Trap Called Desire, Family Register, Moonshadow)
+  const priorityIds = ['107', '106', '13581', '13355', '13498'];
   for (const pid of priorityIds) {
     const d = dramas[pid];
     if (d && Array.isArray(d.episodes)) {
@@ -166,13 +170,13 @@ async function run() {
       }
     }
 
-    if (processed % 30 === 0 || queue.length === 0) {
+    if (processed % 24 === 0 || queue.length === 0) {
       fs.writeFileSync(STREAMS_PATH, JSON.stringify(streams, null, 2), 'utf8');
       fs.writeFileSync(SUBS_PATH, JSON.stringify(subs, null, 2), 'utf8');
       console.log(`[+] تم معالجة ${processed} حلقة (ناجح: ${successCount} | عداد/غير متوفر: ${failCount})`);
     }
 
-    await sleep(60);
+    await sleep(100);
   }
 
   fs.writeFileSync(STREAMS_PATH, JSON.stringify(streams, null, 2), 'utf8');

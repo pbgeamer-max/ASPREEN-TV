@@ -33,6 +33,7 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
   const [showSubMenu, setShowSubMenu] = useState(false);
   const [internalSubtitles, setInternalSubtitles] = useState<SubtitleTrack[]>(subtitles || []);
   const [loadingSubtitles, setLoadingSubtitles] = useState(false);
+  const [isBackupActive, setIsBackupActive] = useState(false);
 
   const fullStreamUrl = useMemo(() => {
     if (typeof window === 'undefined') return streamUrl;
@@ -141,7 +142,11 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
   }, [activeTrack, isPlaying]);
 
   useEffect(() => {
-    if (!isOpen || !streamUrl) return;
+    setIsBackupActive(false);
+  }, [streamUrl, reloadKey]);
+
+  useEffect(() => {
+    if (!isOpen || !streamUrl || isBackupActive) return;
 
     setError(null);
     setIsLoading(true);
@@ -242,6 +247,14 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
             case Hls.ErrorTypes.NETWORK_ERROR:
               networkErrorCount++;
               if (networkErrorCount >= 3) {
+                if (backupUrl) {
+                  console.log('[HlsPlayer] Fatal network error on primary, switching to backup embed...');
+                  setIsBackupActive(true);
+                  setError(null);
+                  setIsLoading(false);
+                  hls?.destroy();
+                  break;
+                }
                 console.error('[HlsPlayer] Fatal network error limit reached:', data.details);
                 setError('تعذر تحميل رابط البث من السيرفر. اضغط على زر إعادة المحاولة.');
                 setIsLoading(false);
@@ -427,6 +440,42 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
               </div>
             )}
 
+            {/* Server Switcher */}
+            {backupUrl && (
+              <div className="flex items-center bg-[#18181B] p-0.5 rounded-lg border border-white/10 text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsBackupActive(false);
+                    setError(null);
+                  }}
+                  className={`px-2 py-1 rounded-md transition-all ${
+                    !isBackupActive
+                      ? 'bg-[#E50914] text-white font-bold shadow-sm'
+                      : 'text-[#A1A1AA] hover:text-white'
+                  }`}
+                  title="سيرفر Aspreen VIP فائق السرعة"
+                >
+                  سيرفر VIP
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsBackupActive(true);
+                    setError(null);
+                  }}
+                  className={`px-2 py-1 rounded-md transition-all ${
+                    isBackupActive
+                      ? 'bg-[#E50914] text-white font-bold shadow-sm'
+                      : 'text-[#A1A1AA] hover:text-white'
+                  }`}
+                  title="سيرفر خارجي احتياطي"
+                >
+                  سيرفر بديل
+                </button>
+              </div>
+            )}
+
             <button
               onClick={onClose}
               className="text-[#71717A] hover:text-[#F5F5F5] transition-colors p-1.5 rounded-lg hover:bg-[#222222]"
@@ -439,28 +488,37 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
 
         {/* Video Player Container */}
         <div className="relative bg-black aspect-video w-full flex items-center justify-center overflow-hidden">
-          <video
-            ref={videoRef}
-            className="w-full h-full object-contain"
-            controls
-            playsInline
-            autoPlay
-            crossOrigin="anonymous"
-          >
-            {activeTrack && (
-              <track
-                key={activeTrack.src}
-                kind="subtitles"
-                src={activeTrack.vtt_url || `/api/app/kisskh/sub-vtt?url=${encodeURIComponent(activeTrack.src)}`}
-                srcLang={activeTrack.land || 'ar'}
-                label={activeTrack.label}
-                default
-              />
-            )}
-          </video>
+          {isBackupActive && backupUrl ? (
+            <iframe
+              src={backupUrl}
+              className="w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+              allowFullScreen
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              className="w-full h-full object-contain"
+              controls
+              playsInline
+              autoPlay
+              crossOrigin="anonymous"
+            >
+              {activeTrack && (
+                <track
+                  key={activeTrack.src}
+                  kind="subtitles"
+                  src={activeTrack.vtt_url || `/api/app/kisskh/sub-vtt?url=${encodeURIComponent(activeTrack.src)}`}
+                  srcLang={activeTrack.land || 'ar'}
+                  label={activeTrack.label}
+                  default
+                />
+              )}
+            </video>
+          )}
 
           {/* Loading Indicator */}
-          {isLoading && !isPlaying && !error && (
+          {isLoading && !isPlaying && !error && !isBackupActive && (
             <div className="absolute inset-0 bg-black/75 flex flex-col items-center justify-center p-6 text-center gap-3 pointer-events-none z-10">
               <Loader2 className="w-8 h-8 text-[#E50914] animate-spin" />
               <p className="text-xs text-white/90 font-medium">جاري تجهيز البث فائق السرعة...</p>
@@ -469,18 +527,32 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
           )}
 
           {/* Error Screen */}
-          {error && !isPlaying && (
+          {error && !isPlaying && !isBackupActive && (
             <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center p-6 text-center gap-3 z-20">
               <AlertCircle className="w-8 h-8 text-rose-500" />
               <p className="text-xs md:text-sm text-[#F5F5F5] font-medium">{error}</p>
 
-              <button
-                onClick={handleRetry}
-                className="mt-2 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#E50914] hover:bg-[#B81D24] text-white text-xs font-semibold shadow-md transition-colors"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>إعادة المحاولة (Retry)</span>
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                <button
+                  onClick={handleRetry}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#E50914] hover:bg-[#B81D24] text-white text-xs font-semibold shadow-md transition-colors"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>إعادة المحاولة (Retry)</span>
+                </button>
+
+                {backupUrl && (
+                  <button
+                    onClick={() => {
+                      setError(null);
+                      setIsBackupActive(true);
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition-colors"
+                  >
+                    <span>الانتقال للسيرفر البديل (Backup)</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>

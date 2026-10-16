@@ -441,12 +441,11 @@ class KisskhService {
    * Helper that requests active KissKH mirrors with mobile Dart UA (kisskh.co -> kisskh.is -> kisskh.do -> kisskh.ovh)
    */
   private async fetchFromMirror(endpoint: string, isImage = false): Promise<Response> {
-    const allDomains = ['kisskh.co', 'kisskh.is', 'kisskh.do', 'kisskh.ovh', 'kisskh.la', 'kisskh.id'];
+    const allDomains = ['kisskh.do', 'kisskh.la', 'kisskh.id', 'kisskh.is', 'kisskh.ovh', 'kisskh.co'];
     const startIndex = (this.mirrorIndex++) % allDomains.length;
     const domains = [...allDomains.slice(startIndex), ...allDomains.slice(0, startIndex)];
-    const mobileUas = ['Dart/3.0 (dart:io)', 'okhttp/4.9.3', 'KissKH/2.8.10', UA];
+    const mobileUas = ['Dart/3.0 (dart:io)', 'okhttp/4.9.3', UA];
     let lastError: Error | null = null;
-    const isPng = isImage || endpoint.includes('.png');
 
     for (const domain of domains) {
       for (const userAgent of mobileUas) {
@@ -457,12 +456,11 @@ class KisskhService {
             Accept: '*/*',
           };
 
-          // Only send Referer if not a mobile dart/okhttp client
           if (!userAgent.includes('Dart') && !userAgent.includes('okhttp')) {
             headers['Referer'] = `https://${domain}/`;
           }
 
-          const res = await fetch(fullUrl, { headers, signal: AbortSignal.timeout(6000) });
+          const res = await fetch(fullUrl, { headers, signal: AbortSignal.timeout(3500) });
           if (res.ok) {
             return res;
           }
@@ -470,8 +468,8 @@ class KisskhService {
           const errText = await res.text().catch(() => '');
           lastError = new Error(`${domain} returned HTTP ${res.status}: ${errText.substring(0, 100)}`);
           if (res.status === 403 || res.status === 429) {
-            // Try next User-Agent or mirror
-            continue;
+            // WAF or Rate limit on this domain: immediately switch to the next mirror
+            break;
           }
         } catch (err: any) {
           lastError = err;
