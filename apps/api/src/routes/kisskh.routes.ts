@@ -327,11 +327,14 @@ export async function kisskhRoutes(server: FastifyInstance) {
           const trimmed = line.trim();
           if (!trimmed) return line;
 
-          // Handle URI attributes in tags (e.g. #EXT-X-KEY:METHOD=...,URI="...")
+          // Handle URI attributes in tags (e.g. #EXT-X-MEDIA:TYPE=AUDIO,...,URI="sub-playlist.m3u8" or #EXT-X-KEY:...,URI="...")
           if (trimmed.startsWith('#')) {
             if (trimmed.includes('URI="')) {
               return trimmed.replace(/URI="([^"]+)"/g, (_match, uri) => {
                 const fullUri = new URL(uri, baseUri).href;
+                if (fullUri.toLowerCase().includes('.m3u8')) {
+                  return `URI="${effectiveBaseUrl}/api/app/kisskh/stream?url=${encodeURIComponent(fullUri)}${keyParam}"`;
+                }
                 return `URI="${effectiveBaseUrl}/api/app/kisskh/ts-proxy?url=${encodeURIComponent(fullUri)}"`;
               });
             }
@@ -417,9 +420,13 @@ export async function kisskhRoutes(server: FastifyInstance) {
             reply.raw.setHeader('Access-Control-Expose-Headers', 'Content-Range, Content-Length, Accept-Ranges');
             reply.raw.setHeader('Accept-Ranges', 'bytes');
 
-            if (res.headers['content-type']) {
-              reply.raw.setHeader('Content-Type', res.headers['content-type']);
+            let contentType = res.headers['content-type'] || 'video/mp4';
+            if (chunkUrl.includes('.png') || contentType.includes('image/')) {
+              contentType = 'video/mp4';
+            } else if (chunkUrl.includes('.ts')) {
+              contentType = 'video/mp2t';
             }
+            reply.raw.setHeader('Content-Type', contentType);
             if (res.headers['content-length']) {
               reply.raw.setHeader('Content-Length', res.headers['content-length']);
             }
