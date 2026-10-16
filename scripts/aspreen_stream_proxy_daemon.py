@@ -126,6 +126,15 @@ class LiveTranscoderManager:
             if proc is not None and proc.poll() is None:
                 return
 
+            # Keep strictly 1 active transcoder process to preserve CPU stability and 0ms latency on Railway
+            for other_cid, other_proc in list(self.procs.items()):
+                if other_cid != cid and other_proc and other_proc.poll() is None:
+                    try:
+                        other_proc.terminate()
+                    except Exception:
+                        pass
+            self.procs = {}
+
             out_dir = os.path.join(HLS_DATA_DIR, cid)
             os.makedirs(out_dir, exist_ok=True)
             out_m3u8 = os.path.join(out_dir, "live.m3u8")
@@ -179,18 +188,12 @@ class LiveTranscoderManager:
                 print(f" [!] خطأ في تشغيل معالج البث للقناة {cid}: {e}")
 
     def sweep_inactive(self):
-        """Monitors active streams; keeps primary sports running 24/7, sweeps idle transcoders after 15m"""
+        """Monitors active streams; sweeps idle transcoders after 5m of inactivity"""
         now = time.time()
         with self.lock:
             for cid in list(self.procs.keys()):
-                if cid in self.primary_cids:
-                    proc = self.procs.get(cid)
-                    if proc is None or proc.poll() is not None:
-                        self.ensure_transcoder(cid)
-                    continue
-
                 idle = now - self.last_access.get(cid, 0)
-                if idle > 900:
+                if idle > 300:  # 5 minutes idle
                     proc = self.procs.pop(cid, None)
                     if proc and proc.poll() is None:
                         try:
@@ -202,13 +205,8 @@ class LiveTranscoderManager:
 transcoder_mgr = LiveTranscoderManager()
 
 def transcoder_supervisor_loop():
-    """Background supervisor for 24/7 persistent live stream transcoding"""
-    time.sleep(6)
-    # Pre-warm primary sports channels
-    for cid in transcoder_mgr.primary_cids:
-        transcoder_mgr.ensure_transcoder(cid)
-        time.sleep(2)
-
+    """Background supervisor for live stream transcoding idle cleanup"""
+    time.sleep(5)
     while True:
         try:
             transcoder_mgr.sweep_inactive()
@@ -243,9 +241,12 @@ def load_channels_from_disk():
         try:
             with open(CHANNELS_JSON_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
+            now = time.time()
             with cache_lock:
                 for ch in data:
                     cid = str(ch.get("id") or ch.get("vid"))
+                    if not ch.get("lastRenewed"):
+                        ch["lastRenewed"] = now
                     channels_cache[cid] = ch
             print(f" [✓] تم تحميل {len(channels_cache)} قناة في الذاكرة الحية.")
         except Exception as e:
@@ -656,22 +657,13 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             return target, final_ua
 
         target_fetch_url, req_ua = build_target_and_ua(ch)
-        now = time.time()
-        last_renewed = ch.get("lastRenewed", 0)
-        is_dynamic_yacine = (ch.get("source") == "yacine.website" or len(cid) >= 15) and "edgenextcdn.net" not in target_fetch_url
 
-        # Tokens are valid for 5 hours; renew dynamic streams every 15 minutes to stay completely fresh
-        if is_dynamic_yacine and (now - last_renewed > 900 or not target_fetch_url or target_fetch_url.startswith("http://127.0.0.1")):
+        # Only trigger renewal if we have no target stream url at all
+        if not target_fetch_url or target_fetch_url.startswith("http://127.0.0.1"):
             renew_single_channel_stream(cid)
             with cache_lock:
                 ch = channels_cache.get(cid, {})
                 target_fetch_url, req_ua = build_target_and_ua(ch)
-
-        if not target_fetch_url:
-            if renew_single_channel_stream(cid):
-                with cache_lock:
-                    ch = channels_cache.get(cid, {})
-                    target_fetch_url, req_ua = build_target_and_ua(ch)
 
         if not target_fetch_url:
             self.send_response(502)
@@ -683,7 +675,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 pass
             return
 
-        def fetch_m3u(url, user_agent, max_retries=3):
+        def fetch_m3u(url, user_agent, max_retries=2):
             headers = {
                 "User-Agent": user_agent or DEFAULT_UA,
                 "Referer": channel_referer,
@@ -704,22 +696,21 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             for attempt in range(max_retries):
                 try:
                     r = urllib.request.Request(url, headers=headers)
-                    with PROXY_OPENER.open(r, timeout=10) as resp:
+                    with PROXY_OPENER.open(r, timeout=3.5) as resp:
                         content = resp.read().decode("utf-8", errors="ignore")
                         if "#EXTM3U" in content:
                             return content
-                        # Token propagation delay: wait 0.5s and retry
                         if ("No URLs available" in content or not content) and attempt < max_retries - 1:
-                            time.sleep(0.5)
+                            time.sleep(0.3)
                             continue
                         return content
-                except Exception as e:
+                except Exception:
                     if attempt < max_retries - 1:
-                        time.sleep(0.5)
+                        time.sleep(0.3)
                         continue
             return ""
 
-        m3u_text = fetch_m3u(target_fetch_url, req_ua)
+        m3u_text = fetch_m3u(target_fetch_url, req_ua, max_retries=2)
 
         # If expired or returned error, auto-renew fresh token if dynamic yacine channel
         if not m3u_text or "#EXTM3U" not in m3u_text or "No URLs available" in m3u_text:
@@ -862,13 +853,13 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             headers["CF-Connecting-IP"] = "156.200.1.1"
             headers["X-Real-IP"] = "156.200.1.1"
 
-        for attempt in range(3):
+        for attempt in range(2):
             try:
                 req = urllib.request.Request(target_url, headers=headers)
-                with PROXY_OPENER.open(req, timeout=10) as upstream:
+                with PROXY_OPENER.open(req, timeout=6) as upstream:
                     first_chunk = upstream.read(64 * 1024)
                     if not first_chunk or first_chunk.startswith(b"No URLs available") or first_chunk.startswith(b"<html>") or first_chunk.startswith(b"<html") or first_chunk.startswith(b"<!DOCTYPE"):
-                        if attempt < 2:
+                        if attempt < 1:
                             headers["Referer"] = "https://yacine.website/"
                             time.sleep(0.3)
                             continue
