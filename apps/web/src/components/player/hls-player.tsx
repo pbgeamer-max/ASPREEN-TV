@@ -322,8 +322,8 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Subtitle Selector Button */}
-            {(isKisskh || (effectiveSubtitles && effectiveSubtitles.length > 0)) && (
+            {/* Subtitle Selector Button - only shown when subtitles are loading or actually exist */}
+            {((effectiveSubtitles && effectiveSubtitles.length > 0) || loadingSubtitles) && (
               <div className="relative" ref={subMenuRef}>
                 <button
                   type="button"

@@ -435,11 +435,15 @@ class KisskhService {
     );
   }
 
+  private mirrorIndex = 0;
+
   /**
    * Helper that requests active KissKH mirrors with mobile Dart UA (kisskh.co -> kisskh.is -> kisskh.do -> kisskh.ovh)
    */
   private async fetchFromMirror(endpoint: string, isImage = false): Promise<Response> {
-    const domains = ['kisskh.co', 'kisskh.is', 'kisskh.do', 'kisskh.ovh', 'kisskh.la', 'kisskh.id'];
+    const allDomains = ['kisskh.co', 'kisskh.is', 'kisskh.do', 'kisskh.ovh', 'kisskh.la', 'kisskh.id'];
+    const startIndex = (this.mirrorIndex++) % allDomains.length;
+    const domains = [...allDomains.slice(startIndex), ...allDomains.slice(0, startIndex)];
     const mobileUas = ['Dart/3.0 (dart:io)', 'okhttp/4.9.3', 'KissKH/2.8.10', UA];
     let lastError: Error | null = null;
     const isPng = isImage || endpoint.includes('.png');
@@ -720,9 +724,9 @@ class KisskhService {
       return result;
     }
 
-    // Auto-map fallback composite episode IDs (e.g. 13581001 -> drama 13581, ep 1)
+    // Auto-map fallback composite episode IDs (e.g. 954016 -> drama 954, ep 16 or 13581001 -> drama 13581, ep 1)
     const numId = Number(episodeId);
-    if (numId > 1000000) {
+    if (!isNaN(numId) && numId >= 1000) {
       const dramaId = Math.floor(numId / 1000);
       const epNum = numId % 1000;
       let dramaObj = this.localDramas?.[String(dramaId)];
@@ -733,7 +737,7 @@ class KisskhService {
       }
       if (dramaObj && Array.isArray(dramaObj.episodes)) {
         const matchingEp = dramaObj.episodes.find((e: any) => Math.floor(Number(e.number)) === epNum);
-        if (matchingEp && matchingEp.id) {
+        if (matchingEp && matchingEp.id && String(matchingEp.id) !== strId) {
           const resolved = await this.resolveEpisode(matchingEp.id);
           this.cache.set(cacheKey, {
             data: resolved,
@@ -807,15 +811,20 @@ class KisskhService {
       return tracks;
     }
 
-    // Auto-map fallback composite episode IDs (e.g. 13581001 -> drama 13581, ep 1)
+    // Auto-map fallback composite episode IDs (e.g. 954016 -> drama 954, ep 16 or 13581001 -> drama 13581, ep 1)
     const numId = Number(episodeId);
-    if (numId > 1000000) {
+    if (!isNaN(numId) && numId >= 1000) {
       const dramaId = Math.floor(numId / 1000);
       const epNum = numId % 1000;
-      const dramaObj = this.localDramas?.[String(dramaId)];
+      let dramaObj = this.localDramas?.[String(dramaId)];
+      if (!dramaObj) {
+        try {
+          dramaObj = await this.getDrama(dramaId);
+        } catch {}
+      }
       if (dramaObj && Array.isArray(dramaObj.episodes)) {
         const matchingEp = dramaObj.episodes.find((e: any) => Math.floor(Number(e.number)) === epNum);
-        if (matchingEp && matchingEp.id) {
+        if (matchingEp && matchingEp.id && String(matchingEp.id) !== strId) {
           return this.getSubtitles(matchingEp.id);
         }
       }

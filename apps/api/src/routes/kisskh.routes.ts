@@ -194,7 +194,21 @@ export async function kisskhRoutes(server: FastifyInstance) {
           : null;
 
         const episodes = drama.episodes.map((ep) => {
-          const cachedStream = (kisskhService as any).localStreams?.[String(ep.id)];
+          let cachedStream = (kisskhService as any).localStreams?.[String(ep.id)];
+          if (!cachedStream) {
+            const numId = Number(ep.id);
+            if (!isNaN(numId) && numId >= 1000) {
+              const dId = Math.floor(numId / 1000);
+              const epNum = numId % 1000;
+              const dObj = (kisskhService as any).localDramas?.[String(dId)];
+              if (dObj && Array.isArray(dObj.episodes)) {
+                const realEp = dObj.episodes.find((e: any) => Math.floor(Number(e.number)) === epNum);
+                if (realEp && realEp.id) {
+                  cachedStream = (kisskhService as any).localStreams?.[String(realEp.id)];
+                }
+              }
+            }
+          }
           const isDirectMp4 = cachedStream?.videoUrl?.toLowerCase().includes('.mp4');
           return {
             id: ep.id,
