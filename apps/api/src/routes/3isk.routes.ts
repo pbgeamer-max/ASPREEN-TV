@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as http from 'http';
@@ -282,13 +283,25 @@ export async function iskRoutes(server: FastifyInstance) {
       }
     }
 
+    const reqHost = (request.headers['x-forwarded-host'] as string) || (request.headers.host as string);
+    const reqProto = (request.headers['x-forwarded-proto'] as string) || 'https';
+    let effectiveBaseUrl = 'https://aspreen-tv-production.up.railway.app';
+    if (reqHost && !reqHost.includes('127.0.0.1')) {
+      effectiveBaseUrl = `${reqProto}://${reqHost}`;
+    }
+
     reply.header('Access-Control-Allow-Origin', '*');
     return {
       success: true,
       series_id: id,
       title: s.title,
       episodes_count: s.episodes?.length || 0,
-      episodes: s.episodes || [],
+      episodes: (s.episodes || []).map((ep: any) => ({
+        episodeNumber: ep.episodeNumber,
+        title: ep.title,
+        watchUrl: ep.watchUrl,
+        streamUrl: `${effectiveBaseUrl}/api/app/3isk/video.mp4?url=${encodeURIComponent(ep.watchUrl)}`,
+      })),
     };
   });
 
@@ -358,7 +371,8 @@ export async function iskRoutes(server: FastifyInstance) {
         episode_number: ep.episodeNumber,
         title: ep.title,
         watch_url: ep.watchUrl,
-        stream_url: `${effectiveBaseUrl}/api/app/3isk/stream?url=${encodeURIComponent(ep.watchUrl)}${keyParam}`,
+        stream_url: `${effectiveBaseUrl}/api/app/3isk/video.mp4?url=${encodeURIComponent(ep.watchUrl)}${keyParam}`,
+        hls_stream_url: `${effectiveBaseUrl}/api/app/3isk/stream?url=${encodeURIComponent(ep.watchUrl)}${keyParam}`,
       }));
 
       return {
@@ -386,7 +400,8 @@ export async function iskRoutes(server: FastifyInstance) {
         raw_poster: m.poster || null,
         description: m.description || '',
         watch_url: m.watchUrl,
-        stream_url: `${effectiveBaseUrl}/api/app/3isk/stream?url=${encodeURIComponent(m.watchUrl)}${keyParam}`,
+        stream_url: `${effectiveBaseUrl}/api/app/3isk/video.mp4?url=${encodeURIComponent(m.watchUrl)}${keyParam}`,
+        hls_stream_url: `${effectiveBaseUrl}/api/app/3isk/stream?url=${encodeURIComponent(m.watchUrl)}${keyParam}`,
       };
     });
 
@@ -441,7 +456,7 @@ export async function iskRoutes(server: FastifyInstance) {
     const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
     const upstreamRes = await fetch(targetUrl, {
-      headers: { 'User-Agent': ua },
+      headers: { 'User-Agent': ua, 'Referer': 'https://miravd.com/' },
       signal: AbortSignal.timeout(12000),
     });
 
@@ -488,6 +503,92 @@ export async function iskRoutes(server: FastifyInstance) {
 
     return reply.send(rewritten);
   }
+
+  /**
+   * GET /api/app/3isk/video.mp4?url=...
+   * Remuxes HLS live/VOD stream to progressive fragmented MP4 in real-time using FFmpeg
+   * Plays natively on all browsers and devices with zero HLS key or buffering errors!
+   */
+  server.get('/video.mp4', async (request: FastifyRequest<{ Querystring: { url: string; api_key?: string } }>, reply: FastifyReply) => {
+    const rawUrl = request.query.url;
+    if (!rawUrl || !/^https?:\/\//i.test(rawUrl)) {
+      reply.raw.writeHead(400, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' });
+      reply.raw.end('Missing or invalid url parameter');
+      return;
+    }
+
+    let targetM3u8 = rawUrl;
+    try {
+      if (!rawUrl.includes('.m3u8')) {
+        targetM3u8 = await resolve3iskStream(rawUrl);
+      }
+    } catch (err: any) {
+      if (!reply.raw.headersSent) {
+        reply.raw.writeHead(502, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' });
+        reply.raw.end(`Stream resolution failed: ${err.message}`);
+      }
+      return;
+    }
+
+    const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+    const ffmpegArgs = [
+      '-hide_banner',
+      '-loglevel', 'warning',
+      '-headers', `Referer: https://miravd.com/\r\nUser-Agent: ${ua}\r\n`,
+      '-i', targetM3u8,
+      '-c', 'copy',
+      '-bsf:a', 'aac_adtstoasc',
+      '-f', 'mp4',
+      '-movflags', 'frag_keyframe+empty_moov+default_base_moof',
+      'pipe:1',
+    ];
+
+    const proc = spawn('ffmpeg', ffmpegArgs, { windowsHide: true });
+    let headersSent = false;
+
+    proc.stdout.on('data', (chunk) => {
+      if (!headersSent && !reply.raw.headersSent) {
+        headersSent = true;
+        reply.raw.writeHead(200, {
+          'Content-Type': 'video/mp4',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+          'Access-Control-Allow-Headers': '*',
+          'Cache-Control': 'public, max-age=86400',
+          'Connection': 'keep-alive',
+        });
+      }
+      reply.raw.write(chunk);
+    });
+
+    const cleanup = () => {
+      try {
+        proc.kill('SIGTERM');
+      } catch {}
+    };
+
+    request.raw.on('close', cleanup);
+    request.raw.on('error', cleanup);
+
+    proc.on('close', () => {
+      if (!headersSent && !reply.raw.headersSent) {
+        reply.raw.writeHead(502, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' });
+        reply.raw.end('FFmpeg stream remuxing failed to produce video');
+      } else {
+        try {
+          reply.raw.end();
+        } catch {}
+      }
+    });
+
+    proc.on('error', (err) => {
+      cleanup();
+      if (!headersSent && !reply.raw.headersSent) {
+        reply.raw.writeHead(502, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' });
+        reply.raw.end(`FFmpeg error: ${err.message}`);
+      }
+    });
+  });
 
   /**
    * GET /api/app/3isk/stream?url=...
@@ -540,6 +641,7 @@ export async function iskRoutes(server: FastifyInstance) {
 
       const upstreamHeaders: Record<string, string> = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://miravd.com/',
       };
 
       if (clientRange) {

@@ -99,7 +99,7 @@ export default function ThreeIskPage() {
             episode_number: ep.episodeNumber,
             title: ep.title,
             watch_url: ep.watchUrl,
-            stream_url: `${origin}/api/app/3isk/stream?url=${encodeURIComponent(ep.watchUrl)}`,
+            stream_url: `${origin}/api/app/3isk/video.mp4?url=${encodeURIComponent(ep.watchUrl)}`,
           }));
           setSelectedSeries((prev) => (prev ? { ...prev, episodes: eps, episodes_count: eps.length } : prev));
         }

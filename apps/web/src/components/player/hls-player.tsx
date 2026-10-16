@@ -318,8 +318,10 @@ export function HlsPlayerModal({
       }
     });
 
+    const pathnameOnly = activeUrl.split('?')[0].toLowerCase();
     const isDirectVideo =
-      (activeUrl.toLowerCase().includes('.mp4') && !activeUrl.includes('.m3u8')) ||
+      pathnameOnly.endsWith('.mp4') ||
+      (activeUrl.toLowerCase().includes('.mp4') && !pathnameOnly.includes('.m3u8')) ||
       activeUrl.includes('format=mp4');
 
     if (!isDirectVideo && Hls.isSupported()) {

@@ -30,6 +30,17 @@ SSL_CTX = ssl.create_default_context()
 SSL_CTX.check_hostname = False
 SSL_CTX.verify_mode = ssl.CERT_NONE
 
+class HeaderPreservingRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        # Preserve original headers (User-Agent, Referer, X-Forwarded-For, etc.) across 302 redirects
+        new_headers = dict(req.headers)
+        return urllib.request.Request(newurl, headers=new_headers)
+
+PROXY_OPENER = urllib.request.build_opener(
+    HeaderPreservingRedirectHandler,
+    urllib.request.HTTPSHandler(context=SSL_CTX)
+)
+
 # Ensure UTF-8 and line-buffered output on Windows console
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
@@ -471,15 +482,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             }
             if "edgenextcdn.net" in url:
                 headers.pop("Referer", None)
-            elif "yacine.website" in url or "new-redirect.online" in url:
-                headers["X-Forwarded-For"] = "105.100.1.1"
-                headers["CF-Connecting-IP"] = "105.100.1.1"
-                headers["X-Real-IP"] = "105.100.1.1"
+            elif "yacine.website" in url or "new-redirect.online" in url or ".buzz" in url or ".lol" in url:
+                headers["X-Forwarded-For"] = "156.200.1.1"
+                headers["CF-Connecting-IP"] = "156.200.1.1"
+                headers["X-Real-IP"] = "156.200.1.1"
 
             for attempt in range(max_retries):
                 try:
                     r = urllib.request.Request(url, headers=headers)
-                    with urllib.request.urlopen(r, timeout=10, context=SSL_CTX) as resp:
+                    with PROXY_OPENER.open(r, timeout=10) as resp:
                         content = resp.read().decode("utf-8", errors="ignore")
                         if "#EXTM3U" in content:
                             return content
@@ -516,6 +527,11 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             except (BrokenPipeError, ConnectionResetError):
                 pass
             return
+
+        # Extract query token from target_fetch_url if present (e.g. t=...&e=...)
+        stream_query_token = ""
+        if "?" in target_fetch_url:
+            stream_query_token = target_fetch_url.split("?", 1)[1]
 
         # Parse playlist: isolate headers and active live segment pairs
         header_lines = []
@@ -557,7 +573,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     full_u = urllib.parse.urljoin(target_fetch_url, u)
                     enc_u = urllib.parse.quote(full_u, safe="")
                     enc_r = urllib.parse.quote(channel_referer, safe="")
-                    return f'URI="/live/ts?url={enc_u}&ref={enc_r}"'
+                    return f'URI="/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
                 rewritten.append(re.sub(r'URI="([^"]+)"', replace_uri, h))
             else:
                 rewritten.append(h)
@@ -568,11 +584,27 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             rewritten.insert(idx, f"#EXT-X-MEDIA-SEQUENCE:{media_seq}")
 
         for inf, seg_url in seg_pairs:
-            seg_full = urllib.parse.urljoin(target_fetch_url, seg_url)
+            real_seg_url = seg_url
+            if "url=" in seg_url:
+                try:
+                    enc_u = seg_url.split("url=")[1].split("&")[0]
+                    clean_b64 = urllib.parse.unquote(enc_u)
+                    clean_b64 += "=" * ((4 - len(clean_b64) % 4) % 4)
+                    dec_u = base64.b64decode(clean_b64).decode("utf-8", errors="ignore")
+                    if dec_u.startswith("http://") or dec_u.startswith("https://"):
+                        real_seg_url = dec_u
+                except Exception:
+                    pass
+
+            # Attach query token if missing
+            if stream_query_token and "?" not in real_seg_url:
+                real_seg_url = f"{real_seg_url}?{stream_query_token}"
+
+            seg_full = urllib.parse.urljoin(target_fetch_url, real_seg_url)
             encoded_seg = urllib.parse.quote(seg_full, safe="")
             encoded_ref = urllib.parse.quote(channel_referer, safe="")
             rewritten.append(inf)
-            rewritten.append(f"/live/ts?url={encoded_seg}&ref={encoded_ref}")
+            rewritten.append(f"/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
 
         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
         self.send_response(200)
@@ -590,6 +622,20 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
     def handle_ts_segment(self, target_url, ref_override=""):
         """Pipes upstream TS segment chunks to client seamlessly with exact headers"""
+        # If target_url still has an encoded url= inside, decode it directly
+        if "url=" in target_url:
+            try:
+                parsed_q = urllib.parse.parse_qs(urllib.parse.urlparse(target_url).query)
+                enc_param = parsed_q.get("url", [""])[0]
+                if enc_param:
+                    clean_b64 = urllib.parse.unquote(enc_param)
+                    clean_b64 += "=" * ((4 - len(clean_b64) % 4) % 4)
+                    dec_u = base64.b64decode(clean_b64).decode("utf-8", errors="ignore")
+                    if dec_u.startswith("http://") or dec_u.startswith("https://"):
+                        target_url = dec_u
+            except Exception:
+                pass
+
         decoded_ua = ""
         if "ua=" in target_url:
             try:
@@ -613,16 +659,16 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         }
         if "edgenextcdn.net" in target_url:
             headers.pop("Referer", None)
-        elif "yacine.website" in target_url or "new-redirect.online" in target_url:
-            headers["X-Forwarded-For"] = "105.100.1.1"
-            headers["CF-Connecting-IP"] = "105.100.1.1"
-            headers["X-Real-IP"] = "105.100.1.1"
+        elif "yacine.website" in target_url or "new-redirect.online" in target_url or ".buzz" in target_url or ".lol" in target_url:
+            headers["X-Forwarded-For"] = "156.200.1.1"
+            headers["CF-Connecting-IP"] = "156.200.1.1"
+            headers["X-Real-IP"] = "156.200.1.1"
 
         req = urllib.request.Request(target_url, headers=headers)
 
         for attempt in range(3):
             try:
-                with urllib.request.urlopen(req, timeout=10, context=SSL_CTX) as upstream:
+                with PROXY_OPENER.open(req, timeout=10) as upstream:
                     first_chunk = upstream.read(64 * 1024)
                     if not first_chunk or first_chunk.startswith(b"No URLs available") or first_chunk.startswith(b"<html>") or first_chunk.startswith(b"<html") or first_chunk.startswith(b"<!DOCTYPE"):
                         if attempt < 2:
@@ -653,7 +699,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                                         full_u = urllib.parse.urljoin(target_url, u)
                                         enc_u = urllib.parse.quote(full_u, safe="")
                                         enc_r = urllib.parse.quote(referer, safe="")
-                                        return f'URI="/live/ts?url={enc_u}&ref={enc_r}"'
+                                        return f'URI="/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
                                     rewritten.append(re.sub(r'URI="([^"]+)"', replace_sub_uri, l))
                                 else:
                                     rewritten.append(l)
@@ -661,7 +707,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                                 seg_full = urllib.parse.urljoin(target_url, l)
                                 encoded_seg = urllib.parse.quote(seg_full, safe="")
                                 encoded_ref = urllib.parse.quote(referer, safe="")
-                                rewritten.append(f"/live/ts?url={encoded_seg}&ref={encoded_ref}")
+                                rewritten.append(f"/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
 
                         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
                         self.send_response(200)
@@ -670,33 +716,38 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
                         self.send_header("Content-Length", str(len(out_body)))
                         self.end_headers()
-                        self.wfile.write(out_body)
+                        try:
+                            self.wfile.write(out_body)
+                        except (BrokenPipeError, ConnectionResetError):
+                            pass
                         return
 
                     status = upstream.getcode()
                     content_len = upstream.headers.get("Content-Length")
-                    self.send_response(status)
+                    self.send_response(status if status else 200)
                     self.send_cors_headers()
                     self.send_header("Content-Type", "video/mp2t")
                     if content_len:
                         self.send_header("Content-Length", content_len)
                     self.end_headers()
 
-                    self.wfile.write(first_chunk)
-                    while True:
-                        chunk = upstream.read(64 * 1024)
-                        if not chunk:
-                            break
-                        self.wfile.write(chunk)
+                    try:
+                        self.wfile.write(first_chunk)
+                        while True:
+                            chunk = upstream.read(64 * 1024)
+                            if not chunk:
+                                break
+                            self.wfile.write(chunk)
+                    except (BrokenPipeError, ConnectionResetError):
+                        return
                     return
             except (BrokenPipeError, ConnectionResetError):
                 # Client disconnected or seeked in player - normal in live streaming
                 return
             except Exception as e:
                 if attempt < 2:
-                    time.sleep(0.8)
+                    time.sleep(0.5)
                     continue
-                print(f" [!] TS Segment exception for {target_url[:60]}: {e}")
                 try:
                     self.send_response(502)
                     self.end_headers()
