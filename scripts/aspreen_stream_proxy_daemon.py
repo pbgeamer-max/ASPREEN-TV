@@ -90,7 +90,7 @@ server_start_time = time.time()
 last_renew_time = 0
 total_refreshes = 0
 
-# Video Processing & Re-encoding Configuration (TVARUA Broadcast Branding)
+# Video Processing & Broadcast Transcoding Configuration (TVARUA Stream Branding)
 LOGO_PATHS = [
     os.path.join(WORKSPACE_DIR, "tvarua_logo_clean_alpha.png"),
     os.path.join(WORKSPACE_DIR, "data", "tvarua_logo.png"),
@@ -99,76 +99,122 @@ LOGO_PATHS = [
     os.path.join(WORKSPACE_DIR, "apps", "web", "public", "tvarua_logo.png"),
 ]
 EFFECTIVE_LOGO_PATH = next((p for p in LOGO_PATHS if os.path.exists(p)), "")
+HLS_DATA_DIR = os.path.join(DATA_DIR, "hls")
+os.makedirs(HLS_DATA_DIR, exist_ok=True)
 
-FILTER_COMPLEX_STR = (
-    '[0:v]scale=1280:720[base];'
-    '[base]delogo=x=1065:y=20:w=165:h=92[no_bein];'
-    '[no_bein]delogo=x=25:y=595:w=135:h=115[clean];'
-    '[1:v]scale=140:-1[logo];'
-    '[clean][logo]overlay=W-w-35:22[outv]'
-)
+class LiveTranscoderManager:
+    """
+    Manages continuous background FFmpeg live transcoding processes.
+    Burns TVARUA metallic logo directly into video frames at bottom-left,
+    completely covering Yacine TV watermarks while preserving beIN Sports logos.
+    """
+    def __init__(self):
+        self.procs = {}        # cid -> subprocess.Popen
+        self.last_access = {}  # cid -> timestamp
+        self.lock = threading.Lock()
+        self.primary_cids = {
+            "207119423132628321",  # beIN SPORTS 1
+            "207119423133708072",  # beIN SPORTS 2
+            "207119423130423959",  # beIN SPORTS 3
+            "207119423131118230",  # beIN SPORTS News
+        }
 
-segment_cache = {}
-segment_cache_order = []
-segment_cache_lock = threading.Lock()
-MAX_SEGMENT_CACHE = 25
+    def ensure_transcoder(self, cid: str):
+        with self.lock:
+            self.last_access[cid] = time.time()
+            proc = self.procs.get(cid)
+            if proc is not None and proc.poll() is None:
+                return
 
-def transcode_ts_segment(raw_bytes: bytes, cache_key: str = "") -> bytes:
-    """Burns TVARUA transparent logo & delogo watermarks directly into MPEG-TS video frames."""
-    if not raw_bytes or len(raw_bytes) < 8000:
-        return raw_bytes
-    logo_file = EFFECTIVE_LOGO_PATH
-    if not logo_file or not os.path.exists(logo_file):
-        logo_file = next((p for p in LOGO_PATHS if os.path.exists(p)), "")
-    if not logo_file:
-        return raw_bytes
+            out_dir = os.path.join(HLS_DATA_DIR, cid)
+            os.makedirs(out_dir, exist_ok=True)
+            out_m3u8 = os.path.join(out_dir, "live.m3u8")
 
-    if cache_key:
-        with segment_cache_lock:
-            if cache_key in segment_cache:
-                return segment_cache[cache_key]
+            logo = EFFECTIVE_LOGO_PATH
+            if not logo or not os.path.exists(logo):
+                logo = next((p for p in LOGO_PATHS if os.path.exists(p)), "")
 
-    cmd = [
-        'ffmpeg', '-y',
-        '-loglevel', 'error',
-        '-i', 'pipe:0',
-        '-i', logo_file,
-        '-filter_complex', FILTER_COMPLEX_STR,
-        '-map', '[outv]',
-        '-map', '0:a?',
-        '-c:v', 'libx264',
-        '-preset', 'ultrafast',
-        '-tune', 'zerolatency',
-        '-b:v', '2200k',
-        '-maxrate', '2500k',
-        '-bufsize', '4000k',
-        '-c:a', 'copy',
-        '-f', 'mpegts',
-        'pipe:1'
-    ]
+            filter_str = (
+                "[0:v]scale=1280:720[base];"
+                "[base]delogo=x=18:y=594:w=135:h=118[clean];"
+                "[1:v]scale=125:-1[logo];"
+                "[clean][logo]overlay=22:main_h-overlay_h-22[outv]"
+            ) if (logo and os.path.exists(logo)) else (
+                "[0:v]scale=1280:720[base];"
+                "[base]delogo=x=18:y=594:w=135:h=118[outv]"
+            )
 
-    try:
-        proc = subprocess.Popen(
-            cmd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL
-        )
-        out, _ = proc.communicate(input=raw_bytes, timeout=4.5)
-        if proc.returncode == 0 and len(out) > 5000:
-            if cache_key:
-                with segment_cache_lock:
-                    if len(segment_cache_order) >= MAX_SEGMENT_CACHE:
-                        oldest = segment_cache_order.pop(0)
-                        segment_cache.pop(oldest, None)
-                    segment_cache[cache_key] = out
-                    segment_cache_order.append(cache_key)
-            return out
-    except Exception:
-        # Fallback seamlessly to raw bytes on any timeout or FFmpeg edge case
-        pass
+            raw_input = f"http://127.0.0.1:{PORT}/raw/{cid}.m3u8"
+            cmd = [
+                "ffmpeg", "-y",
+                "-allowed_extensions", "ALL",
+                "-i", raw_input,
+            ]
+            if logo and os.path.exists(logo):
+                cmd.extend(["-i", logo])
 
-    return raw_bytes
+            cmd.extend([
+                "-filter_complex", filter_str,
+                "-map", "[outv]",
+                "-map", "0:a?",
+                "-c:v", "libx264",
+                "-preset", "ultrafast",
+                "-tune", "zerolatency",
+                "-threads", "0",
+                "-b:v", "2200k",
+                "-c:a", "copy",
+                "-f", "hls",
+                "-hls_time", "4",
+                "-hls_list_size", "5",
+                "-hls_flags", "delete_segments+omit_endlist",
+                "-hls_segment_filename", os.path.join(out_dir, "chunk_%05d.ts"),
+                out_m3u8
+            ])
+
+            print(f" [★] تشغيل معالج البث المباشر (Live Transcoder) للقناة {cid} مع حرق لوجو TVARUA داخل إطارات البث...")
+            try:
+                p = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                self.procs[cid] = p
+            except Exception as e:
+                print(f" [!] خطأ في تشغيل معالج البث للقناة {cid}: {e}")
+
+    def sweep_inactive(self):
+        """Monitors active streams; keeps primary sports running 24/7, sweeps idle transcoders after 15m"""
+        now = time.time()
+        with self.lock:
+            for cid in list(self.procs.keys()):
+                if cid in self.primary_cids:
+                    proc = self.procs.get(cid)
+                    if proc is None or proc.poll() is not None:
+                        self.ensure_transcoder(cid)
+                    continue
+
+                idle = now - self.last_access.get(cid, 0)
+                if idle > 900:
+                    proc = self.procs.pop(cid, None)
+                    if proc and proc.poll() is None:
+                        try:
+                            proc.terminate()
+                            print(f" [i] تم إيقاف معالج البث للقناة غير النشطة {cid}")
+                        except Exception:
+                            pass
+
+transcoder_mgr = LiveTranscoderManager()
+
+def transcoder_supervisor_loop():
+    """Background supervisor for 24/7 persistent live stream transcoding"""
+    time.sleep(6)
+    # Pre-warm primary sports channels
+    for cid in transcoder_mgr.primary_cids:
+        transcoder_mgr.ensure_transcoder(cid)
+        time.sleep(2)
+
+    while True:
+        try:
+            transcoder_mgr.sweep_inactive()
+        except Exception:
+            pass
+        time.sleep(30)
 
 
 def send_telegram_message(text: str):
@@ -429,15 +475,81 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(content)
             return
 
-        # 3. Live Channel Playlist: /live/<channel_id>.m3u8
-        match = re.match(r"^/live/(\d+)\.m3u8$", path)
-        if match:
-            cid = match.group(1)
-            self.handle_channel_playlist(cid)
+        # 3. Raw Channel Playlist (for local FFmpeg ingest): /raw/<channel_id>.m3u8
+        match_raw = re.match(r"^/raw/(\d+)\.m3u8$", path)
+        if match_raw:
+            cid = match_raw.group(1)
+            self.handle_channel_playlist(cid, is_raw=True)
             return
 
-        # 4. Proxy Segment Chunk: /ts or /live/ts
-        if self.path.startswith("/ts?") or self.path.startswith("/live/ts?") or self.path.startswith("/ts/") or self.path.startswith("/live/ts/"):
+        # 4. Live Channel Playlist: /live/<channel_id>.m3u8 (with hardcoded TVARUA logo burned in video frames)
+        match_live = re.match(r"^/live/(\d+)\.m3u8$", path)
+        if match_live:
+            cid = match_live.group(1)
+            hls_dir = os.path.join(HLS_DATA_DIR, cid)
+            live_m3u8_file = os.path.join(hls_dir, "live.m3u8")
+            transcoder_mgr.ensure_transcoder(cid)
+
+            # If live branded HLS is ready on disk with chunks, serve it directly
+            if os.path.exists(live_m3u8_file):
+                ts_chunks = [f for f in os.listdir(hls_dir) if f.endswith(".ts")]
+                if len(ts_chunks) >= 1:
+                    try:
+                        with open(live_m3u8_file, "r", encoding="utf-8") as f:
+                            m3u_lines = f.read().splitlines()
+                        rewritten = []
+                        for line in m3u_lines:
+                            if line.endswith(".ts") and not line.startswith("http") and not line.startswith("/"):
+                                rewritten.append(f"/live/{cid}/{line}")
+                            else:
+                                rewritten.append(line)
+                        out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
+                        self.send_response(200)
+                        self.send_cors_headers()
+                        self.send_header("Content-Type", "application/vnd.apple.mpegurl")
+                        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                        self.send_header("Pragma", "no-cache")
+                        self.send_header("Expires", "0")
+                        self.send_header("Content-Length", str(len(out_body)))
+                        self.end_headers()
+                        self.wfile.write(out_body)
+                        return
+                    except Exception:
+                        pass
+
+            # While transcoder initializes first segment (<4s), serve raw playlist so playback begins instantly
+            self.handle_channel_playlist(cid, is_raw=False)
+            return
+
+        # 5. Live Transcoded Segment Chunks (from disk): /live/<channel_id>/chunk_XXXXX.ts
+        match_chunk = re.match(r"^/live/(\d+)/(chunk_\d+\.ts)$", path)
+        if match_chunk:
+            cid = match_chunk.group(1)
+            chunk_name = match_chunk.group(2)
+            chunk_path = os.path.join(HLS_DATA_DIR, cid, chunk_name)
+            if os.path.exists(chunk_path):
+                try:
+                    with open(chunk_path, "rb") as f:
+                        chunk_data = f.read()
+                    self.send_response(200)
+                    self.send_cors_headers()
+                    self.send_header("Content-Type", "video/mp2t")
+                    self.send_header("Content-Length", str(len(chunk_data)))
+                    self.send_header("Cache-Control", "public, max-age=60")
+                    self.end_headers()
+                    self.wfile.write(chunk_data)
+                    return
+                except (BrokenPipeError, ConnectionResetError):
+                    return
+                except Exception:
+                    pass
+            self.send_response(404)
+            self.send_cors_headers()
+            self.end_headers()
+            return
+
+        # 6. Proxy Segment Chunk: /ts or /live/ts or /raw/ts
+        if self.path.startswith("/ts?") or self.path.startswith("/live/ts?") or self.path.startswith("/raw/ts?") or self.path.startswith("/ts/") or self.path.startswith("/live/ts/") or self.path.startswith("/raw/ts/"):
             parsed_ts = urllib.parse.urlparse(self.path)
             qs_ts = urllib.parse.parse_qs(parsed_ts.query)
             target_url = qs_ts.get("url", [""])[0]
@@ -446,10 +558,11 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 target_url = urllib.parse.unquote(self.path[8:])
             elif not target_url and self.path.startswith("/live/ts?url="):
                 target_url = urllib.parse.unquote(self.path[13:])
+            elif not target_url and self.path.startswith("/raw/ts?url="):
+                target_url = urllib.parse.unquote(self.path[12:])
             if target_url:
                 self.handle_ts_segment(target_url, ref_override)
                 return
-
 
         # Fallback 404
         self.send_response(404)
@@ -460,11 +573,12 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
 
-    def handle_channel_playlist(self, cid):
+    def handle_channel_playlist(self, cid, is_raw=False):
         """Fetches upstream M3U8, rewrites segment URLs, and returns to client"""
         now_ts = time.time()
+        cache_key = f"{cid}_raw" if is_raw else cid
         with m3u8_cache_lock:
-            cached_data = m3u8_cache.get(cid)
+            cached_data = m3u8_cache.get(cache_key)
             if cached_data and now_ts < cached_data[1]:
                 self.send_response(200)
                 self.send_cors_headers()
@@ -693,7 +807,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
         with m3u8_cache_lock:
-            m3u8_cache[cid] = (out_body, time.time() + 3.0)
+            m3u8_cache[cache_key] = (out_body, time.time() + 3.0)
         self.send_response(200)
         self.send_cors_headers()
         self.send_header("Content-Type", "application/vnd.apple.mpegurl")
@@ -848,6 +962,10 @@ def start_server():
     # Launch background worker for periodic auto-renew
     t_worker = threading.Thread(target=background_auto_renew_loop, daemon=True)
     t_worker.start()
+
+    # Launch background live stream transcoder supervisor (burns TVARUA logo into video frames 24/7)
+    t_transcoder = threading.Thread(target=transcoder_supervisor_loop, daemon=True)
+    t_transcoder.start()
 
     # Launch background telegram heartbeat
     if TELEGRAM_BOT_TOKEN and TELEGRAM_ADMIN_CHAT_ID:
