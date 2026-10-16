@@ -59,6 +59,14 @@ interface DramaDetail {
     subtitles_count: number;
     stream_url: string;
     backup_url?: string | null;
+    servers?: Array<{
+      id: string;
+      name: string;
+      url: string;
+      isEmbed?: boolean;
+      quality?: string;
+      isDefault?: boolean;
+    }>;
     subtitles_url: string;
   }>;
 }
@@ -105,6 +113,7 @@ export default function KisskhPage() {
   const [playerTitle, setPlayerTitle] = useState<string>('');
   const [playerStreamUrl, setPlayerStreamUrl] = useState<string>('');
   const [playerBackupUrl, setPlayerBackupUrl] = useState<string | null>(null);
+  const [playerServers, setPlayerServers] = useState<any[]>([]);
   const [subtitles, setSubtitles] = useState<SubtitleTrack[]>([]);
 
   // Copy API state
@@ -177,11 +186,12 @@ export default function KisskhPage() {
   // Play episode
   const handlePlayEpisode = async (
     drama: DramaDetail,
-    ep: { id: number; episode_number: number; title: string; stream_url: string; backup_url?: string | null; subtitles_url: string }
+    ep: any
   ) => {
     setPlayerTitle(`${drama.title} - ${ep.title}`);
     setPlayerStreamUrl(ep.stream_url);
     setPlayerBackupUrl(ep.backup_url || null);
+    setPlayerServers(ep.servers || []);
     setPlayerOpen(true);
 
     // Fetch subtitles in background
@@ -607,6 +617,7 @@ export default function KisskhPage() {
         onClose={() => setPlayerOpen(false)}
         streamUrl={playerStreamUrl}
         backupUrl={playerBackupUrl}
+        servers={playerServers}
         channelName={playerTitle}
         subtitles={subtitles}
       />

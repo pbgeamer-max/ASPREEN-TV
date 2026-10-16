@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Hls from 'hls.js';
-import { X, AlertCircle, RefreshCw, Loader2, Copy, Check, Subtitles, ChevronDown } from 'lucide-react';
+import { X, AlertCircle, RefreshCw, Loader2, Copy, Check, Subtitles, ChevronDown, Server } from 'lucide-react';
 
 export interface SubtitleTrack {
   src: string;
@@ -12,18 +12,98 @@ export interface SubtitleTrack {
   default?: boolean;
 }
 
+export interface StreamServer {
+  id: string;
+  name: string;
+  url: string;
+  isEmbed?: boolean;
+  quality?: string;
+  isDefault?: boolean;
+}
+
 interface HlsPlayerModalProps {
   streamUrl: string;
   backupUrl?: string | null;
+  servers?: StreamServer[];
   channelName: string;
   isOpen: boolean;
   onClose: () => void;
   subtitles?: SubtitleTrack[];
 }
 
-export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onClose, subtitles = [] }: HlsPlayerModalProps) {
+function checkIsEmbedUrl(url: string, explicitEmbed?: boolean): boolean {
+  if (explicitEmbed === true) return true;
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.includes('vidlink.pro') ||
+    lower.includes('multiembed.mov') ||
+    lower.includes('vidsrc.to') ||
+    lower.includes('2embed.cc') ||
+    lower.includes('streamwish') ||
+    lower.includes('dwish.pro') ||
+    lower.includes('/e/') ||
+    lower.includes('/embed/') ||
+    lower.includes('embedtv')
+  );
+}
+
+export function HlsPlayerModal({
+  streamUrl,
+  backupUrl,
+  servers = [],
+  channelName,
+  isOpen,
+  onClose,
+  subtitles = [],
+}: HlsPlayerModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const subMenuRef = useRef<HTMLDivElement>(null);
+
+  // Synthesize unified server list
+  const effectiveServers = useMemo<StreamServer[]>(() => {
+    if (servers && servers.length > 0) {
+      return servers;
+    }
+    const list: StreamServer[] = [];
+    if (streamUrl) {
+      list.push({
+        id: 'primary',
+        name: 'سيرفر VIP فائق السرعة',
+        url: streamUrl,
+        isEmbed: checkIsEmbedUrl(streamUrl),
+        quality: '1080p',
+        isDefault: true,
+      });
+    }
+    if (backupUrl) {
+      list.push({
+        id: 'backup',
+        name: 'سيرفر بديل',
+        url: backupUrl,
+        isEmbed: checkIsEmbedUrl(backupUrl, true),
+        quality: 'HD',
+      });
+    }
+    return list;
+  }, [servers, streamUrl, backupUrl]);
+
+  // Determine initial active server index
+  const [activeServerIndex, setActiveServerIndex] = useState<number>(0);
+
+  useEffect(() => {
+    if (effectiveServers.length > 0) {
+      const defIdx = effectiveServers.findIndex((s) => s.isDefault);
+      setActiveServerIndex(defIdx >= 0 ? defIdx : 0);
+    } else {
+      setActiveServerIndex(0);
+    }
+  }, [effectiveServers, isOpen]);
+
+  const activeServer = effectiveServers[activeServerIndex] || effectiveServers[0] || null;
+  const activeUrl = activeServer?.url || streamUrl;
+  const isEmbed = checkIsEmbedUrl(activeUrl, activeServer?.isEmbed);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,13 +113,12 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
   const [showSubMenu, setShowSubMenu] = useState(false);
   const [internalSubtitles, setInternalSubtitles] = useState<SubtitleTrack[]>(subtitles || []);
   const [loadingSubtitles, setLoadingSubtitles] = useState(false);
-  const [isBackupActive, setIsBackupActive] = useState(false);
 
   const fullStreamUrl = useMemo(() => {
-    if (typeof window === 'undefined') return streamUrl;
-    if (streamUrl.startsWith('http://') || streamUrl.startsWith('https://')) return streamUrl;
-    return `${window.location.origin}${streamUrl.startsWith('/') ? streamUrl : `/${streamUrl}`}`;
-  }, [streamUrl]);
+    if (typeof window === 'undefined') return activeUrl;
+    if (activeUrl.startsWith('http://') || activeUrl.startsWith('https://')) return activeUrl;
+    return `${window.location.origin}${activeUrl.startsWith('/') ? activeUrl : `/${activeUrl}`}`;
+  }, [activeUrl]);
 
   const handleCopyUrl = useCallback(() => {
     navigator.clipboard.writeText(fullStreamUrl);
@@ -61,11 +140,11 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
     }
   }, [subtitles]);
 
-  // Autonomously auto-fetch subtitles if streamUrl contains epId
+  // Autonomously auto-fetch subtitles if activeUrl contains epId
   useEffect(() => {
-    if (!isOpen || !streamUrl) return;
+    if (!isOpen || !activeUrl || isEmbed) return;
     try {
-      const match = streamUrl.match(/epId=([0-9]+)/);
+      const match = activeUrl.match(/epId=([0-9]+)/);
       if (match && match[1]) {
         const epId = match[1];
         setLoadingSubtitles(true);
@@ -83,7 +162,7 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
           .finally(() => setLoadingSubtitles(false));
       }
     } catch {}
-  }, [isOpen, streamUrl]);
+  }, [isOpen, activeUrl, isEmbed]);
 
   // Close subtitle dropdown on click outside
   useEffect(() => {
@@ -99,10 +178,6 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
   const effectiveSubtitles = useMemo(() => {
     return internalSubtitles.length > 0 ? internalSubtitles : subtitles;
   }, [internalSubtitles, subtitles]);
-
-  const isKisskh = useMemo(() => {
-    return streamUrl.includes('kisskh') || streamUrl.includes('epId=');
-  }, [streamUrl]);
 
   // Compute active subtitle track (prioritizing Arabic by default)
   const activeTrack = useMemo(() => {
@@ -128,7 +203,7 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
   // Ensure text tracks are set to showing mode
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || isEmbed) return;
     const applySubMode = () => {
       if (video.textTracks && video.textTracks.length > 0) {
         for (let i = 0; i < video.textTracks.length; i++) {
@@ -139,14 +214,19 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
     applySubMode();
     const t = setTimeout(applySubMode, 600);
     return () => clearTimeout(t);
-  }, [activeTrack, isPlaying]);
+  }, [activeTrack, isPlaying, isEmbed]);
 
+  // Setup HLS or direct video playback when NOT an embed
   useEffect(() => {
-    setIsBackupActive(false);
-  }, [streamUrl, reloadKey]);
+    if (!isOpen || !activeUrl) return;
 
-  useEffect(() => {
-    if (!isOpen || !streamUrl || isBackupActive) return;
+    if (isEmbed) {
+      // Embed iframe handles its own loading and playback
+      setIsLoading(false);
+      setError(null);
+      setIsPlaying(true);
+      return;
+    }
 
     setError(null);
     setIsLoading(true);
@@ -157,7 +237,6 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
     if (!video) return;
 
     let initialLoadTimer: NodeJS.Timeout | null = null;
-    let fallbackTried = false;
 
     const clearErrorAndPlay = () => {
       setError(null);
@@ -188,12 +267,10 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
       setIsPlaying(false);
     });
     video.addEventListener('error', () => {
-      if (!fallbackTried && backupUrl && !backupUrl.includes('/e/')) {
-        fallbackTried = true;
-        console.log('[HlsPlayer] Main stream error, silent auto-switching to backup stream...');
-        video.src = backupUrl;
-        video.load();
-        video.play().catch(() => {});
+      // Auto-fallback to next server if available
+      if (effectiveServers.length > activeServerIndex + 1) {
+        console.log('[HlsPlayer] Video error on server, auto-advancing to next server...');
+        setActiveServerIndex((prev) => prev + 1);
         return;
       }
       if (video.currentTime === 0) {
@@ -205,23 +282,23 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
     });
 
     const isDirectVideo =
-      (streamUrl.toLowerCase().includes('.mp4') && !streamUrl.includes('.m3u8')) ||
-      streamUrl.includes('format=mp4');
+      (activeUrl.toLowerCase().includes('.mp4') && !activeUrl.includes('.m3u8')) ||
+      activeUrl.includes('format=mp4');
 
     if (!isDirectVideo && Hls.isSupported()) {
       hls = new Hls({
         enableWorker: true,
         lowLatencyMode: false,
-        manifestLoadingTimeOut: 15000,
-        manifestLoadingMaxRetry: 10,
+        manifestLoadingTimeOut: 12000,
+        manifestLoadingMaxRetry: 6,
         manifestLoadingRetryDelay: 1000,
-        levelLoadingTimeOut: 15000,
-        levelLoadingMaxRetry: 10,
-        fragLoadingTimeOut: 20000,
-        fragLoadingMaxRetry: 10,
+        levelLoadingTimeOut: 12000,
+        levelLoadingMaxRetry: 6,
+        fragLoadingTimeOut: 15000,
+        fragLoadingMaxRetry: 6,
       });
 
-      hls.loadSource(streamUrl);
+      hls.loadSource(activeUrl);
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_LOADED, () => {
@@ -246,17 +323,18 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
               networkErrorCount++;
-              if (networkErrorCount >= 3) {
-                if (backupUrl) {
-                  console.log('[HlsPlayer] Fatal network error on primary, switching to backup embed...');
-                  setIsBackupActive(true);
+              if (networkErrorCount >= 2) {
+                // Auto-advance to next server
+                if (effectiveServers.length > activeServerIndex + 1) {
+                  console.log('[HlsPlayer] Fatal network error, auto-advancing to next server...');
+                  setActiveServerIndex((prev) => prev + 1);
                   setError(null);
                   setIsLoading(false);
                   hls?.destroy();
                   break;
                 }
                 console.error('[HlsPlayer] Fatal network error limit reached:', data.details);
-                setError('تعذر تحميل رابط البث من السيرفر. اضغط على زر إعادة المحاولة.');
+                setError('تعذر تحميل رابط البث من السيرفر. اضغط على زر إعادة المحاولة أو اختر سيرفر بديل.');
                 setIsLoading(false);
                 hls?.destroy();
                 break;
@@ -273,14 +351,19 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
               if (data.details === 'manifestParsingError') {
                 console.log('[HlsPlayer] Direct video stream detected, switching to native player...');
                 hls?.destroy();
-                video.src = streamUrl;
+                video.src = activeUrl;
                 video.load();
                 setIsLoading(false);
                 video.play().catch(() => setIsLoading(false));
                 return;
               }
+              // If fatal, switch to next server
+              if (effectiveServers.length > activeServerIndex + 1) {
+                setActiveServerIndex((prev) => prev + 1);
+                return;
+              }
               if (video.currentTime === 0) {
-                setError(`Fatal streaming error: ${data.details}`);
+                setError(`Streaming error: ${data.details}`);
               }
               hls?.destroy();
               setIsLoading(false);
@@ -292,14 +375,17 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
       initialLoadTimer = setTimeout(() => {
         if (video.currentTime === 0 && !video.paused) {
           if (video.readyState < 2) {
-            setError('تعذر استقبال مقاطع البث من السيرفر. اضغط على إعادة المحاولة.');
-            setIsLoading(false);
+            if (effectiveServers.length > activeServerIndex + 1) {
+              setActiveServerIndex((prev) => prev + 1);
+            } else {
+              setError('تعذر استقبال مقاطع البث من السيرفر. اضغط على إعادة المحاولة أو اختر سيرفر آخر.');
+              setIsLoading(false);
+            }
           }
         }
-      }, 15000);
+      }, 12000);
     } else {
-      // Direct native HTML5 video playback
-      video.src = streamUrl;
+      video.src = activeUrl;
       video.load();
       video.play().catch((err) => {
         console.log('[HlsPlayer] Autoplay blocked, user interaction required:', err);
@@ -318,7 +404,7 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
         hls.destroy();
       }
     };
-  }, [isOpen, streamUrl, reloadKey]);
+  }, [isOpen, activeUrl, isEmbed, activeServerIndex, reloadKey, effectiveServers]);
 
   if (!isOpen) return null;
 
@@ -326,22 +412,47 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 md:p-6" dir="rtl">
       <div className="bg-[#111111] border border-[#262626] rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
         {/* Modal Header */}
-        <div className="px-4 md:px-5 py-3.5 border-b border-[#222222] flex items-center justify-between bg-[#141414]">
-          <div className="flex items-center gap-2.5 overflow-hidden">
+        <div className="px-4 md:px-5 py-3 border-b border-[#222222] flex items-center justify-between bg-[#141414] gap-2">
+          <div className="flex items-center gap-2 overflow-hidden shrink min-w-0">
             <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${isPlaying ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
-            <h3 className="text-xs md:text-sm font-bold text-white truncate max-w-lg">
+            <h3 className="text-xs md:text-sm font-bold text-white truncate max-w-md">
               {channelName}
             </h3>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Subtitle Selector Button - only shown when subtitles are loading or actually exist */}
-            {((effectiveSubtitles && effectiveSubtitles.length > 0) || loadingSubtitles) && (
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Multi-Server Switcher */}
+            {effectiveServers.length > 1 && (
+              <div className="flex items-center bg-[#18181B] p-0.5 rounded-lg border border-white/10 text-[11px] overflow-x-auto max-w-[240px] sm:max-w-md scrollbar-none">
+                {effectiveServers.map((srv, idx) => (
+                  <button
+                    key={srv.id || idx}
+                    type="button"
+                    onClick={() => {
+                      setActiveServerIndex(idx);
+                      setError(null);
+                      setIsLoading(true);
+                    }}
+                    className={`px-2.5 py-1 rounded-md transition-all whitespace-nowrap text-xs font-semibold ${
+                      activeServerIndex === idx
+                        ? 'bg-[#E50914] text-white font-bold shadow-sm'
+                        : 'text-[#A1A1AA] hover:text-white'
+                    }`}
+                    title={srv.name}
+                  >
+                    <span>{srv.name.replace(/سيرفر\s*/, '')}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Subtitle Selector Button (for native HLS) */}
+            {!isEmbed && ((effectiveSubtitles && effectiveSubtitles.length > 0) || loadingSubtitles) && (
               <div className="relative" ref={subMenuRef}>
                 <button
                   type="button"
                   onClick={() => setShowSubMenu((prev) => !prev)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                     activeTrack
                       ? 'bg-[#E50914]/20 border-[#E50914] text-white shadow-sm ring-1 ring-[#E50914]/40'
                       : 'bg-[#1C1C1C] border-white/10 text-[#A1A1AA] hover:text-white hover:bg-[#282828]'
@@ -440,42 +551,6 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
               </div>
             )}
 
-            {/* Server Switcher */}
-            {backupUrl && (
-              <div className="flex items-center bg-[#18181B] p-0.5 rounded-lg border border-white/10 text-[11px]">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsBackupActive(false);
-                    setError(null);
-                  }}
-                  className={`px-2 py-1 rounded-md transition-all ${
-                    !isBackupActive
-                      ? 'bg-[#E50914] text-white font-bold shadow-sm'
-                      : 'text-[#A1A1AA] hover:text-white'
-                  }`}
-                  title="سيرفر Aspreen VIP فائق السرعة"
-                >
-                  سيرفر VIP
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsBackupActive(true);
-                    setError(null);
-                  }}
-                  className={`px-2 py-1 rounded-md transition-all ${
-                    isBackupActive
-                      ? 'bg-[#E50914] text-white font-bold shadow-sm'
-                      : 'text-[#A1A1AA] hover:text-white'
-                  }`}
-                  title="سيرفر خارجي احتياطي"
-                >
-                  سيرفر بديل
-                </button>
-              </div>
-            )}
-
             <button
               onClick={onClose}
               className="text-[#71717A] hover:text-[#F5F5F5] transition-colors p-1.5 rounded-lg hover:bg-[#222222]"
@@ -488,9 +563,10 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
 
         {/* Video Player Container */}
         <div className="relative bg-black aspect-video w-full flex items-center justify-center overflow-hidden">
-          {isBackupActive && backupUrl ? (
+          {isEmbed ? (
             <iframe
-              src={backupUrl}
+              key={activeUrl}
+              src={activeUrl}
               className="w-full h-full border-0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
               allowFullScreen
@@ -517,17 +593,17 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
             </video>
           )}
 
-          {/* Loading Indicator */}
-          {isLoading && !isPlaying && !error && !isBackupActive && (
+          {/* Loading Indicator (only for native HLS, embed has its own loader) */}
+          {isLoading && !isPlaying && !error && !isEmbed && (
             <div className="absolute inset-0 bg-black/75 flex flex-col items-center justify-center p-6 text-center gap-3 pointer-events-none z-10">
               <Loader2 className="w-8 h-8 text-[#E50914] animate-spin" />
               <p className="text-xs text-white/90 font-medium">جاري تجهيز البث فائق السرعة...</p>
-              <p className="text-[11px] text-[#A1A1AA]">Aspreen High-Speed Stream Rebroadcast</p>
+              <p className="text-[11px] text-[#A1A1AA]">Aspreen High-Speed Multi-Server Rebroadcast</p>
             </div>
           )}
 
           {/* Error Screen */}
-          {error && !isPlaying && !isBackupActive && (
+          {error && !isPlaying && !isEmbed && (
             <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center p-6 text-center gap-3 z-20">
               <AlertCircle className="w-8 h-8 text-rose-500" />
               <p className="text-xs md:text-sm text-[#F5F5F5] font-medium">{error}</p>
@@ -541,15 +617,17 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
                   <span>إعادة المحاولة (Retry)</span>
                 </button>
 
-                {backupUrl && (
+                {effectiveServers.length > 1 && (
                   <button
                     onClick={() => {
+                      const nextIdx = (activeServerIndex + 1) % effectiveServers.length;
+                      setActiveServerIndex(nextIdx);
                       setError(null);
-                      setIsBackupActive(true);
+                      setIsLoading(true);
                     }}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition-colors"
                   >
-                    <span>الانتقال للسيرفر البديل (Backup)</span>
+                    <span>الانتقال للسيرفر التالي ({effectiveServers[(activeServerIndex + 1) % effectiveServers.length]?.name})</span>
                   </button>
                 )}
               </div>
@@ -561,10 +639,11 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
         <div className="px-4 md:px-5 py-3 border-t border-[#222222] bg-[#0C0C0C] flex flex-col gap-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-[#A1A1AA]">
             <div className="flex items-center gap-2 overflow-hidden">
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
-                بث معاد 24/7 VIP
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0 flex items-center gap-1">
+                <Server className="w-3 h-3" />
+                <span>{activeServer?.name || 'سيرفر VIP فائق السرعة'}</span>
               </span>
-              {activeTrack && (
+              {activeTrack && !isEmbed && (
                 <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#E50914]/15 text-[#FF5A5F] border border-[#E50914]/30 shrink-0 flex items-center gap-1">
                   <Subtitles className="w-3 h-3" />
                   <span>مترجم ({activeTrack.label})</span>

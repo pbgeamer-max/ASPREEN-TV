@@ -860,6 +860,78 @@ class KisskhService {
       return [];
     }
   }
+
+  public findDramaAndEpisode(episodeId: string | number): {
+    title: string;
+    episodeNumber: number;
+    seasonNumber: number;
+    year?: string;
+    isMovie: boolean;
+  } | null {
+    this.loadLocalData();
+    const strEpId = String(episodeId);
+    const numId = Number(episodeId);
+
+    // 1. Check in localDramas
+    if (this.localDramas) {
+      for (const [dramaId, drama] of Object.entries(this.localDramas)) {
+        if (Array.isArray(drama.episodes)) {
+          const ep = drama.episodes.find((e: any) => String(e.id) === strEpId);
+          if (ep) {
+            return {
+              title: drama.title,
+              episodeNumber: Math.floor(Number(ep.number)) || 1,
+              seasonNumber: 1,
+              year: drama.releaseDate ? drama.releaseDate.substring(0, 4) : undefined,
+              isMovie: drama.type === 'Movie' || drama.episodes.length === 1,
+            };
+          }
+        }
+      }
+    }
+
+    // 2. Check if composite ID (dramaId * 1000 + epNum)
+    if (!isNaN(numId) && numId >= 1000) {
+      const dramaId = Math.floor(numId / 1000);
+      const epNum = numId % 1000;
+      const drama = this.localDramas?.[String(dramaId)];
+      if (drama) {
+        return {
+          title: drama.title,
+          episodeNumber: epNum || 1,
+          seasonNumber: 1,
+          year: drama.releaseDate ? drama.releaseDate.substring(0, 4) : undefined,
+          isMovie: drama.type === 'Movie',
+        };
+      }
+      if (this.localCatalog && Array.isArray(this.localCatalog.items)) {
+        const item = this.localCatalog.items.find((x: any) => x.id === dramaId);
+        if (item) {
+          return {
+            title: item.title,
+            episodeNumber: epNum || 1,
+            seasonNumber: 1,
+            isMovie: item.type === 'Movie' || item.episodesCount === 1,
+          };
+        }
+      }
+    }
+
+    // 3. Check in localCatalog directly if epId matches dramaId
+    if (this.localCatalog && Array.isArray(this.localCatalog.items)) {
+      const item = this.localCatalog.items.find((x: any) => String(x.id) === strEpId);
+      if (item) {
+        return {
+          title: item.title,
+          episodeNumber: 1,
+          seasonNumber: 1,
+          isMovie: item.type === 'Movie',
+        };
+      }
+    }
+
+    return null;
+  }
 }
 
 export const kisskhService = new KisskhService();

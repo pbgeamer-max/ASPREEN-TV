@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { kisskhService } from '../services/kisskh.service';
 import { settingsRepository } from '../repositories/settings.repository';
+import { universalStreamService } from '../services/universal-stream.service';
 import * as http from 'http';
 import * as https from 'https';
 
@@ -193,33 +194,67 @@ export async function kisskhRoutes(server: FastifyInstance) {
           ? `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(drama.thumbnail)}`
           : null;
 
-        const episodes = drama.episodes.map((ep) => {
-          let cachedStream = (kisskhService as any).localStreams?.[String(ep.id)];
-          if (!cachedStream) {
-            const numId = Number(ep.id);
-            if (!isNaN(numId) && numId >= 1000) {
-              const dId = Math.floor(numId / 1000);
-              const epNum = numId % 1000;
-              const dObj = (kisskhService as any).localDramas?.[String(dId)];
-              if (dObj && Array.isArray(dObj.episodes)) {
-                const realEp = dObj.episodes.find((e: any) => Math.floor(Number(e.number)) === epNum);
-                if (realEp && realEp.id) {
-                  cachedStream = (kisskhService as any).localStreams?.[String(realEp.id)];
+        const cleanTitle = universalStreamService.cleanTitle(drama.title);
+        const detectedSeason = universalStreamService.detectSeason(drama.title);
+        const isMovie = drama.type === 'Movie' || drama.episodes.length === 1;
+        const year = drama.releaseDate ? drama.releaseDate.substring(0, 4) : undefined;
+        // Warm up TMDB resolution once for the whole drama
+        await universalStreamService.resolveTmdb(cleanTitle, year, isMovie);
+
+        const episodes = await Promise.all(
+          drama.episodes.map(async (ep) => {
+            let cachedStream = (kisskhService as any).localStreams?.[String(ep.id)];
+            if (!cachedStream) {
+              const numId = Number(ep.id);
+              if (!isNaN(numId) && numId >= 1000) {
+                const dId = Math.floor(numId / 1000);
+                const epNum = numId % 1000;
+                const dObj = (kisskhService as any).localDramas?.[String(dId)];
+                if (dObj && Array.isArray(dObj.episodes)) {
+                  const realEp = dObj.episodes.find((e: any) => Math.floor(Number(e.number)) === epNum);
+                  if (realEp && realEp.id) {
+                    cachedStream = (kisskhService as any).localStreams?.[String(realEp.id)];
+                  }
                 }
               }
             }
-          }
-          const isDirectMp4 = cachedStream?.videoUrl?.toLowerCase().includes('.mp4');
-          return {
-            id: ep.id,
-            episode_number: ep.number,
-            title: `الحلقة ${ep.number}`,
-            subtitles_count: ep.sub,
-            stream_url: `${effectiveBaseUrl}/api/app/kisskh/stream${isDirectMp4 ? '.mp4' : ''}?epId=${ep.id}${keyParam}`,
-            backup_url: cachedStream?.backupUrl || null,
-            subtitles_url: `${effectiveBaseUrl}/api/app/kisskh/subtitles?epId=${ep.id}${keyParam}`,
-          };
-        });
+            const isDirectMp4 = cachedStream?.videoUrl?.toLowerCase().includes('.mp4');
+            const vipUrl = cachedStream?.videoUrl
+              ? `${effectiveBaseUrl}/api/app/kisskh/stream${isDirectMp4 ? '.mp4' : ''}?epId=${ep.id}${keyParam}`
+              : null;
+
+            const servers = await universalStreamService.getServersForEpisode({
+              title: drama.title,
+              episodeNumber: ep.number,
+              seasonNumber: detectedSeason,
+              year,
+              isMovie,
+              vipStreamUrl: vipUrl,
+              backupUrl: cachedStream?.backupUrl || null,
+            });
+
+            // Primary stream_url:
+            // If cached VIP HLS exists, use VIP.
+            // If uncached, use the first universal embed server (VidLink Pro) so it NEVER fails with 502!
+            const primaryUrl =
+              vipUrl ||
+              (servers.length > 0
+                ? servers[0].url
+                : `${effectiveBaseUrl}/api/app/kisskh/stream?epId=${ep.id}${keyParam}`);
+            const secondaryUrl = cachedStream?.backupUrl || (servers.length > 1 ? servers[1].url : null);
+
+            return {
+              id: ep.id,
+              episode_number: ep.number,
+              title: `الحلقة ${ep.number}`,
+              subtitles_count: ep.sub,
+              stream_url: primaryUrl,
+              backup_url: secondaryUrl,
+              servers,
+              subtitles_url: `${effectiveBaseUrl}/api/app/kisskh/subtitles?epId=${ep.id}${keyParam}`,
+            };
+          })
+        );
 
         reply.header('Access-Control-Allow-Origin', '*');
         reply.header('Cache-Control', 'public, max-age=300');
@@ -270,11 +305,46 @@ export async function kisskhRoutes(server: FastifyInstance) {
 
     try {
       if (epId) {
-        const resolved = await kisskhService.resolveEpisode(epId);
-        targetUrl = resolved.videoUrl || resolved.backupUrl || '';
+        try {
+          const resolved = await kisskhService.resolveEpisode(epId);
+          targetUrl = resolved.videoUrl || resolved.backupUrl || '';
+        } catch (scrapErr: any) {
+          console.warn(`[KissKH Stream] Scraper failed for epId ${epId}, activating Universal Stream fallback:`, scrapErr.message);
+          const info = kisskhService.findDramaAndEpisode(epId);
+          if (info) {
+            const servers = await universalStreamService.getServersForEpisode({
+              title: info.title,
+              episodeNumber: info.episodeNumber,
+              seasonNumber: info.seasonNumber,
+              year: info.year,
+              isMovie: info.isMovie,
+            });
+            const embedServer = servers.find((s) => s.isEmbed && s.url);
+            if (embedServer) {
+              reply.header('Access-Control-Allow-Origin', '*');
+              return reply.redirect(embedServer.url, 302);
+            }
+          }
+        }
       }
 
       if (!targetUrl || targetUrl.includes('tickcounter') || targetUrl.includes('countdown') || targetUrl.startsWith('//')) {
+        const info = epId ? kisskhService.findDramaAndEpisode(epId) : null;
+        if (info) {
+          const servers = await universalStreamService.getServersForEpisode({
+            title: info.title,
+            episodeNumber: info.episodeNumber,
+            seasonNumber: info.seasonNumber,
+            year: info.year,
+            isMovie: info.isMovie,
+          });
+          const embedServer = servers.find((s) => s.isEmbed && s.url);
+          if (embedServer) {
+            reply.header('Access-Control-Allow-Origin', '*');
+            return reply.redirect(embedServer.url, 302);
+          }
+        }
+
         reply.header('Access-Control-Allow-Origin', '*');
         return reply.status(404).send({
           error: 'UNRELEASED_CONTENT',
