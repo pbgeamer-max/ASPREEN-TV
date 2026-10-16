@@ -34,6 +34,15 @@ interface HlsPlayerModalProps {
 function checkIsEmbedUrl(url: string, explicitEmbed?: boolean): boolean {
   if (explicitEmbed === true) return true;
   if (!url) return false;
+  // Never treat our direct stream proxies as embed
+  if (
+    url.includes('/api/app/global/stream') ||
+    url.includes('/api/app/kisskh/stream') ||
+    url.includes('.mp4') ||
+    url.includes('.m3u8')
+  ) {
+    return false;
+  }
   const lower = url.toLowerCase();
   return (
     lower.includes('vidlink.pro') ||
@@ -140,10 +149,38 @@ export function HlsPlayerModal({
     }
   }, [subtitles]);
 
-  // Autonomously auto-fetch subtitles if activeUrl contains epId
+  // Autonomously auto-fetch subtitles if activeUrl contains tmdbId or epId
   useEffect(() => {
     if (!isOpen || !activeUrl || isEmbed) return;
     try {
+      // 1. Check tmdbId for Global Movies & Series
+      const tmdbMatch = activeUrl.match(/tmdbId=([0-9]+)/);
+      if (tmdbMatch && tmdbMatch[1]) {
+        const tmdbId = tmdbMatch[1];
+        const typeMatch = activeUrl.match(/type=([a-z]+)/);
+        const type = typeMatch ? typeMatch[1] : 'tv';
+        const seasonMatch = activeUrl.match(/season=([0-9]+)/);
+        const season = seasonMatch ? seasonMatch[1] : '1';
+        const epMatch = activeUrl.match(/ep=([0-9]+)/);
+        const ep = epMatch ? epMatch[1] : '1';
+
+        setLoadingSubtitles(true);
+        fetch(`/api/app/global/subtitles?tmdbId=${tmdbId}&type=${type}&season=${season}&ep=${ep}&_t=${Date.now()}`, {
+          cache: 'no-store',
+          credentials: 'include',
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data && data.success && Array.isArray(data.tracks) && data.tracks.length > 0) {
+              setInternalSubtitles(data.tracks);
+            }
+          })
+          .catch(() => {})
+          .finally(() => setLoadingSubtitles(false));
+        return;
+      }
+
+      // 2. Check epId for KissKH
       const match = activeUrl.match(/epId=([0-9]+)/);
       if (match && match[1]) {
         const epId = match[1];
@@ -421,30 +458,11 @@ export function HlsPlayerModal({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {/* Multi-Server Switcher */}
-            {effectiveServers.length > 1 && (
-              <div className="flex items-center bg-[#18181B] p-0.5 rounded-lg border border-white/10 text-[11px] overflow-x-auto max-w-[240px] sm:max-w-md scrollbar-none">
-                {effectiveServers.map((srv, idx) => (
-                  <button
-                    key={srv.id || idx}
-                    type="button"
-                    onClick={() => {
-                      setActiveServerIndex(idx);
-                      setError(null);
-                      setIsLoading(true);
-                    }}
-                    className={`px-2.5 py-1 rounded-md transition-all whitespace-nowrap text-xs font-semibold ${
-                      activeServerIndex === idx
-                        ? 'bg-[#E50914] text-white font-bold shadow-sm'
-                        : 'text-[#A1A1AA] hover:text-white'
-                    }`}
-                    title={srv.name}
-                  >
-                    <span>{srv.name.replace(/سيرفر\s*/, '')}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Unified Aspreen VIP Server Badge */}
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+              <Server className="w-3.5 h-3.5 text-emerald-400" />
+              <span>مشغل Aspreen VIP الموحد</span>
+            </div>
 
             {/* Subtitle Selector Button (for native HLS) */}
             {!isEmbed && ((effectiveSubtitles && effectiveSubtitles.length > 0) || loadingSubtitles) && (
@@ -627,7 +645,7 @@ export function HlsPlayerModal({
                     }}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition-colors"
                   >
-                    <span>الانتقال للسيرفر التالي ({effectiveServers[(activeServerIndex + 1) % effectiveServers.length]?.name})</span>
+                    <span>تبديل مسار البث التلقائي (Auto Switch)</span>
                   </button>
                 )}
               </div>
@@ -641,7 +659,7 @@ export function HlsPlayerModal({
             <div className="flex items-center gap-2 overflow-hidden">
               <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0 flex items-center gap-1">
                 <Server className="w-3 h-3" />
-                <span>{activeServer?.name || 'سيرفر VIP فائق السرعة'}</span>
+                <span>مشغل Aspreen VIP الموحد (Direct HD)</span>
               </span>
               {activeTrack && !isEmbed && (
                 <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#E50914]/15 text-[#FF5A5F] border border-[#E50914]/30 shrink-0 flex items-center gap-1">
