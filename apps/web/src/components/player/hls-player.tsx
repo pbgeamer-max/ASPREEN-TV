@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Hls from 'hls.js';
-import { X, AlertCircle, RefreshCw, Loader2, Copy, Check, Subtitles, ChevronDown, Server } from 'lucide-react';
+import { X, AlertCircle, RefreshCw, Loader2, Copy, Check, Subtitles, ChevronDown, Server, Play, Volume2, VolumeX } from 'lucide-react';
 
 export interface SubtitleTrack {
   src: string;
@@ -129,10 +129,42 @@ export function HlsPlayerModal({
     setTimeout(() => setCopied(false), 2000);
   }, [fullStreamUrl]);
 
+  const [isMuted, setIsMuted] = useState(false);
+  const [needsClickToPlay, setNeedsClickToPlay] = useState(false);
+
+  const handlePlayClick = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = false;
+    setIsMuted(false);
+    video.play().then(() => {
+      setIsPlaying(true);
+      setIsLoading(false);
+      setNeedsClickToPlay(false);
+    }).catch(() => {
+      video.muted = true;
+      setIsMuted(true);
+      video.play().then(() => {
+        setIsPlaying(true);
+        setIsLoading(false);
+        setNeedsClickToPlay(false);
+      });
+    });
+  }, []);
+
+  const handleUnmute = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = false;
+    setIsMuted(false);
+  }, []);
+
   const handleRetry = useCallback(() => {
     setError(null);
     setIsLoading(true);
     setIsPlaying(false);
+    setNeedsClickToPlay(false);
     setReloadKey((prev) => prev + 1);
   }, []);
 
@@ -298,9 +330,24 @@ export function HlsPlayerModal({
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         handleReady();
-        video.play().catch((err) => {
-          console.log('[HlsPlayer] Autoplay blocked, waiting for user click:', err);
+        video.play().then(() => {
           setIsLoading(false);
+          setIsPlaying(true);
+          setNeedsClickToPlay(false);
+        }).catch((err) => {
+          console.log('[HlsPlayer] Unmuted autoplay blocked, attempting muted playback:', err);
+          video.muted = true;
+          setIsMuted(true);
+          video.play().then(() => {
+            setIsLoading(false);
+            setIsPlaying(true);
+            setNeedsClickToPlay(false);
+          }).catch((err2) => {
+            console.log('[HlsPlayer] Autoplay completely blocked, user interaction required:', err2);
+            setIsLoading(false);
+            setIsPlaying(false);
+            setNeedsClickToPlay(true);
+          });
         });
       });
 
@@ -395,7 +442,7 @@ export function HlsPlayerModal({
         hls.destroy();
       }
     };
-  }, [isOpen, activeUrl, isEmbed, activeServerIndex, reloadKey, effectiveServers]);
+  }, [isOpen, activeUrl, isEmbed, activeServerIndex, reloadKey]);
 
   if (!isOpen) return null;
 
@@ -546,11 +593,21 @@ export function HlsPlayerModal({
           ) : (
             <video
               ref={videoRef}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain cursor-pointer"
               controls
               playsInline
               autoPlay
               crossOrigin="anonymous"
+              onClick={() => {
+                if (videoRef.current) {
+                  if (videoRef.current.paused) {
+                    handlePlayClick();
+                  } else if (isMuted) {
+                    videoRef.current.muted = false;
+                    setIsMuted(false);
+                  }
+                }
+              }}
             >
               {activeTrack && (
                 <track
@@ -565,43 +622,71 @@ export function HlsPlayerModal({
             </video>
           )}
 
+          {/* Muted Autoplay Banner (Click to Unmute) */}
+          {isMuted && isPlaying && !isEmbed && (
+            <button
+              type="button"
+              onClick={handleUnmute}
+              className="absolute top-4 right-4 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs shadow-2xl transition-all cursor-pointer border border-white/30 animate-pulse"
+            >
+              <VolumeX className="w-4 h-4 text-black" />
+              <span>الصوت مكتوم تلقائياً — انقر لتشغيل الصوت 🔊</span>
+            </button>
+          )}
+
+          {/* Central Play Button Overlay if waiting for user click or paused */}
+          {!isPlaying && !isLoading && !error && !isEmbed && (
+            <div
+              onClick={handlePlayClick}
+              className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center cursor-pointer z-20 group transition-all"
+            >
+              <div className="w-20 h-20 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-2xl shadow-emerald-500/50 transform group-hover:scale-110 transition-transform">
+                <Play className="w-10 h-10 ml-1 fill-white" />
+              </div>
+              <p className="text-sm font-bold text-white mt-4 bg-black/70 px-5 py-2 rounded-full border border-white/20 shadow-lg">
+                انقر لبدء تشغيل البث المباشر 🔊
+              </p>
+            </div>
+          )}
+
           {/* Loading Indicator (only for native HLS, embed has its own loader) */}
           {isLoading && !isPlaying && !error && !isEmbed && (
             <div className="absolute inset-0 bg-black/75 flex flex-col items-center justify-center p-6 text-center gap-3 pointer-events-none z-10">
-              <Loader2 className="w-8 h-8 text-[#E50914] animate-spin" />
+              <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
               <p className="text-xs text-white/90 font-medium">جاري تجهيز البث فائق السرعة...</p>
-              <p className="text-[11px] text-[#A1A1AA]">Aspreen High-Speed Multi-Server Rebroadcast</p>
+              <p className="text-[11px] text-[#A1A1AA]">Aspreen High-Speed Persistent Stream Rebroadcast</p>
             </div>
           )}
 
           {/* Error Screen */}
           {error && !isPlaying && !isEmbed && (
             <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center p-6 text-center gap-3 z-20">
-              <AlertCircle className="w-8 h-8 text-rose-500" />
-              <p className="text-xs md:text-sm text-[#F5F5F5] font-medium">{error}</p>
+              <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+              <p className="text-sm text-white font-bold max-w-md">
+                {error.includes('Offline') || error.includes('غير متوفرة') || error.includes('503') || error.includes('network')
+                  ? 'هذه القناة مخصصة للأحداث الرياضية وتبث أثناء المباريات المباشرة فقط'
+                  : error}
+              </p>
+              <p className="text-xs text-[#A1A1AA] max-w-sm">
+                يمكنك التبديل إلى قنوات beIN Sports الأساسية أو القنوات العامة المتاحة حالياً 24/7.
+              </p>
 
               <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
                 <button
                   onClick={handleRetry}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#E50914] hover:bg-[#B81D24] text-white text-xs font-semibold shadow-md transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition-colors"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>إعادة المحاولة (Retry)</span>
                 </button>
-
-                {effectiveServers.length > 1 && (
-                  <button
-                    onClick={() => {
-                      const nextIdx = (activeServerIndex + 1) % effectiveServers.length;
-                      setActiveServerIndex(nextIdx);
-                      setError(null);
-                      setIsLoading(true);
-                    }}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition-colors"
-                  >
-                    <span>تبديل مسار البث التلقائي (Auto Switch)</span>
-                  </button>
-                )}
+                <button
+                  onClick={onClose}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#222] hover:bg-[#333] text-white text-xs font-semibold border border-[#333] transition-colors"
+                >
+                  <span>اختيار قناة أخرى</span>
+                </button>
               </div>
             </div>
           )}

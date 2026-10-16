@@ -53,7 +53,7 @@ CONFIG_FILE = os.path.join(WORKSPACE_DIR, "telegram_config.json")
 CHANNELS_JSON_PATH = os.path.join(WORKSPACE_DIR, "channels.json")
 
 PORT = int(os.environ.get("STREAM_PROXY_PORT", os.environ.get("PORT", "8088")))
-AUTO_RENEW_INTERVAL_SECONDS = 30 * 60  # Renew every 30 minutes
+AUTO_RENEW_INTERVAL_SECONDS = 15 * 60  # Renew every 15 minutes
 TELEGRAM_HEARTBEAT_HOURS = 12          # Telegram report every 12 hours
 
 
@@ -451,8 +451,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         last_renewed = ch.get("lastRenewed", 0)
         is_dynamic_yacine = (ch.get("source") == "yacine.website" or len(cid) >= 15) and "edgenextcdn.net" not in target_fetch_url
 
-        # Tokens are valid for 5 hours; renew dynamic streams every 30 minutes to stay fresh
-        if is_dynamic_yacine and (now - last_renewed > 1800 or not target_fetch_url or target_fetch_url.startswith("http://127.0.0.1")):
+        # Tokens are valid for 5 hours; renew dynamic streams every 15 minutes to stay completely fresh
+        if is_dynamic_yacine and (now - last_renewed > 900 or not target_fetch_url or target_fetch_url.startswith("http://127.0.0.1")):
             renew_single_channel_stream(cid)
             with cache_lock:
                 ch = channels_cache.get(cid, {})

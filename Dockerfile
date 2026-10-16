@@ -28,7 +28,7 @@ FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-RUN apk add --no-cache ffmpeg bash python3
+RUN apk add --no-cache ffmpeg bash python3 py3-requests py3-urllib3
 
 ENV NODE_ENV=production
 ENV INTERNAL_API_URL=http://127.0.0.1:3001
