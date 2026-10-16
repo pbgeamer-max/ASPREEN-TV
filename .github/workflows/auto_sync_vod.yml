@@ -1,0 +1,40 @@
+name: Aspreen TV - 24/7 Auto Content & Streams Sync
+
+on:
+  schedule:
+    # Runs every 2 hours automatically
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Master Content Auto-Sync
+        run: |
+          node scripts/aspreen_auto_sync_daemon.js --once || true
+
+      - name: Commit and Push if updated
+        run: |
+          git config --global user.name "Aspreen TV Auto-Sync Bot"
+          git config --global user.email "bot@aspreen.tv"
+          git add data/kisskh_streams.json data/kisskh_subtitles.json data/kisskh_catalog.json data/kisskh_dramas.json data/3isk_catalog.json channels.json || true
+          if git diff --staged --quiet; then
+            echo "No new updates found."
+          else
+            git commit -m "chore(auto-sync): update VOD streams, subtitles, and latest episodes [skip ci]"
+            git push origin main
+          fi
