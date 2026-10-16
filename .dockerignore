@@ -4,3 +4,5 @@ node_modules
 *.log
 scratch
 data/hls
+data/screenshots
+data/test-media
