@@ -371,6 +371,22 @@ export async function kisskhRoutes(server: FastifyInstance) {
   server.get('/stream.mp4', streamHandler);
   server.get('/stream.m3u8', streamHandler);
 
+  server.options('/stream', async (_req, reply) => {
+    reply.header('Access-Control-Allow-Origin', '*');
+    reply.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    reply.header('Access-Control-Allow-Headers', 'Range, Accept-Ranges, Content-Type, Origin, Accept, Authorization, X-Api-Key');
+    reply.header('Access-Control-Expose-Headers', 'Content-Range, Content-Length, Accept-Ranges');
+    return reply.status(204).send();
+  });
+
+  server.options('/ts-proxy', async (_req, reply) => {
+    reply.header('Access-Control-Allow-Origin', '*');
+    reply.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    reply.header('Access-Control-Allow-Headers', 'Range, Accept-Ranges, Content-Type, Origin, Accept, Authorization, X-Api-Key');
+    reply.header('Access-Control-Expose-Headers', 'Content-Range, Content-Length, Accept-Ranges');
+    return reply.status(204).send();
+  });
+
   /**
    * GET /ts-proxy?url=...
    * High-speed proxy for .ts and media chunks with byte-range support and CORS

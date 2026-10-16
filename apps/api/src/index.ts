@@ -52,8 +52,27 @@ export async function createServer() {
   await server.register(cors, {
     origin: true,
     credentials: true,
-    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Range',
+      'Accept-Ranges',
+      'Origin',
+      'Accept',
+      'X-Api-Key',
+      'If-Modified-Since',
+      'If-None-Match',
+      'Cache-Control',
+    ],
+    exposedHeaders: [
+      'Content-Range',
+      'Content-Length',
+      'Accept-Ranges',
+      'Content-Type',
+      'ETag',
+    ],
   });
 
   await server.register(cookie, {
