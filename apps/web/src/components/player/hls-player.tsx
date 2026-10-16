@@ -165,6 +165,7 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
       setIsLoading(false);
     };
 
+    video.addEventListener('loadedmetadata', handleReady);
     video.addEventListener('loadeddata', handleReady);
     video.addEventListener('canplay', handleReady);
     video.addEventListener('canplaythrough', handleReady);
@@ -261,6 +262,7 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
                 hls?.destroy();
                 video.src = streamUrl;
                 video.load();
+                setIsLoading(false);
                 video.play().catch(() => setIsLoading(false));
                 return;
               }
@@ -268,6 +270,7 @@ export function HlsPlayerModal({ streamUrl, backupUrl, channelName, isOpen, onCl
                 setError(`Fatal streaming error: ${data.details}`);
               }
               hls?.destroy();
+              setIsLoading(false);
               break;
           }
         }

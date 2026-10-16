@@ -195,12 +195,13 @@ export async function kisskhRoutes(server: FastifyInstance) {
 
         const episodes = drama.episodes.map((ep) => {
           const cachedStream = (kisskhService as any).localStreams?.[String(ep.id)];
+          const isDirectMp4 = cachedStream?.videoUrl?.toLowerCase().includes('.mp4');
           return {
             id: ep.id,
             episode_number: ep.number,
             title: `الحلقة ${ep.number}`,
             subtitles_count: ep.sub,
-            stream_url: `${effectiveBaseUrl}/api/app/kisskh/stream?epId=${ep.id}${keyParam}`,
+            stream_url: `${effectiveBaseUrl}/api/app/kisskh/stream${isDirectMp4 ? '.mp4' : ''}?epId=${ep.id}${keyParam}`,
             backup_url: cachedStream?.backupUrl || null,
             subtitles_url: `${effectiveBaseUrl}/api/app/kisskh/subtitles?epId=${ep.id}${keyParam}`,
           };
