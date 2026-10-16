@@ -579,29 +579,47 @@ export async function iskRoutes(server: FastifyInstance) {
             }
             reply.raw.setHeader('Cache-Control', 'public, max-age=86400');
 
+            const sendRawError = (statusCode: number, msg: string) => {
+              if (!reply.raw.headersSent) {
+                try {
+                  reply.raw.writeHead(statusCode, {
+                    'Content-Type': 'text/plain',
+                    'Access-Control-Allow-Origin': '*',
+                  });
+                  reply.raw.end(msg);
+                } catch {}
+              }
+            };
+
             res.pipe(reply.raw);
             res.on('end', () => resolve());
             res.on('error', (err) => {
-              if (!reply.raw.headersSent) {
-                reply.status(502).send({ error: err.message });
-              }
+              sendRawError(502, err.message);
               resolve();
             });
           }
         );
 
-        req.on('error', (err) => {
+        const sendReqError = (statusCode: number, msg: string) => {
           if (!reply.raw.headersSent) {
-            reply.status(502).send({ error: err.message });
+            try {
+              reply.raw.writeHead(statusCode, {
+                'Content-Type': 'text/plain',
+                'Access-Control-Allow-Origin': '*',
+              });
+              reply.raw.end(msg);
+            } catch {}
           }
+        };
+
+        req.on('error', (err) => {
+          sendReqError(502, err.message);
           resolve();
         });
 
         req.on('timeout', () => {
           req.destroy();
-          if (!reply.raw.headersSent) {
-            reply.status(504).send({ error: 'Chunk request timed out' });
-          }
+          sendReqError(504, 'Chunk request timed out');
           resolve();
         });
 

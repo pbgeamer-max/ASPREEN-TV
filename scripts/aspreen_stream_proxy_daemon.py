@@ -65,9 +65,9 @@ DEFAULT_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 BYPASS_HEADERS = {
     "User-Agent": DEFAULT_UA,
     "Referer": "https://yacine.website/",
-    "X-Forwarded-For": "105.100.1.1",  # Algeria IP bypass (official licenser)
-    "CF-Connecting-IP": "105.100.1.1",
-    "X-Real-IP": "105.100.1.1",
+    "X-Forwarded-For": "156.200.1.1",  # Egypt/Algeria IP bypass
+    "CF-Connecting-IP": "156.200.1.1",
+    "X-Real-IP": "156.200.1.1",
     "Accept": "*/*"
 }
 
@@ -367,7 +367,10 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         self.send_response(404)
         self.send_cors_headers()
         self.end_headers()
-        self.wfile.write(b"Not Found")
+        try:
+            self.wfile.write(b"Not Found")
+        except (BrokenPipeError, ConnectionResetError):
+            pass
 
     def handle_channel_playlist(self, cid):
         """Fetches upstream M3U8, rewrites segment URLs, and returns to client"""
@@ -454,7 +457,10 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.send_response(502)
             self.send_cors_headers()
             self.end_headers()
-            self.wfile.write(b"Upstream Unavailable")
+            try:
+                self.wfile.write(b"Upstream Unavailable")
+            except (BrokenPipeError, ConnectionResetError):
+                pass
             return
 
         def fetch_m3u(url, user_agent, max_retries=3):
@@ -505,7 +511,10 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.send_cors_headers()
             self.send_header("Content-Type", "text/plain; charset=utf-8")
             self.end_headers()
-            self.wfile.write(f"Channel Offline: {err_msg}".encode("utf-8"))
+            try:
+                self.wfile.write(f"Channel Offline: {err_msg}".encode("utf-8"))
+            except (BrokenPipeError, ConnectionResetError):
+                pass
             return
 
         # Parse playlist: isolate headers and active live segment pairs
