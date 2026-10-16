@@ -42,7 +42,7 @@ function getChannelsFromJson(): Channel[] {
     const list = JSON.parse(raw);
     cachedJsonChannels = list.map((item: any, idx: number): Channel => {
       const cid = String(item.id || item.vid);
-      const stream = item.streamUrl || item.directM3u8 || '';
+      const stream = item.playUrl || item.streamUrl || item.directM3u8 || '';
       return {
         id: cid,
         sourceId: 'yacine-website',
@@ -53,7 +53,7 @@ function getChannelsFromJson(): Channel[] {
         inputType: 'HLS',
         encryptedInputUrl: encrypt(stream),
         enabled: true,
-        inputStatus: 'ONLINE',
+        inputStatus: item.status === 'event_only' ? 'OFFLINE' : 'ONLINE',
         transcodingStatus: 'RUNNING',
         proxyUrl: `/live/${cid}.m3u8`,
         preset: 'COPY',

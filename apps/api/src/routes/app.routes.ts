@@ -114,10 +114,7 @@ export async function appRoutes(server: FastifyInstance) {
       secFetchSite === 'same-origin' ||
       secFetchSite === 'same-site' ||
       origin.includes('railway.app') ||
-      origin.includes('localhost') ||
       referer.includes('/channels') ||
-      referer.includes('/kisskh') ||
-      referer.includes('/3isk') ||
       referer.includes('localhost') ||
       referer.includes('railway.app') ||
       request.ip === '127.0.0.1' ||

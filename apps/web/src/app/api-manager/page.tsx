@@ -23,8 +23,7 @@ import {
   Smartphone,
   Globe,
   AlertTriangle,
-  Film,
-  Sparkles,
+  ListOrdered,
 } from 'lucide-react';
 
 export default function ApiManagerPage() {
@@ -35,8 +34,7 @@ export default function ApiManagerPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
-  const [copied3isk, setCopied3isk] = useState(false);
-  const [copiedKisskh, setCopiedKisskh] = useState(false);
+  const [copiedM3u, setCopiedM3u] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
   const [customKey, setCustomKey] = useState('');
   const [testResult, setTestResult] = useState<any>(null);
@@ -73,13 +71,7 @@ export default function ApiManagerPage() {
     ? `${baseUrl}/api/app/channels?api_key=${encodeURIComponent(currentKey)}`
     : `${baseUrl}/api/app/channels`;
 
-  const iskApiUrl = currentKey
-    ? `${baseUrl}/api/app/3isk/catalog?api_key=${encodeURIComponent(currentKey)}`
-    : `${baseUrl}/api/app/3isk/catalog`;
-
-  const kisskhApiUrl = currentKey
-    ? `${baseUrl}/api/app/kisskh/catalog?api_key=${encodeURIComponent(currentKey)}`
-    : `${baseUrl}/api/app/kisskh/catalog`;
+  const playlistM3uUrl = `${baseUrl}/api/app/playlist.m3u`;
 
   const fullApiUrl = channelsApiUrl;
 
@@ -310,7 +302,7 @@ export default function ApiManagerPage() {
               <div>
                 <h3 className="text-sm font-semibold text-white">روابط الـ Master API الشاملة (للتطبيقات والمواقع الخارجية)</h3>
                 <p className="text-xs text-[#71717A] mt-0.5">
-                  جميع الروابط موحدة وتدعم مفتاح الأمان، وتوفر قوائم القنوات والمسلسلات والأفلام مع روابط البث المُعاد بثها بدون تقطيع.
+                  جميع الروابط موحدة وتدعم مفتاح الأمان، وتوفر قوائم قنوات البث المباشر مع روابط البث المُعاد بثها بدون تقطيع أو انقطاع نهائياً.
                 </p>
               </div>
               <button
@@ -323,14 +315,14 @@ export default function ApiManagerPage() {
               </button>
             </div>
 
-            {/* 1. Channels API */}
+            {/* 1. Channels API (JSON) */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
                   <Tv className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>1. رابط قنوات البث المباشر (Live TV Channels API)</span>
+                  <span>1. رابط قنوات البث المباشر (Live TV Channels API - JSON)</span>
                 </span>
-                <span className="text-[10px] text-[#71717A]">325+ قناة رياضية وعامة</span>
+                <span className="text-[10px] text-[#71717A]">325+ قناة رياضية وعامة مجهزة للتطبيقات</span>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -353,63 +345,52 @@ export default function ApiManagerPage() {
               </div>
             </div>
 
-            {/* 2. 3isk Turkish Dramas & Movies API */}
+            {/* 2. M3U Playlist */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
-                  <Film className="w-3.5 h-3.5 text-amber-400" />
-                  <span>2. رابط مسلسلات وأفلام قصة عشق (3isk Turkish Catalog API)</span>
+                  <ListOrdered className="w-3.5 h-3.5 text-blue-400" />
+                  <span>2. رابط قائمة قنوات M3U لبرامج البث (IPTV M3U Playlist)</span>
                 </span>
-                <span className="text-[10px] text-[#71717A]">983+ مسلسل وفيلم تركي</span>
+                <span className="text-[10px] text-[#71717A]">متوافق مع VLC, TiviMate, OTT Navigator</span>
               </div>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   readOnly
-                  value={iskApiUrl}
-                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-amber-300 select-all focus:outline-none"
+                  value={playlistM3uUrl}
+                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-blue-300 select-all focus:outline-none"
                 />
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(iskApiUrl);
-                    setCopied3isk(true);
-                    setTimeout(() => setCopied3isk(false), 2000);
+                    navigator.clipboard.writeText(playlistM3uUrl);
+                    setCopiedM3u(true);
+                    setTimeout(() => setCopiedM3u(false), 2000);
                   }}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#222222] hover:bg-[#2C2C2C] text-white border border-[#3A3A3A] font-semibold text-xs transition-colors shrink-0"
                 >
-                  {copied3isk ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                  <span>{copied3isk ? 'تم النسخ!' : 'نسخ الرابط'}</span>
+                  {copiedM3u ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  <span>{copiedM3u ? 'تم النسخ!' : 'نسخ الرابط'}</span>
                 </button>
               </div>
             </div>
 
-            {/* 3. KissKH Asian Dramas & Movies API */}
+            {/* 3. Direct Stream URL Pattern */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#E50914]" />
-                  <span>3. رابط الدراما والسينما والأنمي الآسيوي (KissKH Asian Catalog API)</span>
+                  <Globe className="w-3.5 h-3.5 text-purple-400" />
+                  <span>3. صيغة رابط البث المباشر الثابت للقناة (Persistent Stream URL)</span>
                 </span>
-                <span className="text-[10px] text-[#71717A]">+13,000 مسلسل وفيلم وأنمي</span>
+                <span className="text-[10px] text-[#71717A]">معاد بثه محلياً وسحابياً بدون انقطاع</span>
               </div>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   readOnly
-                  value={kisskhApiUrl}
-                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-[#FF5A5F] select-all focus:outline-none"
+                  value={`${baseUrl}/live/{channel_id}.m3u8`}
+                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-purple-300 select-all focus:outline-none"
                 />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(kisskhApiUrl);
-                    setCopiedKisskh(true);
-                    setTimeout(() => setCopiedKisskh(false), 2000);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#E50914] hover:bg-[#B81D24] text-white font-semibold text-xs transition-colors shrink-0 shadow-md shadow-[#E50914]/20"
-                >
-                  {copiedKisskh ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4" />}
-                  <span>{copiedKisskh ? 'تم النسخ!' : 'نسخ الرابط'}</span>
-                </button>
               </div>
             </div>
           </div>

@@ -34,13 +34,7 @@ interface HlsPlayerModalProps {
 function checkIsEmbedUrl(url: string, explicitEmbed?: boolean): boolean {
   if (explicitEmbed === true) return true;
   if (!url) return false;
-  // Never treat our direct stream proxies as embed
-  if (
-    url.includes('/api/app/global/stream') ||
-    url.includes('/api/app/kisskh/stream') ||
-    url.includes('.mp4') ||
-    url.includes('.m3u8')
-  ) {
+  if (url.includes('.mp4') || url.includes('.m3u8') || url.includes('/live/')) {
     return false;
   }
   const lower = url.toLowerCase();
@@ -149,56 +143,9 @@ export function HlsPlayerModal({
     }
   }, [subtitles]);
 
-  // Autonomously auto-fetch subtitles if activeUrl contains tmdbId or epId
+  // Autonomously manage subtitles if passed via props
   useEffect(() => {
     if (!isOpen || !activeUrl || isEmbed) return;
-    try {
-      // 1. Check tmdbId for Global Movies & Series
-      const tmdbMatch = activeUrl.match(/tmdbId=([0-9]+)/);
-      if (tmdbMatch && tmdbMatch[1]) {
-        const tmdbId = tmdbMatch[1];
-        const typeMatch = activeUrl.match(/type=([a-z]+)/);
-        const type = typeMatch ? typeMatch[1] : 'tv';
-        const seasonMatch = activeUrl.match(/season=([0-9]+)/);
-        const season = seasonMatch ? seasonMatch[1] : '1';
-        const epMatch = activeUrl.match(/ep=([0-9]+)/);
-        const ep = epMatch ? epMatch[1] : '1';
-
-        setLoadingSubtitles(true);
-        fetch(`/api/app/global/subtitles?tmdbId=${tmdbId}&type=${type}&season=${season}&ep=${ep}&_t=${Date.now()}`, {
-          cache: 'no-store',
-          credentials: 'include',
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data && data.success && Array.isArray(data.tracks) && data.tracks.length > 0) {
-              setInternalSubtitles(data.tracks);
-            }
-          })
-          .catch(() => {})
-          .finally(() => setLoadingSubtitles(false));
-        return;
-      }
-
-      // 2. Check epId for KissKH
-      const match = activeUrl.match(/epId=([0-9]+)/);
-      if (match && match[1]) {
-        const epId = match[1];
-        setLoadingSubtitles(true);
-        fetch(`/api/app/kisskh/subtitles?epId=${epId}&_t=${Date.now()}`, {
-          cache: 'no-store',
-          credentials: 'include',
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data && data.success && Array.isArray(data.tracks) && data.tracks.length > 0) {
-              setInternalSubtitles(data.tracks);
-            }
-          })
-          .catch(() => {})
-          .finally(() => setLoadingSubtitles(false));
-      }
-    } catch {}
   }, [isOpen, activeUrl, isEmbed]);
 
   // Close subtitle dropdown on click outside
@@ -609,7 +556,7 @@ export function HlsPlayerModal({
                 <track
                   key={activeTrack.src}
                   kind="subtitles"
-                  src={activeTrack.vtt_url || `/api/app/kisskh/sub-vtt?url=${encodeURIComponent(activeTrack.src)}`}
+                  src={activeTrack.vtt_url || activeTrack.src}
                   srcLang={activeTrack.land || 'ar'}
                   label={activeTrack.label}
                   default

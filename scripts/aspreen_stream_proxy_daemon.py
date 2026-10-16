@@ -558,13 +558,6 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             else:
                 header_lines.append(line)
 
-        # In live streams, keep only the latest 4 active segments so players never request expired chunks
-        if len(seg_pairs) > 4:
-            discarded = len(seg_pairs) - 4
-            seg_pairs = seg_pairs[-4:]
-            if media_seq is not None:
-                media_seq += discarded
-
         rewritten = []
         for h in header_lines:
             if 'URI="' in h:

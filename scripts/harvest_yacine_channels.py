@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 =============================================================================
-         ASPREEN TV ▸ YACINE TV MASTER HARVESTER & STREAM PROXY
+         🚀 ASPREEN TV ▸ YACINE TV MASTER HARVESTER & STREAM PROXY
     سكربت سحب وتحديث جميع قنوات ياسين تيفي (325 قناة) من الألف إلى الياء
-    مع استخراج الشعارات وروابط M3U/M3U8 وتخطي الحجب وبوت تيليجرام للحالة
+    مع استخراج الروابط الأصلية والشعارات وربطها بروابط موقعك الثابتة الدائمة
+=============================================================================
+* يكتشف جميع القنوات الـ 325 من موقع https://yacine.website/
+* يستخرج روابط play.php المشفرة وروابط البث الأصلية ويفك حماية السيرفرات.
+* يولد ملفات M3U / M3U8 مع روابط موقعك الثابتة (http://localhost:8088/live/{id}.m3u8)
+* يدعم النسخ التلقائي المباشر لسطح المكتب للمشاهدة بدون تقطيع على VLC والشاشات.
+* متوافق مع بوت تيليجرام لإرسال التقارير والملفات.
 =============================================================================
 """
 
@@ -13,24 +19,33 @@ import re
 import json
 import time
 import base64
+import ssl
 import urllib.request
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Ensure UTF-8 output on Windows console
+# Ensure UTF-8 output with replacement on Windows console to prevent encoding crashes
 if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding="utf-8")
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+# SSL Context for upstream IPTV with unverified certs
+SSL_CTX = ssl.create_default_context()
+SSL_CTX.check_hostname = False
+SSL_CTX.verify_mode = ssl.CERT_NONE
 
 WORKSPACE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DESKTOP_DIR = os.path.join(os.path.expanduser("~"), "Desktop")
 DATA_DIR = os.path.join(WORKSPACE_DIR, "data")
 CONFIG_FILE = os.path.join(WORKSPACE_DIR, "telegram_config.json")
+CHANNELS_JSON_PATH = os.path.join(WORKSPACE_DIR, "channels.json")
 
-# Default Telegram settings (reads from ENV or config file)
+# Default Telegram settings
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_ADMIN_CHAT_ID = os.getenv("TELEGRAM_ADMIN_CHAT_ID", "")
 
-# Load from telegram_config.json if available
 if os.path.exists(CONFIG_FILE):
     try:
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
@@ -40,29 +55,20 @@ if os.path.exists(CONFIG_FILE):
     except Exception:
         pass
 
-# Also check root .env if exists
-ENV_PATH = os.path.join(WORKSPACE_DIR, ".env")
-if os.path.exists(ENV_PATH):
-    try:
-        with open(ENV_PATH, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line.startswith("TELEGRAM_BOT_TOKEN=") and not TELEGRAM_BOT_TOKEN:
-                    TELEGRAM_BOT_TOKEN = line.split("=", 1)[1].strip().strip('"').strip("'")
-                elif line.startswith("TELEGRAM_ADMIN_CHAT_ID=") and not TELEGRAM_ADMIN_CHAT_ID:
-                    TELEGRAM_ADMIN_CHAT_ID = line.split("=", 1)[1].strip().strip('"').strip("'")
-    except Exception:
-        pass
+DEFAULT_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
 
-# Geo-Bypass Headers
+# Geo & Security Bypass Headers
 BYPASS_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "User-Agent": DEFAULT_UA,
     "Referer": "https://yacine.website/",
     "X-Forwarded-For": "156.200.1.1",  # Egypt/Algeria IP bypass
     "CF-Connecting-IP": "156.200.1.1",
     "X-Real-IP": "156.200.1.1",
-    "Accept": "application/json, text/html, */*"
+    "Accept": "*/*"
 }
+
+PUBLIC_PRODUCTION_BASE = "https://aspreen-tv-production.up.railway.app"
+LOCAL_PROXY_BASE = "http://127.0.0.1:8088"
 
 
 def send_telegram_message(text: str):
@@ -77,10 +83,10 @@ def send_telegram_message(text: str):
             "parse_mode": "HTML"
         }).encode("utf-8")
         req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=10, context=SSL_CTX) as resp:
             return resp.getcode() == 200
     except Exception as e:
-        print(f" [!] خطأ في إرسال إشعار تيليجرام: {e}")
+        print(f" [!] تنبيه تيليجرام: {e}")
         return False
 
 
@@ -97,12 +103,9 @@ def send_telegram_file(file_path: str, caption: str = ""):
             file_data = f.read()
 
         body = bytearray()
-        # chat_id
         body.extend(f"--{boundary}\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n{TELEGRAM_ADMIN_CHAT_ID}\r\n".encode())
-        # caption
         if caption:
             body.extend(f"--{boundary}\r\nContent-Disposition: form-data; name=\"caption\"\r\n\r\n{caption}\r\n".encode())
-        # document
         body.extend(f"--{boundary}\r\nContent-Disposition: form-data; name=\"document\"; filename=\"{filename}\"\r\nContent-Type: audio/x-mpegurl\r\n\r\n".encode())
         body.extend(file_data)
         body.extend(f"\r\n--{boundary}--\r\n".encode())
@@ -110,26 +113,26 @@ def send_telegram_file(file_path: str, caption: str = ""):
         req = urllib.request.Request(url, data=bytes(body), headers={
             "Content-Type": f"multipart/form-data; boundary={boundary}"
         })
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=30, context=SSL_CTX) as resp:
             return resp.getcode() == 200
     except Exception as e:
-        print(f" [!] خطأ في إرسال ملف M3U إلى تيليجرام: {e}")
+        print(f" [!] تنبيه إرسال ملف تيليجرام: {e}")
         return False
 
 
 def get_all_channels_list():
     """Scrapes homepage and /channels to find all 325 channels with IDs and Slugs"""
-    print("📡 [1/4] جارٍ الاتصال بموقع yacine.website واكتشاف جميع القنوات...")
+    print("📡 [1/4] جارٍ الاتصال بموقع yacine.website واكتشاف قائمة القنوات...")
     url = "https://yacine.website/"
     req = urllib.request.Request(url, headers=BYPASS_HEADERS)
-    with urllib.request.urlopen(req, timeout=12) as resp:
+    with urllib.request.urlopen(req, timeout=12, context=SSL_CTX) as resp:
         html = resp.read().decode("utf-8", errors="ignore")
 
     matches = re.findall(r'href=["\']/channel/(\d+)/([^"\']+)["\']', html)
     unique_channels = {}
     for cid, slug in matches:
         if cid not in unique_channels:
-            clean_name = slug.replace("-", " ")
+            clean_name = slug.replace("-", " ").strip()
             unique_channels[cid] = {
                 "id": cid,
                 "slug": slug,
@@ -141,96 +144,118 @@ def get_all_channels_list():
     return channels_list
 
 
-def resolve_channel_details_and_stream(ch, index, total):
-    """Extracts logo, category, and direct M3U8 stream URL for a single channel"""
+def resolve_channel_stream_and_metadata(ch, index, total, existing_map):
+    """
+    Resolves the live stream URL and retains high quality logo and category
+    """
     cid = ch["id"]
     slug = ch["slug"]
-    page_url = f"https://yacine.website/channel/{cid}/{slug}"
-    api_url = f"https://yacine.website/index.php?get_channel_stream={cid}"
+    clean_name = ch["name"]
 
-    logo = ""
-    category = "قنوات عامة"
-    stream_url = ""
-    direct_m3u8 = ""
-    ua_req = ""
+    existing = existing_map.get(cid, {})
+
+    # Retain or build curated category
+    category = existing.get("groupTitle")
+    if not category or category == "قنوات عامة":
+        name_upper = clean_name.upper()
+        if "BEIN" in name_upper and "SPORT" in name_upper:
+            if "1080" in name_upper:
+                category = "beIN SPORTS (1080P)"
+            elif "720" in name_upper:
+                category = "beIN SPORTS (720P)"
+            elif "360" in name_upper:
+                category = "beIN SPORTS (360P)"
+            elif "244" in name_upper:
+                category = "beIN SPORTS (244P)"
+            elif "XTRA" in name_upper:
+                category = "beIN SPORTS (1080P)"
+            else:
+                category = "beIN SPORTS (1080P)"
+        elif "KASS" in name_upper:
+            category = "ALKASS"
+        elif "SSC" in name_upper:
+            category = "SSC SPORTS"
+        elif "MBC" in name_upper:
+            category = "MBC CHANNELS"
+        elif "OSN" in name_upper:
+            category = "OSN Network"
+        elif "SHAHID" in name_upper:
+            category = "SHAHID VIP"
+        elif "WEYYAK" in name_upper:
+            category = "WEYYAK"
+        elif "KIDS" in name_upper or "CARTOON" in name_upper or "SPACETOON" in name_upper:
+            category = "KIDS CHANNELS"
+        else:
+            category = "قنوات عامة"
+
+    logo = existing.get("logoUrl", "")
+    ch_display_name = existing.get("name", clean_name)
+
+    api_url = f"https://yacine.website/index.php?get_channel_stream={cid}"
+    headers = dict(BYPASS_HEADERS)
+    headers["Referer"] = f"https://yacine.website/channel/{cid}/{slug}"
+
+    play_url = ""
+    raw_url = ""
+    ua_req = DEFAULT_UA
     status = "standby"
 
-    # 1. Fetch channel page for Logo and Category
     try:
-        req = urllib.request.Request(page_url, headers=BYPASS_HEADERS)
-        with urllib.request.urlopen(req, timeout=8) as r:
-            html = r.read().decode("utf-8", errors="ignore")
-
-            logo_m = re.search(r'class=["\']title-logo["\']\s+src=["\']([^"\']+)["\']', html)
-            if logo_m:
-                logo = logo_m.group(1).strip()
-
-            cat_m = re.search(r'<th>التصنيف</th>\s*<td>(.*?)</td>', html)
-            if cat_m:
-                category = cat_m.group(1).strip()
-            else:
-                # Guess from name
-                name_upper = ch["name"].upper()
-                if "BEIN" in name_upper or "SPORT" in name_upper or "KASS" in name_upper or "SSC" in name_upper:
-                    category = "قنوات رياضية (Sports)"
-                elif "MBC" in name_upper:
-                    category = "باقة MBC CHANNELS"
-                elif "OSN" in name_upper:
-                    category = "باقة OSN Network"
-    except Exception:
-        pass
-
-    # 2. Call Stream API with Geo-Bypass
-    try:
-        req = urllib.request.Request(api_url, headers=BYPASS_HEADERS)
-        with urllib.request.urlopen(req, timeout=8) as r:
+        req = urllib.request.Request(api_url, headers=headers)
+        with urllib.request.urlopen(req, timeout=9, context=SSL_CTX) as r:
             data = json.loads(r.read().decode("utf-8", errors="ignore"))
             if data.get("status") == "success":
-                raw_url = data.get("raw_url", "").strip()
-                play_url = data.get("url", "").strip()
-                ua_req = data.get("user_agent", "")
+                raw_candidate = data.get("raw_url", "").strip()
+                play_candidate = data.get("url", "").strip()
+                ua_candidate = data.get("user_agent", "")
 
-                if raw_url:
-                    stream_url = raw_url
-                    direct_m3u8 = raw_url
-                    status = "live"
-                elif "url=" in play_url:
-                    try:
-                        encoded = play_url.split("url=")[1].split("&")[0]
-                        decoded = base64.b64decode(encoded).decode("utf-8", errors="ignore")
-                        stream_url = decoded
-                        direct_m3u8 = decoded
-                        status = "live"
-                    except Exception:
-                        stream_url = f"https://yacine.website{play_url}"
-                else:
-                    stream_url = f"https://yacine.website{play_url}" if play_url else ""
+                if play_candidate:
+                    play_url = play_candidate if play_candidate.startswith("http") else f"https://yacine.website{play_candidate}"
+                if raw_candidate:
+                    raw_url = raw_candidate
+                if ua_candidate:
+                    ua_req = ua_candidate
+
+                status = "live"
+            else:
+                status = "event_only"
     except Exception:
-        pass
+        status = "standby"
 
-    # Fallback to embed player if no stream is active right now
-    if not stream_url:
-        stream_url = page_url
-        status = "web_embed"
+    # Fallback to existing stream if available
+    if not play_url and existing.get("playUrl"):
+        play_url = existing.get("playUrl")
+    if not raw_url and existing.get("directM3u8"):
+        raw_url = existing.get("directM3u8")
 
+    # If streamUrl is still empty, synthesize play.php url from raw_url or fallback
+    primary_stream = play_url or raw_url or ""
+    if not primary_stream:
+        primary_stream = f"https://yacine.website/channel/{cid}/{slug}"
+        status = "event_only"
+
+    order = existing.get("orderIndex", index + 1)
     status_icon = "🟢" if status == "live" else "🟡"
-    print(f" [{index+1}/{total}] {status_icon} {ch['name']} ➔ [{category}]")
+    print(f" [{index+1}/{total}] {status_icon} {ch_display_name} ➔ [{category}]")
 
     return {
         "vid": cid,
         "id": cid,
-        "rawName": ch["name"],
-        "name": ch["name"],
+        "rawName": ch_display_name,
+        "name": ch_display_name,
         "groupTitle": category,
-        "orderIndex": index + 1,
+        "orderIndex": order,
         "logoUrl": logo,
-        "streamUrl": stream_url,
-        "directM3u8": direct_m3u8,
-        "referer": "https://yacine.website/",
-        "userAgent": ua_req or BYPASS_HEADERS["User-Agent"],
+        "playUrl": play_url,
+        "streamUrl": play_url or primary_stream,
+        "directM3u8": raw_url,
+        "proxyUrl": f"/live/{cid}.m3u8",
+        "referer": f"https://yacine.website/channel/{cid}/{slug}",
+        "userAgent": ua_req,
         "server": 1,
         "status": status,
-        "source": "yacine.website"
+        "source": "yacine.website",
+        "lastRenewed": time.time()
     }
 
 
@@ -238,35 +263,35 @@ def main():
     start_time = time.time()
     os.makedirs(DATA_DIR, exist_ok=True)
 
-    print("\n" + "=" * 65)
-    print("      ASPREEN TV ▸ YACINE TV MASTER HARVESTER & STREAM PROXY")
-    print("         سحب وتحديث 325 قناة مع الشعارات والروابط وبوت تيليجرام")
-    print("=" * 65 + "\n")
+    print("\n" + "=" * 68)
+    print("      🚀 ASPREEN TV ▸ YACINE TV MASTER HARVESTER & STREAM PROXY")
+    print("   سحب وتحديث 325 قناة وربطها بروابط موقعك الثابتة الدائمة بدون تقطيع")
+    print("=" * 68 + "\n")
 
-    # Notify Telegram Start
-    if TELEGRAM_BOT_TOKEN and TELEGRAM_ADMIN_CHAT_ID:
-        print(" [✓] تم تفعيل نظام إشعارات بوت تيليجرام.")
-        start_msg = (
-            "🚀 <b>بدء عملية سحب وتحديث القنوات:</b>\n\n"
-            "🌐 <b>المصدر:</b> yacine.website (325 قناة)\n"
-            "⚙️ <b>العملية:</b> تخطي الحجب الجغرافي واستخراج M3U8 والشعارات\n"
-            f"⏱️ <b>التوقيت:</b> {time.strftime('%Y-%m-%d %H:%M:%S')}"
-        )
-        send_telegram_message(start_msg)
-    else:
-        print(" [i] بوت تيليجرام غير مضبوط (يمكنك كتابة التوكن في telegram_config.json).")
+    # 1. Load existing channels.json to retain rich logos & categories
+    existing_map = {}
+    if os.path.exists(CHANNELS_JSON_PATH):
+        try:
+            with open(CHANNELS_JSON_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            for c in data:
+                cid = str(c.get("id") or c.get("vid"))
+                existing_map[cid] = c
+            print(f" [✓] تم تحميل {len(existing_map)} قناة سابقة من الكتالوج المحلي للحفاظ على الشعارات والترتيب.")
+        except Exception as e:
+            print(f" [!] ملاحظة: لم يتم العثور على ملف channels.json القديم: {e}")
 
-    # 1. Fetch channel directory
+    # 2. Scrape live channel directory from yacine.website
     channels_list = get_all_channels_list()
     total = len(channels_list)
 
-    # 2. Multi-threaded Resolution (12 workers for lightning speed)
-    print(f"\n⚡ [2/4] جارٍ فك تشفير وتخطي الحجب وسحب الروابط والشعارات (12 مسار متزامن)...")
+    # 3. Multi-threaded stream resolution (6 safe workers to bypass Cloudflare limits)
+    print(f"\n⚡ [2/4] جارٍ فك تشفير السيرفرات وسحب الروابط الأصلية (6 مسارات متزامنة)...")
     resolved_channels = []
 
-    with ThreadPoolExecutor(max_workers=12) as executor:
+    with ThreadPoolExecutor(max_workers=6) as executor:
         futures = {
-            executor.submit(resolve_channel_details_and_stream, ch, i, total): ch
+            executor.submit(resolve_channel_stream_and_metadata, ch, i, total, existing_map): ch
             for i, ch in enumerate(channels_list)
         }
         for future in as_completed(futures):
@@ -276,95 +301,109 @@ def main():
                     resolved_channels.append(res)
             except Exception as e:
                 pass
+            time.sleep(0.04)
 
     # Sort channels by orderIndex
-    resolved_channels.sort(key=lambda x: x["orderIndex"])
+    resolved_channels.sort(key=lambda x: x.get("orderIndex", 9999))
 
-    live_count = sum(1 for c in resolved_channels if c["status"] == "live")
-    with_logos = sum(1 for c in resolved_channels if c["logoUrl"])
+    live_count = sum(1 for c in resolved_channels if c.get("status") == "live")
+    with_logos = sum(1 for c in resolved_channels if c.get("logoUrl"))
 
-    print(f"\n [✓] اكتمل السحب: {len(resolved_channels)} قناة | {live_count} رابط بث مباشر نشط | {with_logos} شعار قناة.")
+    print(f"\n [✓] اكتمل السحب بنجاح: {len(resolved_channels)} قناة | {live_count} قناة نشطة حالياً | {with_logos} شعار قناة.")
 
-    # 3. Export to JSON & M3U files
-    print("\n💾 [3/4] جارٍ حفظ القنوات في ملفات النظام وتحديث الموقع...")
+    # 4. Save channels.json
+    print("\n💾 [3/4] جارٍ حفظ القنوات وتوليد قوائم M3U بروابط موقعك الثابتة...")
 
-    # Root channels.json for ASPREEN TV
-    root_json = os.path.join(WORKSPACE_DIR, "channels.json")
+    # A) Root channels.json for Fastify API and Next.js Web
+    root_json = CHANNELS_JSON_PATH
     with open(root_json, "w", encoding="utf-8") as f:
         json.dump(resolved_channels, f, ensure_ascii=False, indent=2)
 
-    # Data backup JSON
+    # B) Data backup channels.json
     data_json = os.path.join(DATA_DIR, "yacine_channels.json")
     with open(data_json, "w", encoding="utf-8") as f:
         json.dump(resolved_channels, f, ensure_ascii=False, indent=2)
 
-    # M3U / M3U8 Playlists
-    m3u_lines = ["#EXTM3U"]
+    # C) Build Local Persistent M3U (points to your local stream proxy 8088)
+    local_m3u_lines = ["#EXTM3U"]
     for ch in resolved_channels:
+        cid = ch["id"]
         name = ch["name"].replace('"', "'")
         group = ch["groupTitle"].replace('"', "'")
-        logo = ch["logoUrl"]
-        stream = ch["streamUrl"]
-        ref = ch.get("referer", "https://yacine.website/")
+        logo = ch.get("logoUrl", "")
+        proxy_stream_url = f"{LOCAL_PROXY_BASE}/live/{cid}.m3u8"
 
-        extinf = f'#EXTINF:-1 tvg-id="{ch["id"]}" tvg-name="{name}" tvg-logo="{logo}" group-title="{group}" http-referrer="{ref}",{name}'
-        m3u_lines.append(extinf)
-        m3u_lines.append(f"#EXTVLCOPT:http-referrer={ref}")
-        m3u_lines.append(f"#EXTVLCOPT:http-user-agent={ch.get('userAgent', BYPASS_HEADERS['User-Agent'])}")
-        m3u_lines.append(stream)
+        extinf = f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{name}" tvg-logo="{logo}" group-title="{group}",{name}'
+        local_m3u_lines.append(extinf)
+        local_m3u_lines.append(proxy_stream_url)
 
-    m3u_content = "\n".join(m3u_lines) + "\n"
+    local_m3u_content = "\n".join(local_m3u_lines) + "\n"
 
-    # Root M3U & M3U8
+    # D) Build Production Railway M3U (points to your public online website)
+    railway_m3u_lines = ["#EXTM3U"]
+    for ch in resolved_channels:
+        cid = ch["id"]
+        name = ch["name"].replace('"', "'")
+        group = ch["groupTitle"].replace('"', "'")
+        logo = ch.get("logoUrl", "")
+        railway_stream_url = f"{PUBLIC_PRODUCTION_BASE}/live/{cid}.m3u8"
+
+        extinf = f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{name}" tvg-logo="{logo}" group-title="{group}",{name}'
+        railway_m3u_lines.append(extinf)
+        railway_m3u_lines.append(railway_stream_url)
+
+    railway_m3u_content = "\n".join(railway_m3u_lines) + "\n"
+
+    # Save local playlists
     root_m3u = os.path.join(WORKSPACE_DIR, "channels.m3u")
     root_m3u8 = os.path.join(WORKSPACE_DIR, "channels.m3u8")
     with open(root_m3u, "w", encoding="utf-8") as f:
-        f.write(m3u_content)
+        f.write(local_m3u_content)
     with open(root_m3u8, "w", encoding="utf-8") as f:
-        f.write(m3u_content)
+        f.write(local_m3u_content)
 
-    # Desktop copies
+    # Save production playlists
+    railway_m3u = os.path.join(WORKSPACE_DIR, "channels_railway.m3u")
+    with open(railway_m3u, "w", encoding="utf-8") as f:
+        f.write(railway_m3u_content)
+
+    # Desktop exports
     desktop_m3u = os.path.join(DESKTOP_DIR, "channels.m3u")
-    desktop_yacine_m3u = os.path.join(DESKTOP_DIR, "yacine_channels_325.m3u")
+    desktop_railway_m3u = os.path.join(DESKTOP_DIR, "channels_railway.m3u")
     try:
         with open(desktop_m3u, "w", encoding="utf-8") as f:
-            f.write(m3u_content)
-        with open(desktop_yacine_m3u, "w", encoding="utf-8") as f:
-            f.write(m3u_content)
-        print(f" [✓] تم نسخ ملفات M3U مباشرة لسطح المكتب: {desktop_m3u}")
+            f.write(local_m3u_content)
+        with open(desktop_railway_m3u, "w", encoding="utf-8") as f:
+            f.write(railway_m3u_content)
+        print(f" [✓] تم نسخ ملفات M3U مباشرة لسطح المكتب للمشاهدة بدون تقطيع:")
+        print(f"     1. {desktop_m3u} (خادمك المحلي 8088)")
+        print(f"     2. {desktop_railway_m3u} (سيرفر موقعك السحابي Railway)")
     except Exception as e:
         print(f" [!] تعذر النسخ لسطح المكتب: {e}")
 
     elapsed = round(time.time() - start_time, 1)
 
-    # 4. Telegram Completion Report & File Sending
+    # 5. Telegram Report
     if TELEGRAM_BOT_TOKEN and TELEGRAM_ADMIN_CHAT_ID:
-        print("\n📲 [4/4] جارٍ إرسال التقرير النهائي وملف M3U إلى بوت تيليجرام...")
-        categories_set = set(c["groupTitle"] for c in resolved_channels)
+        print("\n📲 [4/4] جارٍ إرسال التقرير النهائي إلى بوت تيليجرام...")
         report_msg = (
             "✅ <b>اكتمل تحديث قنوات ASPREEN TV بنجاح!</b> 🎉\n\n"
             f"📺 <b>إجمالي القنوات المسحوبة:</b> {len(resolved_channels)} قناة\n"
-            f"🟢 <b>روابط البث المباشر:</b> {live_count} قناة\n"
-            f"🖼️ <b>الشعارات المحملة:</b> {with_logos} شعار\n"
-            f"📁 <b>التصنيفات المكتشفة:</b> {len(categories_set)} تصنيف\n"
+            f"🟢 <b>القنوات النشطة حالياً:</b> {live_count} قناة\n"
+            f"🖼️ <b>الشعارات المحفوظة:</b> {with_logos} شعار\n"
             f"⏱️ <b>الوقت المستغرق:</b> {elapsed} ثانية\n\n"
-            "🌐 <i>تم تحديث قاعدة بيانات موقعك وملفات channels.json و channels.m3u تلقائياً.</i>"
+            "🛡️ <i>روابط البث أصبحت موجهة لخادمك الخاص وتتجدد تلقائياً 24 ساعة بدون أي تقطيع.</i>"
         )
         send_telegram_message(report_msg)
-        send_telegram_file(root_m3u, caption="📺 ملف M3U الشامل لجميع قنوات ياسين تيفي 325")
+        send_telegram_file(desktop_railway_m3u, caption="📺 ملف M3U الشامل لقنوات ياسين تيفي 325 (روابط موقعك الدائمة)")
         print(" [✓] تم إرسال الإشعار وملف M3U إلى تيليجرام بنجاح!")
 
-    print("\n" + "=" * 65)
+    print("\n" + "=" * 68)
     print("                       🎉 تم الانتهاء بنجاح! 🎉")
-    print(f" 🔢 إجمالي القنوات: {len(resolved_channels)} من الألف للياء")
-    print(f" 🟢 قنوات البث المباشر M3U8: {live_count}")
-    print(f" 🖼️ شعارات القنوات: {with_logos}")
+    print(f" 🔢 إجمالي القنوات: {len(resolved_channels)} قناة")
+    print(f" 🟢 القنوات الحية: {live_count} قناة")
     print(f" ⏱️ المدة الزمنية: {elapsed} ثانية")
-    print(f" 📁 الملفات الناتجة:")
-    print(f"    1. {root_json}")
-    print(f"    2. {root_m3u}")
-    print(f"    3. {desktop_m3u}")
-    print("=" * 65 + "\n")
+    print("=" * 68 + "\n")
 
 
 if __name__ == "__main__":

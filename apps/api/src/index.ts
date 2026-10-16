@@ -26,10 +26,6 @@ import { tokenRoutes } from './routes/token.routes';
 import { settingsRoutes } from './routes/settings.routes';
 import { hlsAuthRoutes } from './routes/hls-auth.routes';
 import { appRoutes } from './routes/app.routes';
-import { iskRoutes } from './routes/3isk.routes';
-import { kisskhRoutes } from './routes/kisskh.routes';
-import { globalMediaRoutes } from './routes/global-media.routes';
-import { threeIskSyncService } from './services/3isk-sync.service';
 import { telegramService } from './services/telegram.service';
 import { tokenRepository } from './repositories/token.repository';
 import { channelRepository } from './repositories/channel.repository';
@@ -118,12 +114,6 @@ export async function createServer() {
   await server.register(hlsAuthRoutes, { prefix: '/api' });
   await server.register(appRoutes, { prefix: '/api/app' });
   await server.register(appRoutes, { prefix: '/api/v1' });
-  await server.register(iskRoutes, { prefix: '/api/app/3isk' });
-  await server.register(iskRoutes, { prefix: '/api/v1/3isk' });
-  await server.register(kisskhRoutes, { prefix: '/api/app/kisskh' });
-  await server.register(kisskhRoutes, { prefix: '/api/v1/kisskh' });
-  await server.register(globalMediaRoutes, { prefix: '/api/app/global' });
-  await server.register(globalMediaRoutes, { prefix: '/api/v1/global' });
 
   // Helper function to stream live MPEG-TS relay using FFmpeg
   async function streamLiveMpegTs(
@@ -533,12 +523,7 @@ async function start() {
     await server.listen({ port: config.port, host: config.host });
     console.log(`[Aspreen TV API] Server running at http://${config.host}:${config.port}`);
 
-    // Initialize 24/7 3isk Auto-Sync Daemon (syncs latest drama, movies, and episodes every 15 min)
-    try {
-      threeIskSyncService.startCron(15 * 60 * 1000);
-    } catch (e: any) {
-      console.warn('[3isk Sync] Failed to start auto-sync daemon:', e.message);
-    }
+
 
     // Initialize Telegram Bot (if configured)
     try {
