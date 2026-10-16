@@ -508,31 +508,62 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(f"Channel Offline: {err_msg}".encode("utf-8"))
             return
 
-        # Rewrite Playlist: route relative TS segments through /live/ts?url=...&ref=...
+        # Parse playlist: isolate headers and active live segment pairs
+        header_lines = []
+        seg_pairs = []
+        curr_inf = None
+        media_seq = None
+
         lines = m3u_text.splitlines()
-        rewritten = []
         for line in lines:
             line = line.strip()
             if not line:
                 continue
-            if line.startswith("#"):
-                if 'URI="' in line:
-                    def replace_uri(m):
-                        u = m.group(1)
-                        full_u = urllib.parse.urljoin(target_fetch_url, u)
-                        enc_u = urllib.parse.quote(full_u, safe="")
-                        enc_r = urllib.parse.quote(channel_referer, safe="")
-                        return f'URI="/live/ts?url={enc_u}&ref={enc_r}"'
-                    rewritten.append(re.sub(r'URI="([^"]+)"', replace_uri, line))
-                else:
-                    rewritten.append(line)
+            if line.startswith("#EXT-X-MEDIA-SEQUENCE:"):
+                try:
+                    media_seq = int(line.split(":")[1])
+                except Exception:
+                    pass
+                continue
+            if line.startswith("#EXTINF"):
+                curr_inf = line
+            elif not line.startswith("#") and curr_inf:
+                seg_pairs.append((curr_inf, line))
+                curr_inf = None
             else:
-                # Segment or Sub-manifest URL line
-                seg_full = urllib.parse.urljoin(target_fetch_url, line)
-                encoded_seg = urllib.parse.quote(seg_full, safe="")
-                encoded_ref = urllib.parse.quote(channel_referer, safe="")
-                rewritten_seg = f"/live/ts?url={encoded_seg}&ref={encoded_ref}"
-                rewritten.append(rewritten_seg)
+                header_lines.append(line)
+
+        # In live streams, keep only the latest 4 active segments so players never request expired chunks
+        if len(seg_pairs) > 4:
+            discarded = len(seg_pairs) - 4
+            seg_pairs = seg_pairs[-4:]
+            if media_seq is not None:
+                media_seq += discarded
+
+        rewritten = []
+        for h in header_lines:
+            if 'URI="' in h:
+                def replace_uri(m):
+                    u = m.group(1)
+                    full_u = urllib.parse.urljoin(target_fetch_url, u)
+                    enc_u = urllib.parse.quote(full_u, safe="")
+                    enc_r = urllib.parse.quote(channel_referer, safe="")
+                    return f'URI="/live/ts?url={enc_u}&ref={enc_r}"'
+                rewritten.append(re.sub(r'URI="([^"]+)"', replace_uri, h))
+            else:
+                rewritten.append(h)
+
+        if media_seq is not None:
+            # Place media sequence right after #EXTM3U
+            idx = 1 if len(rewritten) > 0 and rewritten[0].startswith("#EXTM3U") else 0
+            rewritten.insert(idx, f"#EXT-X-MEDIA-SEQUENCE:{media_seq}")
+
+        for inf, seg_url in seg_pairs:
+            seg_full = urllib.parse.urljoin(target_fetch_url, seg_url)
+            encoded_seg = urllib.parse.quote(seg_full, safe="")
+            encoded_ref = urllib.parse.quote(channel_referer, safe="")
+            rewritten.append(inf)
+            rewritten.append(f"/live/ts?url={encoded_seg}&ref={encoded_ref}")
 
         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
         self.send_response(200)
@@ -543,7 +574,10 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         self.send_header("Expires", "0")
         self.send_header("Content-Length", str(len(out_body)))
         self.end_headers()
-        self.wfile.write(out_body)
+        try:
+            self.wfile.write(out_body)
+        except (BrokenPipeError, ConnectionResetError):
+            return
 
     def handle_ts_segment(self, target_url, ref_override=""):
         """Pipes upstream TS segment chunks to client seamlessly with exact headers"""
@@ -583,10 +617,13 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     first_chunk = upstream.read(64 * 1024)
                     if not first_chunk or first_chunk.startswith(b"No URLs available") or first_chunk.startswith(b"<html>") or first_chunk.startswith(b"<html") or first_chunk.startswith(b"<!DOCTYPE"):
                         if attempt < 2:
-                            time.sleep(0.8)
+                            time.sleep(0.4)
                             continue
-                        self.send_response(502)
+                        # Return empty TS segment with 200 to prevent HLS.js crashing on expired live segments
+                        self.send_response(200)
                         self.send_cors_headers()
+                        self.send_header("Content-Type", "video/mp2t")
+                        self.send_header("Content-Length", "0")
                         self.end_headers()
                         return
 

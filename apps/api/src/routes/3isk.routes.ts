@@ -1,7 +1,12 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as http from 'http';
+import * as https from 'https';
 import { settingsRepository } from '../repositories/settings.repository';
+
+const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 100, maxFreeSockets: 20, timeout: 30000 });
+const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 100, maxFreeSockets: 20, timeout: 30000 });
 
 // In-memory cache for resolved stream URLs (TTL: 2 hours)
 const streamCache = new Map<string, { url: string; expiresAt: number }>();
@@ -419,20 +424,87 @@ export async function iskRoutes(server: FastifyInstance) {
   });
 
   /**
+   * Helper to proxy and rewrite m3u8 playlists for 3isk
+   */
+  async function proxy3iskM3u8(targetUrl: string, request: FastifyRequest, reply: FastifyReply) {
+    const settings = await settingsRepository.getSettings();
+    const reqHost = (request.headers['x-forwarded-host'] as string) || (request.headers.host as string);
+    const reqProto = (request.headers['x-forwarded-proto'] as string) || 'https';
+    let effectiveBaseUrl = settings.publicStreamBaseUrl;
+    if ((!effectiveBaseUrl || effectiveBaseUrl.includes('localhost') || effectiveBaseUrl.includes('@')) && reqHost && !reqHost.includes('127.0.0.1')) {
+      effectiveBaseUrl = `${reqProto}://${reqHost}`;
+    }
+    if (!effectiveBaseUrl) {
+      effectiveBaseUrl = 'https://aspreen-tv-production.up.railway.app';
+    }
+
+    const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+    const upstreamRes = await fetch(targetUrl, {
+      headers: { 'User-Agent': ua },
+      signal: AbortSignal.timeout(12000),
+    });
+
+    if (!upstreamRes.ok) {
+      return reply.status(upstreamRes.status).send({ error: 'Upstream m3u8 fetch failed' });
+    }
+
+    const rawText = await upstreamRes.text();
+    const baseUri = targetUrl;
+    const lines = rawText.split('\n');
+
+    const rewritten = lines
+      .map((line) => {
+        const trimmed = line.trim();
+        if (!trimmed) return line;
+
+        // Handle URI attributes in tags (e.g. #EXT-X-KEY:METHOD=AES-128,URI="...")
+        if (trimmed.startsWith('#')) {
+          if (trimmed.includes('URI="')) {
+            return trimmed.replace(/URI="([^"]+)"/g, (_match, uri) => {
+              const fullUri = new URL(uri, baseUri).href;
+              if (fullUri.toLowerCase().includes('.m3u8')) {
+                return `URI="${effectiveBaseUrl}/api/app/3isk/stream?url=${encodeURIComponent(fullUri)}"`;
+              }
+              return `URI="${effectiveBaseUrl}/api/app/3isk/ts-proxy?url=${encodeURIComponent(fullUri)}"`;
+            });
+          }
+          return line;
+        }
+
+        // Segment or sub-playlist URL
+        const absoluteUrl = new URL(trimmed, baseUri).href;
+        if (absoluteUrl.toLowerCase().includes('.m3u8')) {
+          return `${effectiveBaseUrl}/api/app/3isk/stream?url=${encodeURIComponent(absoluteUrl)}`;
+        }
+        return `${effectiveBaseUrl}/api/app/3isk/ts-proxy?url=${encodeURIComponent(absoluteUrl)}`;
+      })
+      .join('\n');
+
+    reply.header('Content-Type', 'application/vnd.apple.mpegurl; charset=utf-8');
+    reply.header('Access-Control-Allow-Origin', '*');
+    reply.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    reply.header('Cache-Control', 'public, max-age=1800');
+
+    return reply.send(rewritten);
+  }
+
+  /**
    * GET /api/app/3isk/stream?url=...
-   * Resolves and seamlessly redirects to the high-speed HLS master.m3u8 stream with CORS
+   * Seamlessly resolves and proxies HLS master & variant m3u8 playlists
    */
   server.get('/stream', async (request: FastifyRequest<{ Querystring: { url: string } }>, reply: FastifyReply) => {
-    const watchUrl = request.query.url;
-    if (!watchUrl || !/^https?:\/\//i.test(watchUrl)) {
+    const rawUrl = request.query.url;
+    if (!rawUrl || !/^https?:\/\//i.test(rawUrl)) {
       return reply.status(400).send({ error: 'Missing or invalid url parameter' });
     }
 
     try {
-      const directStreamUrl = await resolve3iskStream(watchUrl);
-      reply.header('Access-Control-Allow-Origin', '*');
-      reply.header('Cache-Control', 'public, max-age=3600');
-      return reply.redirect(directStreamUrl, 302);
+      let targetM3u8 = rawUrl;
+      if (!rawUrl.includes('.m3u8')) {
+        targetM3u8 = await resolve3iskStream(rawUrl);
+      }
+      return await proxy3iskM3u8(targetM3u8, request, reply);
     } catch (err: any) {
       return reply.status(502).send({
         error: 'Stream Resolution Failed',
@@ -440,6 +512,103 @@ export async function iskRoutes(server: FastifyInstance) {
       });
     }
   });
+
+  server.options('/ts-proxy', async (_req, reply) => {
+    reply.header('Access-Control-Allow-Origin', '*');
+    reply.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    reply.header('Access-Control-Allow-Headers', 'Range, Accept-Ranges, Content-Type, Origin');
+    reply.header('Access-Control-Expose-Headers', 'Content-Range, Content-Length, Accept-Ranges');
+    return reply.status(204).send();
+  });
+
+  /**
+   * GET /api/app/3isk/ts-proxy?url=...
+   * High-speed proxy for segments and AES-128 keys without blocking referer
+   */
+  server.get(
+    '/ts-proxy',
+    async (request: FastifyRequest<{ Querystring: { url: string } }>, reply: FastifyReply) => {
+      const chunkUrl = request.query.url;
+      if (!chunkUrl || !/^https?:\/\//i.test(chunkUrl)) {
+        return reply.status(400).send({ error: 'Missing or invalid url parameter' });
+      }
+
+      const clientRange = request.headers.range;
+      const parsedUrl = new URL(chunkUrl);
+      const isHttps = parsedUrl.protocol === 'https:';
+      const client = isHttps ? https : http;
+
+      const upstreamHeaders: Record<string, string> = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      };
+
+      if (clientRange) {
+        upstreamHeaders['Range'] = clientRange;
+      }
+
+      return new Promise<void>((resolve) => {
+        const req = client.request(
+          chunkUrl,
+          {
+            method: 'GET',
+            headers: upstreamHeaders,
+            agent: isHttps ? httpsAgent : httpAgent,
+            timeout: 25000,
+          },
+          (res) => {
+            reply.raw.statusCode = res.statusCode || 200;
+
+            reply.raw.setHeader('Access-Control-Allow-Origin', '*');
+            reply.raw.setHeader('Access-Control-Allow-Headers', 'Range, Accept-Ranges, Content-Type');
+            reply.raw.setHeader('Access-Control-Expose-Headers', 'Content-Range, Content-Length, Accept-Ranges');
+            reply.raw.setHeader('Accept-Ranges', 'bytes');
+
+            let contentType = res.headers['content-type'] || 'video/mp2t';
+            if (chunkUrl.includes('.key')) {
+              contentType = 'application/octet-stream';
+            } else if (chunkUrl.includes('.ts')) {
+              contentType = 'video/mp2t';
+            }
+            reply.raw.setHeader('Content-Type', contentType);
+
+            if (res.headers['content-length']) {
+              reply.raw.setHeader('Content-Length', res.headers['content-length']);
+            }
+            if (res.headers['content-range']) {
+              reply.raw.setHeader('Content-Range', res.headers['content-range']);
+            }
+            reply.raw.setHeader('Cache-Control', 'public, max-age=86400');
+
+            res.pipe(reply.raw);
+            res.on('end', () => resolve());
+            res.on('error', (err) => {
+              if (!reply.raw.headersSent) {
+                reply.status(502).send({ error: err.message });
+              }
+              resolve();
+            });
+          }
+        );
+
+        req.on('error', (err) => {
+          if (!reply.raw.headersSent) {
+            reply.status(502).send({ error: err.message });
+          }
+          resolve();
+        });
+
+        req.on('timeout', () => {
+          req.destroy();
+          if (!reply.raw.headersSent) {
+            reply.status(504).send({ error: 'Chunk request timed out' });
+          }
+          resolve();
+        });
+
+        req.end();
+      });
+    }
+  );
 
   /**
    * GET /api/app/3isk/resolve?url=...

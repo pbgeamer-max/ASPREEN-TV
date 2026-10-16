@@ -326,13 +326,18 @@ export function HlsPlayerModal({
       hls = new Hls({
         enableWorker: true,
         lowLatencyMode: false,
-        manifestLoadingTimeOut: 12000,
-        manifestLoadingMaxRetry: 6,
-        manifestLoadingRetryDelay: 1000,
-        levelLoadingTimeOut: 12000,
-        levelLoadingMaxRetry: 6,
-        fragLoadingTimeOut: 15000,
-        fragLoadingMaxRetry: 6,
+        backBufferLength: 30,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60,
+        liveSyncDurationCount: 3,
+        manifestLoadingTimeOut: 18000,
+        manifestLoadingMaxRetry: 10,
+        manifestLoadingRetryDelay: 800,
+        levelLoadingTimeOut: 18000,
+        levelLoadingMaxRetry: 10,
+        fragLoadingTimeOut: 20000,
+        fragLoadingMaxRetry: 10,
+        fragLoadingRetryDelay: 500,
       });
 
       hls.loadSource(activeUrl);
@@ -360,7 +365,7 @@ export function HlsPlayerModal({
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
               networkErrorCount++;
-              if (networkErrorCount >= 2) {
+              if (networkErrorCount >= 4) {
                 // Auto-advance to next server
                 if (effectiveServers.length > activeServerIndex + 1) {
                   console.log('[HlsPlayer] Fatal network error, auto-advancing to next server...');
@@ -420,7 +425,7 @@ export function HlsPlayerModal({
             }
           }
         }
-      }, 12000);
+      }, 25000);
     } else {
       video.src = activeUrl;
       video.load();
