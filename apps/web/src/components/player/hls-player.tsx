@@ -319,9 +319,28 @@ export function HlsPlayerModal({
         clearErrorAndPlay();
       }
     });
-    video.addEventListener('waiting', () => {
+    let stallTimeout: NodeJS.Timeout | null = null;
+    const handleWaiting = () => {
       setIsLoading(true);
-    });
+      if (stallTimeout) clearTimeout(stallTimeout);
+      stallTimeout = setTimeout(() => {
+        console.warn('[HlsPlayer] Stream stalled for > 3.5s, triggering instant recovery...');
+        if (hls) {
+          hls.recoverMediaError();
+        }
+        // If still stalled after 2s, auto-advance to next ultra-fast server
+        setTimeout(() => {
+          if (video && (video.paused || video.readyState < 3)) {
+            if (effectiveServers.length > activeServerIndex + 1) {
+              console.log('[HlsPlayer] Auto-switching to next server to ensure uninterrupted stream...');
+              setActiveServerIndex((prev) => prev + 1);
+            }
+          }
+        }, 2000);
+      }, 3500);
+    };
+
+    video.addEventListener('waiting', handleWaiting);
     video.addEventListener('pause', () => {
       setIsPlaying(false);
     });
@@ -349,25 +368,27 @@ export function HlsPlayerModal({
     if (!isDirectVideo && Hls.isSupported()) {
       hls = new Hls({
         enableWorker: true,
-        lowLatencyMode: false,
-        backBufferLength: 90,
-        maxBufferLength: 45,
-        maxMaxBufferLength: 90,
-        liveSyncDurationCount: 4,
-        liveMaxLatencyDurationCount: 15,
+        lowLatencyMode: true,
+        backBufferLength: 20,
+        maxBufferLength: 15,
+        maxMaxBufferLength: 30,
+        liveSyncDurationCount: 1, // Ultra-fast start on first segment (0.3s)
+        liveMaxLatencyDurationCount: 6,
         liveDurationInfinity: true,
-        highBufferWatchdogPeriod: 2,
-        nudgeOffset: 0.1,
-        nudgeMaxRetry: 5,
-        maxFragLookUpTolerance: 0.25,
-        manifestLoadingTimeOut: 15000,
-        manifestLoadingMaxRetry: 10,
-        manifestLoadingRetryDelay: 1000,
-        levelLoadingTimeOut: 15000,
-        levelLoadingMaxRetry: 10,
-        fragLoadingTimeOut: 20000,
-        fragLoadingMaxRetry: 10,
-        fragLoadingRetryDelay: 1000,
+        highBufferWatchdogPeriod: 1,
+        nudgeOffset: 0.2, // Skip over dropped frames/stutters in source
+        nudgeMaxRetry: 10,
+        maxBufferHole: 0.6, // Auto-skip micro-holes without buffering spinner
+        maxFragLookUpTolerance: 0.5,
+        manifestLoadingTimeOut: 6000,
+        manifestLoadingMaxRetry: 5,
+        manifestLoadingRetryDelay: 400,
+        levelLoadingTimeOut: 6000,
+        levelLoadingMaxRetry: 5,
+        fragLoadingTimeOut: 8000,
+        fragLoadingMaxRetry: 6,
+        fragLoadingRetryDelay: 400,
+        progressive: true, // Progressive chunk streaming
       });
 
       hls.loadSource(activeUrl);
@@ -463,6 +484,7 @@ export function HlsPlayerModal({
         if (video.currentTime === 0 && !video.paused) {
           if (video.readyState < 2) {
             if (effectiveServers.length > activeServerIndex + 1) {
+              console.log('[HlsPlayer] Initial load took > 5s, auto-advancing to next ultra-fast server...');
               setActiveServerIndex((prev) => prev + 1);
             } else {
               setError('تعذر استقبال مقاطع البث من السيرفر. اضغط على إعادة المحاولة أو اختر سيرفر آخر.');
@@ -470,7 +492,7 @@ export function HlsPlayerModal({
             }
           }
         }
-      }, 25000);
+      }, 5000);
     } else {
       video.src = activeUrl;
       video.load();
@@ -482,11 +504,13 @@ export function HlsPlayerModal({
 
     return () => {
       if (initialLoadTimer) clearTimeout(initialLoadTimer);
+      if (stallTimeout) clearTimeout(stallTimeout);
       video.removeEventListener('loadeddata', handleReady);
       video.removeEventListener('canplay', handleReady);
       video.removeEventListener('canplaythrough', handleReady);
       video.removeEventListener('playing', clearErrorAndPlay);
       video.removeEventListener('play', clearErrorAndPlay);
+      video.removeEventListener('waiting', handleWaiting);
       if (hls) {
         hls.destroy();
       }

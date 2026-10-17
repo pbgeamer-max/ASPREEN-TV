@@ -101,6 +101,10 @@ HLS_STORAGE_PATH = os.environ.get("STREAM_STORAGE_PATH", os.path.join(DATA_DIR, 
 HLS_ONDEMAND_DIR = os.path.join(HLS_STORAGE_PATH, "ondemand")
 os.makedirs(HLS_ONDEMAND_DIR, exist_ok=True)
 
+# In-memory hot segment cache for instant 0ms responses across all viewers
+HOT_SEGMENT_CACHE = {}  # key -> (bytes_data, expires_at)
+hot_cache_lock = threading.Lock()
+
 class OnDemandStreamManager:
     def __init__(self, base_dir):
         self.base_dir = base_dir
@@ -127,15 +131,15 @@ class OnDemandStreamManager:
                 cmd = [
                     "ffmpeg", "-y", "-hide_banner", "-loglevel", "warning",
                     "-fflags", "+nobuffer+flush_packets",
-                    "-probesize", "500000",
-                    "-analyzeduration", "500000",
+                    "-probesize", "250000",
+                    "-analyzeduration", "250000",
                     "-user_agent", "VLC/3.0.18 LibVLC/3.0.18",
-                    "-reconnect", "1", "-reconnect_at_eof", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5",
+                    "-reconnect", "1", "-reconnect_at_eof", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "2",
                     "-i", upstream_url,
                     "-c", "copy",
                     "-f", "hls",
-                    "-hls_time", "2",
-                    "-hls_list_size", "5",
+                    "-hls_time", "1.5",
+                    "-hls_list_size", "6",
                     "-hls_flags", "delete_segments+split_by_time",
                     m3u8_path
                 ]
@@ -203,6 +207,12 @@ class OnDemandStreamManager:
                             pass
                     shutil.rmtree(worker["hls_dir"], ignore_errors=True)
                     print(f" [i] إيقاف جلسة البث On-Demand للقناة {sk} لعدم وجود مشاهدين لتوفير الاتصال.")
+
+            # Prune hot in-memory segment cache
+            with hot_cache_lock:
+                expired = [k for k, v in HOT_SEGMENT_CACHE.items() if now > v[1]]
+                for k in expired:
+                    HOT_SEGMENT_CACHE.pop(k, None)
 
 ON_DEMAND_STREAM_MANAGER = OnDemandStreamManager(HLS_ONDEMAND_DIR)
 
@@ -979,6 +989,24 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             ua = "OSCARTV2021"
             referer = "http://speedcdn.me:8080/"
 
+        # Check instant in-memory cache first (< 1ms response)
+        now = time.time()
+        with hot_cache_lock:
+            cached = HOT_SEGMENT_CACHE.get(target_url)
+            if cached and now < cached[1]:
+                data = cached[0]
+                self.send_response(200)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "video/mp2t")
+                self.send_header("Content-Length", str(len(data)))
+                self.send_header("Cache-Control", "public, max-age=120, immutable")
+                self.end_headers()
+                try:
+                    self.wfile.write(data)
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+                return
+
         headers = {
             "User-Agent": ua,
             "Referer": referer,
@@ -1060,11 +1088,17 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
                     try:
                         self.wfile.write(first_chunk)
+                        chunks_acc = [first_chunk]
                         while True:
                             chunk = upstream.read(64 * 1024)
                             if not chunk:
                                 break
                             self.wfile.write(chunk)
+                            chunks_acc.append(chunk)
+
+                        full_seg = b"".join(chunks_acc)
+                        with hot_cache_lock:
+                            HOT_SEGMENT_CACHE[target_url] = (full_seg, time.time() + 45.0)
                     except (BrokenPipeError, ConnectionResetError):
                         return
                     return
@@ -1082,10 +1116,29 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 except (BrokenPipeError, ConnectionResetError):
                     pass
     def handle_ondemand_segment(self, stream_key, seg_file):
-        """Serves on-demand HLS sliced TS segment directly with zero upstream overhead"""
+        """Serves on-demand HLS sliced TS segment directly with zero upstream overhead and RAM cache"""
         ON_DEMAND_STREAM_MANAGER.touch(stream_key)
         clean_key = re.sub(r"[^a-zA-Z0-9_\-]", "", stream_key)
         clean_file = re.sub(r"[^a-zA-Z0-9_\-\.]", "", seg_file)
+        cache_key = f"{clean_key}_{clean_file}"
+
+        now = time.time()
+        with hot_cache_lock:
+            cached = HOT_SEGMENT_CACHE.get(cache_key)
+            if cached and now < cached[1]:
+                data = cached[0]
+                self.send_response(200)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "video/mp2t")
+                self.send_header("Content-Length", str(len(data)))
+                self.send_header("Cache-Control", "public, max-age=180, immutable")
+                self.end_headers()
+                try:
+                    self.wfile.write(data)
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+                return
+
         seg_path = os.path.join(ON_DEMAND_STREAM_MANAGER.base_dir, clean_key, clean_file)
 
         # Wait briefly up to 1.5s if segment is still finishing write
@@ -1103,11 +1156,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         try:
             with open(seg_path, "rb") as f:
                 data = f.read()
+
+            with hot_cache_lock:
+                HOT_SEGMENT_CACHE[cache_key] = (data, time.time() + 60.0)
+
             self.send_response(200)
             self.send_cors_headers()
             self.send_header("Content-Type", "video/mp2t")
             self.send_header("Content-Length", str(len(data)))
-            self.send_header("Cache-Control", "public, max-age=60")
+            self.send_header("Cache-Control", "public, max-age=180, immutable")
             self.end_headers()
             self.wfile.write(data)
         except (BrokenPipeError, ConnectionResetError):
