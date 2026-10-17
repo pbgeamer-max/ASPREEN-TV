@@ -65,9 +65,6 @@ def probe_stream_health(url, timeout=4, max_retries=1):
     """Probes if stream URL responds with HTTP 200 and data"""
     if not url:
         return False
-    # Protect user's 2-connection VIP OTT subscription from probe collisions
-    if "mac=" in url or "hey-ott.net" in url:
-        return True
     for _ in range(max_retries):
         try:
             req = urllib.request.Request(
