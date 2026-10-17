@@ -627,6 +627,13 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             final_ua = "OSCARTV2021"
         else:
             final_ua = extracted_ua or ua_candidate or DEFAULT_UA
+
+        if "new-redirect.online" in target and "play.php" not in target:
+            b64_url = base64.b64encode(target.encode()).decode()
+            ua_for_param = final_ua or DEFAULT_UA
+            b64_ua = base64.b64encode(ua_for_param.encode()).decode()
+            target = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
+
         return target, final_ua
 
     def handle_direct_ts_stream(self, cid):

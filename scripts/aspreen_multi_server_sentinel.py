@@ -151,8 +151,38 @@ def build_multiserver_catalog():
 
         servers = []
 
-        if matched_vip_urls:
-            # Server 1: 24/7 VIP OTT Satellite Broadcast (ALWAYS LIVE, NEVER STOPS, 1080p 50FPS)
+        direct_hls = ch.get("directM3u8") or ch.get("streamUrl") or ch.get("playUrl")
+        has_stable_hls = direct_hls and ("re300" in str(direct_hls) or "yacine" in str(direct_hls) or ch.get("yacineId") or "edgenextcdn.net" in str(direct_hls) or "itworkscdn.net" in str(direct_hls))
+
+        if has_stable_hls:
+            # Server 1: Ultra-Stable HLS 24/7 Broadcast (No drops, seamless rolling HLS)
+            servers.append({
+                "id": "server-1",
+                "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
+                "url": f"/live/{cid}.m3u8?server=1",
+                "upstreamUrl": direct_hls,
+                "quality": "1080p",
+                "isDefault": True,
+                "status": "live"
+            })
+            enriched_count += 1
+
+            # Backup VIP streams if available
+            for s_idx, (vname, vurl) in enumerate(matched_vip_urls[:3], start=2):
+                servers.append({
+                    "id": f"server-{s_idx}",
+                    "name": f"سيرفر {s_idx} (احتياطي فضائي)",
+                    "url": f"/live/{cid}.m3u8?server={s_idx}",
+                    "upstreamUrl": vurl,
+                    "quality": "HD/FHD",
+                    "status": "live"
+                })
+
+            ch["status"] = "live"
+            ch["streamUrl"] = f"/live/{cid}.m3u8?server=1"
+            ch["playUrl"] = f"/live/{cid}.m3u8?server=1"
+        elif matched_vip_urls:
+            # Server 1: 24/7 VIP OTT Satellite Broadcast
             vname, vurl = matched_vip_urls[0]
             servers.append({
                 "id": "server-1",
@@ -165,7 +195,6 @@ def build_multiserver_catalog():
             })
             enriched_count += 1
 
-            # Server 2: Backup VIP stream if available
             if len(matched_vip_urls) > 1:
                 vname2, vurl2 = matched_vip_urls[1]
                 servers.append({
@@ -177,16 +206,6 @@ def build_multiserver_catalog():
                     "status": "live"
                 })
 
-            # Server 3: Yacine TV stream (Match events)
-            servers.append({
-                "id": "server-3",
-                "name": "سيرفر 3 (سيرفر المباريات)",
-                "url": f"/live/{cid}.m3u8?server=3",
-                "quality": "SD/HD",
-                "status": "live"
-            })
-
-            # Guarantee channel status is permanently LIVE
             ch["status"] = "live"
             ch["streamUrl"] = f"/live/{cid}.m3u8?server=1"
             ch["playUrl"] = f"/live/{cid}.m3u8?server=1"
