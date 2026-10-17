@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Hls from 'hls.js';
-import { X, AlertCircle, RefreshCw, Loader2, Copy, Check, Subtitles, ChevronDown, Server, Play, Volume2, VolumeX } from 'lucide-react';
+import { X, AlertCircle, RefreshCw, Loader2, Copy, Check, Subtitles, ChevronDown, Server, Play, Volume2, VolumeX, Maximize, Minimize } from 'lucide-react';
 
 export interface SubtitleTrack {
   src: string;
@@ -64,16 +64,39 @@ export function HlsPlayerModal({
   const subMenuRef = useRef<HTMLDivElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
 
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = useCallback(() => {
+    const container = playerContainerRef.current || videoRef.current;
+    if (!container) return;
+
+    if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
+      if (container.requestFullscreen) {
+        container.requestFullscreen().catch(() => {
+          videoRef.current?.requestFullscreen?.();
+        });
+      } else if ((container as any).webkitRequestFullscreen) {
+        (container as any).webkitRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      }
+    }
+  }, []);
+
   useEffect(() => {
     const handleFsChange = () => {
-      if (document.fullscreenElement === videoRef.current && playerContainerRef.current) {
-        document.exitFullscreen().then(() => {
-          playerContainerRef.current?.requestFullscreen?.();
-        }).catch(() => {});
-      }
+      setIsFullscreen(Boolean(document.fullscreenElement || (document as any).webkitFullscreenElement));
     };
     document.addEventListener('fullscreenchange', handleFsChange);
-    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+    document.addEventListener('webkitfullscreenchange', handleFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFsChange);
+      document.removeEventListener('webkitfullscreenchange', handleFsChange);
+    };
   }, []);
 
   // Synthesize unified server list
@@ -584,6 +607,15 @@ export function HlsPlayerModal({
             )}
 
             <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="text-[#A1A1AA] hover:text-white transition-colors p-1.5 rounded-lg hover:bg-[#222222]"
+              title={isFullscreen ? 'الخروج من ملء الشاشة (ESC)' : 'ملء الشاشة بالكامل (Fullscreen)'}
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4 text-emerald-400" /> : <Maximize className="w-4 h-4" />}
+            </button>
+
+            <button
               onClick={onClose}
               className="text-[#71717A] hover:text-[#F5F5F5] transition-colors p-1.5 rounded-lg hover:bg-[#222222]"
               title="إغلاق"
@@ -594,7 +626,13 @@ export function HlsPlayerModal({
         </div>
 
         {/* Video Player Container */}
-        <div ref={playerContainerRef} className="relative bg-black aspect-video w-full flex items-center justify-center overflow-hidden">
+        <div
+          ref={playerContainerRef}
+          onDoubleClick={toggleFullscreen}
+          className={`relative bg-black w-full flex items-center justify-center overflow-hidden transition-all ${
+            isFullscreen ? 'fixed inset-0 z-[9999] h-screen w-screen max-w-none rounded-none' : 'aspect-video'
+          }`}
+        >
           {isEmbed ? (
             <iframe
               key={activeUrl}
@@ -727,8 +765,19 @@ export function HlsPlayerModal({
 
             <div className="flex items-center gap-2 shrink-0">
               <button
+                type="button"
+                onClick={toggleFullscreen}
+                className="px-2.5 py-1 rounded-lg bg-[#1C1C1C] hover:bg-[#282828] text-white flex items-center gap-1.5 transition-colors border border-white/10 text-xs font-medium cursor-pointer"
+                title="تكبير المشغل إلى ملء الشاشة (Fullscreen)"
+              >
+                {isFullscreen ? <Minimize className="w-3.5 h-3.5 text-emerald-400" /> : <Maximize className="w-3.5 h-3.5 text-[#A1A1AA]" />}
+                <span>{isFullscreen ? 'تصغير' : 'ملء الشاشة'}</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={handleCopyUrl}
-                className="px-2.5 py-1 rounded-lg bg-[#1C1C1C] hover:bg-[#282828] text-white flex items-center gap-1.5 transition-colors border border-white/10 text-xs font-medium"
+                className="px-2.5 py-1 rounded-lg bg-[#1C1C1C] hover:bg-[#282828] text-white flex items-center gap-1.5 transition-colors border border-white/10 text-xs font-medium cursor-pointer"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-[#A1A1AA]" />}
                 <span>{copied ? 'تم النسخ!' : 'نسخ رابط البث'}</span>

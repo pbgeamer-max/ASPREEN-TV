@@ -78,8 +78,6 @@ BYPASS_HEADERS = {
     "User-Agent": DEFAULT_UA,
     "Referer": "https://yacine.website/",
     "X-Forwarded-For": "156.200.1.1",  # Egypt/Algeria IP bypass
-    "CF-Connecting-IP": "156.200.1.1",
-    "X-Real-IP": "156.200.1.1",
     "Accept": "*/*"
 }
 
@@ -123,21 +121,34 @@ class LiveTranscoderManager:
         with self.lock:
             self.last_access[cid] = time.time()
             proc = self.procs.get(cid)
-            if proc is not None and proc.poll() is None:
-                return
+            out_dir = os.path.join(HLS_DATA_DIR, cid)
+            out_m3u8 = os.path.join(out_dir, "live.m3u8")
 
-            # Keep strictly 1 active transcoder process to preserve CPU stability and 0ms latency on Railway
+            # Check if running and producing fresh segments
+            if proc is not None and proc.poll() is None:
+                if os.path.exists(out_m3u8):
+                    if (time.time() - os.path.getmtime(out_m3u8)) < 15:
+                        return  # Healthy and active
+                else:
+                    return
+
+            # Terminate any dead or previous channel processes
             for other_cid, other_proc in list(self.procs.items()):
-                if other_cid != cid and other_proc and other_proc.poll() is None:
+                if other_proc and other_proc.poll() is None:
                     try:
                         other_proc.terminate()
                     except Exception:
                         pass
             self.procs = {}
 
-            out_dir = os.path.join(HLS_DATA_DIR, cid)
             os.makedirs(out_dir, exist_ok=True)
-            out_m3u8 = os.path.join(out_dir, "live.m3u8")
+            # Purge stale files so FFmpeg writes clean new sequence
+            for old_f in os.listdir(out_dir):
+                if old_f.endswith(".ts") or old_f.endswith(".m3u8"):
+                    try:
+                        os.remove(os.path.join(out_dir, old_f))
+                    except Exception:
+                        pass
 
             logo = EFFECTIVE_LOGO_PATH
             if not logo or not os.path.exists(logo):
@@ -156,6 +167,12 @@ class LiveTranscoderManager:
             raw_input = f"http://127.0.0.1:{PORT}/raw/{cid}.m3u8"
             cmd = [
                 "ffmpeg", "-y",
+                "-fflags", "+nobuffer+genpts",
+                "-reconnect", "1",
+                "-reconnect_at_eof", "1",
+                "-reconnect_streamed", "1",
+                "-reconnect_delay_max", "2",
+                "-rw_timeout", "15000000",
                 "-allowed_extensions", "ALL",
                 "-i", raw_input,
             ]
@@ -170,28 +187,31 @@ class LiveTranscoderManager:
                 "-preset", "ultrafast",
                 "-tune", "zerolatency",
                 "-threads", "0",
+                "-g", "50",
+                "-keyint_min", "25",
+                "-sc_threshold", "0",
                 "-b:v", "2200k",
                 "-c:a", "copy",
                 "-f", "hls",
-                "-hls_time", "4",
-                "-hls_list_size", "5",
-                "-hls_flags", "delete_segments+omit_endlist",
+                "-hls_time", "3",
+                "-hls_list_size", "6",
+                "-hls_flags", "delete_segments+omit_endlist+independent_segments",
                 "-hls_segment_filename", os.path.join(out_dir, "chunk_%05d.ts"),
                 out_m3u8
             ])
 
-            print(f" [★] تشغيل معالج البث المباشر (Live Transcoder) للقناة {cid} مع حرق لوجو TVARUA داخل إطارات البث...")
+            print(f" [★] تشغيل معالج البث فائق الاستقرار (Live Transcoder) للقناة {cid} مع حرق لوجو TVARUA داخل إطارات البث...")
             try:
                 p = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 self.procs[cid] = p
             except Exception as e:
                 print(f" [!] خطأ في تشغيل معالج البث للقناة {cid}: {e}")
 
-    def sweep_inactive(self):
-        """Monitors active streams; sweeps idle transcoders after 5m of inactivity"""
+    def supervisor_tick(self):
+        """Active supervisor checking stream health and restarting dead or stale transcoders every 3 seconds"""
         now = time.time()
         with self.lock:
-            for cid in list(self.procs.keys()):
+            for cid in list(self.last_access.keys()):
                 idle = now - self.last_access.get(cid, 0)
                 if idle > 300:  # 5 minutes idle
                     proc = self.procs.pop(cid, None)
@@ -201,18 +221,29 @@ class LiveTranscoderManager:
                             print(f" [i] تم إيقاف معالج البث للقناة غير النشطة {cid}")
                         except Exception:
                             pass
+                else:
+                    # Channel actively being watched! Ensure continuous 24/7 transcoding
+                    proc = self.procs.get(cid)
+                    out_m3u8 = os.path.join(HLS_DATA_DIR, cid, "live.m3u8")
+                    stale = False
+                    if os.path.exists(out_m3u8):
+                        if (now - os.path.getmtime(out_m3u8)) > 15:
+                            stale = True
+                    if proc is None or proc.poll() is not None or stale:
+                        print(f" [⚡] استئناف وإعادة تشغيل معالج البث فورياً للقناة النشطة {cid} (ضمان استقرار دائم 24/7)...")
+                        threading.Thread(target=self.ensure_transcoder, args=(cid,), daemon=True).start()
 
 transcoder_mgr = LiveTranscoderManager()
 
 def transcoder_supervisor_loop():
-    """Background supervisor for live stream transcoding idle cleanup"""
+    """Background supervisor for live stream transcoding health & 100% uptime"""
     time.sleep(5)
     while True:
         try:
-            transcoder_mgr.sweep_inactive()
+            transcoder_mgr.supervisor_tick()
         except Exception:
             pass
-        time.sleep(30)
+        time.sleep(3)
 
 
 def send_telegram_message(text: str):
@@ -491,6 +522,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             live_m3u8_file = os.path.join(hls_dir, "live.m3u8")
             transcoder_mgr.ensure_transcoder(cid)
 
+            # Wait briefly (up to 2.5s) if transcoder is generating first segment so client always receives branded stream
+            for _ in range(10):
+                if os.path.exists(live_m3u8_file):
+                    ts_chunks = [f for f in os.listdir(hls_dir) if f.endswith(".ts")]
+                    if len(ts_chunks) >= 1:
+                        if (time.time() - os.path.getmtime(live_m3u8_file)) < 20:
+                            break
+                time.sleep(0.25)
+
             # If live branded HLS is ready on disk with chunks, serve it directly
             if os.path.exists(live_m3u8_file):
                 ts_chunks = [f for f in os.listdir(hls_dir) if f.endswith(".ts")]
@@ -518,7 +558,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     except Exception:
                         pass
 
-            # While transcoder initializes first segment (<4s), serve raw playlist so playback begins instantly
+            # Fallback only during transient cold start
             self.handle_channel_playlist(cid, is_raw=False)
             return
 
@@ -850,8 +890,6 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             headers.pop("Origin", None)
         elif "yacine.website" in target_url or "new-redirect.online" in target_url or ".buzz" in target_url or ".lol" in target_url:
             headers["X-Forwarded-For"] = "156.200.1.1"
-            headers["CF-Connecting-IP"] = "156.200.1.1"
-            headers["X-Real-IP"] = "156.200.1.1"
 
         for attempt in range(2):
             try:
