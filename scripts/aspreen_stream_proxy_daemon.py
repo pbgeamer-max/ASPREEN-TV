@@ -327,7 +327,11 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         # 2. Master Dynamic Playlist (all channels)
         if path == "/playlist.m3u" or path == "/channels.m3u":
             host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", f"127.0.0.1:{PORT}"))
+            if "127.0.0.1" in host or "localhost" in host:
+                host = "aspreen-tv-production.up.railway.app"
             proto = self.headers.get("X-Forwarded-Proto", "https" if ("railway" in host or "443" in host) else "http")
+            if "railway" in host:
+                proto = "https"
             base_origin = f"{proto}://{host}"
             with cache_lock:
                 channels_list = list(channels_cache.values())
@@ -393,9 +397,12 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
     def handle_channel_playlist(self, cid, is_raw=False, force_proxy=False):
         """Fetches upstream M3U8, rewrites segment URLs, and returns to client"""
         accept_hdr = self.headers.get("Accept", "")
-        ua_hdr = self.headers.get("User-Agent", "").lower()
-        host = self.headers.get("Host", "localhost")
+        host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", "localhost"))
+        if "127.0.0.1" in host or "localhost" in host:
+            host = "aspreen-tv-production.up.railway.app"
         proto = self.headers.get("X-Forwarded-Proto", "https" if ("railway" in host or "443" in host) else "http")
+        if "railway" in host:
+            proto = "https"
         base_origin = f"{proto}://{host}"
 
         is_iptv_or_player = any(app in ua_hdr for app in ["vlc", "kodi", "tivimate", "iptv", "ffmpeg", "mpv", "exoplayer", "libvlc", "lavf", "smart", "ott", "player"])
