@@ -90,12 +90,21 @@ export interface Channel {
   transcodingStatus: TranscodingStatus;
   preset: TranscodingPresetId;
   proxyUrl?: string; // Optional HTTP/SOCKS5 proxy URL for bypassing geo/datacenter blocks
+  servers?: Array<{
+    id: string;
+    name: string;
+    url: string;
+    quality?: string;
+    isDefault?: boolean;
+    status?: string;
+  }>;
   activeJobId?: string;
   activeOutputId?: string; // Random public slug for HLS output path
   orderIndex?: number;
   createdAt: string;
   updatedAt: string;
 }
+
 
 /**
  * Firestore: transcodingJobs/{jobId}

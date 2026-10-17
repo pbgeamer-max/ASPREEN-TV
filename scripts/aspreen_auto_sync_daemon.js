@@ -15,6 +15,7 @@ const fs = require('fs');
 
 const CHANNELS_PATH = path.join(__dirname, '..', 'channels.json');
 const HARVEST_SCRIPT = path.join(__dirname, 'harvest_yacine_channels.py');
+const SENTINEL_SCRIPT = path.join(__dirname, 'aspreen_multi_server_sentinel.py');
 
 function log(msg) {
   const time = new Date().toISOString().replace('T', ' ').substring(0, 19);
@@ -25,31 +26,35 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function runPythonHarvest() {
-  return new Promise((resolve, reject) => {
-    log('🔄 بدء مزامنة وتحديث روابط القنوات من yacine.website...');
+function runScript(scriptPath, desc) {
+  return new Promise((resolve) => {
+    log(`🔄 ${desc}...`);
     const pyBin = process.env.PYTHON_BIN || (process.platform === 'win32' ? 'python' : 'python3');
-    const py = spawn(pyBin, [HARVEST_SCRIPT], {
+    const py = spawn(pyBin, [scriptPath], {
       cwd: path.join(__dirname, '..'),
       stdio: 'inherit',
     });
 
     py.on('close', (code) => {
-      if (code === 0) {
-        log('✅ تمت مزامنة القنوات بنجاح.');
-        resolve();
-      } else {
-        log(`⚠️ انتهت عملية المزامنة برمز: ${code}`);
-        resolve();
-      }
+      log(`✅ اكتمل ${desc} (رمز: ${code})`);
+      resolve();
     });
 
     py.on('error', (err) => {
-      log(`❌ خطأ في تشغيل سكربت بايثون: ${err.message}`);
+      log(`❌ خطأ في تشغيل ${desc}: ${err.message}`);
       resolve();
     });
   });
 }
+
+function runPythonHarvest() {
+  return runScript(HARVEST_SCRIPT, 'مزامنة روابط yacine.website');
+}
+
+function runMultiServerSentinel() {
+  return runScript(SENTINEL_SCRIPT, 'محرك مراقبة البث الذكي والسيرفرات المتعددة');
+}
+
 
 async function verifyChannelsHealth() {
   if (!fs.existsSync(CHANNELS_PATH)) {
@@ -73,16 +78,18 @@ async function mainLoop() {
   // Initial check
   await verifyChannelsHealth();
 
-  // Periodic loop every 30 minutes
-  const SYNC_INTERVAL_MS = 30 * 60 * 1000;
+  // Periodic loop every 20 minutes
+  const SYNC_INTERVAL_MS = 20 * 60 * 1000;
   while (true) {
     await sleep(SYNC_INTERVAL_MS);
     try {
       await runPythonHarvest();
+      await runMultiServerSentinel();
     } catch (err) {
       log(`❌ خطأ غير متوقع أثناء المزامنة الدورية: ${err.message}`);
     }
   }
+
 }
 
 if (require.main === module) {

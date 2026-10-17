@@ -1,0 +1,41 @@
+#EXTM3U url-tvg="https://iptv-org.github.io/iptv/index.m3u"
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS NEWS SD
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985187&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS GLOBAL SD
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985186&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 1 SD S1
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798828&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 1 SD S3
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985188&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 2 SD S1
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798829&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 2 SD S3
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985189&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 3 SD S1
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798830&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 3 SD S3
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985190&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 4 SD S1
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798831&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 4 SD S3
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985191&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 5 SD S1
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798833&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 5 SD S3
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985192&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 6 SD S1
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798834&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 6 SD S3
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985193&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 7 SD S1
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798835&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 7 SD S3
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985194&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 8 SD S1
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798837&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 8 SD S3
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985195&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 9 SD S1
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798838&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS SD",┃AR┃ BEIN SPORTS 9 SD S3
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985196&extension=ts

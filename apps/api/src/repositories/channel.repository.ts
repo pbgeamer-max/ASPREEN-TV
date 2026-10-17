@@ -58,9 +58,11 @@ function getChannelsFromJson(): Channel[] {
         proxyUrl: `/live/${cid}.m3u8`,
         preset: 'COPY',
         orderIndex: item.orderIndex || (idx + 1),
+        servers: item.servers || undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+
     });
     lastJsonLoadTime = now;
     return cachedJsonChannels || [];

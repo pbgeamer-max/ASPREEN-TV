@@ -1,0 +1,33 @@
+#EXTM3U url-tvg="https://iptv-org.github.io/iptv/index.m3u"
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS NEWS RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030234&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS GLOBAL RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030235&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 1 RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030236&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 2 RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030237&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 3 RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030238&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 4 RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030239&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 5 RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030240&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 6 RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030241&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 7 RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030242&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 8 RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030243&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 9 RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030244&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 1 ENGLISH RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030245&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 2 ENGLISH RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030246&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 1 FRANCE RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030247&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 2 FRANCE RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030248&extension=ts
+#EXTINF:-1 group-title="┃AR┃ BEIN SPORTS RAW",┃AR┃ BEIN SPORTS 3 FRANCE RAW
+http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030249&extension=ts

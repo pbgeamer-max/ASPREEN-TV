@@ -51,7 +51,9 @@ export default function ChannelsPage() {
   const [playerModalOpen, setPlayerModalOpen] = useState(false);
   const [activePlayerUrl, setActivePlayerUrl] = useState('');
   const [activePlayerName, setActivePlayerName] = useState('');
+  const [activePlayerServers, setActivePlayerServers] = useState<any[]>([]);
   const [copiedChannelId, setCopiedChannelId] = useState<string | null>(null);
+
 
 
   // Inspect modal
@@ -115,9 +117,11 @@ export default function ChannelsPage() {
             transcodingStatus: 'RUNNING',
             orderIndex: c.order || 0,
             enabled: true,
+            servers: c.servers || undefined,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           }));
+
           setChannels(mapped);
           setLoading(false);
           return;
@@ -253,11 +257,13 @@ export default function ChannelsPage() {
       const streamToPlay = `/live/${channel.id}.m3u8`;
       setActivePlayerUrl(streamToPlay);
       setActivePlayerName(channel.name);
+      setActivePlayerServers(channel.servers || []);
       setPlayerModalOpen(true);
     } catch (err: any) {
       console.error('Play error:', err);
     }
   };
+
 
 
   const handleBulkStart = async () => {
@@ -1067,9 +1073,11 @@ export default function ChannelsPage() {
         <HlsPlayerModal
           streamUrl={activePlayerUrl}
           channelName={activePlayerName}
+          servers={activePlayerServers}
           isOpen={playerModalOpen}
           onClose={() => setPlayerModalOpen(false)}
         />
+
       </main>
     </div>
   );

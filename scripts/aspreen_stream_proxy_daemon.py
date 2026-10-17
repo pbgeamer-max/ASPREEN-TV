@@ -526,10 +526,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             return
 
         now_ts = time.time()
-        cache_key = f"{cid}_proxy" if force_proxy else (f"{cid}_raw" if is_raw else cid)
+        parsed_url = urllib.parse.urlparse(self.path)
+        qs = urllib.parse.parse_qs(parsed_url.query)
+        requested_server = qs.get("server", ["1"])[0]
+
+        cache_key = f"{cid}_{requested_server}_proxy" if force_proxy else (f"{cid}_{requested_server}_raw" if is_raw else f"{cid}_{requested_server}")
         with m3u8_cache_lock:
             cached_data = m3u8_cache.get(cache_key)
             if cached_data and now_ts < cached_data[1]:
+
                 self.send_response(200)
                 self.send_cors_headers()
                 self.send_header("Content-Type", "application/vnd.apple.mpegurl")
@@ -570,24 +575,38 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             slug = re.sub(r'[^a-zA-Z0-9]+', '-', ch.get('name', 'live')).strip('-') or 'live'
             channel_referer = f"https://yacine.website/channel/{cid}/{slug}"
 
-        def build_target_and_ua(channel_obj):
-            play_url = channel_obj.get("playUrl", "")
-            stream_url = channel_obj.get("streamUrl", "")
+        def build_target_and_ua(channel_obj, srv_choice="1"):
+            # Check if an alternative server was explicitly requested (e.g. server=2 or server=3)
+            servers_list = channel_obj.get("servers", [])
+            target = ""
+            if srv_choice and srv_choice != "1" and servers_list:
+                for s in servers_list:
+                    sid = str(s.get("id", ""))
+                    if sid == f"server-{srv_choice}" or sid == srv_choice:
+                        s_url = s.get("url", "")
+                        if s_url and not s_url.startswith("/live/"):
+                            target = s_url
+                            break
+
+            if not target:
+                play_url = channel_obj.get("playUrl", "")
+                stream_url = channel_obj.get("streamUrl", "")
+                ua_candidate = channel_obj.get("userAgent", "")
+
+                # Always prefer playUrl because upstream direct streamUrl (new-redirect.online) returns 403 Forbidden!
+                if play_url and "play.php" in play_url:
+                    target = play_url
+                elif "new-redirect.online" in stream_url:
+                    b64_url = base64.b64encode(stream_url.encode()).decode()
+                    ua_for_param = ua_candidate or DEFAULT_UA
+                    b64_ua = base64.b64encode(ua_for_param.encode()).decode()
+                    target = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
+                elif play_url:
+                    target = play_url
+                else:
+                    target = stream_url
+
             ua_candidate = channel_obj.get("userAgent", "")
-
-            # Always prefer playUrl because upstream direct streamUrl (new-redirect.online) returns 403 Forbidden!
-            if play_url and "play.php" in play_url:
-                target = play_url
-            elif "new-redirect.online" in stream_url:
-                b64_url = base64.b64encode(stream_url.encode()).decode()
-                ua_for_param = ua_candidate or DEFAULT_UA
-                b64_ua = base64.b64encode(ua_for_param.encode()).decode()
-                target = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
-            elif play_url:
-                target = play_url
-            else:
-                target = stream_url
-
             # Extract exact UA if encoded in query string
             extracted_ua = ""
             if "ua=" in target:
@@ -605,7 +624,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 final_ua = extracted_ua or ua_candidate or DEFAULT_UA
             return target, final_ua
 
-        target_fetch_url, req_ua = build_target_and_ua(ch)
+        target_fetch_url, req_ua = build_target_and_ua(ch, requested_server)
+
 
         # Only trigger renewal if we have no target stream url at all
         if not target_fetch_url or target_fetch_url.startswith("http://127.0.0.1"):
@@ -623,6 +643,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             except (BrokenPipeError, ConnectionResetError):
                 pass
             return
+
+        # If alternative server is a direct continuous TS stream (e.g. VIP OTT), redirect directly
+        if target_fetch_url and ("extension=ts" in target_fetch_url or target_fetch_url.endswith(".ts")):
+            self.send_response(302)
+            self.send_cors_headers()
+            self.send_header("Location", target_fetch_url)
+            self.end_headers()
+            return
+
 
         def fetch_m3u(url, user_agent, max_retries=2):
             headers = {

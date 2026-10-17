@@ -192,12 +192,16 @@ export async function appRoutes(server: FastifyInstance) {
         logo: proxiedLogo,
         raw_logo: ch.logoUrl || null,
         stream_url: permStreamUrl,
-        streamUrl: permStreamUrl,
         playback_url: permStreamUrl,
         status: ch.inputStatus === 'OFFLINE' ? 'OFFLINE' : 'ONLINE',
         order,
+        servers: ch.servers && ch.servers.length > 0 ? ch.servers.map((s) => ({
+          ...s,
+          url: s.url.startsWith('/') ? `${effectiveBaseUrl}${s.url}` : s.url
+        })) : undefined,
       };
     });
+
 
     reply.header('Cache-Control', 'public, max-age=30, s-maxage=30');
     reply.header('Access-Control-Allow-Origin', '*');

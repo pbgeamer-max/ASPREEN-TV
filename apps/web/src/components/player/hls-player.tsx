@@ -62,9 +62,12 @@ export function HlsPlayerModal({
 }: HlsPlayerModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const subMenuRef = useRef<HTMLDivElement>(null);
+  const serverMenuRef = useRef<HTMLDivElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showServerMenu, setShowServerMenu] = useState(false);
+
 
   const toggleFullscreen = useCallback(() => {
     const container = playerContainerRef.current || videoRef.current;
@@ -216,16 +219,20 @@ export function HlsPlayerModal({
     if (!isOpen || !activeUrl || isEmbed) return;
   }, [isOpen, activeUrl, isEmbed]);
 
-  // Close subtitle dropdown on click outside
+  // Close dropdowns on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (subMenuRef.current && !subMenuRef.current.contains(event.target as Node)) {
         setShowSubMenu(false);
       }
+      if (serverMenuRef.current && !serverMenuRef.current.contains(event.target as Node)) {
+        setShowServerMenu(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
 
   const effectiveSubtitles = useMemo(() => {
     return internalSubtitles.length > 0 ? internalSubtitles : subtitles;
@@ -501,11 +508,77 @@ export function HlsPlayerModal({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {/* Multi-Server Selection Dropdown */}
+            {effectiveServers && effectiveServers.length > 1 && (
+
+              <div className="relative" ref={serverMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowServerMenu((prev) => !prev)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#1C1C1C] hover:bg-[#282828] border border-white/10 text-white transition-all shadow-sm"
+                  title="تغيير سيرفر البث"
+                >
+                  <Server className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="truncate max-w-[130px]">{activeServer?.name || 'اختر السيرفر'}</span>
+                  {activeServer?.quality && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">
+                      {activeServer.quality}
+                    </span>
+                  )}
+                  <ChevronDown className={`w-3 h-3 text-[#A1A1AA] transition-transform ${showServerMenu ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showServerMenu && (
+                  <div className="absolute left-0 mt-2 w-64 rounded-xl bg-[#161616] border border-[#2E2E2E] shadow-2xl z-50 p-1.5 space-y-1 backdrop-blur-xl">
+                    <div className="px-2.5 py-1.5 text-[10px] font-bold text-[#888888] uppercase tracking-wider border-b border-white/5 flex items-center justify-between">
+                      <span>سيرفرات البث المتاحة</span>
+                      <span className="text-[9px] text-emerald-400 font-mono">({effectiveServers.length} سيرفرات)</span>
+                    </div>
+
+                    {effectiveServers.map((srv, idx) => {
+                      const isSelected = idx === activeServerIndex;
+                      return (
+                        <button
+                          key={srv.id || idx}
+                          type="button"
+                          onClick={() => {
+                            setActiveServerIndex(idx);
+                            setShowServerMenu(false);
+                            setError(null);
+                            setIsLoading(true);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                            isSelected
+                              ? 'bg-emerald-500/20 text-white font-bold border border-emerald-500/40'
+                              : 'text-[#D4D4D8] hover:bg-[#242424] hover:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${isSelected ? 'bg-emerald-400 animate-pulse' : 'bg-[#555555]'}`} />
+                            <span className="truncate">{srv.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {srv.quality && (
+                              <span className="text-[9px] px-1 py-0.5 rounded bg-white/5 text-[#A1A1AA] border border-white/10 font-mono">
+                                {srv.quality}
+                              </span>
+                            )}
+                            {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Unified TVARUA VIP Server Badge */}
             <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
               <img src="/tvarua_logo.png" alt="TVARUA" className="w-4 h-4 object-contain brightness-125" />
-              <span>مشغل TVARUA VIP الموحد</span>
+              <span>مشغل TVARUA VIP</span>
             </div>
+
 
             {/* Subtitle Selector Button (for native HLS) */}
             {!isEmbed && ((effectiveSubtitles && effectiveSubtitles.length > 0) || loadingSubtitles) && (
