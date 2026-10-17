@@ -712,10 +712,11 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             # Check if an alternative server was explicitly requested (e.g. server=2 or server=3)
             servers_list = channel_obj.get("servers", [])
             target = ""
-            if srv_choice and srv_choice != "1" and servers_list:
+            target_sid = f"server-{srv_choice}" if not str(srv_choice).startswith("server-") else str(srv_choice)
+            if servers_list:
                 for s in servers_list:
                     sid = str(s.get("id", ""))
-                    if sid == f"server-{srv_choice}" or sid == srv_choice:
+                    if sid == target_sid or sid == str(srv_choice):
                         s_url = s.get("upstreamUrl") or s.get("url", "")
                         if s_url and not s_url.startswith("/live/"):
                             target = s_url
@@ -1075,6 +1076,13 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                             self.wfile.write(out_body)
                         except (BrokenPipeError, ConnectionResetError):
                             pass
+                        return
+
+                    # Strict validation: Every valid MPEG-TS segment MUST begin with 0x47
+                    if not first_chunk or first_chunk[0] != 0x47:
+                        self.send_response(503)
+                        self.send_cors_headers()
+                        self.end_headers()
                         return
 
                     status = upstream.getcode()

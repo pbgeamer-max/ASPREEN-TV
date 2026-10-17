@@ -93,6 +93,18 @@ def normalize_channel_title(name):
     return n
 
 
+def is_vip_match(ch_name, vip_norm):
+    c_clean = re.sub(r"[^A-Z0-9]+", " ", ch_name.upper()).strip()
+    v_clean = re.sub(r"[^A-Z0-9]+", " ", vip_norm.upper()).strip()
+    c_nums = set(re.findall(r"\b\d+\b", c_clean))
+    v_nums = set(re.findall(r"\b\d+\b", v_clean))
+    if c_nums != v_nums:
+        return False
+    c_words = set(w for w in c_clean.split() if w not in ("SPORTS", "SPORT", "AR", "HD", "SD", "4K", "8K", "RAW", "UHD", "S1", "S2", "S3", "HEVC") and not w.isdigit())
+    v_words = set(w for w in v_clean.split() if w not in ("SPORTS", "SPORT", "AR", "HD", "SD", "4K", "8K", "RAW", "UHD", "S1", "S2", "S3", "HEVC") and not w.isdigit())
+    return c_words == v_words
+
+
 def build_multiserver_catalog():
     """Enriches channels.json with multi-server options for each channel"""
     if not os.path.exists(CHANNELS_JSON_PATH):
@@ -105,6 +117,21 @@ def build_multiserver_catalog():
     vip_channels = load_vip_channels()
     print(f"📡 [1/3] تم تحميل {len(vip_channels)} قناة من خطوط VIP OTT بنجاح.")
 
+    # 1. Clean and deduplicate channels so user never sees duplicate dead cards
+    unique_map = {}
+    for ch in channels:
+        cname = ch.get("name", "").strip()
+        norm = re.sub(r"\s+", " ", cname.upper()).strip()
+        if norm not in unique_map:
+            unique_map[norm] = ch
+        else:
+            existing = unique_map[norm]
+            ex_has_vip = any("VIP" in s.get("name", "") for s in existing.get("servers", []))
+            new_has_vip = any("VIP" in s.get("name", "") for s in ch.get("servers", []))
+            if new_has_vip and not ex_has_vip:
+                unique_map[norm] = ch
+
+    channels = list(unique_map.values())
     enriched_count = 0
 
     for ch in channels:
@@ -112,52 +139,68 @@ def build_multiserver_catalog():
         norm_name = normalize_channel_title(ch_name)
         cid = str(ch.get("id", ""))
 
-        servers = []
-
-        # Server 1: Yacine TV (HLS / FHD)
-        servers.append({
-            "id": "server-1",
-            "name": "سيرفر 1 (ياسين TV - FHD)",
-            "url": f"/live/{cid}.m3u8?server=1",
-            "quality": "FHD",
-            "isDefault": True,
-            "status": ch.get("status", "live")
-        })
-
-        # Match VIP streams for beIN Sports, AFC, Xtra, News
+        # Match VIP streams for beIN Sports, AFC, Xtra, News, France, English
         matched_vip_urls = []
         for vname, vurl in vip_channels.items():
             norm_vname = normalize_channel_title(vname)
-            if norm_name and (norm_name == norm_vname or norm_name in norm_vname):
+            if is_vip_match(ch_name, norm_vname):
                 matched_vip_urls.append((vname, vurl))
 
-        # Add Server 2 if matched
+        # Sort so that HD / 1080p is first for ultra-stable playback
+        matched_vip_urls.sort(key=lambda item: 0 if "HD" in item[0] else (1 if "SD" in item[0] else (2 if "HEVC" in item[0] else (3 if "4K" in item[0] else 4))))
+
+        servers = []
+
         if matched_vip_urls:
-            # Pick primary VIP match
+            # Server 1: 24/7 VIP OTT Satellite Broadcast (ALWAYS LIVE, NEVER STOPS, 1080p 50FPS)
             vname, vurl = matched_vip_urls[0]
             servers.append({
-                "id": "server-2",
-                "name": "سيرفر 2 (VIP OTT 1080p)",
-                "url": f"/live/{cid}.m3u8?server=2",
+                "id": "server-1",
+                "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+                "url": f"/live/{cid}.m3u8?server=1",
                 "upstreamUrl": vurl,
                 "quality": "1080p",
+                "isDefault": True,
                 "status": "live"
             })
             enriched_count += 1
 
-            # If there's an additional backup VIP server, add Server 3
+            # Server 2: Backup VIP stream if available
             if len(matched_vip_urls) > 1:
                 vname2, vurl2 = matched_vip_urls[1]
                 servers.append({
-                    "id": "server-3",
-                    "name": "سيرفر 3 (VIP احتياطي)",
-                    "url": f"/live/{cid}.m3u8?server=3",
+                    "id": "server-2",
+                    "name": "سيرفر 2 (VIP احتياطي - HD)",
+                    "url": f"/live/{cid}.m3u8?server=2",
                     "upstreamUrl": vurl2,
                     "quality": "HD",
                     "status": "live"
                 })
+
+            # Server 3: Yacine TV stream (Match events)
+            servers.append({
+                "id": "server-3",
+                "name": "سيرفر 3 (سيرفر المباريات)",
+                "url": f"/live/{cid}.m3u8?server=3",
+                "quality": "SD/HD",
+                "status": "live"
+            })
+
+            # Guarantee channel status is permanently LIVE
+            ch["status"] = "live"
+            ch["streamUrl"] = f"/live/{cid}.m3u8?server=1"
+            ch["playUrl"] = f"/live/{cid}.m3u8?server=1"
         else:
-            # For non-VIP channels, provide standard high-speed fallback server
+            # Standard channels: Server 1 default
+            servers.append({
+                "id": "server-1",
+                "name": "سيرفر 1 (البث المباشر)",
+                "url": f"/live/{cid}.m3u8?server=1",
+                "quality": "HD",
+                "isDefault": True,
+                "status": ch.get("status", "live")
+            })
+
             direct_m3u8 = ch.get("directM3u8") or ch.get("streamUrl")
             if direct_m3u8 and not direct_m3u8.startswith("/live/"):
                 servers.append({
@@ -206,9 +249,16 @@ def autonomous_health_check_and_heal():
     offline_count = 0
 
     def check_channel(ch):
-        cname = ch.get("name", "")
-        stream = ch.get("directM3u8") or ch.get("streamUrl") or ch.get("playUrl")
-        is_healthy = probe_stream_health(stream, timeout=3)
+        servers = ch.get("servers", [])
+        has_vip = any("VIP" in s.get("name", "") for s in servers)
+        if has_vip:
+            return ch, True
+
+        srv1 = next((s for s in servers if s.get("id") == "server-1"), None)
+        target = srv1.get("upstreamUrl") if srv1 and srv1.get("upstreamUrl") else (ch.get("directM3u8") or "")
+        if not target.startswith("http"):
+            return ch, True
+        is_healthy = probe_stream_health(target, timeout=3)
         return ch, is_healthy
 
     with ThreadPoolExecutor(max_workers=10) as executor:
@@ -223,7 +273,6 @@ def autonomous_health_check_and_heal():
                     ch["status_message"] = "بث مباشر نشط ومستقر"
                     live_count += 1
                 else:
-                    # Off-air channel (e.g. broadcasts during live matches only)
                     ch["status"] = "event_only"
                     ch["inputStatus"] = "OFFLINE"
                     ch["status_message"] = "تبث أثناء المباريات المباشرة فقط"

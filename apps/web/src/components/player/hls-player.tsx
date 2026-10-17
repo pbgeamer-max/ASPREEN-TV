@@ -502,7 +502,54 @@ export function HlsPlayerModal({
       });
     }
 
+    // Watchdog for Frozen Picture with moving audio/timer ("عداد يبقا يمشي وصورة واقفة")
+    let lastCheckedTime = 0;
+    let lastCheckedFrames = -1;
+    let frozenFrameCount = 0;
+    const frameWatchdog = setInterval(() => {
+      if (!video || video.paused || video.ended || video.readyState < 2) return;
+      const curTime = video.currentTime;
+      let frames = 0;
+      if (typeof (video as any).getVideoPlaybackQuality === 'function') {
+        frames = (video as any).getVideoPlaybackQuality().totalVideoFrames || 0;
+      } else if ('webkitDecodedFrameCount' in video) {
+        frames = (video as any).webkitDecodedFrameCount || 0;
+      }
+
+      // If time has elapsed > 3.0s but 0 frames have ever decoded
+      if (curTime > 3.0 && frames === 0) {
+        console.warn('[HlsPlayer] Audio playing but 0 video frames decoded! Frozen picture detected. Switching server...');
+        if (effectiveServers.length > activeServerIndex + 1) {
+          setActiveServerIndex((prev) => prev + 1);
+        } else if (hls) {
+          hls.recoverMediaError();
+        }
+        return;
+      }
+
+      // If clock is ticking but frames have completely halted
+      if (curTime > lastCheckedTime + 2.5) {
+        if (lastCheckedFrames !== -1 && frames === lastCheckedFrames && frames > 0) {
+          frozenFrameCount++;
+          if (frozenFrameCount >= 2) {
+            console.warn('[HlsPlayer] Video picture frozen for > 5s while clock ticks! Auto-recovering...');
+            frozenFrameCount = 0;
+            if (effectiveServers.length > activeServerIndex + 1) {
+              setActiveServerIndex((prev) => prev + 1);
+            } else if (hls) {
+              hls.recoverMediaError();
+            }
+          }
+        } else {
+          frozenFrameCount = 0;
+        }
+        lastCheckedTime = curTime;
+        lastCheckedFrames = frames;
+      }
+    }, 2500);
+
     return () => {
+      clearInterval(frameWatchdog);
       if (initialLoadTimer) clearTimeout(initialLoadTimer);
       if (stallTimeout) clearTimeout(stallTimeout);
       video.removeEventListener('loadeddata', handleReady);
