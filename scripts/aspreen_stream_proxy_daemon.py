@@ -292,13 +292,14 @@ def load_channels_from_disk():
 
 def renew_single_channel_stream(cid):
     """Fetches a fresh stream URL for a single channel from upstream API"""
-    api_url = f"https://yacine.website/index.php?get_channel_stream={cid}"
-    headers = dict(BYPASS_HEADERS)
     with cache_lock:
         ch = channels_cache.get(cid, {})
         name = ch.get("name", "live")
+        target_id = ch.get("yacineId") or cid
+    api_url = f"https://yacine.website/index.php?get_channel_stream={target_id}"
+    headers = dict(BYPASS_HEADERS)
     slug = re.sub(r'[^a-zA-Z0-9]+', '-', name).strip('-') or 'live'
-    headers["Referer"] = f"https://yacine.website/channel/{cid}/{slug}"
+    headers["Referer"] = f"https://yacine.website/channel/{target_id}/{slug}"
 
     req = urllib.request.Request(api_url, headers=headers)
     try:
@@ -317,10 +318,14 @@ def renew_single_channel_stream(cid):
                         if raw_url:
                             ch["streamUrl"] = raw_url
                             ch["directM3u8"] = raw_url
+                        if ch.get("servers"):
+                            for s in ch["servers"]:
+                                if s.get("id") == "server-1" and ("re300" in str(s.get("upstreamUrl", "")) or "yacine" in str(s.get("upstreamUrl", "")) or s.get("isDefault")):
+                                    s["upstreamUrl"] = raw_url
                         ch["userAgent"] = ua or DEFAULT_UA
                         ch["status"] = "live"
                         ch["source"] = "yacine.website"
-                        ch["referer"] = f"https://yacine.website/channel/{cid}/live"
+                        ch["referer"] = f"https://yacine.website/channel/{target_id}/live"
                         ch["lastRenewed"] = time.time()
                 return True
             else:
@@ -350,7 +355,7 @@ def background_auto_renew_loop():
                 primary_sports = {"207119423132628321", "207119423133708072", "207119423130423959", "207119423131118230"}
                 cids_to_renew = [
                     cid for cid, ch in channels_cache.items()
-                    if (ch.get("lastRenewed", 0) > (now - 3600) or cid in primary_sports)
+                    if (ch.get("lastRenewed", 0) > (now - 3600) or cid in primary_sports or ch.get("yacineId"))
                     and "edgenextcdn.net" not in ch.get("streamUrl", "")
                 ]
 
@@ -738,16 +743,17 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Channel Not Found")
             return
 
+        yacine_id = ch.get("yacineId") or cid
         ch_ref = ch.get("referer")
-        if ch.get("source") == "yacine.website" or "yacine.website" in str(ch.get("playUrl", "")) or len(cid) >= 15:
-            channel_referer = f"https://yacine.website/channel/{cid}/live"
+        if ch.get("source") == "yacine.website" or "yacine.website" in str(ch.get("playUrl", "")) or len(str(yacine_id)) >= 15:
+            channel_referer = f"https://yacine.website/channel/{yacine_id}/live"
         elif ch_ref:
             channel_referer = ch_ref
         elif "workers.dev" in str(ch.get("streamUrl", "")) or ".css" in str(ch.get("streamUrl", "")) or "speedcdn" in str(ch.get("streamUrl", "")):
             channel_referer = "http://speedcdn.me:8080/"
         else:
             slug = re.sub(r'[^a-zA-Z0-9]+', '-', ch.get('name', 'live')).strip('-') or 'live'
-            channel_referer = f"https://yacine.website/channel/{cid}/{slug}"
+            channel_referer = f"https://yacine.website/channel/{yacine_id}/{slug}"
 
         target_fetch_url, req_ua = self.build_target_and_ua(ch, requested_server)
 
