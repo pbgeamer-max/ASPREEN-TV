@@ -141,6 +141,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       await api.logout();
       setUser(null);
+      if (typeof document !== 'undefined') {
+        document.cookie = '__session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      }
     } finally {
       setLoading(false);
     }

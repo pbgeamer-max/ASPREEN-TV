@@ -35,14 +35,25 @@ export function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('__session')?.value;
   const authHeader = request.headers.get('authorization');
 
-  // If user is not authenticated, strictly redirect to /login
-  if (!sessionCookie && !authHeader) {
+  const isValidSession =
+    (Boolean(sessionCookie) &&
+      (sessionCookie!.startsWith('aspreen-admin-token-') ||
+        sessionCookie!.startsWith('ey') ||
+        sessionCookie!.length > 25) &&
+      !sessionCookie!.includes('mock')) ||
+    (Boolean(authHeader) && !authHeader!.includes('mock'));
+
+  // If user is not authenticated or has an invalid/mock token, strictly redirect to /login and delete cookie
+  if (!isValidSession) {
     const loginUrl = new URL('/login', request.url);
-    // Optionally preserve return path
     if (pathname !== '/') {
       loginUrl.searchParams.set('from', pathname);
     }
-    return NextResponse.redirect(loginUrl);
+    const response = NextResponse.redirect(loginUrl);
+    if (sessionCookie) {
+      response.cookies.delete('__session');
+    }
+    return response;
   }
 
   return NextResponse.next();

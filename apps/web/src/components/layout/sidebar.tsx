@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Radio,
@@ -30,7 +30,13 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout } = useAuth();
+
+  const handleSignOut = async () => {
+    await logout();
+    router.push('/login');
+  };
 
   return (
     <aside className="w-64 bg-[#0A0A0A] border-r border-[#262626] flex flex-col h-screen fixed left-0 top-0 z-30 select-none">
@@ -84,7 +90,7 @@ export function Sidebar() {
         </div>
 
         <button
-          onClick={() => logout()}
+          onClick={handleSignOut}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded text-xs font-medium text-[#A1A1AA] hover:text-white hover:bg-[#171717] border border-transparent hover:border-[#262626] transition-colors"
         >
           <LogOut className="w-3.5 h-3.5" />
