@@ -121,6 +121,7 @@ export async function initDatabase(force = false): Promise<boolean> {
         );
 
         ALTER TABLE channels ADD COLUMN IF NOT EXISTS order_index INTEGER DEFAULT 0;
+        ALTER TABLE channels ADD COLUMN IF NOT EXISTS servers JSONB;
         CREATE INDEX IF NOT EXISTS idx_channels_source_id ON channels(source_id);
         CREATE INDEX IF NOT EXISTS idx_channels_active_output_id ON channels(active_output_id);
         CREATE INDEX IF NOT EXISTS idx_channels_enabled ON channels(enabled);
@@ -214,62 +215,64 @@ export async function initDatabase(force = false): Promise<boolean> {
         DROP TABLE IF EXISTS movies CASCADE;
       `);
 
-      // Auto-seed 325 Channels and Yacine TV Source if table is empty
+      // Always synchronize channels.json into database on boot to ensure current active verified channels
       try {
-        const countRes = await client.query('SELECT COUNT(*) as count FROM channels');
-        const currentCount = parseInt(countRes.rows[0]?.count || '0', 10);
-        if (currentCount === 0) {
-          const jsonPath = findChannelsJsonPath();
-          if (jsonPath && fs.existsSync(jsonPath)) {
-            console.log(`[PostgreSQL] 0 channels detected. Auto-seeding from ${jsonPath}...`);
-            const raw = fs.readFileSync(jsonPath, 'utf-8');
-            const list = JSON.parse(raw);
+        const jsonPath = findChannelsJsonPath();
+        if (jsonPath && fs.existsSync(jsonPath)) {
+          const raw = fs.readFileSync(jsonPath, 'utf-8');
+          const list = JSON.parse(raw);
+          console.log(`[PostgreSQL] Syncing ${list.length} channels from ${jsonPath}...`);
 
-            // 1. Ensure source exists
+          // 1. Clear obsolete old channels from table
+          await client.query('DELETE FROM channels');
+          await client.query('DELETE FROM sources');
+
+          // 2. Insert sources
+          const vipCount = list.filter((c: any) => c.source === 'private-vip').length;
+          const tlfazCount = list.filter((c: any) => c.source !== 'private-vip').length;
+
+          await client.query(`
+            INSERT INTO sources (
+              id, name, type, sanitized_hostname, encrypted_url, enabled, connection_status, channel_count, created_at, updated_at
+            ) VALUES 
+              ('private-vip', 'beIN SPORTS VIP (ملفاتك الخاصة)', 'M3U', 'line.hey-ott.net', $1::text, true, 'ONLINE', $2::integer, NOW(), NOW()),
+              ('tlfaz-arabic', 'قنوات تلفاز العرب (tlfaz.com)', 'M3U', 'tlfaz.com', $3::text, true, 'ONLINE', $4::integer, NOW(), NOW())
+            ON CONFLICT (id) DO UPDATE SET channel_count = EXCLUDED.channel_count, connection_status = 'ONLINE'
+          `, [encrypt('http://line.hey-ott.net/'), vipCount, encrypt('https://tlfaz.com/'), tlfazCount]);
+
+          // 3. Insert channels with servers JSON
+          for (let i = 0; i < list.length; i++) {
+            const item = list[i];
+            const cid = String(item.id || item.vid);
+            const sourceId = item.source === 'private-vip' ? 'private-vip' : 'tlfaz-arabic';
+            const stream = item.streamUrl || item.directM3u8 || '';
+            const encStream = encrypt(stream);
+            const name = item.name || 'قناة غير معنونة';
+            const normName = name.toLowerCase().trim();
+            const grp = item.groupTitle || 'عام';
+            const logo = item.logoUrl || null;
+            const order = item.orderIndex || (i + 1);
+            const serversJson = item.servers ? JSON.stringify(item.servers) : null;
+
             await client.query(`
-              INSERT INTO sources (
-                id, name, type, sanitized_hostname, encrypted_url, enabled, connection_status, channel_count, created_at, updated_at
+              INSERT INTO channels (
+                id, source_id, external_identifier, name, normalized_name, group_title, logo_url,
+                input_type, encrypted_input_url, enabled, input_status, transcoding_status,
+                preset, proxy_url, order_index, servers, created_at, updated_at
               ) VALUES (
-                'yacine-website', 'Yacine TV (325 قنوات)', 'M3U', 'yacine.website', $1::text, true, 'ONLINE', $2::integer, NOW(), NOW()
-              ) ON CONFLICT (id) DO UPDATE SET channel_count = EXCLUDED.channel_count, connection_status = 'ONLINE'
-            `, [encrypt('https://yacine.website/'), list.length]);
-
-            // 2. Insert channels
-            for (let i = 0; i < list.length; i++) {
-              const item = list[i];
-              const cid = String(item.id || item.vid);
-              const stream = item.streamUrl || item.directM3u8 || '';
-              const encStream = encrypt(stream);
-              const name = item.name || 'قناة غير معنونة';
-              const normName = name.toLowerCase().trim();
-              const grp = item.groupTitle || 'عام';
-              const logo = item.logoUrl || null;
-              const order = item.orderIndex || (i + 1);
-
-              await client.query(`
-                INSERT INTO channels (
-                  id, source_id, external_identifier, name, normalized_name, group_title, logo_url,
-                  input_type, encrypted_input_url, enabled, input_status, transcoding_status,
-                  preset, proxy_url, order_index, created_at, updated_at
-                ) VALUES (
-                  $1::varchar, 'yacine-website', $2::text, $3::text, $4::text, $5::text, $6::text,
-                  'HLS', $7::text, true, 'ONLINE', 'RUNNING',
-                  'COPY', $8::text, $9::integer, NOW(), NOW()
-                ) ON CONFLICT (id) DO UPDATE SET
-                  enabled = true,
-                  input_status = 'ONLINE',
-                  transcoding_status = 'RUNNING',
-                  proxy_url = EXCLUDED.proxy_url
-              `, [cid, cid, name, normName, grp, logo, encStream, `/live/${cid}.m3u8`, order]);
-            }
-
-            console.log(`[PostgreSQL] Successfully auto-seeded ${list.length} channels into database!`);
-          } else {
-            console.warn('[PostgreSQL] Could not find channels.json for auto-seeding.');
+                $1::varchar, $2::varchar, $3::text, $4::text, $5::text, $6::text, $7::text,
+                'HLS', $8::text, true, 'ONLINE', 'RUNNING',
+                'COPY', $9::text, $10::integer, $11::jsonb, NOW(), NOW()
+              )
+            `, [cid, sourceId, cid, name, normName, grp, logo, encStream, `/live/${cid}.m3u8`, order, serversJson]);
           }
+
+          console.log(`[PostgreSQL] Successfully synchronized ${list.length} channels into database!`);
+        } else {
+          console.warn('[PostgreSQL] Could not find channels.json for auto-sync.');
         }
       } catch (seedErr: any) {
-        console.error('[PostgreSQL] Auto-seed failed:', seedErr.message);
+        console.error('[PostgreSQL] Auto-sync failed:', seedErr.message);
       }
 
       isInitialized = true;

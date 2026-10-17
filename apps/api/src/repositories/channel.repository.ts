@@ -73,6 +73,15 @@ function getChannelsFromJson(): Channel[] {
 
 function mapChannelRow(row: any): Channel {
   const cid = String(row.id);
+  let parsedServers = undefined;
+  if (row.servers) {
+    if (typeof row.servers === 'string') {
+      try { parsedServers = JSON.parse(row.servers); } catch {}
+    } else if (Array.isArray(row.servers)) {
+      parsedServers = row.servers;
+    }
+  }
+
   return {
     id: cid,
     sourceId: row.source_id,
@@ -91,6 +100,7 @@ function mapChannelRow(row: any): Channel {
     activeJobId: row.active_job_id ?? undefined,
     activeOutputId: row.active_output_id ?? undefined,
     orderIndex: row.order_index !== null && row.order_index !== undefined ? Number(row.order_index) : 0,
+    servers: parsedServers,
     createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at || new Date().toISOString()),
     updatedAt: row.updated_at instanceof Date ? row.updated_at.toISOString() : String(row.updated_at || new Date().toISOString()),
   };
