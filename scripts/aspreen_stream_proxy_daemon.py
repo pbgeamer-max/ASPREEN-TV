@@ -130,17 +130,18 @@ class OnDemandStreamManager:
 
                 cmd = [
                     "ffmpeg", "-y", "-hide_banner", "-loglevel", "warning",
-                    "-fflags", "+nobuffer+flush_packets",
-                    "-probesize", "250000",
-                    "-analyzeduration", "250000",
+                    "-fflags", "+genpts+nobuffer+flush_packets",
+                    "-avoid_negative_ts", "make_zero",
+                    "-probesize", "320000",
+                    "-analyzeduration", "320000",
                     "-user_agent", "VLC/3.0.18 LibVLC/3.0.18",
-                    "-reconnect", "1", "-reconnect_at_eof", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5",
+                    "-reconnect", "1", "-reconnect_at_eof", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "2",
                     "-i", upstream_url,
                     "-c", "copy",
                     "-f", "hls",
-                    "-hls_time", "3",
-                    "-hls_list_size", "30",
-                    "-hls_flags", "delete_segments",
+                    "-hls_time", "2",
+                    "-hls_list_size", "25",
+                    "-hls_flags", "delete_segments+append_list",
                     m3u8_path
                 ]
                 try:
@@ -498,11 +499,14 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.handle_channel_playlist(cid, is_raw=False, force_proxy=force_proxy)
             return
 
-        # 5. Direct Continuous MPEG-TS Stream: /live/<channel_id>.ts or /raw/<channel_id>.ts (Rock-Solid for VLC / IPTV)
+        # 5. Direct Continuous MPEG-TS Stream: Redirect to strictly M3U8 (No TS)
         match_ts = re.match(r"^/(?:live|raw)/([^/]+)\.ts$", path)
         if match_ts:
             cid = match_ts.group(1)
-            self.handle_direct_ts_stream(cid)
+            self.send_response(302)
+            self.send_cors_headers()
+            self.send_header("Location", f"/live/{cid}.m3u8")
+            self.end_headers()
             return
 
         # 6. Proxy Segment Chunk: /ts or /live/ts or /raw/ts
@@ -656,9 +660,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             proto = "https"
         base_origin = f"{proto}://{host}"
 
-        is_iptv_or_player = any(app in ua_hdr for app in ["vlc", "kodi", "tivimate", "iptv", "ffmpeg", "mpv", "exoplayer", "libvlc", "lavf", "smart", "ott", "player"])
-        if is_iptv_or_player:
-            force_proxy = True
+
 
         now_ts = time.time()
         parsed_url = urllib.parse.urlparse(self.path)
@@ -754,19 +756,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     rewritten.append(f"{base_origin}/live/segment/{stream_key}/{seg_name}")
 
             out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
-            self.send_response(200)
-            self.send_cors_headers()
-            self.send_header("Content-Type", "application/vnd.apple.mpegurl")
-            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-            self.send_header("Pragma", "no-cache")
-            self.send_header("Expires", "0")
-            self.send_header("Content-Length", str(len(out_body)))
-            self.end_headers()
-            try:
-                self.wfile.write(out_body)
-            except (BrokenPipeError, ConnectionResetError):
-                pass
-            return
+            with m3u8_cache_lock:
+                m3u8_cache[cache_key] = (out_body, time.time() + 0.8)
             self.send_response(200)
             self.send_cors_headers()
             self.send_header("Content-Type", "application/vnd.apple.mpegurl")
@@ -909,7 +900,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
         with m3u8_cache_lock:
-            m3u8_cache[cache_key] = (out_body, time.time() + 2.0)
+            m3u8_cache[cache_key] = (out_body, time.time() + 0.8)
         self.send_response(200)
         self.send_cors_headers()
         self.send_header("Content-Type", "application/vnd.apple.mpegurl")

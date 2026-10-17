@@ -232,19 +232,18 @@ export async function tokenRoutes(server: FastifyInstance) {
       const item = exportedItems[index];
       txtLines.push(`[${index + 1}] ${item.name}`);
       if (item.groupTitle) txtLines.push(`Category: ${item.groupTitle}`);
-      txtLines.push(`Live MPEG-TS Stream: ${item.tsPlaybackUrl}`);
-      txtLines.push(`HLS Playback (m3u8): ${item.playbackUrl}`);
+      txtLines.push(`HLS Stream (.m3u8): ${item.playbackUrl}`);
       txtLines.push('--------------------------------------------------------------------------------');
     }
     const txtContent = txtLines.join('\n');
 
-    // Generate standard M3U playlist file
+    // Generate standard M3U playlist file (Strictly pure M3U8 URLs)
     const m3uLines: string[] = ['#EXTM3U'];
     for (const item of exportedItems) {
       const tvgLogo = item.logoUrl ? ` tvg-logo="${item.logoUrl}"` : '';
       const groupTitle = item.groupTitle ? ` group-title="${item.groupTitle.replace(/"/g, "'")}"` : '';
       m3uLines.push(`#EXTINF:-1 tvg-id="" tvg-name="${item.name.replace(/"/g, "'")}"${tvgLogo}${groupTitle},${item.name}`);
-      m3uLines.push(item.tsPlaybackUrl);
+      m3uLines.push(item.playbackUrl);
     }
     const m3uContent = m3uLines.join('\n');
 

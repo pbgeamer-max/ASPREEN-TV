@@ -243,31 +243,7 @@ export default function StreamTokensPage() {
                   </div>
                 </div>
 
-                {/* Direct MPEG-TS URL */}
-                {rotatedResult.tsPlaybackUrl && (
-                  <div className="p-3 bg-[#0A0A0A] border border-[#262626] rounded text-xs space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-[#A1A1AA] uppercase font-mono font-medium">
-                        Direct MPEG-TS Stream URL (.ts)
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(rotatedResult.tsPlaybackUrl!);
-                          setCopiedType('ts');
-                          setTimeout(() => setCopiedType(null), 2000);
-                        }}
-                        className="btn-secondary py-0.5 px-2 text-[10px] gap-1"
-                      >
-                        {copiedType === 'ts' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                        <span>{copiedType === 'ts' ? 'Copied' : 'Copy'}</span>
-                      </button>
-                    </div>
-                    <div className="font-mono text-[11px] text-[#F5F5F5] break-all select-all p-2 bg-[#141414] rounded border border-[#222]">
-                      {rotatedResult.tsPlaybackUrl}
-                    </div>
-                  </div>
-                )}
+
 
                 <p className="text-[11px] text-[#71717A]">
                   The old token was revoked. Copy this replacement link into your client application now.
