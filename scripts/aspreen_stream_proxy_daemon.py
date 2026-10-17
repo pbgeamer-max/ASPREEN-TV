@@ -83,6 +83,7 @@ BYPASS_HEADERS = {
 
 # Global In-Memory State
 channels_cache = {}  # cid -> channel dict
+channel_max_sequence = {}  # cid -> highest seen media sequence to prevent backwards jumps
 cache_lock = threading.Lock()
 server_start_time = time.time()
 last_renew_time = 0
@@ -102,27 +103,42 @@ os.makedirs(HLS_DATA_DIR, exist_ok=True)
 
 class LiveTranscoderManager:
     """
-    Manages continuous background FFmpeg live transcoding processes.
+    Manages background FFmpeg live transcoding process for the active stream.
     Burns TVARUA metallic logo directly into video frames at bottom-left,
     completely covering Yacine TV watermarks while preserving beIN Sports logos.
+    Guarantees 100% CPU dedication to the single active channel being watched.
     """
     def __init__(self):
-        self.procs = {}            # cid -> subprocess.Popen
-        self.proc_start_time = {} # cid -> timestamp
-        self.last_access = {}      # cid -> timestamp
-        self.log_files = {}        # cid -> file handle
+        self.active_cid = "207119423132628321"  # Default primary channel (beIN SPORTS 1)
+        self.procs = {}                         # cid -> subprocess.Popen
+        self.proc_start_time = {}              # cid -> timestamp
+        self.last_access = {}                   # cid -> timestamp
+        self.log_files = {}                     # cid -> file handle
         self.lock = threading.Lock()
-        self.primary_cids = {
-            "207119423132628321",  # beIN SPORTS 1
-            "207119423133708072",  # beIN SPORTS 2
-            "207119423130423959",  # beIN SPORTS 3
-            "207119423131118230",  # beIN SPORTS News
-        }
 
     def ensure_transcoder(self, cid: str):
         with self.lock:
             now = time.time()
             self.last_access[cid] = now
+            self.active_cid = cid
+
+            # Terminate ANY other channel transcoders to dedicate 100% CPU exclusively to this channel!
+            for other_cid, other_proc in list(self.procs.items()):
+                if other_cid != cid:
+                    if other_proc and other_proc.poll() is None:
+                        try:
+                            other_proc.terminate()
+                            print(f" [i] إيقاف معالج القناة السابقة {other_cid} لتفريغ المعالج 100% للقناة النشطة {cid}")
+                        except Exception:
+                            pass
+                    self.procs.pop(other_cid, None)
+                    old_log = self.log_files.pop(other_cid, None)
+                    if old_log:
+                        try:
+                            old_log.close()
+                        except Exception:
+                            pass
+
             proc = self.procs.get(cid)
             out_dir = os.path.join(HLS_DATA_DIR, cid)
             out_m3u8 = os.path.join(out_dir, "live.m3u8")
@@ -166,19 +182,17 @@ class LiveTranscoderManager:
                 logo = next((p for p in LOGO_PATHS if os.path.exists(p)), "")
 
             filter_str = (
-                "[0:v]scale=1280:720[base];"
-                "[base]delogo=x=18:y=594:w=135:h=118[clean];"
+                "[0:v]delogo=x=18:y=594:w=135:h=118[clean];"
                 "[1:v]scale=125:-1[logo];"
                 "[clean][logo]overlay=22:main_h-overlay_h-22[outv]"
             ) if (logo and os.path.exists(logo)) else (
-                "[0:v]scale=1280:720[base];"
-                "[base]delogo=x=18:y=594:w=135:h=118[outv]"
+                "[0:v]delogo=x=18:y=594:w=135:h=118[outv]"
             )
 
             raw_input = f"http://127.0.0.1:{PORT}/raw/{cid}.m3u8"
             cmd = [
                 "ffmpeg", "-y",
-                "-fflags", "+nobuffer+genpts",
+                "-fflags", "+nobuffer+genpts+discardcorrupt",
                 "-rw_timeout", "15000000",
                 "-allowed_extensions", "ALL",
                 "-i", raw_input,
@@ -193,14 +207,17 @@ class LiveTranscoderManager:
                 "-c:v", "libx264",
                 "-preset", "ultrafast",
                 "-tune", "zerolatency",
-                "-threads", "0",
+                "-r", "25",
                 "-g", "50",
                 "-keyint_min", "25",
                 "-sc_threshold", "0",
-                "-b:v", "2200k",
-                "-maxrate", "2500k",
-                "-bufsize", "4400k",
-                "-c:a", "copy",
+                "-b:v", "1800k",
+                "-maxrate", "2200k",
+                "-bufsize", "3600k",
+                "-c:a", "aac",
+                "-b:a", "128k",
+                "-ar", "44100",
+                "-af", "aresample=async=1000",
                 "-f", "hls",
                 "-hls_time", "3",
                 "-hls_list_size", "8",
@@ -221,40 +238,23 @@ class LiveTranscoderManager:
                 print(f" [!] خطأ في تشغيل معالج البث للقناة {cid}: {e}")
 
     def supervisor_tick(self):
-        """Active supervisor checking stream health and maintaining continuous transcoding"""
+        """Active supervisor keeping ONLY the currently active channel transcoding smoothly"""
         now = time.time()
         with self.lock:
-            # Always keep primary channel active 24/7
-            for pcid in self.primary_cids:
-                if pcid not in self.last_access:
-                    self.last_access[pcid] = now
+            cid = self.active_cid or "207119423132628321"
+            proc = self.procs.get(cid)
+            out_m3u8 = os.path.join(HLS_DATA_DIR, cid, "live.m3u8")
+            start_t = self.proc_start_time.get(cid, 0)
 
-            for cid in list(self.last_access.keys()):
-                idle = now - self.last_access.get(cid, 0)
-                # Primary channels never stop; non-primary channels stop after 10 min idle
-                if cid not in self.primary_cids and idle > 600:
-                    proc = self.procs.pop(cid, None)
-                    if proc and proc.poll() is None:
-                        try:
-                            proc.terminate()
-                            print(f" [i] تم إيقاف معالج البث للقناة غير النشطة {cid}")
-                        except Exception:
-                            pass
-                    continue
-
-                proc = self.procs.get(cid)
-                out_m3u8 = os.path.join(HLS_DATA_DIR, cid, "live.m3u8")
-                start_t = self.proc_start_time.get(cid, 0)
-
-                # If process died:
-                if proc is None or proc.poll() is not None:
-                    print(f" [⚡] استئناف وإعادة تشغيل معالج البث فورياً للقناة النشطة {cid} (ضمان استقرار دائم 24/7)...")
+            # If active channel process died:
+            if proc is None or proc.poll() is not None:
+                print(f" [⚡] استئناف وإعادة تشغيل معالج البث للقناة النشطة {cid}...")
+                threading.Thread(target=self.ensure_transcoder, args=(cid,), daemon=True).start()
+            elif (now - start_t) > 25:
+                # Running for > 25s, verify it is writing fresh segments
+                if not os.path.exists(out_m3u8) or (now - os.path.getmtime(out_m3u8)) > 25:
+                    print(f" [⚡] تجديد معالج البث للقناة النشطة {cid}...")
                     threading.Thread(target=self.ensure_transcoder, args=(cid,), daemon=True).start()
-                elif (now - start_t) > 25:
-                    # Running for > 25s, verify it is writing fresh segments
-                    if not os.path.exists(out_m3u8) or (now - os.path.getmtime(out_m3u8)) > 25:
-                        print(f" [⚡] تجديد معالج البث المتوقف للقناة النشطة {cid}...")
-                        threading.Thread(target=self.ensure_transcoder, args=(cid,), daemon=True).start()
 
 transcoder_mgr = LiveTranscoderManager()
 
@@ -859,6 +859,11 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 rewritten.append(h)
 
         if media_seq is not None:
+            last_seq = channel_max_sequence.get(cid, 0)
+            if media_seq < last_seq:
+                media_seq = last_seq
+            else:
+                channel_max_sequence[cid] = media_seq
             # Place media sequence right after #EXTM3U
             idx = 1 if len(rewritten) > 0 and rewritten[0].startswith("#EXTM3U") else 0
             rewritten.insert(idx, f"#EXT-X-MEDIA-SEQUENCE:{media_seq}")
