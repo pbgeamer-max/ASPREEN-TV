@@ -130,14 +130,16 @@ class OnDemandStreamManager:
 
                 cmd = [
                     "ffmpeg", "-y", "-hide_banner", "-loglevel", "warning",
+                    "-re",
                     "-fflags", "+genpts+nobuffer+flush_packets",
                     "-avoid_negative_ts", "make_zero",
                     "-i", "pipe:0",
                     "-c", "copy",
                     "-f", "hls",
                     "-hls_time", "2",
-                    "-hls_list_size", "15",
-                    "-hls_flags", "delete_segments",
+                    "-hls_list_size", "30",
+                    "-hls_delete_threshold", "20",
+                    "-hls_flags", "delete_segments+append_list",
                     m3u8_path
                 ]
                 try:
@@ -160,6 +162,7 @@ class OnDemandStreamManager:
                                             p.stdin.flush()
                                         except (BrokenPipeError, OSError):
                                             return
+                                time.sleep(0.1)
                             except Exception:
                                 time.sleep(0.3)
 
@@ -235,7 +238,9 @@ class OnDemandStreamManager:
                             worker["proc"].kill()
                         except Exception:
                             pass
-                    shutil.rmtree(worker["hls_dir"], ignore_errors=True)
+                    # Only wipe files if inactive for 120s, preserve on crash so viewers don't 404
+                    if (now - worker.get("last_active", now)) >= 120:
+                        shutil.rmtree(worker["hls_dir"], ignore_errors=True)
                     print(f" [i] إيقاف جلسة البث On-Demand للقناة {sk} ({reason}).")
 
             # Prune hot in-memory segment cache
@@ -779,10 +784,13 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     pass
                 return
 
+            # Strip any transient #EXT-X-ENDLIST so the player never stops polling or treats live stream as VOD
+            m3u_text = re.sub(r"#EXT-X-ENDLIST\r?\n?", "", m3u_text)
+
             rewritten = []
             for line in m3u_text.splitlines():
                 l = line.strip()
-                if not l:
+                if not l or l.startswith("#EXT-X-ENDLIST"):
                     continue
                 if l.startswith("#"):
                     rewritten.append(l)
@@ -933,7 +941,9 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 else:
                     rewritten.append(direct_seg)
 
-        out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
+        # Strip any transient #EXT-X-ENDLIST to prevent players from treating live as finished VOD
+        clean_rewritten = [l for l in rewritten if not l.startswith("#EXT-X-ENDLIST")]
+        out_body = ("\n".join(clean_rewritten) + "\n").encode("utf-8")
         with m3u8_cache_lock:
             m3u8_cache[cache_key] = (out_body, time.time() + 0.8)
         self.send_response(200)
@@ -1138,8 +1148,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         seg_path = os.path.join(ON_DEMAND_STREAM_MANAGER.base_dir, clean_key, clean_file)
 
-        # Wait briefly up to 1.5s if segment is still finishing write
-        for _ in range(15):
+        # Wait briefly up to 2.5s if segment is still finishing write
+        for _ in range(25):
             if os.path.exists(seg_path) and os.path.getsize(seg_path) > 0:
                 break
             time.sleep(0.1)
@@ -1155,7 +1165,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 data = f.read()
 
             with hot_cache_lock:
-                HOT_SEGMENT_CACHE[cache_key] = (data, time.time() + 60.0)
+                HOT_SEGMENT_CACHE[cache_key] = (data, time.time() + 180.0)
 
             self.send_response(200)
             self.send_cors_headers()
