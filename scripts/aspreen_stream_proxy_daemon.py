@@ -394,11 +394,20 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         """Fetches upstream M3U8, rewrites segment URLs, and returns to client"""
         accept_hdr = self.headers.get("Accept", "")
         ua_hdr = self.headers.get("User-Agent", "").lower()
-        is_browser = "text/html" in accept_hdr and not any(app in ua_hdr for app in ["vlc", "kodi", "tivimate", "iptv", "ffmpeg", "mpv", "exoplayer"])
+        host = self.headers.get("Host", "localhost")
+        proto = self.headers.get("X-Forwarded-Proto", "https" if ("railway" in host or "443" in host) else "http")
+        base_origin = f"{proto}://{host}"
+
+        is_iptv_or_player = any(app in ua_hdr for app in ["vlc", "kodi", "tivimate", "iptv", "ffmpeg", "mpv", "exoplayer", "libvlc", "lavf", "smart", "ott", "player"])
+        is_browser = "text/html" in accept_hdr and not is_iptv_or_player
         
         parsed_url = urllib.parse.urlparse(self.path)
         qs = urllib.parse.parse_qs(parsed_url.query)
         is_raw_requested = is_raw or qs.get("raw", ["0"])[0] in ("1", "true")
+        
+        # If client is VLC or IPTV app, auto-enable proxying so they never get blocked by yacine anti-bot headers
+        if is_iptv_or_player:
+            force_proxy = True
 
         if is_browser and not is_raw_requested:
             with cache_lock:
@@ -422,6 +431,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         .overlay {{ position: absolute; top: 16px; right: 20px; z-index: 10; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.65); padding: 8px 16px; border-radius: 30px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }}
         .badge {{ background: #22c55e; color: #000; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 12px; letter-spacing: 0.5px; }}
         .title {{ font-size: 14px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }}
+        .unmute-btn {{ position: absolute; bottom: 80px; z-index: 20; background: #22c55e; color: #000; border: none; border-radius: 24px; padding: 12px 24px; font-size: 15px; font-weight: 700; cursor: pointer; display: none; box-shadow: 0 4px 15px rgba(34,197,94,0.4); }}
     </style>
 </head>
 <body>
@@ -431,31 +441,66 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             <span class="title">{ch_name}</span>
         </div>
         <video id="video-player" controls autoplay playsinline></video>
+        <button id="unmute-btn" class="unmute-btn">انقر لتشغيل الصوت 🔊</button>
     </div>
     <script>
         const video = document.getElementById('video-player');
+        const unmuteBtn = document.getElementById('unmute-btn');
         const streamUrl = window.location.pathname + '?raw=1';
+
+        unmuteBtn.addEventListener('click', () => {{
+            video.muted = false;
+            unmuteBtn.style.display = 'none';
+        }});
+
         if (Hls.isSupported()) {{
             const hls = new Hls({{
                 enableWorker: true,
-                lowLatencyMode: true,
+                lowLatencyMode: false,
                 backBufferLength: 90,
-                maxBufferLength: 30,
-                maxMaxBufferLength: 60,
-                liveSyncDurationCount: 3,
-                liveMaxLatencyDurationCount: 10
+                maxBufferLength: 45,
+                maxMaxBufferLength: 90,
+                liveSyncDurationCount: 4,
+                liveMaxLatencyDurationCount: 15,
+                manifestLoadingTimeOut: 15000,
+                manifestLoadingMaxRetry: 10,
+                fragLoadingTimeOut: 20000,
+                fragLoadingMaxRetry: 10
             }});
             hls.loadSource(streamUrl);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {{
-                video.play().catch(() => {{
+                video.play().then(() => {{
+                    if (video.muted) unmuteBtn.style.display = 'block';
+                }}).catch(() => {{
                     video.muted = true;
-                    video.play();
+                    video.play().then(() => {{
+                        unmuteBtn.style.display = 'block';
+                    }});
                 }});
+            }});
+            hls.on(Hls.Events.ERROR, (event, data) => {{
+                if (data.fatal) {{
+                    switch (data.type) {{
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            hls.startLoad();
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            hls.recoverMediaError();
+                            break;
+                        default:
+                            hls.destroy();
+                            break;
+                    }}
+                }}
             }});
         }} else if (video.canPlayType('application/vnd.apple.mpegurl')) {{
             video.src = streamUrl;
-            video.play();
+            video.play().catch(() => {{
+                video.muted = true;
+                video.play();
+                unmuteBtn.style.display = 'block';
+            }});
         }}
     </script>
 </body>
@@ -692,7 +737,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 if force_proxy:
                     encoded_seg = urllib.parse.quote(direct_seg, safe="")
                     encoded_ref = urllib.parse.quote(channel_referer, safe="")
-                    rewritten.append(f"/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
+                    rewritten.append(f"{base_origin}/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
                 else:
                     rewritten.append(direct_seg)
 
@@ -757,15 +802,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         elif "yacine.website" in target_url or "new-redirect.online" in target_url or ".buzz" in target_url or ".lol" in target_url:
             headers["X-Forwarded-For"] = "156.200.1.1"
 
-        for attempt in range(2):
+        for attempt in range(4):
             try:
                 req = urllib.request.Request(target_url, headers=headers)
                 with PROXY_OPENER.open(req, timeout=25) as upstream:
                     first_chunk = upstream.read(64 * 1024)
                     if not first_chunk or first_chunk.startswith(b"No URLs available") or first_chunk.startswith(b"<html>") or first_chunk.startswith(b"<html") or first_chunk.startswith(b"<!DOCTYPE"):
-                        if attempt < 1:
+                        if attempt < 3:
                             headers["Referer"] = "https://yacine.website/"
-                            time.sleep(0.3)
+                            time.sleep(0.8)
                             continue
                         self.send_response(404)
                         self.send_cors_headers()
