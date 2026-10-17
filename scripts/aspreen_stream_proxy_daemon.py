@@ -107,8 +107,10 @@ class LiveTranscoderManager:
     completely covering Yacine TV watermarks while preserving beIN Sports logos.
     """
     def __init__(self):
-        self.procs = {}        # cid -> subprocess.Popen
-        self.last_access = {}  # cid -> timestamp
+        self.procs = {}            # cid -> subprocess.Popen
+        self.proc_start_time = {} # cid -> timestamp
+        self.last_access = {}      # cid -> timestamp
+        self.log_files = {}        # cid -> file handle
         self.lock = threading.Lock()
         self.primary_cids = {
             "207119423132628321",  # beIN SPORTS 1
@@ -119,36 +121,45 @@ class LiveTranscoderManager:
 
     def ensure_transcoder(self, cid: str):
         with self.lock:
-            self.last_access[cid] = time.time()
+            now = time.time()
+            self.last_access[cid] = now
             proc = self.procs.get(cid)
             out_dir = os.path.join(HLS_DATA_DIR, cid)
             out_m3u8 = os.path.join(out_dir, "live.m3u8")
+            start_t = self.proc_start_time.get(cid, 0)
 
-            # Check if running and producing fresh segments
+            # Check if already running and active
             if proc is not None and proc.poll() is None:
-                if os.path.exists(out_m3u8):
-                    if (time.time() - os.path.getmtime(out_m3u8)) < 15:
-                        return  # Healthy and active
-                else:
+                # If started recently (< 25s), give it time to buffer initial segments
+                if (now - start_t) < 25:
                     return
+                # If running longer, verify out_m3u8 is updating
+                if os.path.exists(out_m3u8) and (now - os.path.getmtime(out_m3u8)) < 25:
+                    return  # Completely healthy and active!
+                # If stale (> 25s without updating m3u8), terminate and restart
+                try:
+                    proc.terminate()
+                except Exception:
+                    pass
+                self.procs.pop(cid, None)
 
-            # Terminate any dead or previous channel processes
-            for other_cid, other_proc in list(self.procs.items()):
-                if other_proc and other_proc.poll() is None:
-                    try:
-                        other_proc.terminate()
-                    except Exception:
-                        pass
-            self.procs = {}
+            # Clean up old log file handle if open
+            old_log = self.log_files.pop(cid, None)
+            if old_log:
+                try:
+                    old_log.close()
+                except Exception:
+                    pass
 
             os.makedirs(out_dir, exist_ok=True)
-            # Purge stale files so FFmpeg writes clean new sequence
-            for old_f in os.listdir(out_dir):
-                if old_f.endswith(".ts") or old_f.endswith(".m3u8"):
-                    try:
-                        os.remove(os.path.join(out_dir, old_f))
-                    except Exception:
-                        pass
+            # Only purge stale files if m3u8 is dead/stale or starting fresh
+            if not os.path.exists(out_m3u8) or (now - os.path.getmtime(out_m3u8)) > 30:
+                for old_f in os.listdir(out_dir):
+                    if old_f.endswith(".ts") or old_f.endswith(".m3u8"):
+                        try:
+                            os.remove(os.path.join(out_dir, old_f))
+                        except Exception:
+                            pass
 
             logo = EFFECTIVE_LOGO_PATH
             if not logo or not os.path.exists(logo):
@@ -168,10 +179,6 @@ class LiveTranscoderManager:
             cmd = [
                 "ffmpeg", "-y",
                 "-fflags", "+nobuffer+genpts",
-                "-reconnect", "1",
-                "-reconnect_at_eof", "1",
-                "-reconnect_streamed", "1",
-                "-reconnect_delay_max", "2",
                 "-rw_timeout", "15000000",
                 "-allowed_extensions", "ALL",
                 "-i", raw_input,
@@ -191,10 +198,12 @@ class LiveTranscoderManager:
                 "-keyint_min", "25",
                 "-sc_threshold", "0",
                 "-b:v", "2200k",
+                "-maxrate", "2500k",
+                "-bufsize", "4400k",
                 "-c:a", "copy",
                 "-f", "hls",
                 "-hls_time", "3",
-                "-hls_list_size", "6",
+                "-hls_list_size", "8",
                 "-hls_flags", "delete_segments+omit_endlist+independent_segments",
                 "-hls_segment_filename", os.path.join(out_dir, "chunk_%05d.ts"),
                 out_m3u8
@@ -202,18 +211,28 @@ class LiveTranscoderManager:
 
             print(f" [★] تشغيل معالج البث فائق الاستقرار (Live Transcoder) للقناة {cid} مع حرق لوجو TVARUA داخل إطارات البث...")
             try:
-                p = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                log_path = os.path.join(out_dir, "ffmpeg.log")
+                lf = open(log_path, "w", encoding="utf-8", errors="ignore")
+                self.log_files[cid] = lf
+                p = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=lf)
                 self.procs[cid] = p
+                self.proc_start_time[cid] = now
             except Exception as e:
                 print(f" [!] خطأ في تشغيل معالج البث للقناة {cid}: {e}")
 
     def supervisor_tick(self):
-        """Active supervisor checking stream health and restarting dead or stale transcoders every 3 seconds"""
+        """Active supervisor checking stream health and maintaining continuous transcoding"""
         now = time.time()
         with self.lock:
+            # Always keep primary channel active 24/7
+            for pcid in self.primary_cids:
+                if pcid not in self.last_access:
+                    self.last_access[pcid] = now
+
             for cid in list(self.last_access.keys()):
                 idle = now - self.last_access.get(cid, 0)
-                if idle > 300:  # 5 minutes idle
+                # Primary channels never stop; non-primary channels stop after 10 min idle
+                if cid not in self.primary_cids and idle > 600:
                     proc = self.procs.pop(cid, None)
                     if proc and proc.poll() is None:
                         try:
@@ -221,16 +240,20 @@ class LiveTranscoderManager:
                             print(f" [i] تم إيقاف معالج البث للقناة غير النشطة {cid}")
                         except Exception:
                             pass
-                else:
-                    # Channel actively being watched! Ensure continuous 24/7 transcoding
-                    proc = self.procs.get(cid)
-                    out_m3u8 = os.path.join(HLS_DATA_DIR, cid, "live.m3u8")
-                    stale = False
-                    if os.path.exists(out_m3u8):
-                        if (now - os.path.getmtime(out_m3u8)) > 15:
-                            stale = True
-                    if proc is None or proc.poll() is not None or stale:
-                        print(f" [⚡] استئناف وإعادة تشغيل معالج البث فورياً للقناة النشطة {cid} (ضمان استقرار دائم 24/7)...")
+                    continue
+
+                proc = self.procs.get(cid)
+                out_m3u8 = os.path.join(HLS_DATA_DIR, cid, "live.m3u8")
+                start_t = self.proc_start_time.get(cid, 0)
+
+                # If process died:
+                if proc is None or proc.poll() is not None:
+                    print(f" [⚡] استئناف وإعادة تشغيل معالج البث فورياً للقناة النشطة {cid} (ضمان استقرار دائم 24/7)...")
+                    threading.Thread(target=self.ensure_transcoder, args=(cid,), daemon=True).start()
+                elif (now - start_t) > 25:
+                    # Running for > 25s, verify it is writing fresh segments
+                    if not os.path.exists(out_m3u8) or (now - os.path.getmtime(out_m3u8)) > 25:
+                        print(f" [⚡] تجديد معالج البث المتوقف للقناة النشطة {cid}...")
                         threading.Thread(target=self.ensure_transcoder, args=(cid,), daemon=True).start()
 
 transcoder_mgr = LiveTranscoderManager()
@@ -243,7 +266,7 @@ def transcoder_supervisor_loop():
             transcoder_mgr.supervisor_tick()
         except Exception:
             pass
-        time.sleep(3)
+        time.sleep(5)
 
 
 def send_telegram_message(text: str):
@@ -522,14 +545,14 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             live_m3u8_file = os.path.join(hls_dir, "live.m3u8")
             transcoder_mgr.ensure_transcoder(cid)
 
-            # Wait briefly (up to 2.5s) if transcoder is generating first segment so client always receives branded stream
-            for _ in range(10):
+            # Wait up to 7.5s on cold start so client always receives branded stream with logo
+            for _ in range(25):
                 if os.path.exists(live_m3u8_file):
                     ts_chunks = [f for f in os.listdir(hls_dir) if f.endswith(".ts")]
                     if len(ts_chunks) >= 1:
-                        if (time.time() - os.path.getmtime(live_m3u8_file)) < 20:
+                        if (time.time() - os.path.getmtime(live_m3u8_file)) < 25:
                             break
-                time.sleep(0.25)
+                time.sleep(0.3)
 
             # If live branded HLS is ready on disk with chunks, serve it directly
             if os.path.exists(live_m3u8_file):
@@ -560,6 +583,27 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
             # Fallback only during transient cold start
             self.handle_channel_playlist(cid, is_raw=False)
+            return
+
+        # 4b. Live Debug Log Endpoint: /live/<channel_id>/debug.log
+        match_log = re.match(r"^/live/(\d+)/debug\.log$", path)
+        if match_log:
+            cid = match_log.group(1)
+            log_path = os.path.join(HLS_DATA_DIR, cid, "ffmpeg.log")
+            if os.path.exists(log_path):
+                with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+                    log_content = f.read()[-8000:].encode("utf-8")
+                self.send_response(200)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.send_header("Content-Length", str(len(log_content)))
+                self.end_headers()
+                self.wfile.write(log_content)
+                return
+            self.send_response(404)
+            self.send_cors_headers()
+            self.end_headers()
+            self.wfile.write(b"No log file found")
             return
 
         # 5. Live Transcoded Segment Chunks (from disk): /live/<channel_id>/chunk_XXXXX.ts
@@ -730,8 +774,6 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 headers.pop("Origin", None)
             elif "yacine.website" in url or "new-redirect.online" in url or ".buzz" in url or ".lol" in url:
                 headers["X-Forwarded-For"] = "156.200.1.1"
-                headers["CF-Connecting-IP"] = "156.200.1.1"
-                headers["X-Real-IP"] = "156.200.1.1"
 
             for attempt in range(max_retries):
                 try:
@@ -995,6 +1037,15 @@ def start_server():
     # Launch background live stream transcoder supervisor (burns TVARUA logo into video frames 24/7)
     t_transcoder = threading.Thread(target=transcoder_supervisor_loop, daemon=True)
     t_transcoder.start()
+
+    # Pre-start live transcoder for primary channel (beIN SPORTS 1) to ensure immediate instant playback
+    def pre_warm():
+        time.sleep(2)
+        print(" [🚀] بدء المعالجة الحية المسبقة للقناة beIN SPORTS 1 لضمان توفر البث فوراً بدون تأخير...")
+        transcoder_mgr.ensure_transcoder("207119423132628321")
+
+    t_warm = threading.Thread(target=pre_warm, daemon=True)
+    t_warm.start()
 
     # Launch background telegram heartbeat
     if TELEGRAM_BOT_TOKEN and TELEGRAM_ADMIN_CHAT_ID:
