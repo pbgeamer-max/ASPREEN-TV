@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
@@ -97,14 +97,18 @@ export default function ChannelsPage() {
   const fetchChannels = async () => {
     setLoading(true);
     try {
-      // 1. Fetch from high-speed public app channels API (325 channels)
-      const res = await fetch('/api/app/channels?limit=5000', { credentials: 'include' });
+      // 1. Fetch from high-speed public app channels API
+      const res = await fetch(`/api/app/channels?limit=5000&_t=${Date.now()}`, {
+        credentials: 'include',
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+      });
       if (res.ok) {
         const data = await res.json();
         if (data && Array.isArray(data.channels) && data.channels.length > 0) {
           const mapped: Channel[] = data.channels.map((c: any) => ({
             id: c.id,
-            sourceId: 'default',
+            sourceId: c.sourceId || (String(c.id).startsWith('tlfaz-') ? 'tlfaz-arabic' : 'private-vip'),
             name: c.name,
             normalizedName: (c.name || '').toLowerCase(),
             groupTitle: c.group || c.category || 'عام',
@@ -157,7 +161,11 @@ export default function ChannelsPage() {
   // Periodic background status refresh every 15 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      fetch('/api/app/channels?limit=5000', { credentials: 'include' })
+      fetch(`/api/app/channels?limit=5000&_t=${Date.now()}`, {
+        credentials: 'include',
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
+      })
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
           if (data && Array.isArray(data.channels) && data.channels.length > 0) {
@@ -370,11 +378,26 @@ export default function ChannelsPage() {
   // Extract distinct groups for filter
   const distinctGroups = Array.from(new Set(channels.map((c) => c.groupTitle).filter(Boolean)));
 
-  const totalChannels = channels.length;
+  const filteredChannels = useMemo(() => {
+    return channels.filter((c) => {
+      if (selectedSourceId && c.sourceId !== selectedSourceId) return false;
+      if (selectedGroup && c.groupTitle?.toLowerCase() !== selectedGroup.toLowerCase()) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchesName = c.name?.toLowerCase().includes(q);
+        const matchesGroup = c.groupTitle?.toLowerCase().includes(q);
+        const matchesId = c.id?.toLowerCase().includes(q);
+        if (!matchesName && !matchesGroup && !matchesId) return false;
+      }
+      return true;
+    });
+  }, [channels, selectedSourceId, selectedGroup, searchQuery]);
+
+  const totalChannels = filteredChannels.length;
   const totalPages = pageSize === 0 ? 1 : Math.max(1, Math.ceil(totalChannels / pageSize));
   const paginatedChannels = pageSize === 0
-    ? channels
-    : channels.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    ? filteredChannels
+    : filteredChannels.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="min-h-screen bg-[#080808] flex">
@@ -486,7 +509,7 @@ export default function ChannelsPage() {
             </div>
 
             <span className="text-xs font-mono text-[#71717A] shrink-0">
-              CHANNELS: {channels.length.toLocaleString()}
+              CHANNELS: {totalChannels.toLocaleString()}{totalChannels !== channels.length ? ` (من أصل ${channels.length})` : ''}
             </span>
           </div>
 
