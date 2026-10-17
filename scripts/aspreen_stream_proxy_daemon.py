@@ -146,18 +146,7 @@ class LiveTranscoderManager:
 
             # Check if already running and active
             if proc is not None and proc.poll() is None:
-                # If started recently (< 25s), give it time to buffer initial segments
-                if (now - start_t) < 25:
-                    return
-                # If running longer, verify out_m3u8 is updating
-                if os.path.exists(out_m3u8) and (now - os.path.getmtime(out_m3u8)) < 25:
-                    return  # Completely healthy and active!
-                # If stale (> 25s without updating m3u8), terminate and restart
-                try:
-                    proc.terminate()
-                except Exception:
-                    pass
-                self.procs.pop(cid, None)
+                return  # Healthy and active, do NOT kill!
 
             # Clean up old log file handle if open
             old_log = self.log_files.pop(cid, None)
@@ -168,32 +157,30 @@ class LiveTranscoderManager:
                     pass
 
             os.makedirs(out_dir, exist_ok=True)
-            # Only purge stale files if m3u8 is dead/stale or starting fresh
-            if not os.path.exists(out_m3u8) or (now - os.path.getmtime(out_m3u8)) > 30:
-                for old_f in os.listdir(out_dir):
-                    if old_f.endswith(".ts") or old_f.endswith(".m3u8"):
-                        try:
-                            os.remove(os.path.join(out_dir, old_f))
-                        except Exception:
-                            pass
 
             logo = EFFECTIVE_LOGO_PATH
             if not logo or not os.path.exists(logo):
                 logo = next((p for p in LOGO_PATHS if os.path.exists(p)), "")
 
+            # Scale to 1280x720 base first to guarantee delogo and overlay coordinates work on ANY source resolution (1080p, 720p, 360p)
             filter_str = (
-                "[0:v]delogo=x=18:y=594:w=135:h=118[clean];"
+                "[0:v]scale=1280:720[base];"
+                "[base]delogo=x=18:y=594:w=135:h=118[clean];"
                 "[1:v]scale=125:-1[logo];"
                 "[clean][logo]overlay=22:main_h-overlay_h-22[outv]"
             ) if (logo and os.path.exists(logo)) else (
-                "[0:v]delogo=x=18:y=594:w=135:h=118[outv]"
+                "[0:v]scale=1280:720[base];[base]delogo=x=18:y=594:w=135:h=118[outv]"
             )
 
             raw_input = f"http://127.0.0.1:{PORT}/raw/{cid}.m3u8"
             cmd = [
                 "ffmpeg", "-y",
                 "-fflags", "+nobuffer+genpts+discardcorrupt",
-                "-rw_timeout", "15000000",
+                "-rw_timeout", "25000000",
+                "-reconnect", "1",
+                "-reconnect_at_eof", "1",
+                "-reconnect_streamed", "1",
+                "-reconnect_delay_max", "5",
                 "-allowed_extensions", "ALL",
                 "-i", raw_input,
             ]
@@ -204,16 +191,18 @@ class LiveTranscoderManager:
                 "-filter_complex", filter_str,
                 "-map", "[outv]",
                 "-map", "0:a?",
+                "-threads", "2",
                 "-c:v", "libx264",
                 "-preset", "ultrafast",
                 "-tune", "zerolatency",
+                "-x264-params", "no-scenecut=1:intra-refresh=1:rc-lookahead=0:sync-lookahead=0:bframes=0:subme=0:me=dia:ref=1:analyse=none",
                 "-r", "25",
                 "-g", "50",
                 "-keyint_min", "25",
                 "-sc_threshold", "0",
-                "-b:v", "1800k",
-                "-maxrate", "2200k",
-                "-bufsize", "3600k",
+                "-b:v", "1500k",
+                "-maxrate", "1800k",
+                "-bufsize", "3000k",
                 "-c:a", "aac",
                 "-b:a", "128k",
                 "-ar", "44100",
@@ -221,7 +210,7 @@ class LiveTranscoderManager:
                 "-f", "hls",
                 "-hls_time", "3",
                 "-hls_list_size", "8",
-                "-hls_flags", "delete_segments+omit_endlist+independent_segments",
+                "-hls_flags", "delete_segments+omit_endlist+independent_segments+append_list",
                 "-hls_segment_filename", os.path.join(out_dir, "chunk_%05d.ts"),
                 out_m3u8
             ])
@@ -243,18 +232,11 @@ class LiveTranscoderManager:
         with self.lock:
             cid = self.active_cid or "207119423132628321"
             proc = self.procs.get(cid)
-            out_m3u8 = os.path.join(HLS_DATA_DIR, cid, "live.m3u8")
-            start_t = self.proc_start_time.get(cid, 0)
 
-            # If active channel process died:
+            # Only restart if the process has ACTUALLY exited or never started
             if proc is None or proc.poll() is not None:
-                print(f" [⚡] استئناف وإعادة تشغيل معالج البث للقناة النشطة {cid}...")
+                print(f" [⚡] استئناف وتشغيل معالج البث للقناة النشطة {cid}...")
                 threading.Thread(target=self.ensure_transcoder, args=(cid,), daemon=True).start()
-            elif (now - start_t) > 25:
-                # Running for > 25s, verify it is writing fresh segments
-                if not os.path.exists(out_m3u8) or (now - os.path.getmtime(out_m3u8)) > 25:
-                    print(f" [⚡] تجديد معالج البث للقناة النشطة {cid}...")
-                    threading.Thread(target=self.ensure_transcoder, args=(cid,), daemon=True).start()
 
 transcoder_mgr = LiveTranscoderManager()
 
@@ -778,7 +760,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             for attempt in range(max_retries):
                 try:
                     r = urllib.request.Request(url, headers=headers)
-                    with PROXY_OPENER.open(r, timeout=3.5) as resp:
+                    with PROXY_OPENER.open(r, timeout=12) as resp:
                         content = resp.read().decode("utf-8", errors="ignore")
                         if "#EXTM3U" in content:
                             return content
@@ -802,6 +784,35 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     target_fetch_url, req_ua = build_target_and_ua(ch)
                 if target_fetch_url:
                     m3u_text = fetch_m3u(target_fetch_url, req_ua, max_retries=2)
+
+        # If still down (e.g. 1080P feed is offline upstream), auto-failover to sibling qualities (720P, 360P)
+        if not m3u_text or "#EXTM3U" not in m3u_text or "No URLs available" in m3u_text:
+            ch_name = ch.get("name", "").strip().lower()
+            with cache_lock:
+                siblings = []
+                for other_cid, other_ch in channels_cache.items():
+                    if other_cid != cid and other_ch.get("name", "").strip().lower() == ch_name:
+                        gt = other_ch.get("groupTitle", "")
+                        prio = 1 if "720P" in gt else (2 if "360P" in gt else (3 if "1080P" in gt else 4))
+                        siblings.append((prio, other_cid, other_ch))
+                siblings.sort(key=lambda x: x[0])
+
+            for _, sib_cid, sib_ch in siblings:
+                sib_target, sib_ua = build_target_and_ua(sib_ch)
+                if not sib_target or sib_target.startswith("http://127.0.0.1"):
+                    renew_single_channel_stream(sib_cid)
+                    with cache_lock:
+                        sib_ch = channels_cache.get(sib_cid, {})
+                        sib_target, sib_ua = build_target_and_ua(sib_ch)
+                if sib_target:
+                    sib_m3u = fetch_m3u(sib_target, sib_ua, max_retries=2)
+                    if sib_m3u and "#EXTM3U" in sib_m3u and "No URLs available" not in sib_m3u:
+                        print(f" [⚡] تحويل ذكي وتلقائي للقناة {ch.get('name')} إلى جودة بديلة متاحة ({sib_ch.get('groupTitle')}) لضمان استمرار البث 24 ساعة بدون انقطاع!")
+                        m3u_text = sib_m3u
+                        target_fetch_url = sib_target
+                        req_ua = sib_ua
+                        ch = sib_ch
+                        break
 
         if not m3u_text or "#EXTM3U" not in m3u_text:
             err_msg = ch.get("status_message", "القناة غير متوفرة حالياً من المصدر الأصلي")
@@ -941,7 +952,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         for attempt in range(2):
             try:
                 req = urllib.request.Request(target_url, headers=headers)
-                with PROXY_OPENER.open(req, timeout=6) as upstream:
+                with PROXY_OPENER.open(req, timeout=25) as upstream:
                     first_chunk = upstream.read(64 * 1024)
                     if not first_chunk or first_chunk.startswith(b"No URLs available") or first_chunk.startswith(b"<html>") or first_chunk.startswith(b"<html") or first_chunk.startswith(b"<!DOCTYPE"):
                         if attempt < 1:
