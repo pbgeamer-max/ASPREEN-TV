@@ -392,6 +392,86 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
     def handle_channel_playlist(self, cid, is_raw=False, force_proxy=False):
         """Fetches upstream M3U8, rewrites segment URLs, and returns to client"""
+        accept_hdr = self.headers.get("Accept", "")
+        ua_hdr = self.headers.get("User-Agent", "").lower()
+        is_browser = "text/html" in accept_hdr and not any(app in ua_hdr for app in ["vlc", "kodi", "tivimate", "iptv", "ffmpeg", "mpv", "exoplayer"])
+        
+        parsed_url = urllib.parse.urlparse(self.path)
+        qs = urllib.parse.parse_qs(parsed_url.query)
+        is_raw_requested = is_raw or qs.get("raw", ["0"])[0] in ("1", "true")
+
+        if is_browser and not is_raw_requested:
+            with cache_lock:
+                ch_info = channels_cache.get(cid, {})
+                ch_name = ch_info.get("name", "Live Stream")
+                ch_logo = ch_info.get("logoUrl", "")
+            
+            html_player = f"""<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{ch_name} — ASPREEN TV Live</title>
+    <link rel="icon" href="{ch_logo}">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ background: #07090e; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }}
+        .player-wrapper {{ width: 100vw; height: 100vh; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }}
+        video {{ width: 100%; height: 100%; object-fit: contain; }}
+        .overlay {{ position: absolute; top: 16px; right: 20px; z-index: 10; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.65); padding: 8px 16px; border-radius: 30px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }}
+        .badge {{ background: #22c55e; color: #000; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 12px; letter-spacing: 0.5px; }}
+        .title {{ font-size: 14px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }}
+    </style>
+</head>
+<body>
+    <div class="player-wrapper">
+        <div class="overlay">
+            <span class="badge">مباشر • LIVE</span>
+            <span class="title">{ch_name}</span>
+        </div>
+        <video id="video-player" controls autoplay playsinline></video>
+    </div>
+    <script>
+        const video = document.getElementById('video-player');
+        const streamUrl = window.location.pathname + '?raw=1';
+        if (Hls.isSupported()) {{
+            const hls = new Hls({{
+                enableWorker: true,
+                lowLatencyMode: true,
+                backBufferLength: 90,
+                maxBufferLength: 30,
+                maxMaxBufferLength: 60,
+                liveSyncDurationCount: 3,
+                liveMaxLatencyDurationCount: 10
+            }});
+            hls.loadSource(streamUrl);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {{
+                video.play().catch(() => {{
+                    video.muted = true;
+                    video.play();
+                }});
+            }});
+        }} else if (video.canPlayType('application/vnd.apple.mpegurl')) {{
+            video.src = streamUrl;
+            video.play();
+        }}
+    </script>
+</body>
+</html>"""
+            html_bytes = html_player.encode("utf-8")
+            self.send_response(200)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            try:
+                self.wfile.write(html_bytes)
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+            return
+
         now_ts = time.time()
         cache_key = f"{cid}_proxy" if force_proxy else (f"{cid}_raw" if is_raw else cid)
         with m3u8_cache_lock:
@@ -588,24 +668,24 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                             enc_r = urllib.parse.quote(channel_referer, safe="")
                             return f'URI="/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
                         if "play.php?" in full_u:
-                            return f'URI="https://yacine.website/play.php?{full_u.split("?", 1)[1]}&dummy=.key"'
+                            return f'URI="https://yacine.website/play.php?{full_u.split("?", 1)[1]}"'
                         b64_k = base64.b64encode(full_u.encode()).decode()
                         b64_u = base64.b64encode((req_ua or DEFAULT_UA).encode()).decode()
-                        return f'URI="https://yacine.website/play.php?url={b64_k}&ua={b64_u}&dummy=.key"'
+                        return f'URI="https://yacine.website/play.php?url={b64_k}&ua={b64_u}"'
                     rewritten.append(re.sub(r'URI="([^"]+)"', replace_uri, l))
                 else:
                     rewritten.append(l)
             else:
-                # Segment URL
+                # Segment URL: Direct clean CDN URL so IDM never intercepts it
                 seg_full = urllib.parse.urljoin(target_fetch_url, l)
                 if "play.php?" in l:
-                    direct_seg = f"https://yacine.website/play.php?{l.split('?', 1)[1]}&dummy=.ts"
+                    direct_seg = f"https://yacine.website/play.php?{l.split('?', 1)[1]}"
                 elif "new-redirect.online" in seg_full and "play.php" not in seg_full:
                     b64_url = base64.b64encode(seg_full.encode()).decode()
                     b64_ua = base64.b64encode((req_ua or DEFAULT_UA).encode()).decode()
-                    direct_seg = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}&dummy=.ts"
+                    direct_seg = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
                 elif "play.php?" in seg_full:
-                    direct_seg = f"{seg_full}&dummy=.ts" if "&dummy=" not in seg_full else seg_full
+                    direct_seg = seg_full
                 else:
                     direct_seg = seg_full
 
