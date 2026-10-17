@@ -15,7 +15,6 @@ interface AuthContextType {
   user: User | { uid: string; email: string } | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginDemoAdmin: () => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
 }
@@ -24,7 +23,6 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   login: async () => {},
-  loginDemoAdmin: async () => {},
   logout: async () => {},
   resetPassword: async () => {},
 });
@@ -34,12 +32,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const auth = getClientAuth();
+
     if (!auth) {
-      // Check if session token exists in localStorage
+      // Validate saved token with backend session
       const token = api.getToken();
       if (token) {
-        setUser({ uid: 'aspreen-admin-uid', email: 'admin@aspreen.tv' });
+        api.getSession()
+          .then((res) => {
+            if (isMounted) {
+              if (res.authenticated && res.user) {
+                setUser({ uid: res.user.uid, email: res.user.email });
+              } else {
+                api.setToken(null);
+                setUser(null);
+              }
+            }
+          })
+          .catch(() => {
+            if (isMounted) {
+              api.setToken(null);
+              setUser(null);
+            }
+          })
+          .finally(() => {
+            if (isMounted) setLoading(false);
+          });
+        return;
       }
       setLoading(false);
       return;
@@ -56,22 +76,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } else {
         const token = api.getToken();
-        if (token === 'mock-admin-token') {
-          setUser({ uid: 'aspreen-admin-uid', email: 'admin@aspreen.tv' });
+        if (token) {
+          try {
+            const res = await api.getSession();
+            if (res.authenticated && res.user) {
+              setUser({ uid: res.user.uid, email: res.user.email });
+            } else {
+              api.setToken(null);
+              setUser(null);
+            }
+          } catch {
+            api.setToken(null);
+            setUser(null);
+          }
         } else {
           setUser(null);
         }
       }
-      setLoading(false);
+      if (isMounted) setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // 1. Try direct Railway ADMIN_PASSWORD authentication first
+      // 1. Direct Railway password authentication
       try {
         const res = await api.loginWithPassword(password, email);
         if (res.success && res.user) {
@@ -79,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
       } catch (err: any) {
-        // If password login fails, check if client Firebase auth is configured
+        // If direct password login fails, check if client Firebase auth is configured
         const auth = getClientAuth();
         if (!auth) {
           throw err;
@@ -93,24 +127,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw err;
         }
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loginDemoAdmin = async () => {
-    setLoading(true);
-    try {
-      try {
-        const res = await api.loginWithPassword('admin123456');
-        if (res.success && res.user) {
-          setUser({ uid: res.user.uid, email: res.user.email });
-          return;
-        }
-      } catch {}
-      api.setToken('mock-admin-token');
-      setUser({ uid: 'aspreen-admin-uid', email: 'admin@aspreen.tv' });
-      await api.createSession('mock-admin-token');
     } finally {
       setLoading(false);
     }
@@ -139,7 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginDemoAdmin, logout, resetPassword }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

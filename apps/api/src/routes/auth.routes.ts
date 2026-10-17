@@ -12,8 +12,12 @@ export async function authRoutes(server: FastifyInstance) {
   server.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
     const { password, email } = (request.body as { password?: string; email?: string }) || {};
 
-    if (!password) {
-      return reply.status(400).send({ error: 'Password is required' });
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return reply.status(400).send({ error: 'Valid administrator email address is required.' });
+    }
+
+    if (!password || typeof password !== 'string') {
+      return reply.status(400).send({ error: 'Administrator password is required.' });
     }
 
     const expectedPassword = config.adminPassword || 'admin123456';
@@ -22,8 +26,15 @@ export async function authRoutes(server: FastifyInstance) {
       password === config.sessionSecret ||
       password === config.encryptionKey;
 
+    // If an ADMIN_EMAIL is explicitly configured in Railway and is not the default 'admin@aspreen.tv'
+    if (config.adminEmail && config.adminEmail !== 'admin@aspreen.tv') {
+      if (email.toLowerCase().trim() !== config.adminEmail.toLowerCase().trim()) {
+        return reply.status(401).send({ error: 'Unauthorized administrator email.' });
+      }
+    }
+
     if (!isMasterMatch) {
-      return reply.status(401).send({ error: 'Invalid administrator password.' });
+      return reply.status(401).send({ error: 'Invalid administrator credentials.' });
     }
 
     const tokenHash = crypto.createHash('sha256').update(password + config.sessionSecret).digest('hex').substring(0, 32);

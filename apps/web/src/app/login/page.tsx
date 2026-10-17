@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BRANDING } from '@aspreen/shared';
 import { useAuth } from '@/lib/auth-context';
-import { ShieldCheck, ArrowRight, Lock, Mail, Key } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, login, loginDemoAdmin, resetPassword } = useAuth();
+  const { user, login, resetPassword } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,28 +32,18 @@ export default function LoginPage() {
     try {
       if (isResetMode) {
         if (!email) throw new Error('Please enter your administrator email address.');
-        await resetPassword(email);
+        await resetPassword(email.trim());
         setInfo('Password reset email sent. Please check your inbox.');
         setIsResetMode(false);
       } else {
-        await login(email, password);
+        if (!email.trim() || !password) {
+          throw new Error('Please enter both your email address and password.');
+        }
+        await login(email.trim(), password);
         router.push('/');
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please verify credentials.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    setError(null);
-    setIsSubmitting(true);
-    try {
-      await loginDemoAdmin();
-      router.push('/');
-    } catch (err: any) {
-      setError(err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -114,13 +104,10 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="Enter ADMIN_PASSWORD"
+                  placeholder="••••••••••••"
                   className="form-input pl-9"
                 />
               </div>
-              <p className="text-[11px] text-[#71717A] mt-1">
-                Configured via <code className="text-[#A1A1AA]">ADMIN_PASSWORD</code> in Railway (default: <code className="text-[#A1A1AA]">admin123456</code>)
-              </p>
             </div>
 
             {/* Primary Action Button: White with Black Text */}
@@ -145,22 +132,6 @@ export default function LoginPage() {
               </button>
             </div>
           )}
-
-          {/* Quick Demo Access for Testing */}
-          <div className="mt-6 pt-6 border-t border-[#262626]">
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              disabled={isSubmitting}
-              className="w-full btn-secondary py-2 gap-2 text-xs"
-            >
-              <Key className="w-3.5 h-3.5 text-[#A1A1AA]" />
-              <span>Launch Demo Console (Admin Mode)</span>
-            </button>
-            <p className="text-[10px] text-[#71717A] text-center mt-2">
-              For initial development verification before configuring production Firebase keys.
-            </p>
-          </div>
         </div>
 
         {/* Security Notice */}
