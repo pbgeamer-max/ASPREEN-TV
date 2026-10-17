@@ -912,6 +912,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                             enc_u = urllib.parse.quote(full_u, safe="")
                             enc_r = urllib.parse.quote(channel_referer, safe="")
                             return f'URI="/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
+                        if "edgenextcdn.net" in full_u or "itworkscdn.net" in full_u or ch.get("source") != "yacine.website":
+                            return f'URI="{full_u}"'
                         if "play.php?" in full_u:
                             return f'URI="https://yacine.website/play.php?{full_u.split("?", 1)[1]}"'
                         b64_k = base64.b64encode(full_u.encode()).decode()
@@ -921,7 +923,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 else:
                     rewritten.append(l)
             else:
-                # Segment URL: Direct clean CDN URL so IDM never intercepts it
+                # Segment URL or Sub-playlist URL: Direct clean CDN URL so IDM never intercepts it
                 seg_full = urllib.parse.urljoin(target_fetch_url, l)
                 if "play.php?" in l:
                     direct_seg = f"https://yacine.website/play.php?{l.split('?', 1)[1]}"
