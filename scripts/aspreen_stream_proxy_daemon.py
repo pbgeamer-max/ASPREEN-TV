@@ -538,6 +538,49 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
 
+    def handle_ondemand_segment(self, stream_key, seg_file):
+        """Serves live HLS segments sliced on-the-fly by on-demand FFmpeg stream worker"""
+        seg_file = os.path.basename(seg_file)
+        clean_key = re.sub(r'[^a-zA-Z0-9_-]+', '', stream_key)
+        seg_path = os.path.join(HLS_ONDEMAND_DIR, clean_key, seg_file)
+
+        ON_DEMAND_STREAM_MANAGER.touch(clean_key)
+
+        for _ in range(16):
+            if os.path.exists(seg_path) and os.path.getsize(seg_path) > 0:
+                break
+            time.sleep(0.25)
+
+        if not os.path.exists(seg_path) or os.path.getsize(seg_path) == 0:
+            self.send_response(404)
+            self.send_cors_headers()
+            self.end_headers()
+            try:
+                self.wfile.write(b"Segment Not Found")
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+            return
+
+        try:
+            with open(seg_path, "rb") as f:
+                data = f.read()
+            self.send_response(200)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "video/mp2t")
+            self.send_header("Cache-Control", "public, max-age=60, immutable")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        except Exception:
+            try:
+                self.send_response(500)
+                self.send_cors_headers()
+                self.end_headers()
+            except Exception:
+                pass
+
     def build_target_and_ua(self, channel_obj, srv_choice="1"):
         """Extracts target upstream URL and headers for requested server"""
         servers_list = channel_obj.get("servers", [])
@@ -548,26 +591,30 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 sid = str(s.get("id", ""))
                 if sid == target_sid or sid == str(srv_choice):
                     s_url = s.get("upstreamUrl") or s.get("url", "")
-                    if s_url and not s_url.startswith("/live/"):
+                    if s_url and not s_url.startswith("/live/") and not s_url.startswith("/raw/"):
                         target = s_url
                         break
 
-        if not target:
+        if not target or target.startswith("/"):
+            direct_m3u8 = channel_obj.get("directM3u8", "")
             play_url = channel_obj.get("playUrl", "")
             stream_url = channel_obj.get("streamUrl", "")
-            ua_candidate = channel_obj.get("userAgent", "")
 
-            if play_url and "play.php" in play_url:
+            if direct_m3u8 and not direct_m3u8.startswith("/"):
+                target = direct_m3u8
+            elif play_url and "play.php" in play_url:
                 target = play_url
             elif "new-redirect.online" in stream_url:
                 b64_url = base64.b64encode(stream_url.encode()).decode()
-                ua_for_param = ua_candidate or DEFAULT_UA
+                ua_for_param = channel_obj.get("userAgent", "") or DEFAULT_UA
                 b64_ua = base64.b64encode(ua_for_param.encode()).decode()
                 target = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
-            elif play_url:
+            elif play_url and not play_url.startswith("/"):
                 target = play_url
-            else:
+            elif stream_url and not stream_url.startswith("/"):
                 target = stream_url
+            else:
+                target = ""
 
         ua_candidate = channel_obj.get("userAgent", "")
         extracted_ua = ""
@@ -713,12 +760,12 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         target_fetch_url, req_ua = self.build_target_and_ua(ch, requested_server)
 
-        # Only trigger renewal if we have no target stream url at all
-        if not target_fetch_url or target_fetch_url.startswith("http://127.0.0.1"):
+        # Only trigger renewal if we have no target stream url at all or if target is local
+        if not target_fetch_url or target_fetch_url.startswith("/") or target_fetch_url.startswith("http://127.0.0.1"):
             renew_single_channel_stream(cid)
             with cache_lock:
                 ch = channels_cache.get(cid, {})
-                target_fetch_url, req_ua = self.build_target_and_ua(ch)
+                target_fetch_url, req_ua = self.build_target_and_ua(ch, requested_server)
 
         if not target_fetch_url:
             self.send_response(502)

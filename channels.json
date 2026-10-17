@@ -21,17 +21,26 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423132628321.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242255&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
+        "name": "سيرفر 2 (VIP احتياطي - HD)",
         "url": "/live/207119423132628321.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985161&extension=ts",
         "quality": "HD",
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423132628321.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
@@ -60,17 +69,26 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423133708072.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242254&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
+        "name": "سيرفر 2 (VIP احتياطي - HD)",
         "url": "/live/207119423133708072.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985162&extension=ts",
         "quality": "HD",
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423133708072.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
@@ -99,17 +117,26 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423130423959.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242253&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
+        "name": "سيرفر 2 (VIP احتياطي - HD)",
         "url": "/live/207119423130423959.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985163&extension=ts",
         "quality": "HD",
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423130423959.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
@@ -138,17 +165,26 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423131118230.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242252&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
+        "name": "سيرفر 2 (VIP احتياطي - HD)",
         "url": "/live/207119423131118230.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985164&extension=ts",
         "quality": "HD",
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423131118230.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
@@ -177,17 +213,26 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423128371685.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242251&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
+        "name": "سيرفر 2 (VIP احتياطي - HD)",
         "url": "/live/207119423128371685.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985165&extension=ts",
         "quality": "HD",
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423128371685.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
@@ -216,17 +261,26 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423129963420.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242250&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
+        "name": "سيرفر 2 (VIP احتياطي - HD)",
         "url": "/live/207119423129963420.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985166&extension=ts",
         "quality": "HD",
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423129963420.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
@@ -255,17 +309,26 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423126609442.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242249&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
+        "name": "سيرفر 2 (VIP احتياطي - HD)",
         "url": "/live/207119423126609442.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985167&extension=ts",
         "quality": "HD",
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423126609442.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
@@ -294,17 +357,26 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423126943987.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242248&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
+        "name": "سيرفر 2 (VIP احتياطي - HD)",
         "url": "/live/207119423126943987.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985168&extension=ts",
         "quality": "HD",
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423126943987.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
@@ -333,17 +405,26 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423124591988.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242247&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
+        "name": "سيرفر 2 (VIP احتياطي - HD)",
         "url": "/live/207119423124591988.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985169&extension=ts",
         "quality": "HD",
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423124591988.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
@@ -384,8 +465,7 @@
         "url": "/live/207119423103840100.m3u8?server=2",
         "upstreamUrl": "https://re00.new-redirect.online/live/lb2/bx1-multi.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -424,8 +504,7 @@
         "url": "/live/207119423101209955.m3u8?server=2",
         "upstreamUrl": "http://re300.new-redirect.online/live/33523510/index.m3u8?t=n6X6whG0dt1SK5Gn2Xfy7Q&e=1792175085",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -464,8 +543,7 @@
         "url": "/live/207119423102060114.m3u8?server=2",
         "upstreamUrl": "http://re300.new-redirect.online/live/61512788878/index.m3u8?t=AQQLSRkw0wz-iT51PwVE2w&e=1792175086",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -492,17 +570,18 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423125528797.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030247&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
-        "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
-        "url": "/live/207119423125528797.m3u8?server=2",
-        "quality": "HD",
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423125528797.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
@@ -531,17 +610,18 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423122362278.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030248&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
-        "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
-        "url": "/live/207119423122362278.m3u8?server=2",
-        "quality": "HD",
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423122362278.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
@@ -566,26 +646,26 @@
     "status": "live",
     "source": "yacine.website",
     "lastRenewed": 1792157151.6728024,
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "تبث أثناء المباريات المباشرة فقط",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423123144615.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030249&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
-        "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
-        "url": "/live/207119423123144615.m3u8?server=2",
-        "quality": "HD",
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423123144615.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
-    "inputStatus": "ONLINE",
-    "enabled": true
+    "inputStatus": "OFFLINE"
   },
   {
     "vid": "207119423119893112",
@@ -605,26 +685,34 @@
     "status": "live",
     "source": "yacine.website",
     "lastRenewed": 1792157144.493796,
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "تبث أثناء المباريات المباشرة فقط",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423119893112.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985171&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
+        "name": "سيرفر 2 (VIP احتياطي - HD)",
         "url": "/live/207119423119893112.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985187&extension=ts",
         "quality": "HD",
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423119893112.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
-    "inputStatus": "ONLINE",
-    "enabled": true
+    "inputStatus": "OFFLINE"
   },
   {
     "vid": "207119423120823025",
@@ -641,10 +729,10 @@
     "referer": "https://yacine.website/channel/207119423120823025/beIN-SPORTS",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "server": 1,
-    "status": "event_only",
+    "status": "live",
     "source": "yacine.website",
     "lastRenewed": 1792157145.846219,
-    "status_message": "تبث أثناء المباريات المباشرة فقط",
+    "status_message": "بث مباشر نشط ومستقر",
     "servers": [
       {
         "id": "server-1",
@@ -660,11 +748,10 @@
         "url": "/live/207119423120823025.m3u8?server=2",
         "upstreamUrl": "https://re00.new-redirect.online/live/lb2/bs-multi.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
-    "inputStatus": "OFFLINE",
+    "inputStatus": "ONLINE",
     "enabled": true
   },
   {
@@ -689,17 +776,18 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423176013182.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030245&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
-        "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
-        "url": "/live/207119423176013182.m3u8?server=2",
-        "quality": "HD",
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423176013182.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
@@ -728,17 +816,18 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
         "url": "/live/207119423172165897.m3u8?server=1",
-        "quality": "FHD",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030246&extension=ts",
+        "quality": "1080p",
         "isDefault": true,
         "status": "live"
       },
       {
-        "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
-        "url": "/live/207119423172165897.m3u8?server=2",
-        "quality": "HD",
+        "id": "server-3",
+        "name": "سيرفر 3 (سيرفر المباريات)",
+        "url": "/live/207119423172165897.m3u8?server=3",
+        "quality": "SD/HD",
         "status": "live"
       }
     ],
@@ -779,8 +868,7 @@
         "url": "/live/207119423173439280.m3u8?server=2",
         "upstreamUrl": "https://sp.rmbl.ws/s8/2/Q/x/v/y/Qxeyg.caa.mp4$$get_video",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -819,8 +907,7 @@
         "url": "/live/207119423824954498.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/082/index.m3u8?t=FbSvZJOcrUKKUyhQEW4dMA&e=1792175091",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -859,8 +946,7 @@
         "url": "/live/207119423825801043.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/075/index.m3u8?t=1-lYP569SlZqS0rLVJxLLg&e=1792175090",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -899,8 +985,7 @@
         "url": "/live/207119423822730068.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/070/index.m3u8?t=h4-fyFzKFYqp02rRA9m5SA&e=1792175090",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "ONLINE",
@@ -940,8 +1025,7 @@
         "url": "/live/207119423823930045.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/073/index.m3u8?t=UPra2_eFr7f7sducpRlmBA&e=1792175091",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE",
@@ -981,8 +1065,7 @@
         "url": "/live/207119423854207750.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/072/index.m3u8?t=RjcvXO-b-oo7CAMZDbWxBQ&e=1792175090",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "ONLINE",
@@ -1003,10 +1086,10 @@
     "referer": "https://yacine.website/channel/207119423855245191/beIN-Gourmet",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "server": 1,
-    "status": "event_only",
+    "status": "live",
     "source": "yacine.website",
     "lastRenewed": 1792157150.378033,
-    "status_message": "تبث أثناء المباريات المباشرة فقط",
+    "status_message": "بث مباشر نشط ومستقر",
     "servers": [
       {
         "id": "server-1",
@@ -1022,11 +1105,10 @@
         "url": "/live/207119423855245191.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/074/index.m3u8?t=9OzX2Scvd7Uw5Q5G40Gc6Q&e=1792175091",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
-    "inputStatus": "OFFLINE",
+    "inputStatus": "ONLINE",
     "enabled": true
   },
   {
@@ -1063,8 +1145,7 @@
         "url": "/live/207119423851757528.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/080/index.m3u8?t=MKqRTxKqsKVJ4Xa2AAFMsQ&e=1792175091",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -1084,10 +1165,10 @@
     "referer": "https://yacine.website/channel/207119423852840145/beIN-Series-2",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "server": 1,
-    "status": "event_only",
+    "status": "live",
     "source": "yacine.website",
     "lastRenewed": 1792155211.1561275,
-    "status_message": "تبث أثناء المباريات المباشرة فقط",
+    "status_message": "بث مباشر نشط ومستقر",
     "servers": [
       {
         "id": "server-1",
@@ -1103,11 +1184,10 @@
         "url": "/live/207119423852840145.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/081/index.m3u8?t=sn4kbzXmoernDizF-agaFA&e=1792173209",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
-    "inputStatus": "OFFLINE",
+    "inputStatus": "ONLINE",
     "enabled": true
   },
   {
@@ -1125,10 +1205,10 @@
     "referer": "https://yacine.website/channel/207119423849582266/beIN-Movies-1",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "server": 1,
-    "status": "live",
+    "status": "event_only",
     "source": "yacine.website",
     "lastRenewed": 1792157150.4907582,
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "تبث أثناء المباريات المباشرة فقط",
     "servers": [
       {
         "id": "server-1",
@@ -1144,11 +1224,10 @@
         "url": "/live/207119423849582266.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/076/index.m3u8?t=p7RK0xiH3U0P0qtqQ4QElw&e=1792175092",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
-    "inputStatus": "ONLINE",
+    "inputStatus": "OFFLINE",
     "enabled": true
   },
   {
@@ -1185,8 +1264,7 @@
         "url": "/live/207119423851285419.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/077/index.m3u8?t=8Ozu-eo_bvrdtgudxj2U5w&e=1792175090",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -1225,8 +1303,7 @@
         "url": "/live/207119423847495405.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/078/index.m3u8?t=UwdFLwaBq4fcIARV_WCctA&e=1792175090",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE",
@@ -1266,8 +1343,7 @@
         "url": "/live/207119423849269060.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/079/index.m3u8?t=YIuaJhYxuz-oBNH47UoS5A&e=1792175092",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -1306,8 +1382,7 @@
         "url": "/live/207119423102829069.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/801/index.m3u8?t=bLzmOU-_DBGV23jRYoOG_g&e=1792175091",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -1346,8 +1421,7 @@
         "url": "/live/207119423086597251.m3u8?server=2",
         "upstreamUrl": "https://storage.googleapis.com/livealkass-eu/alkass1-p/main.m3u8?t=ujYqOlykx6x5OcaWHnyRqQ&e=1792175091",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -1386,8 +1460,7 @@
         "url": "/live/207119423087827314.m3u8?server=2",
         "upstreamUrl": "https://storage.googleapis.com/livealkass-eu/alkass2-p/main.m3u8?t=U1pnsbAzK6qgutR1iD8Wrg&e=1792175091",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -1426,8 +1499,7 @@
         "url": "/live/207119423084895533.m3u8?server=2",
         "upstreamUrl": "https://storage.googleapis.com/livealkass-eu/alkass3-p/main.m3u8?t=pO1eEfBXBH7TbbhUK5smtQ&e=1792175092",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -1466,8 +1538,7 @@
         "url": "/live/207119423085197956.m3u8?server=2",
         "upstreamUrl": "https://storage.googleapis.com/livealkass-eu/alkass4-p/main.m3u8?t=58fIkpDFZ-TWai4LNHHxMQ&e=1792175091",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -1506,8 +1577,7 @@
         "url": "/live/207119423116137327.m3u8?server=2",
         "upstreamUrl": "https://storage.googleapis.com/livealkass-eu/alkass5-p/main.m3u8?t=xnuLvx0pKUdUyiLgEA4gmA&e=1792175090",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -1546,8 +1616,7 @@
         "url": "/live/207119423338230217.m3u8?server=2",
         "upstreamUrl": "https://storage.googleapis.com/livealkass-eu/alkass6-p/main.m3u8?t=_BLhJHSdQQnTSE55aQRSbA&e=1792173210",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -1586,8 +1655,7 @@
         "url": "/live/207119423339607536.m3u8?server=2",
         "upstreamUrl": "https://storage.googleapis.com/livealkass-eu/alkass7-p/main.m3u8?t=4WAa6Ry71LRyzMdZzvMFgA&e=1792175090",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -1626,8 +1694,7 @@
         "url": "/live/207119423668072926.m3u8?server=2",
         "upstreamUrl": "https://storage.googleapis.com/livealkass-eu/alkass8-p/main.m3u8?t=3dz279hsSTpxAT_3ymU2Wg&e=1792175094",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -1666,8 +1733,7 @@
         "url": "/live/207119423915818743.m3u8?server=2",
         "upstreamUrl": "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-1-na/eec141533c90dd34722c503a296dd0d8/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -1705,8 +1771,7 @@
         "url": "/live/207119423912984840.m3u8?server=2",
         "upstreamUrl": "https://play.arab-stream.live/p/mbc-2-live.html",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -1744,8 +1809,7 @@
         "url": "/live/207119423913874625.m3u8?server=2",
         "upstreamUrl": "https://play.arab-stream.live/p/mbc-3.html",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -1783,8 +1847,7 @@
         "url": "/live/207119423911074794.m3u8?server=2",
         "upstreamUrl": "https://play.arab-stream.live/p/mbc-4.html",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -1822,8 +1885,7 @@
         "url": "/live/207119423911865179.m3u8?server=2",
         "upstreamUrl": "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-5/ee6b000cee0629411b666ab26cb13e9b/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -1861,8 +1923,7 @@
         "url": "/live/207119423919418546.m3u8?server=2",
         "upstreamUrl": "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-iraq/e38c44b1b43474e1c39cb5b90203691e/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -1900,8 +1961,7 @@
         "url": "/live/207119423919862979.m3u8?server=2",
         "upstreamUrl": "https://play.arab-stream.live/p/mbc-masr-1.html",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -1939,8 +1999,7 @@
         "url": "/live/207119423917107908.m3u8?server=2",
         "upstreamUrl": "https://play.arab-stream.live/p/mbc-masr-2.html",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -1978,8 +2037,7 @@
         "url": "/live/207119423918479981.m3u8?server=2",
         "upstreamUrl": "https://play.arab-stream.live/p/mbc-drama-ksa.html",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2017,8 +2075,7 @@
         "url": "/live/207119423914567286.m3u8?server=2",
         "upstreamUrl": "https://play.arab-stream.live/p/mbc-drama-plus.html",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2056,8 +2113,7 @@
         "url": "/live/207119423907160900.m3u8?server=2",
         "upstreamUrl": "https://play.arab-stream.live/p/mbc-misr-drama.html",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2095,8 +2151,7 @@
         "url": "/live/207119423908867395.m3u8?server=2",
         "upstreamUrl": "https://play.arab-stream.live/p/mbc-action.html",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2134,8 +2189,7 @@
         "url": "/live/207119423909471538.m3u8?server=2",
         "upstreamUrl": "https://play.arab-stream.live/p/mbc-max.html",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2173,8 +2227,7 @@
         "url": "/live/207119423906435821.m3u8?server=2",
         "upstreamUrl": "https://play.arab-stream.live/p/mbc-bollywood.html",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2212,8 +2265,7 @@
         "url": "/live/207119423938377591.m3u8?server=2",
         "upstreamUrl": "https://dbbv9umqcd7cs.cloudfront.net/out/v1/db15b75c3cc0400c91961468d6a232ac/index.m3u8?t=W07S-R2v8xiOHHcYHhkxtw&e=1792175093",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2251,8 +2303,7 @@
         "url": "/live/207119423939223286.m3u8?server=2",
         "upstreamUrl": "https://shls-panoramafm-prod-dub.shahid.net/out/v1/66262e420d824475aaae794dc2d69f14/index.m3u8?t=F4ka7W-ErPuHvJy_VeEFhw&e=1792175094",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2290,8 +2341,7 @@
         "url": "/live/207119423935384897.m3u8?server=2",
         "upstreamUrl": "https://yacine.website/channel/207119423935384897/Wanasah",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2329,8 +2379,7 @@
         "url": "/live/207119423992150838.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/143/index.m3u8?t=WTCa5z5SvrEBHXP84mPWAg&e=1792175092",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2368,8 +2417,7 @@
         "url": "/live/207119423993402295.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/144/index.m3u8?t=dgbi6RInXu4QZQ14IROvdw&e=1792175094",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2407,8 +2455,7 @@
         "url": "/live/207119423990875592.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/145/index.m3u8?t=3ZPBvtmXvaZAcypEEVae6A&e=1792175092",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2446,8 +2493,7 @@
         "url": "/live/207119423991765377.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/146/index.m3u8?t=e1834S0w_23s8qpxcTaNFg&e=1792175092",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2485,8 +2531,7 @@
         "url": "/live/207119424022612355.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/152/index.m3u8?t=8yBc7cXgUMCXyS0w_48Q6g&e=1792175092",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2524,8 +2569,7 @@
         "url": "/live/207119424013022375.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/151/index.m3u8?t=rADOVYAO0Ytvi90BnRgX_A&e=1792175093",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2544,10 +2588,10 @@
     "referer": "https://yacine.website/channel/207119424020164484/RMC-Sport-1",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "server": 1,
-    "status": "live",
+    "status": "event_only",
     "source": "yacine.website",
     "lastRenewed": 1792157153.033524,
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "تبث أثناء المباريات المباشرة فقط",
     "servers": [
       {
         "id": "server-1",
@@ -2563,11 +2607,10 @@
         "url": "/live/207119424020164484.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/137000/index.m3u8?t=jKSqyKJ9F2h1QmgPKBZefw&e=1792175093",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
-    "inputStatus": "ONLINE",
+    "inputStatus": "OFFLINE",
     "enabled": true
   },
   {
@@ -2604,8 +2647,7 @@
         "url": "/live/207119424020910637.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/138/index.m3u8?t=L4OtEA7zTeQyUl2M8KWqvg&e=1792175093",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -2644,8 +2686,7 @@
         "url": "/live/207119424017110904.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/136/index.m3u8?t=ghLpXddQLKWduy_wXbmxjw&e=1792175093",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2683,8 +2724,7 @@
         "url": "/live/207119424014337190.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/123/index.m3u8?t=uINpsxnJX3mPXAcWFXdsBw&e=1792175093",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -2723,8 +2763,7 @@
         "url": "/live/207119424011212253.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/124/index.m3u8?t=yq4_sxfGhWWpAXsNaEeceg&e=1792175092",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -2763,8 +2802,7 @@
         "url": "/live/207119423603649061.m3u8?server=2",
         "upstreamUrl": "https://ott.tv5monde.com/Content/HLS/Live/channel(orient)/variant.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2802,8 +2840,7 @@
         "url": "/live/207119423599839374.m3u8?server=2",
         "upstreamUrl": "https://ott.tv5monde.com/Content/HLS/Live/channel(europe)/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2841,8 +2878,7 @@
         "url": "/live/207119424039892749.m3u8?server=2",
         "upstreamUrl": "https://euronews-euronews-french-3-us.plex.wurl.tv/playlist.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2880,8 +2916,7 @@
         "url": "/live/207119424037026642.m3u8?server=2",
         "upstreamUrl": "https://rt-fra.gcdn.co:443/live/rtfrance/playlist.m3u8?t=Mq1fp3kDvpz8rcBzVIbuzw&e=1792175092",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2919,8 +2954,7 @@
         "url": "/live/207119424037225059.m3u8?server=2",
         "upstreamUrl": "https://d4de59d01af447a498cb0565ad005588.mediatailor.us-east-1.amazonaws.com/v1/master/82ded7a88773aef3d6dd1fedce15ba2d57eb6bca/viewmedia-7/live_092/HD/playlist.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2958,8 +2992,7 @@
         "url": "/live/207119424034071592.m3u8?server=2",
         "upstreamUrl": "https://ott.tv5monde.com/Content/HLS/Live/channel(info)/variant.m3u8?t=yRo8KNPU5WjRqAu5GarkDw&e=1792175094",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -2997,8 +3030,7 @@
         "url": "/live/207119422730152967.m3u8?server=2",
         "upstreamUrl": "https://www.dailymotion.com/embed/video/x5gv5rr?autoplay=1",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3036,8 +3068,7 @@
         "url": "/live/207119422731212678.m3u8?server=2",
         "upstreamUrl": "https://www.dailymotion.com/embed/video/x3b68jn?autoplay=true",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3075,8 +3106,7 @@
         "url": "/live/207119422727747921.m3u8?server=2",
         "upstreamUrl": "https://www.dailymotion.com/embed/video/x5gv5v0?autoplay=1",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3114,8 +3144,7 @@
         "url": "/live/207119422728762456.m3u8?server=2",
         "upstreamUrl": "http://free.fullspeed.tv/iptv-query?streaming-ip=https://www.dailymotion.com/video/xkxbzc",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3153,8 +3182,7 @@
         "url": "/live/207119423556494514.m3u8?server=2",
         "upstreamUrl": "https://ott.tv5monde.com/Content/HLS/Live/channel(tivi5)/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3192,8 +3220,7 @@
         "url": "/live/207119423556938947.m3u8?server=2",
         "upstreamUrl": "https://ott.tv5monde.com/Content/HLS/Live/channel(style1)/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3231,8 +3258,7 @@
         "url": "/live/207119424012372596.m3u8?server=2",
         "upstreamUrl": "https://tsf-hls-live-cdn1.tf1.fr/out/v1/0326aeefae1a405c9a9732d6f80a66df/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3270,8 +3296,7 @@
         "url": "/live/207119424009481715.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/00000/index.m3u8?t=-RBdMNgID1EA6HsHP0Cutg&e=1792175093",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3309,8 +3334,7 @@
         "url": "/live/207119424010195746.m3u8?server=2",
         "upstreamUrl": "https://raw.githubusercontent.com/ipstreet312/freeiptv/master/ressources/btv/py/lci1.m3u8?t=1w1A9ZBaFFVjCzvJBqUrkQ&e=1792175093",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3348,8 +3372,7 @@
         "url": "/live/207119424007166761.m3u8?server=2",
         "upstreamUrl": "https://tfx-hls-live-cdn1.tf1.fr/out/v1/818e38d791854222b71a950791fb7002/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3387,8 +3410,7 @@
         "url": "/live/207119424008700112.m3u8?server=2",
         "upstreamUrl": "https://tmc-hls-live-cdn1.tf1.fr/out/v1/982927d0b5d24bd58ac42184b10c63d7/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3426,8 +3448,7 @@
         "url": "/live/207119424276390408.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/102/index.m3u8?t=NpnV9eGRxBTZPU9Dex2qEg&e=1792175093",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3465,8 +3486,7 @@
         "url": "/live/207119423574886719.m3u8?server=2",
         "upstreamUrl": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFM_TOULONVAR/index.m3u8?start=LIVE&end=END",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3504,8 +3524,7 @@
         "url": "/live/207119423573064317.m3u8?server=2",
         "upstreamUrl": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFM_NORMANDIE/index.m3u8?start=LIVE&end=END",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3543,8 +3562,7 @@
         "url": "/live/207119423574280212.m3u8?server=2",
         "upstreamUrl": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFM_NICECOTEDAZUR/index.m3u8?start=LIVE&end=END",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3582,8 +3600,7 @@
         "url": "/live/207119423570638666.m3u8?server=2",
         "upstreamUrl": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFM_MARSEILLEPROV/index.m3u8?start=LIVE&end=END",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3621,8 +3638,7 @@
         "url": "/live/207119423571588539.m3u8?server=2",
         "upstreamUrl": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFM_DICI_HAUTEPROVENCE/index.m3u8?start=LIVE&end=END",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3660,8 +3676,7 @@
         "url": "/live/207119423602095068.m3u8?server=2",
         "upstreamUrl": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFM_ALSACE/index.m3u8?start=LIVE&end=END",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3699,8 +3714,7 @@
         "url": "/live/207119423378023876.m3u8?server=2",
         "upstreamUrl": "http://azrotv.com/pyr/?id=aHR0cHM6Ly9taXQyLWNkbi1lZGdlLWxpdmUwNi5wZmQuc2ZyLm5ldC9iZm0tbmNkbi1saXZlLXByZW1pdW0tcGFsMS5wZmQuc2ZyLm5ldC9zaWQ9MDU0YWthcG1pbmphc2Vrc21rcmcvc2hscy9MSVZFJEJGTV9UVi9pbmRleC5tM3U4P3N0YXJ0PUxJVkUmZW5kPUVORA==",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3738,8 +3752,7 @@
         "url": "/live/207119423379395949.m3u8?server=2",
         "upstreamUrl": "https://azrotv.com/pyr/?id=aHR0cHM6Ly9uY2RuLWxpdmUtYmZtLnBmZC5zZnIubmV0L3NobHMvTElWRSRCRk1fQUxTQUNFL2luZGV4Lm0zdTg/c3RhcnQ9TElWRSZlbmQ9RU5E",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3777,8 +3790,7 @@
         "url": "/live/207119423376140210.m3u8?server=2",
         "upstreamUrl": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFM_LYON/index.m3u8?start=LIVE&end=END",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3816,8 +3828,7 @@
         "url": "/live/207119423376584643.m3u8?server=2",
         "upstreamUrl": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFM_BUSINESS/index.m3u8?start=LIVE&end=END",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3855,8 +3866,7 @@
         "url": "/live/207119424035088993.m3u8?server=2",
         "upstreamUrl": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFMGRANDLILLE/index.m3u8?start=LIVE&end=END&t=iDzlos0bGRLwYVz42Q1BKQ&e=1792175096",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3894,8 +3904,7 @@
         "url": "/live/207119424032530326.m3u8?server=2",
         "upstreamUrl": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFMGRANDLITTORAL/index.m3u8?start=LIVE&end=END&t=Apwp5dFDYk2E_GJdytITrA&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3933,8 +3942,7 @@
         "url": "/live/207119424032884631.m3u8?server=2",
         "upstreamUrl": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFM_PARIS/index.m3u8?start=LIVE&end=END",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -3972,8 +3980,7 @@
         "url": "/live/207119423555144897.m3u8?server=2",
         "upstreamUrl": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFM_TECHANDCO/index.m3u8?start=LIVE&end=END",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4011,8 +4018,7 @@
         "url": "/live/207119424056011212.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/125/index.m3u8?t=kO7UTmXqF4k3vs5Ka68Jiw&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4050,8 +4056,7 @@
         "url": "/live/207119424030326940.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/134/index.m3u8?t=NugmsDhaSpE-YLgw7NVVIw&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4089,8 +4094,7 @@
         "url": "/live/207119424030832357.m3u8?server=2",
         "upstreamUrl": "https://nrj12.nrjaudio.fm/hls/live/2038374/nrj_12/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4128,8 +4132,7 @@
         "url": "/live/207119424027658495.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/155/index.m3u8?t=NXn-QCny6hqgQbbefv-m8A&e=1792175154",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4167,8 +4170,7 @@
         "url": "/live/207119424028680958.m3u8?server=2",
         "upstreamUrl": "https://shls-m6-france-prod-dub.shahid.net/out/v1/c8a9f6e000cd4ebaa4d2fc7d18c15988/index.m3u8?t=_OLiJ-j08WXGheHoh43feg&e=1792175154",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4206,8 +4208,7 @@
         "url": "/live/207119424025882249.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/156/index.m3u8?t=a3L5wa_ooRSKwEBoZT8MKQ&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4245,8 +4246,7 @@
         "url": "/live/207119424027155632.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/150/index.m3u8?t=uqJB9SeiiUgbIz2nyky8Vw&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4284,8 +4284,7 @@
         "url": "/live/207119424023727403.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/100/index.m3u8?t=WqczI1R6jetyl13JeZGmWQ&e=1792175100",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4323,8 +4322,7 @@
         "url": "/live/207119424055361621.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/119/index.m3u8?t=j6E0DFPxKdi-2qOQgh3e8w&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4362,8 +4360,7 @@
         "url": "/live/207119424025169978.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/120/index.m3u8?t=IYbEDz4AuB_OVvo4REgMGw&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4401,8 +4398,7 @@
         "url": "/live/207119424052852999.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/106/index.m3u8?t=YR2G46gb4nHCB4HUq-P8Dw&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4440,8 +4436,7 @@
         "url": "/live/207119424053912710.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/117/index.m3u8?t=1CDqGeO0lHzP7F6xdUzBpg&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -4480,8 +4475,7 @@
         "url": "/live/207119424051329514.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/107/index.m3u8?t=AQBcg6ERGqb_XnoGlgSgjw&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4519,8 +4513,7 @@
         "url": "/live/207119424052119899.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/108/index.m3u8?t=dm5TuVhquQddBa2K3C0YFg&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4558,8 +4551,7 @@
         "url": "/live/207119424049429884.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/109/index.m3u8?t=u3Owy87158JwjILlyEFdsg&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4597,8 +4589,7 @@
         "url": "/live/207119424050235461.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/116/index.m3u8?t=dGoHvfwFoT-kgaTMPE4iYg&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4636,8 +4627,7 @@
         "url": "/live/207119424048137391.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/111/index.m3u8?t=iVqeqayOyTso6Eyjuhq2AQ&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4675,8 +4665,7 @@
         "url": "/live/207119424045043168.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/112/index.m3u8?t=cpt1jlM44L9Ng2KKQjGlIw&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4714,8 +4703,7 @@
         "url": "/live/207119424045699129.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/113/index.m3u8?t=b7z6Ro5eGgQ5SGdoZwt5ow&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4753,8 +4741,7 @@
         "url": "/live/207119424042896050.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/114/index.m3u8?t=a4ur00M4jk8VEKAD96lE0A&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4792,8 +4779,7 @@
         "url": "/live/207119424044389059.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/115/index.m3u8?t=t4Ap1XrFFBOSD96Htc6n_g&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4831,8 +4817,7 @@
         "url": "/live/207119424057425778.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/135/index.m3u8?t=ttBR_Y_RWh48UU12g1G0-Q&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4870,8 +4855,7 @@
         "url": "/live/207119424058292867.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/005581/index.m3u8?t=QA38A-hF4b5O4x7L-k9F_w&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4909,8 +4893,7 @@
         "url": "/live/207119424089036960.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/128/index.m3u8?t=oT4lbF09CTbBhRmTj4Carg&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4948,8 +4931,7 @@
         "url": "/live/207119424197332364.m3u8?server=2",
         "upstreamUrl": "https://static.lefigaro.fr/secom/tnt.m3u8?t=EYz0-5ctddTfXf5bH5hQkg&e=1792175097",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -4987,8 +4969,7 @@
         "url": "/live/207119424234301542.m3u8?server=2",
         "upstreamUrl": "http://tv.mondeduloisir.fr:1935/tixtv/smil:web.smil/index.m3u8?t=IRNk6v5Ir_VUt-O4UNQJAQ&e=1792175099",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5026,8 +5007,7 @@
         "url": "/live/207119424230438113.m3u8?server=2",
         "upstreamUrl": "https://d358c6mfrono1y.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-0ppx9nh29jpk7-prod/490bc6dd-734b-4242-8810-294896740082/2.m3u8?t=IBPFPOF6qWEJ2Xgagexk_w&e=1792175099",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5065,8 +5045,7 @@
         "url": "/live/207119424227132882.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/110/index.m3u8?t=XwftMAukoMMYvhqkufsPdQ&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5104,8 +5083,7 @@
         "url": "/live/207119424254185681.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/129/index.m3u8?t=CZzF9SO8LXxyn_WIza0-hQ&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5143,8 +5121,7 @@
         "url": "/live/207119424255200216.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/122/index.m3u8?t=Joc5UBY8zZpCX76_dGL90A&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5182,8 +5159,7 @@
         "url": "/live/207119424252396423.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/082/index.m3u8?t=ntDokOMe8_hbcHLrBuGuaA&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5221,8 +5197,7 @@
         "url": "/live/207119424253456134.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/121/index.m3u8?t=TrTnTOsqLkZmpz3mbuaKCg&e=1792175099",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5260,8 +5235,7 @@
         "url": "/live/207119424250441405.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/118/index.m3u8?t=puM5W_De8K5B-aSNBCCelA&e=1792175100",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5299,8 +5273,7 @@
         "url": "/live/207119424251338580.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/132/index.m3u8?t=PigwIxRRATp6NOldEG9Qhw&e=1792175104",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5338,8 +5311,7 @@
         "url": "/live/207119424248118099.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/133/index.m3u8?t=QpKDcWuMiFABrHQ6V_-v_Q&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5377,8 +5349,7 @@
         "url": "/live/207119424249368706.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/130/index.m3u8?t=jAZAoto-yBsynWNXP3T-EQ&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5416,8 +5387,7 @@
         "url": "/live/207119424246397193.m3u8?server=2",
         "upstreamUrl": "http://flusonic-1.platinum-tv.com/boing/index.m3u8?token=test&t=locq3KHCN-GUNLGKictw9g&e=1792175100",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5455,8 +5425,7 @@
         "url": "/live/207119424245073001.m3u8?server=2",
         "upstreamUrl": "https://live.creacast.com/cna/stream/playlist.m3u8?t=qwUHSbbfUZu7Dwb-SfgDbg&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5494,8 +5463,7 @@
         "url": "/live/207119424271244186.m3u8?server=2",
         "upstreamUrl": "http://hls.tmacaraibes.com/live/index.m3u8?t=BW1CpA7sBuHx_SI_1GiCeQ&e=1792175099",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5533,8 +5501,7 @@
         "url": "/live/207119424272746763.m3u8?server=2",
         "upstreamUrl": "http://contact-lh.akamaihd.net/i/CONTACT_1@321283/master.m3u8?t=pnUrKZNE3MW5IHPvs__wrA&e=1792175099",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5572,8 +5539,7 @@
         "url": "/live/207119424266558684.m3u8?server=2",
         "upstreamUrl": "https://vosgestv.live-kd.com/live/vosgestv/vosgestv/manifest_w894532867.mpd?t=5X0zM4DDC8xAoztynlxLtw&e=1792175101",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5611,8 +5577,7 @@
         "url": "/live/207119424263023119.m3u8?server=2",
         "upstreamUrl": "https://5dd226f8f01e8.streamlock.net/via-matele-live/matelelive_1080/playlist.m3u8?t=MhKNJ4lmoeobFTsuckbzbw&e=1792175099",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5650,8 +5615,7 @@
         "url": "/live/207119424264302990.m3u8?server=2",
         "upstreamUrl": "https://live.creacast.com/mirabelletv/smil:mirabelletv.smil/chunks.m3u8?t=vNXiTpmaL3NWEUvNLhKioQ&e=1792175100",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5689,8 +5653,7 @@
         "url": "/live/207119424262504128.m3u8?server=2",
         "upstreamUrl": "https://tv3v.vod-kd.com/vod/TV3V/smil:actus_23_05_19_WEB/default.smil/manifest.mpd?t=_edxdMar8g6E6mn2GrSudQ&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5728,8 +5691,7 @@
         "url": "/live/207119424258776739.m3u8?server=2",
         "upstreamUrl": "https://tv7.live-kd.com/live/tv7/ngrp:tv7_Wifi/manifest.mpd?t=w7AuyxQTjFPZUWAIyiF32g&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5767,8 +5729,7 @@
         "url": "/live/207119424260356754.m3u8?server=2",
         "upstreamUrl": "https://streamtv.cdn.dvmr.fr/TV78/ngrp:tv78.stream_all/master.m3u8?t=zmxm5S-4AaB0jQ_7Wf7Yag&e=1792175099",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5806,8 +5767,7 @@
         "url": "/live/207119424290801922.m3u8?server=2",
         "upstreamUrl": "https://streamtv.cdn.dvmr.fr/TVR/ngrp:tvr.stream_all/master.m3u8?t=7N6fa2aMmKJW4xlFVf4fGw&e=1792175099",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5845,8 +5805,7 @@
         "url": "/live/207119424291648467.m3u8?server=2",
         "upstreamUrl": "https://start-2.direct.live/hls/tebesud_hi/index.m3u8?t=aRz_4Raz33piSleVKCvYBQ&e=1792175102",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5884,8 +5843,7 @@
         "url": "/live/207119424288577492.m3u8?server=2",
         "upstreamUrl": "https://start-1.direct.live/hls/tebeo_hi/index.m3u8?t=waOjYHMfvvd130v3FuC_6A&e=1792175099",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5923,8 +5881,7 @@
         "url": "/live/207119424288728893.m3u8?server=2",
         "upstreamUrl": "https://alchimie-luxe-fr-rakuten.amagi.tv/playlist.m3u8?t=d6Fu6uPo-GIDfM5w1kSTLw&e=1792175099",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -5962,8 +5919,7 @@
         "url": "/live/207119424286500742.m3u8?server=2",
         "upstreamUrl": "http://fashiontv-fashiontv-loriginal-fr.samsung.wurl.com/manifest/playlist.m3u8?t=LBm-BgqNT6jWf837jhrd8g&e=1792175098",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6001,8 +5957,7 @@
         "url": "/live/207119424287538183.m3u8?server=2",
         "upstreamUrl": "https://plus.fuel.tv/watch-live",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6040,8 +5995,7 @@
         "url": "/live/207119424279788397.m3u8?server=2",
         "upstreamUrl": "https://5421175365ea3.streamlock.net/live/smil:switch.smil/playlist.m3u8?t=JesvUDdvhROCbyyFiHtLAw&e=1792175099",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6079,8 +6033,7 @@
         "url": "/live/207119424278025667.m3u8?server=2",
         "upstreamUrl": "https://biptv.tv/live/biptvstream_orig/index.m3u8?t=FCiG1lM4JFkZDXI3I18VBg&e=1792175100",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6118,8 +6071,7 @@
         "url": "/live/207119424278629810.m3u8?server=2",
         "upstreamUrl": "https://live.digiteka.com/1/bEg0RmFLb1JMYXRI/dGhqbmIw/hls/live/playlist.m3u8?t=sdsFO9mKO0pg2yFVfMsYIQ&e=1792175100",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6157,8 +6109,7 @@
         "url": "/live/207119424275183041.m3u8?server=2",
         "upstreamUrl": "http://cdn.webtv4.cdnfr.orange.fr/hs/HALO3/hls/live/Rtl9_live/index.m3u8?t=i0gxmHea2IyJdpUsP_YF3A&e=1792175100",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6196,8 +6147,7 @@
         "url": "/live/207119422699747687.m3u8?server=2",
         "upstreamUrl": "https://ythls.armelin.one/channel/XUC25EuGAePOPvPrUA5cmu3dQ.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6235,8 +6185,7 @@
         "url": "/live/207119423528972972.m3u8?server=2",
         "upstreamUrl": "https://ytvreplay.blogspot.com/2022/12/blog-post.html",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6274,8 +6223,7 @@
         "url": "/live/207119423558378180.m3u8?server=2",
         "upstreamUrl": "https://shls-m6-int-prod-dub.shahid.net/out/v1/a315ab77ee7343a7a17dbe7e32eee3ba/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6313,8 +6261,7 @@
         "url": "/live/207119423559750253.m3u8?server=2",
         "upstreamUrl": "https://cherie25.nrjaudio.fm/hls/live/2038375/c25/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6326,8 +6273,8 @@
     "groupTitle": "FRANCE CHANNELS",
     "orderIndex": 222,
     "logoUrl": "https://upload.wikimedia.org/wikipedia/fr/e/e7/Gong_%28cha%C3%AEne_de_t%C3%A9l%C3%A9vision%29_Logo.png",
-    "playUrl": "/live/207119423554255112.m3u8?server=1",
-    "streamUrl": "/live/207119423554255112.m3u8?server=1",
+    "playUrl": "https://yacine.website/play.php?url=aHR0cHM6Ly9jZG4tdXcyLXByb2QudHN2Mi5hbWFnaS50di9saW5lYXIvYW1nMDE1OTYtZ29uZ25ldHdvcmtzLWdvbmctc2Ftc3VuZ2ZyL3BsYXlsaXN0Lm0zdTg=&ua=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1MC4wLjAuMCBTYWZhcmkvNTM3LjM2",
+    "streamUrl": "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01596-gongnetworks-gong-samsungfr/playlist.m3u8",
     "directM3u8": "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01596-gongnetworks-gong-samsungfr/playlist.m3u8",
     "proxyUrl": "/live/207119423554255112.m3u8",
     "referer": "https://yacine.website/channel/207119423554255112/GONG",
@@ -6340,16 +6287,17 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (البث المباشر الرئيسي - M3U8)",
+        "name": "سيرفر 1 (البث المباشر)",
         "url": "/live/207119423554255112.m3u8?server=1",
-        "quality": "FHD",
+        "quality": "HD",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (سيرفر احتياطي - M3U8)",
+        "name": "سيرفر 2 (مباشر CDN)",
         "url": "/live/207119423554255112.m3u8?server=2",
+        "upstreamUrl": "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01596-gongnetworks-gong-samsungfr/playlist.m3u8",
         "quality": "HD",
         "status": "live"
       }
@@ -6389,8 +6337,7 @@
         "url": "/live/207119423585197686.m3u8?server=2",
         "upstreamUrl": "https://stormcast-telenovelatv-1-fr.samsung.wurl.tv/playlist.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6428,8 +6375,7 @@
         "url": "/live/207119423586449143.m3u8?server=2",
         "upstreamUrl": "https://versatile-wildsidetv-1-fr.samsung.wurl.tv/playlist.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6467,8 +6413,7 @@
         "url": "/live/207119423583999868.m3u8?server=2",
         "upstreamUrl": "https://live-kto.akamaized.net/hls/live/2033284/KTO/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6506,8 +6451,7 @@
         "url": "/live/207119423584805445.m3u8?server=2",
         "upstreamUrl": "https://live2.creacast.com/museum-france/smil:museum-france.smil/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6545,8 +6489,7 @@
         "url": "/live/207119423580992405.m3u8?server=2",
         "upstreamUrl": "https://raw.githubusercontent.com/BG47510/motion/main/fun.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6584,8 +6527,7 @@
         "url": "/live/207119423582690572.m3u8?server=2",
         "upstreamUrl": "https://edge11.vedge.infomaniak.com/livecast/ik:generation-tv/manifest.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6623,8 +6565,7 @@
         "url": "/live/207119423579448171.m3u8?server=2",
         "upstreamUrl": "https://live.creacast.com/telemelody/smil:telemelody-211112.smil/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6662,8 +6603,7 @@
         "url": "/live/207119423580160890.m3u8?server=2",
         "upstreamUrl": "https://lightning-traceurban-samsungau.amagi.tv/playlist.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6682,10 +6622,10 @@
     "referer": "https://yacine.website/channel/207119423577304777/Trace-Sport",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "server": 1,
-    "status": "live",
+    "status": "event_only",
     "source": "yacine.website",
     "lastRenewed": 1792157157.759826,
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "تبث أثناء المباريات المباشرة فقط",
     "servers": [
       {
         "id": "server-1",
@@ -6701,11 +6641,10 @@
         "url": "/live/207119423577304777.m3u8?server=2",
         "upstreamUrl": "https://lightning-tracesport-samsungau.amagi.tv/playlist.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
-    "inputStatus": "ONLINE",
+    "inputStatus": "OFFLINE",
     "enabled": true
   },
   {
@@ -6742,8 +6681,7 @@
         "url": "/live/207119423578682096.m3u8?server=2",
         "upstreamUrl": "https://sp1564435593.mytvchain.info/live/sp1564435593/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ],
     "inputStatus": "OFFLINE"
@@ -6782,8 +6720,7 @@
         "url": "/live/207119423598040512.m3u8?server=2",
         "upstreamUrl": "https://tv-trtdiyanetcocuk.medya.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6821,8 +6758,7 @@
         "url": "/live/207119423595893138.m3u8?server=2",
         "upstreamUrl": "https://mn-nl.mncdn.com/blutv_cartoonnetwork/live.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6860,8 +6796,7 @@
         "url": "/live/207119423597458851.m3u8?server=2",
         "upstreamUrl": "https://ensonhaber-live.ercdn.net/haberglobal/haberglobal.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6899,8 +6834,7 @@
         "url": "/live/207119423593659347.m3u8?server=2",
         "upstreamUrl": "https://tv100.blutv.com/blutv_tv100_live/live.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6938,8 +6872,7 @@
         "url": "/live/207119423594909954.m3u8?server=2",
         "upstreamUrl": "https://live.duhnet.tv/S2/HLS_LIVE/cnnturknp/playlist.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -6977,8 +6910,7 @@
         "url": "/live/207119423591788349.m3u8?server=2",
         "upstreamUrl": "https://dogus-live.daioncdn.net/ntv/ntv.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7016,8 +6948,7 @@
         "url": "/live/207119423592685524.m3u8?server=2",
         "upstreamUrl": "https://ekoturk.blutv.com/blutv_ekoturk2/live.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7055,8 +6986,7 @@
         "url": "/live/207119423589549063.m3u8?server=2",
         "upstreamUrl": "https://meclistv-live.ercdn.net/meclistv/meclistv.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7094,8 +7024,7 @@
         "url": "/live/207119423590608774.m3u8?server=2",
         "upstreamUrl": "https://603c568fccdf5.streamlock.net/live/dhaweb1_C5efC/playlist.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7133,8 +7062,7 @@
         "url": "/live/207119423588192593.m3u8?server=2",
         "upstreamUrl": "http://mtulqxgomrllive.mediatriple.net/mtulqxgomrllive/broadcast_59f9c0c785b88.smil/playlist.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7172,8 +7100,7 @@
         "url": "/live/207119423589207128.m3u8?server=2",
         "upstreamUrl": "https://stream.guventechnology.com:19360/flashtv/flashtv.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7211,8 +7138,7 @@
         "url": "/live/207119423619143723.m3u8?server=2",
         "upstreamUrl": "https://szctvdvr.blutv.com/blutv_szctv_dvr/live.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7250,8 +7176,7 @@
         "url": "/live/207119423620586298.m3u8?server=2",
         "upstreamUrl": "https://krt.blutv.com/blutv_krt_live/live.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7289,8 +7214,7 @@
         "url": "/live/207119423616905000.m3u8?server=2",
         "upstreamUrl": "https://tele1.blutv.com/blutv_tele1_live/live.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7328,8 +7252,7 @@
         "url": "/live/207119423617922401.m3u8?server=2",
         "upstreamUrl": "https://halktv-live.daioncdn.net/halktv/halktv.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7367,8 +7290,7 @@
         "url": "/live/207119423615363734.m3u8?server=2",
         "upstreamUrl": "https://stream.guventechnology.com:19360/ulusaltv/ulusaltv.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7406,8 +7328,7 @@
         "url": "/live/207119423615718039.m3u8?server=2",
         "upstreamUrl": "https://mn-nl.mncdn.com/blutv_bbnturk/live.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7445,8 +7366,7 @@
         "url": "/live/207119423613251428.m3u8?server=2",
         "upstreamUrl": "https://ensonhaber-live.ercdn.net/benguturk/benguturk.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7484,8 +7404,7 @@
         "url": "/live/207119423614337549.m3u8?server=2",
         "upstreamUrl": "https://b01c02nl.mediatriple.net/videoonlylive/mtsxxkzwwuqtglive/broadcast_5fe4598be8e5d.smil/playlist.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7523,8 +7442,7 @@
         "url": "/live/207119423610422866.m3u8?server=2",
         "upstreamUrl": "https://www.giniko.com/watch.php?id=394",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7562,8 +7480,7 @@
         "url": "/live/207119423611669859.m3u8?server=2",
         "upstreamUrl": "https://mn-nl.mncdn.com/tvnet/tvnet/playlist.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7601,8 +7518,7 @@
         "url": "/live/207119423609105792.m3u8?server=2",
         "upstreamUrl": "https://turkmedya-live.ercdn.net/tv24/tv24.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7640,8 +7556,7 @@
         "url": "/live/207119423610011097.m3u8?server=2",
         "upstreamUrl": "https://mn-nl.mncdn.com/blutv_ulketv2/live.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7679,8 +7594,7 @@
         "url": "/live/207119423606633362.m3u8?server=2",
         "upstreamUrl": "http://akittv-live.ercdn.net/akittv/akittv.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7718,8 +7632,7 @@
         "url": "/live/207119423607150499.m3u8?server=2",
         "upstreamUrl": "http://stream.yol.tv:9485/medialive/yol.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7757,8 +7670,7 @@
         "url": "/live/207119423373900808.m3u8?server=2",
         "upstreamUrl": "https://www.trtizle.com/canli/tv/trt-spor$$m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7796,8 +7708,7 @@
         "url": "/live/207119423141797850.m3u8?server=2",
         "upstreamUrl": "https://tv-trt1.medya.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7835,8 +7746,7 @@
         "url": "/live/207119423139285320.m3u8?server=2",
         "upstreamUrl": "https://tv-trt2.medya.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7874,8 +7784,7 @@
         "url": "/live/207119423140175105.m3u8?server=2",
         "upstreamUrl": "https://tv-trtarabi.live.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7913,8 +7822,7 @@
         "url": "/live/207119423136366262.m3u8?server=2",
         "upstreamUrl": "https://tv-trtavaz.medya.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7952,8 +7860,7 @@
         "url": "/live/207119423137617719.m3u8?server=2",
         "upstreamUrl": "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -7991,8 +7898,7 @@
         "url": "/live/207119423135019780.m3u8?server=2",
         "upstreamUrl": "https://tv-trtcocuk.live.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8030,8 +7936,7 @@
         "url": "/live/207119423135765933.m3u8?server=2",
         "upstreamUrl": "https://tv-e-okul00.medya.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8069,8 +7974,7 @@
         "url": "/live/207119423165960690.m3u8?server=2",
         "upstreamUrl": "https://tv-e-okul02.medya.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8108,8 +8012,7 @@
         "url": "/live/207119423166827779.m3u8?server=2",
         "upstreamUrl": "https://tv-e-okul01.medya.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8147,8 +8050,7 @@
         "url": "/live/207119423164017440.m3u8?server=2",
         "upstreamUrl": "https://tv-trthaber.medya.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8186,8 +8088,7 @@
         "url": "/live/207119423165618041.m3u8?server=2",
         "upstreamUrl": "https://tv-trtkurdi.medya.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8225,8 +8126,7 @@
         "url": "/live/207119423161709065.m3u8?server=2",
         "upstreamUrl": "https://tv-trtmuzik.medya.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8264,8 +8164,7 @@
         "url": "/live/207119423162982448.m3u8?server=2",
         "upstreamUrl": "https://tv-trtturk.medya.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8303,8 +8202,7 @@
         "url": "/live/207119423160339583.m3u8?server=2",
         "upstreamUrl": "https://tv-trtworld.live.trt.com.tr/master.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8342,8 +8240,7 @@
         "url": "/live/207119423948682811.m3u8?server=2",
         "upstreamUrl": "https://shls-cartoon-net-prod-dub.shahid.net/out/v1/dc4aa87372374325a66be458f29eab0f/index.m3u8?t=TLflXeo4dPqqt1Xc09nmxQ&e=1792175104",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8381,8 +8278,7 @@
         "url": "/live/207119423944249438.m3u8?server=2",
         "upstreamUrl": "https://shls-gulli-bil-arabi-prod-dub.shahid.net/out/v1/5454d215afba410c90b233f400730958/index.m3u8?t=m17s10DHVrODMGkFe2yEUg&e=1792175104",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8420,8 +8316,7 @@
         "url": "/live/207119423945693791.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/082/index.m3u8?t=Jeyx1AiQ7W8dqAanrAXYVA&e=1792175104",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8459,8 +8354,7 @@
         "url": "/live/207119423943023593.m3u8?server=2",
         "upstreamUrl": "https://shls-spacetoon-prod-dub.shahid.net/out/v1/6240b773a3f34cca95d119f9e76aec02/index.m3u8?t=n41Kuor_-m-l3DJiXtnJ6w&e=1792175104",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8498,8 +8392,7 @@
         "url": "/live/207119424799102670.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/045/index.m3u8?t=4KrPN4S-HektRR3o4DZ_bA&e=1792175104",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8537,8 +8430,7 @@
         "url": "/live/207119424816948205.m3u8?server=2",
         "upstreamUrl": "https://shls-rotanakids-prod-dub.shahid.net/out/v1/df6e0eb3cdc4410b98209aafc8677cef/index.m3u8?t=mQ9qTwq96OB6IPr1Du9hPA&e=1792175104",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8576,8 +8468,7 @@
         "url": "/live/207119424814286967.m3u8?server=2",
         "upstreamUrl": "https://www.youtube.com/embed/live_stream?channel=UCZbpK_Lgctew3YNELlG2ecw",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8615,8 +8506,7 @@
         "url": "/live/207119424815132662.m3u8?server=2",
         "upstreamUrl": "http://ar.ycncdn.online/live/085/index.m3u8?t=wbjLd012VCjPK_fbROU-_g&e=1792175104",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8654,8 +8544,7 @@
         "url": "/live/207119424812342849.m3u8?server=2",
         "upstreamUrl": "https://media2.livaat.com/TAHA-TV/index.m3u8?t=jht395MRCdipOXXmFR_PNg&e=1792175104",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8693,8 +8582,7 @@
         "url": "/live/207119424813550216.m3u8?server=2",
         "upstreamUrl": "https://5a8308add0b31.streamlock.net/atfal1.com/atfal2/playlist.m3u8?t=Sd6kxBvQiWnXMA0njqpV_g&e=1792175104",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8732,8 +8620,7 @@
         "url": "/live/207119424843887835.m3u8?server=2",
         "upstreamUrl": "https://tv.taghtia.com/api/embed/almajd-kids",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8771,8 +8658,7 @@
         "url": "/live/207119424845194602.m3u8?server=2",
         "upstreamUrl": "http://www.elahmad.coo/tv/live/channel.php?id=almajd_bassma",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8810,8 +8696,7 @@
         "url": "/live/207119424842181848.m3u8?server=2",
         "upstreamUrl": "http://www.elahmad.coo/tv/live/channel.php?id=almajd_rawda",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8849,8 +8734,7 @@
         "url": "/live/207119424843264465.m3u8?server=2",
         "upstreamUrl": "https://admdn5.cdn.mgmlcdn.com/majid/smil:majid.stream.smil/playlist.m3u8?t=IGtW-e7dx3pojsvurxazeg&e=1792175104",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8888,8 +8772,7 @@
         "url": "/live/207119423145703463.m3u8?server=2",
         "upstreamUrl": "https://weyyak-live.akamaized.net/weyyak_action/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8927,8 +8810,7 @@
         "url": "/live/207119423145969702.m3u8?server=2",
         "upstreamUrl": "https://weyyak-live.akamaized.net/weyyak_drama/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -8966,8 +8848,7 @@
         "url": "/live/207119423143381873.m3u8?server=2",
         "upstreamUrl": "https://weyyak-live.akamaized.net/weyyak_mix/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9005,8 +8886,7 @@
         "url": "/live/207119423144549112.m3u8?server=2",
         "upstreamUrl": "https://weyyak-live.akamaized.net/weyyak_nawaem/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9044,8 +8924,7 @@
         "url": "/live/207119423140577355.m3u8?server=2",
         "upstreamUrl": "https://weyyak-live.akamaized.net/weyyak_smashi_tv/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9083,8 +8962,7 @@
         "url": "/live/207119423503641497.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/90143f040feb40589d18c57863d9e829/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9122,8 +9000,7 @@
         "url": "/live/207119423514984936.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/0044dd4b001a466c941ad77b04a574a2/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9161,8 +9038,7 @@
         "url": "/live/207119423507054862.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/8328464750f04ec6bb512585e6941631/index.m3u8?t=Ls96JNnkgWex29KQ6tJaHQ&e=1792175105",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9200,8 +9076,7 @@
         "url": "/live/207119423536663058.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/20e003242d244710bfe9ca0fd2b94d00/index.m3u8?t=Jv9Em-9ZGi4zeGyGW_kebA&e=1792175105",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9239,8 +9114,7 @@
         "url": "/live/207119423259559573.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/22a1fb00da8a4b1fb15cbd70b8b59856/index.m3u8?t=qbb5voICZvWZ8qo4lY7U1Q&e=1792175106",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9278,8 +9152,7 @@
         "url": "/live/207119423254103536.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/cf05f1dbbeae4878bbc4a5919cef3391/index.m3u8?t=cPaXZ2QEpbz_p_0aZCJLsw&e=1792175105",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9317,8 +9190,7 @@
         "url": "/live/207119423236580660.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/a4a39d8e92e34b0780ca602270a59512/index.m3u8?t=ocuGsxA3L7u8wwQwFkIPYg&e=1792175106",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9356,8 +9228,7 @@
         "url": "/live/207119423264691633.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/948c54279b594944adde578c95f1d7d1/index.m3u8?t=2S4Faf-iWw1fZvG0onJV-g&e=1792175106",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9395,8 +9266,7 @@
         "url": "/live/207119423281180039.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/5f5de4f9efe24f758f1364dde5e2a45c/index.m3u8?t=n-50LJl_C8zNFgHtxBWDwA&e=1792175105",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9434,8 +9304,7 @@
         "url": "/live/207119423264133734.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/0ef83323c0374a1187c182645db2a45f/index.m3u8?t=Z-iNkMfZQcqWbf6wIF0y-w&e=1792175106",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9473,8 +9342,7 @@
         "url": "/live/207119423260959797.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/0fcbe9a01dc6474cbec18c1027326c50/index.m3u8?t=M_IrcZHJXl9PFw1fY9AgUQ&e=1792175106",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9512,8 +9380,7 @@
         "url": "/live/207119423254823369.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/05f3eb584b674d8099779eabb6521b58/index.m3u8?t=EC4XcsbrbJ0_m2DmrrspOg&e=1792175105",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9551,8 +9418,7 @@
         "url": "/live/207119423268062178.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/d6e1fdee781f4506a6ac147fee5ba715/index.m3u8?t=JLOuvRrCqT3KZM2mZy6Nkg&e=1792175106",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9590,8 +9456,7 @@
         "url": "/live/207119423262037164.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/2a0f4768f7fa42ed813674628b487e95/index.m3u8?t=VNI2ADL_sQ4rLdaChl9S1w&e=1792175106",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9629,8 +9494,7 @@
         "url": "/live/207119423285185917.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/e34e3ac9d2534543a13b44c2b458b0c2/index.m3u8?t=bN9i6VnnVajQl6f4hrYyrw&e=1792175106",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9668,8 +9532,7 @@
         "url": "/live/207119423266925491.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/e7350ddf46c94dddafe14b099394ff56/index.m3u8?t=ZF7U9O3g2Vp350J4aobfYw&e=1792175106",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9707,8 +9570,7 @@
         "url": "/live/207119423262818919.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/40031eca7be34c4ea9744bf067f4fefa/index.m3u8",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9746,8 +9608,7 @@
         "url": "/live/207119423256966763.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/46079e838e65490c8299f902a7731168/index.m3u8?t=rsKcZTbIzs-oRs0jDO7z2Q&e=1792175106",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9785,8 +9646,7 @@
         "url": "/live/207119423256630906.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/f6d718e841f8442f8374de47f18c93a7/index.m3u8?t=YCF5V52MiOkSfDDtKYXwgQ&e=1792175106",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9824,8 +9684,7 @@
         "url": "/live/207119423265436216.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/0afd546fcb5342f69d6bfff2dd1596e9/index.m3u8?t=jML0RPmEjgaEt2HG_S92HQ&e=1792175106",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   },
@@ -9863,8 +9722,7 @@
         "url": "/live/207119423258112012.m3u8?server=2",
         "upstreamUrl": "https://shls-live-ak.akamaized.net/out/v1/8fae48b64942450cb5d60b3fb6910de0/index.m3u8?t=7UnzgwtB6leBqGYs6IPSSg&e=1792175106",
         "quality": "HD",
-        "status": "live",
-        "isDefault": false
+        "status": "live"
       }
     ]
   }
