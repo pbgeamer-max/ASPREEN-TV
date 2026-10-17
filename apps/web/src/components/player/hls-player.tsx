@@ -342,12 +342,12 @@ export function HlsPlayerModal({
     if (!isDirectVideo && Hls.isSupported()) {
       hls = new Hls({
         enableWorker: true,
-        lowLatencyMode: false,
-        backBufferLength: 30,
+        lowLatencyMode: true,
+        backBufferLength: 90,
         maxBufferLength: 30,
         maxMaxBufferLength: 60,
         liveSyncDurationCount: 3,
-        liveMaxLatencyDurationCount: 6,
+        liveMaxLatencyDurationCount: 10,
         liveDurationInfinity: true,
         highBufferWatchdogPeriod: 2,
         nudgeOffset: 0.1,

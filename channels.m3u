@@ -1,651 +1,651 @@
 #EXTM3U
 #EXTINF:-1 tvg-id="207119423132628321" tvg-name="beIN SPORTS 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS1_DIGITAL_Mono.png" group-title="beIN SPORTS (1080P)",beIN SPORTS 1
-http://127.0.0.1:8087/live/207119423132628321.m3u8
+http://127.0.0.1:8099/live/207119423132628321.m3u8
 #EXTINF:-1 tvg-id="207119423133708072" tvg-name="beIN SPORTS 2" tvg-logo="https://assets.bein.com/mena/sites/4/2021/02/beIN_SPORTS2_DIGITAL_Mono.png" group-title="beIN SPORTS (1080P)",beIN SPORTS 2
-http://127.0.0.1:8087/live/207119423133708072.m3u8
+http://127.0.0.1:8099/live/207119423133708072.m3u8
 #EXTINF:-1 tvg-id="207119423130423959" tvg-name="beIN SPORTS 3" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS3_DIGITAL_Mono.png" group-title="beIN SPORTS (1080P)",beIN SPORTS 3
-http://127.0.0.1:8087/live/207119423130423959.m3u8
+http://127.0.0.1:8099/live/207119423130423959.m3u8
 #EXTINF:-1 tvg-id="207119423131118230" tvg-name="beIN SPORTS 4" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS4_DIGITAL_Mono.png" group-title="beIN SPORTS (1080P)",beIN SPORTS 4
-http://127.0.0.1:8087/live/207119423131118230.m3u8
+http://127.0.0.1:8099/live/207119423131118230.m3u8
 #EXTINF:-1 tvg-id="207119423128371685" tvg-name="beIN SPORTS 5" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS5_DIGITAL_Mono.png" group-title="beIN SPORTS (1080P)",beIN SPORTS 5
-http://127.0.0.1:8087/live/207119423128371685.m3u8
+http://127.0.0.1:8099/live/207119423128371685.m3u8
 #EXTINF:-1 tvg-id="207119423129963420" tvg-name="beIN SPORTS 6" tvg-logo="https://assets.bein.com/mena/sites/4/2021/02/beIN_SPORTS6_DIGITAL_Mono.png" group-title="beIN SPORTS (1080P)",beIN SPORTS 6
-http://127.0.0.1:8087/live/207119423129963420.m3u8
+http://127.0.0.1:8099/live/207119423129963420.m3u8
 #EXTINF:-1 tvg-id="207119423126609442" tvg-name="beIN SPORTS 7" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS7_DIGITAL_Mono.png" group-title="beIN SPORTS (1080P)",beIN SPORTS 7
-http://127.0.0.1:8087/live/207119423126609442.m3u8
+http://127.0.0.1:8099/live/207119423126609442.m3u8
 #EXTINF:-1 tvg-id="207119423126943987" tvg-name="beIN SPORTS 8" tvg-logo="https://assets.bein.com/mena/sites/4/2023/09/logos-_beINSPORTS8.png" group-title="beIN SPORTS (1080P)",beIN SPORTS 8
-http://127.0.0.1:8087/live/207119423126943987.m3u8
+http://127.0.0.1:8099/live/207119423126943987.m3u8
 #EXTINF:-1 tvg-id="207119423124591988" tvg-name="beIN SPORTS 9" tvg-logo="https://assets.bein.com/mena/sites/4/2023/09/logos-_beINSPORTS9.png" group-title="beIN SPORTS (1080P)",beIN SPORTS 9
-http://127.0.0.1:8087/live/207119423124591988.m3u8
+http://127.0.0.1:8099/live/207119423124591988.m3u8
 #EXTINF:-1 tvg-id="207119423103840100" tvg-name="beIN XTRA 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS_XTRA1_Digital_Mono.png" group-title="beIN SPORTS (1080P)",beIN XTRA 1
-http://127.0.0.1:8087/live/207119423103840100.m3u8
+http://127.0.0.1:8099/live/207119423103840100.m3u8
 #EXTINF:-1 tvg-id="207119423101209955" tvg-name="beIN XTRA 2" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS_XTRA2_Digital_Mono.png" group-title="beIN SPORTS (1080P)",beIN XTRA 2
-http://127.0.0.1:8087/live/207119423101209955.m3u8
+http://127.0.0.1:8099/live/207119423101209955.m3u8
 #EXTINF:-1 tvg-id="207119423102060114" tvg-name="beIN XTRA 3" tvg-logo="https://assets.bein.com/mena/sites/4/2023/09/logos-_beINSPORTSXTRA3.png" group-title="beIN SPORTS (1080P)",beIN XTRA 3
-http://127.0.0.1:8087/live/207119423102060114.m3u8
+http://127.0.0.1:8099/live/207119423102060114.m3u8
 #EXTINF:-1 tvg-id="207119423125528797" tvg-name="beIN France 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS1_FRENCH_Digital_Mono.png" group-title="beIN SPORTS (1080P)",beIN France 1
-http://127.0.0.1:8087/live/207119423125528797.m3u8
+http://127.0.0.1:8099/live/207119423125528797.m3u8
 #EXTINF:-1 tvg-id="207119423122362278" tvg-name="beIN France 2" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS2_FRENCH_Digital_Mono.png" group-title="beIN SPORTS (1080P)",beIN France 2
-http://127.0.0.1:8087/live/207119423122362278.m3u8
+http://127.0.0.1:8099/live/207119423122362278.m3u8
 #EXTINF:-1 tvg-id="207119423123144615" tvg-name="beIN France 3" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS3_FRENCH_Digital_Mono.png" group-title="beIN SPORTS (1080P)",beIN France 3
-http://127.0.0.1:8087/live/207119423123144615.m3u8
+http://127.0.0.1:8099/live/207119423123144615.m3u8
 #EXTINF:-1 tvg-id="207119423119893112" tvg-name="beIN News" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/NEWS_DIGITAL_Mono.png" group-title="beIN SPORTS (1080P)",beIN News
-http://127.0.0.1:8087/live/207119423119893112.m3u8
+http://127.0.0.1:8099/live/207119423119893112.m3u8
 #EXTINF:-1 tvg-id="207119423120823025" tvg-name="beIN SPORTS" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/bein_SPORTS_FTA_DIGITAL_Mono.png" group-title="beIN SPORTS (1080P)",beIN SPORTS
-http://127.0.0.1:8087/live/207119423120823025.m3u8
+http://127.0.0.1:8099/live/207119423120823025.m3u8
 #EXTINF:-1 tvg-id="207119423176013182" tvg-name="beIN English 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS1_ENGLISH_Digital_Mono.png" group-title="beIN SPORTS (1080P)",beIN English 1
-http://127.0.0.1:8087/live/207119423176013182.m3u8
+http://127.0.0.1:8099/live/207119423176013182.m3u8
 #EXTINF:-1 tvg-id="207119423172165897" tvg-name="beIN English 2" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS2_ENGLISH_Digital_Mono.png" group-title="beIN SPORTS (1080P)",beIN English 2
-http://127.0.0.1:8087/live/207119423172165897.m3u8
+http://127.0.0.1:8099/live/207119423172165897.m3u8
 #EXTINF:-1 tvg-id="207119423173439280" tvg-name="beIN English 3" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS3_ENGLISH_Digital_Mono.png" group-title="beIN SPORTS (1080P)",beIN English 3
-http://127.0.0.1:8087/live/207119423173439280.m3u8
+http://127.0.0.1:8099/live/207119423173439280.m3u8
 #EXTINF:-1 tvg-id="207119423782765842" tvg-name="beIN SPORTS 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS1_DIGITAL_Mono.png" group-title="beIN SPORTS (720P)",beIN SPORTS 1
-http://127.0.0.1:8087/live/207119423782765842.m3u8
+http://127.0.0.1:8099/live/207119423782765842.m3u8
 #EXTINF:-1 tvg-id="207119423784331555" tvg-name="beIN SPORTS 2" tvg-logo="https://assets.bein.com/mena/sites/4/2021/02/beIN_SPORTS2_DIGITAL_Mono.png" group-title="beIN SPORTS (720P)",beIN SPORTS 2
-http://127.0.0.1:8087/live/207119423784331555.m3u8
+http://127.0.0.1:8099/live/207119423784331555.m3u8
 #EXTINF:-1 tvg-id="207119423780670244" tvg-name="beIN SPORTS 3" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS3_DIGITAL_Mono.png" group-title="beIN SPORTS (720P)",beIN SPORTS 3
-http://127.0.0.1:8087/live/207119423780670244.m3u8
+http://127.0.0.1:8099/live/207119423780670244.m3u8
 #EXTINF:-1 tvg-id="207119423781756365" tvg-name="beIN SPORTS 4" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS4_DIGITAL_Mono.png" group-title="beIN SPORTS (720P)",beIN SPORTS 4
-http://127.0.0.1:8087/live/207119423781756365.m3u8
+http://127.0.0.1:8099/live/207119423781756365.m3u8
 #EXTINF:-1 tvg-id="207119423778323470" tvg-name="beIN SPORTS 5" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS5_DIGITAL_Mono.png" group-title="beIN SPORTS (720P)",beIN SPORTS 5
-http://127.0.0.1:8087/live/207119423778323470.m3u8
+http://127.0.0.1:8099/live/207119423778323470.m3u8
 #EXTINF:-1 tvg-id="207119423779140751" tvg-name="beIN SPORTS 6" tvg-logo="https://assets.bein.com/mena/sites/4/2021/02/beIN_SPORTS6_DIGITAL_Mono.png" group-title="beIN SPORTS (720P)",beIN SPORTS 6
-http://127.0.0.1:8087/live/207119423779140751.m3u8
+http://127.0.0.1:8099/live/207119423779140751.m3u8
 #EXTINF:-1 tvg-id="207119423776008147" tvg-name="beIN SPORTS 7" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS7_DIGITAL_Mono.png" group-title="beIN SPORTS (720P)",beIN SPORTS 7
-http://127.0.0.1:8087/live/207119423776008147.m3u8
+http://127.0.0.1:8099/live/207119423776008147.m3u8
 #EXTINF:-1 tvg-id="207119423777258754" tvg-name="beIN SPORTS 8" tvg-logo="https://assets.bein.com/mena/sites/4/2023/09/logos-_beINSPORTS8.png" group-title="beIN SPORTS (720P)",beIN SPORTS 8
-http://127.0.0.1:8087/live/207119423777258754.m3u8
+http://127.0.0.1:8099/live/207119423777258754.m3u8
 #EXTINF:-1 tvg-id="207119423774137149" tvg-name="beIN SPORTS 9" tvg-logo="https://assets.bein.com/mena/sites/4/2023/09/logos-_beINSPORTS9.png" group-title="beIN SPORTS (720P)",beIN SPORTS 9
-http://127.0.0.1:8087/live/207119423774137149.m3u8
+http://127.0.0.1:8099/live/207119423774137149.m3u8
 #EXTINF:-1 tvg-id="207119423788379735" tvg-name="beIN XTRA 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS_XTRA1_Digital_Mono.png" group-title="beIN SPORTS (720P)",beIN XTRA 1
-http://127.0.0.1:8087/live/207119423788379735.m3u8
+http://127.0.0.1:8099/live/207119423788379735.m3u8
 #EXTINF:-1 tvg-id="207119423784949736" tvg-name="beIN XTRA 2" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS_XTRA2_Digital_Mono.png" group-title="beIN SPORTS (720P)",beIN XTRA 2
-http://127.0.0.1:8087/live/207119423784949736.m3u8
+http://127.0.0.1:8099/live/207119423784949736.m3u8
 #EXTINF:-1 tvg-id="207119423785648417" tvg-name="beIN XTRA 3" tvg-logo="https://assets.bein.com/mena/sites/4/2023/09/logos-_beINSPORTSXTRA3.png" group-title="beIN SPORTS (720P)",beIN XTRA 3
-http://127.0.0.1:8087/live/207119423785648417.m3u8
+http://127.0.0.1:8099/live/207119423785648417.m3u8
 #EXTINF:-1 tvg-id="207119423775034324" tvg-name="beIN France 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS1_FRENCH_Digital_Mono.png" group-title="beIN SPORTS (720P)",beIN France 1
-http://127.0.0.1:8087/live/207119423775034324.m3u8
+http://127.0.0.1:8099/live/207119423775034324.m3u8
 #EXTINF:-1 tvg-id="207119423771897863" tvg-name="beIN France 2" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS2_FRENCH_Digital_Mono.png" group-title="beIN SPORTS (720P)",beIN France 2
-http://127.0.0.1:8087/live/207119423771897863.m3u8
+http://127.0.0.1:8099/live/207119423771897863.m3u8
 #EXTINF:-1 tvg-id="207119423772957574" tvg-name="beIN France 3" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS3_FRENCH_Digital_Mono.png" group-title="beIN SPORTS (720P)",beIN France 3
-http://127.0.0.1:8087/live/207119423772957574.m3u8
+http://127.0.0.1:8099/live/207119423772957574.m3u8
 #EXTINF:-1 tvg-id="207119423804095825" tvg-name="beIN News" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/NEWS_DIGITAL_Mono.png" group-title="beIN SPORTS (720P)",beIN News
-http://127.0.0.1:8087/live/207119423804095825.m3u8
+http://127.0.0.1:8099/live/207119423804095825.m3u8
 #EXTINF:-1 tvg-id="207119423805110360" tvg-name="beIN SPORTS" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/bein_SPORTS_FTA_DIGITAL_Mono.png" group-title="beIN SPORTS (720P)",beIN SPORTS
-http://127.0.0.1:8087/live/207119423805110360.m3u8
+http://127.0.0.1:8099/live/207119423805110360.m3u8
 #EXTINF:-1 tvg-id="207119423801492523" tvg-name="beIN English 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS1_ENGLISH_Digital_Mono.png" group-title="beIN SPORTS (720P)",beIN English 1
-http://127.0.0.1:8087/live/207119423801492523.m3u8
+http://127.0.0.1:8099/live/207119423801492523.m3u8
 #EXTINF:-1 tvg-id="207119423802935098" tvg-name="beIN English 2" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS2_ENGLISH_Digital_Mono.png" group-title="beIN SPORTS (720P)",beIN English 2
-http://127.0.0.1:8087/live/207119423802935098.m3u8
+http://127.0.0.1:8099/live/207119423802935098.m3u8
 #EXTINF:-1 tvg-id="207119423799791662" tvg-name="beIN English 3" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS3_ENGLISH_Digital_Mono.png" group-title="beIN SPORTS (720P)",beIN English 3
-http://127.0.0.1:8087/live/207119423799791662.m3u8
+http://127.0.0.1:8099/live/207119423799791662.m3u8
 #EXTINF:-1 tvg-id="207119423795540202" tvg-name="beIN SPORTS 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS1_DIGITAL_Mono.png" group-title="beIN SPORTS (360P)",beIN SPORTS 1
-http://127.0.0.1:8087/live/207119423795540202.m3u8
+http://127.0.0.1:8099/live/207119423795540202.m3u8
 #EXTINF:-1 tvg-id="207119423796330587" tvg-name="beIN SPORTS 2" tvg-logo="https://assets.bein.com/mena/sites/4/2021/02/beIN_SPORTS2_DIGITAL_Mono.png" group-title="beIN SPORTS (360P)",beIN SPORTS 2
-http://127.0.0.1:8087/live/207119423796330587.m3u8
+http://127.0.0.1:8099/live/207119423796330587.m3u8
 #EXTINF:-1 tvg-id="207119423793640572" tvg-name="beIN SPORTS 3" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS3_DIGITAL_Mono.png" group-title="beIN SPORTS (360P)",beIN SPORTS 3
-http://127.0.0.1:8087/live/207119423793640572.m3u8
+http://127.0.0.1:8099/live/207119423793640572.m3u8
 #EXTINF:-1 tvg-id="207119423794446149" tvg-name="beIN SPORTS 4" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS4_DIGITAL_Mono.png" group-title="beIN SPORTS (360P)",beIN SPORTS 4
-http://127.0.0.1:8087/live/207119423794446149.m3u8
+http://127.0.0.1:8099/live/207119423794446149.m3u8
 #EXTINF:-1 tvg-id="207119423791692662" tvg-name="beIN SPORTS 5" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS5_DIGITAL_Mono.png" group-title="beIN SPORTS (360P)",beIN SPORTS 5
-http://127.0.0.1:8087/live/207119423791692662.m3u8
+http://127.0.0.1:8099/live/207119423791692662.m3u8
 #EXTINF:-1 tvg-id="207119423791895543" tvg-name="beIN SPORTS 6" tvg-logo="https://assets.bein.com/mena/sites/4/2021/02/beIN_SPORTS6_DIGITAL_Mono.png" group-title="beIN SPORTS (360P)",beIN SPORTS 6
-http://127.0.0.1:8087/live/207119423791895543.m3u8
+http://127.0.0.1:8099/live/207119423791895543.m3u8
 #EXTINF:-1 tvg-id="207119423789201513" tvg-name="beIN SPORTS 7" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS7_DIGITAL_Mono.png" group-title="beIN SPORTS (360P)",beIN SPORTS 7
-http://127.0.0.1:8087/live/207119423789201513.m3u8
+http://127.0.0.1:8099/live/207119423789201513.m3u8
 #EXTINF:-1 tvg-id="207119423790108944" tvg-name="beIN SPORTS 8" tvg-logo="https://assets.bein.com/mena/sites/4/2023/09/logos-_beINSPORTS8.png" group-title="beIN SPORTS (360P)",beIN SPORTS 8
-http://127.0.0.1:8087/live/207119423790108944.m3u8
+http://127.0.0.1:8099/live/207119423790108944.m3u8
 #EXTINF:-1 tvg-id="207119423820183263" tvg-name="beIN SPORTS 9" tvg-logo="https://assets.bein.com/mena/sites/4/2023/09/logos-_beINSPORTS9.png" group-title="beIN SPORTS (360P)",beIN SPORTS 9
-http://127.0.0.1:8087/live/207119423820183263.m3u8
+http://127.0.0.1:8099/live/207119423820183263.m3u8
 #EXTINF:-1 tvg-id="207119423800736687" tvg-name="beIN XTRA 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS_XTRA1_Digital_Mono.png" group-title="beIN SPORTS (360P)",beIN XTRA 1
-http://127.0.0.1:8087/live/207119423800736687.m3u8
+http://127.0.0.1:8099/live/207119423800736687.m3u8
 #EXTINF:-1 tvg-id="207119423797642464" tvg-name="beIN XTRA 2" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS_XTRA2_Digital_Mono.png" group-title="beIN SPORTS (360P)",beIN XTRA 2
-http://127.0.0.1:8087/live/207119423797642464.m3u8
+http://127.0.0.1:8099/live/207119423797642464.m3u8
 #EXTINF:-1 tvg-id="207119423798298425" tvg-name="beIN XTRA 3" tvg-logo="https://assets.bein.com/mena/sites/4/2023/09/logos-_beINSPORTSXTRA3.png" group-title="beIN SPORTS (360P)",beIN XTRA 3
-http://127.0.0.1:8087/live/207119423798298425.m3u8
+http://127.0.0.1:8099/live/207119423798298425.m3u8
 #EXTINF:-1 tvg-id="207119423821884638" tvg-name="beIN France 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS1_FRENCH_Digital_Mono.png" group-title="beIN SPORTS (360P)",beIN France 1
-http://127.0.0.1:8087/live/207119423821884638.m3u8
+http://127.0.0.1:8099/live/207119423821884638.m3u8
 #EXTINF:-1 tvg-id="207119423818786485" tvg-name="beIN France 2" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS2_FRENCH_Digital_Mono.png" group-title="beIN SPORTS (360P)",beIN France 2
-http://127.0.0.1:8087/live/207119423818786485.m3u8
+http://127.0.0.1:8099/live/207119423818786485.m3u8
 #EXTINF:-1 tvg-id="207119423819863852" tvg-name="beIN France 3" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS3_FRENCH_Digital_Mono.png" group-title="beIN SPORTS (360P)",beIN France 3
-http://127.0.0.1:8087/live/207119423819863852.m3u8
+http://127.0.0.1:8099/live/207119423819863852.m3u8
 #EXTINF:-1 tvg-id="207119423815826699" tvg-name="beIN News" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/NEWS_DIGITAL_Mono.png" group-title="beIN SPORTS (360P)",beIN News
-http://127.0.0.1:8087/live/207119423815826699.m3u8
+http://127.0.0.1:8099/live/207119423815826699.m3u8
 #EXTINF:-1 tvg-id="207119423817469850" tvg-name="beIN SPORTS" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/bein_SPORTS_FTA_DIGITAL_Mono.png" group-title="beIN SPORTS (360P)",beIN SPORTS
-http://127.0.0.1:8087/live/207119423817469850.m3u8
+http://127.0.0.1:8099/live/207119423817469850.m3u8
 #EXTINF:-1 tvg-id="207119423814129713" tvg-name="beIN English 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS1_ENGLISH_Digital_Mono.png" group-title="beIN SPORTS (360P)",beIN English 1
-http://127.0.0.1:8087/live/207119423814129713.m3u8
+http://127.0.0.1:8099/live/207119423814129713.m3u8
 #EXTINF:-1 tvg-id="207119423814874296" tvg-name="beIN English 2" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS2_ENGLISH_Digital_Mono.png" group-title="beIN SPORTS (360P)",beIN English 2
-http://127.0.0.1:8087/live/207119423814874296.m3u8
+http://127.0.0.1:8099/live/207119423814874296.m3u8
 #EXTINF:-1 tvg-id="207119423811735772" tvg-name="beIN English 3" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS3_ENGLISH_Digital_Mono.png" group-title="beIN SPORTS (360P)",beIN English 3
-http://127.0.0.1:8087/live/207119423811735772.m3u8
+http://127.0.0.1:8099/live/207119423811735772.m3u8
 #EXTINF:-1 tvg-id="207119423807681216" tvg-name="beIN SPORTS 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS1_DIGITAL_Mono.png" group-title="beIN SPORTS (244P)",beIN SPORTS 1
-http://127.0.0.1:8087/live/207119423807681216.m3u8
+http://127.0.0.1:8099/live/207119423807681216.m3u8
 #EXTINF:-1 tvg-id="207119423809212441" tvg-name="beIN SPORTS 2" tvg-logo="https://assets.bein.com/mena/sites/4/2021/02/beIN_SPORTS2_DIGITAL_Mono.png" group-title="beIN SPORTS (244P)",beIN SPORTS 2
-http://127.0.0.1:8087/live/207119423809212441.m3u8
+http://127.0.0.1:8099/live/207119423809212441.m3u8
 #EXTINF:-1 tvg-id="207119423806334350" tvg-name="beIN SPORTS 3" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS3_DIGITAL_Mono.png" group-title="beIN SPORTS (244P)",beIN SPORTS 3
-http://127.0.0.1:8087/live/207119423806334350.m3u8
+http://127.0.0.1:8099/live/207119423806334350.m3u8
 #EXTINF:-1 tvg-id="207119423807151631" tvg-name="beIN SPORTS 4" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS4_DIGITAL_Mono.png" group-title="beIN SPORTS (244P)",beIN SPORTS 4
-http://127.0.0.1:8087/live/207119423807151631.m3u8
+http://127.0.0.1:8099/live/207119423807151631.m3u8
 #EXTINF:-1 tvg-id="207119423836992676" tvg-name="beIN SPORTS 5" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS5_DIGITAL_Mono.png" group-title="beIN SPORTS (244P)",beIN SPORTS 5
-http://127.0.0.1:8087/live/207119423836992676.m3u8
+http://127.0.0.1:8099/live/207119423836992676.m3u8
 #EXTINF:-1 tvg-id="207119423838078797" tvg-name="beIN SPORTS 6" tvg-logo="https://assets.bein.com/mena/sites/4/2021/02/beIN_SPORTS6_DIGITAL_Mono.png" group-title="beIN SPORTS (244P)",beIN SPORTS 6
-http://127.0.0.1:8087/live/207119423838078797.m3u8
+http://127.0.0.1:8099/live/207119423838078797.m3u8
 #EXTINF:-1 tvg-id="207119423835276823" tvg-name="beIN SPORTS 7" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS7_DIGITAL_Mono.png" group-title="beIN SPORTS (244P)",beIN SPORTS 7
-http://127.0.0.1:8087/live/207119423835276823.m3u8
+http://127.0.0.1:8099/live/207119423835276823.m3u8
 #EXTINF:-1 tvg-id="207119423835971094" tvg-name="beIN SPORTS 8" tvg-logo="https://assets.bein.com/mena/sites/4/2023/09/logos-_beINSPORTS8.png" group-title="beIN SPORTS (244P)",beIN SPORTS 8
-http://127.0.0.1:8087/live/207119423835971094.m3u8
+http://127.0.0.1:8099/live/207119423835971094.m3u8
 #EXTINF:-1 tvg-id="207119423833286881" tvg-name="beIN SPORTS 9" tvg-logo="https://assets.bein.com/mena/sites/4/2023/09/logos-_beINSPORTS9.png" group-title="beIN SPORTS (244P)",beIN SPORTS 9
-http://127.0.0.1:8087/live/207119423833286881.m3u8
+http://127.0.0.1:8099/live/207119423833286881.m3u8
 #EXTINF:-1 tvg-id="207119423813289765" tvg-name="beIN XTRA 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS_XTRA1_Digital_Mono.png" group-title="beIN SPORTS (244P)",beIN XTRA 1
-http://127.0.0.1:8087/live/207119423813289765.m3u8
+http://127.0.0.1:8099/live/207119423813289765.m3u8
 #EXTINF:-1 tvg-id="207119423809639498" tvg-name="beIN XTRA 2" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS_XTRA2_Digital_Mono.png" group-title="beIN SPORTS (244P)",beIN XTRA 2
-http://127.0.0.1:8087/live/207119423809639498.m3u8
+http://127.0.0.1:8099/live/207119423809639498.m3u8
 #EXTINF:-1 tvg-id="207119423810589371" tvg-name="beIN XTRA 3" tvg-logo="https://assets.bein.com/mena/sites/4/2023/09/logos-_beINSPORTSXTRA3.png" group-title="beIN SPORTS (244P)",beIN XTRA 3
-http://127.0.0.1:8087/live/207119423810589371.m3u8
+http://127.0.0.1:8099/live/207119423810589371.m3u8
 #EXTINF:-1 tvg-id="207119423834366632" tvg-name="beIN France 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS1_FRENCH_Digital_Mono.png" group-title="beIN SPORTS (244P)",beIN France 1
-http://127.0.0.1:8087/live/207119423834366632.m3u8
+http://127.0.0.1:8099/live/207119423834366632.m3u8
 #EXTINF:-1 tvg-id="207119423831228643" tvg-name="beIN France 2" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS2_FRENCH_Digital_Mono.png" group-title="beIN SPORTS (244P)",beIN France 2
-http://127.0.0.1:8087/live/207119423831228643.m3u8
+http://127.0.0.1:8099/live/207119423831228643.m3u8
 #EXTINF:-1 tvg-id="207119423832078802" tvg-name="beIN France 3" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS3_FRENCH_Digital_Mono.png" group-title="beIN SPORTS (244P)",beIN France 3
-http://127.0.0.1:8087/live/207119423832078802.m3u8
+http://127.0.0.1:8099/live/207119423832078802.m3u8
 #EXTINF:-1 tvg-id="207119423828653453" tvg-name="beIN News" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/NEWS_DIGITAL_Mono.png" group-title="beIN SPORTS (244P)",beIN News
-http://127.0.0.1:8087/live/207119423828653453.m3u8
+http://127.0.0.1:8099/live/207119423828653453.m3u8
 #EXTINF:-1 tvg-id="207119423829664484" tvg-name="beIN SPORTS" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/bein_SPORTS_FTA_DIGITAL_Mono.png" group-title="beIN SPORTS (244P)",beIN SPORTS
-http://127.0.0.1:8087/live/207119423829664484.m3u8
+http://127.0.0.1:8099/live/207119423829664484.m3u8
 #EXTINF:-1 tvg-id="207119423826356559" tvg-name="beIN English 1" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS1_ENGLISH_Digital_Mono.png" group-title="beIN SPORTS (244P)",beIN English 1
-http://127.0.0.1:8087/live/207119423826356559.m3u8
+http://127.0.0.1:8099/live/207119423826356559.m3u8
 #EXTINF:-1 tvg-id="207119423828366286" tvg-name="beIN English 2" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS2_ENGLISH_Digital_Mono.png" group-title="beIN SPORTS (244P)",beIN English 2
-http://127.0.0.1:8087/live/207119423828366286.m3u8
+http://127.0.0.1:8099/live/207119423828366286.m3u8
 #EXTINF:-1 tvg-id="207119423871359120" tvg-name="beIN English 3" tvg-logo="https://assets.bein.com/mena/sites/4/2015/06/beIN_SPORTS3_ENGLISH_Digital_Mono.png" group-title="beIN SPORTS (244P)",beIN English 3
-http://127.0.0.1:8087/live/207119423871359120.m3u8
+http://127.0.0.1:8099/live/207119423871359120.m3u8
 #EXTINF:-1 tvg-id="207119423824954498" tvg-name="beIN Boomerang" tvg-logo="https://assets.bein.com/mena/sites/3/2015/06/0000_Boomerang_tv_logo.png" group-title="beIN ENTERTAINMENT",beIN Boomerang
-http://127.0.0.1:8087/live/207119423824954498.m3u8
+http://127.0.0.1:8099/live/207119423824954498.m3u8
 #EXTINF:-1 tvg-id="207119423825801043" tvg-name="beIN Jeem" tvg-logo="https://assets.bein.com/mena/sites/3/2020/06/Jeem-HD-1-01.png" group-title="beIN ENTERTAINMENT",beIN Jeem
-http://127.0.0.1:8087/live/207119423825801043.m3u8
+http://127.0.0.1:8099/live/207119423825801043.m3u8
 #EXTINF:-1 tvg-id="207119423822730068" tvg-name="beIN Baraem" tvg-logo="https://www.bein.com/en/wp-content/uploads/sites/3/2020/06/Bara3em-1.png" group-title="beIN ENTERTAINMENT",beIN Baraem
-http://127.0.0.1:8087/live/207119423822730068.m3u8
+http://127.0.0.1:8099/live/207119423822730068.m3u8
 #EXTINF:-1 tvg-id="207119423823930045" tvg-name="beIN Fatafeat" tvg-logo="https://www.bein.com/en/wp-content/uploads/sites/3/2020/06/FATAFEAT-1.png" group-title="beIN ENTERTAINMENT",beIN Fatafeat
-http://127.0.0.1:8087/live/207119423823930045.m3u8
+http://127.0.0.1:8099/live/207119423823930045.m3u8
 #EXTINF:-1 tvg-id="207119423854207750" tvg-name="beIN Drama" tvg-logo="https://assets.bein.com/mena/sites/3/2015/06/DRAMA_DIGITAL_Mono.png" group-title="beIN ENTERTAINMENT",beIN Drama
-http://127.0.0.1:8087/live/207119423854207750.m3u8
+http://127.0.0.1:8099/live/207119423854207750.m3u8
 #EXTINF:-1 tvg-id="207119423855245191" tvg-name="beIN Gourmet" tvg-logo="https://assets.bein.com/mena/sites/3/2015/06/GOURMET_DIGITAL_Mono.png" group-title="beIN ENTERTAINMENT",beIN Gourmet
-http://127.0.0.1:8087/live/207119423855245191.m3u8
+http://127.0.0.1:8099/live/207119423855245191.m3u8
 #EXTINF:-1 tvg-id="207119423851757528" tvg-name="beIN Series 1" tvg-logo="https://assets.bein.com/mena/sites/3/2015/06/SERIES1_DIGITAL_Mono.png" group-title="beIN ENTERTAINMENT",beIN Series 1
-http://127.0.0.1:8087/live/207119423851757528.m3u8
+http://127.0.0.1:8099/live/207119423851757528.m3u8
 #EXTINF:-1 tvg-id="207119423852840145" tvg-name="beIN Series 2" tvg-logo="https://assets.bein.com/mena/sites/3/2015/06/SERIES2_DIGITAL_Mono.png" group-title="beIN ENTERTAINMENT",beIN Series 2
-http://127.0.0.1:8087/live/207119423852840145.m3u8
+http://127.0.0.1:8099/live/207119423852840145.m3u8
 #EXTINF:-1 tvg-id="207119423849582266" tvg-name="beIN Movies 1" tvg-logo="https://assets.bein.com/mena/sites/3/2015/06/MOVIES1_PREMIERE_DIGITAL_Mono.png" group-title="beIN ENTERTAINMENT",beIN Movies 1
-http://127.0.0.1:8087/live/207119423849582266.m3u8
+http://127.0.0.1:8099/live/207119423849582266.m3u8
 #EXTINF:-1 tvg-id="207119423851285419" tvg-name="beIN Movies 2" tvg-logo="https://assets.bein.com/mena/sites/3/2015/06/MOVIES2_ACTION_DIGITAL_Mono.png" group-title="beIN ENTERTAINMENT",beIN Movies 2
-http://127.0.0.1:8087/live/207119423851285419.m3u8
+http://127.0.0.1:8099/live/207119423851285419.m3u8
 #EXTINF:-1 tvg-id="207119423847495405" tvg-name="beIN Movies 3" tvg-logo="https://assets.bein.com/mena/sites/3/2015/06/MOVIES3_DRAMA_DIGITAL_Mono.png" group-title="beIN ENTERTAINMENT",beIN Movies 3
-http://127.0.0.1:8087/live/207119423847495405.m3u8
+http://127.0.0.1:8099/live/207119423847495405.m3u8
 #EXTINF:-1 tvg-id="207119423849269060" tvg-name="beIN Movies 4" tvg-logo="https://assets.bein.com/mena/sites/3/2015/06/MOVIES4_FAMILY_DIGITAL_Mono.png" group-title="beIN ENTERTAINMENT",beIN Movies 4
-http://127.0.0.1:8087/live/207119423849269060.m3u8
+http://127.0.0.1:8099/live/207119423849269060.m3u8
 #EXTINF:-1 tvg-id="207119423102829069" tvg-name="beIN BOX OFFICE" tvg-logo="https://assets.bein.com/mena/sites/3/2015/06/BoxOffice1_DIGITAL_Mono.png" group-title="beIN ENTERTAINMENT",beIN BOX OFFICE
-http://127.0.0.1:8087/live/207119423102829069.m3u8
+http://127.0.0.1:8099/live/207119423102829069.m3u8
 #EXTINF:-1 tvg-id="207119423086597251" tvg-name="Alkass 1" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/45/Alkass_Sports_logo_%28cropped%29.jpg" group-title="ALKASS",Alkass 1
-http://127.0.0.1:8087/live/207119423086597251.m3u8
+http://127.0.0.1:8099/live/207119423086597251.m3u8
 #EXTINF:-1 tvg-id="207119423087827314" tvg-name="Alkass 2" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/45/Alkass_Sports_logo_%28cropped%29.jpg" group-title="ALKASS",Alkass 2
-http://127.0.0.1:8087/live/207119423087827314.m3u8
+http://127.0.0.1:8099/live/207119423087827314.m3u8
 #EXTINF:-1 tvg-id="207119423084895533" tvg-name="Alkass 3" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/45/Alkass_Sports_logo_%28cropped%29.jpg" group-title="ALKASS",Alkass 3
-http://127.0.0.1:8087/live/207119423084895533.m3u8
+http://127.0.0.1:8099/live/207119423084895533.m3u8
 #EXTINF:-1 tvg-id="207119423085197956" tvg-name="Alkass 4" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/45/Alkass_Sports_logo_%28cropped%29.jpg" group-title="ALKASS",Alkass 4
-http://127.0.0.1:8087/live/207119423085197956.m3u8
+http://127.0.0.1:8099/live/207119423085197956.m3u8
 #EXTINF:-1 tvg-id="207119423116137327" tvg-name="Alkass 5" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/45/Alkass_Sports_logo_%28cropped%29.jpg" group-title="ALKASS",Alkass 5
-http://127.0.0.1:8087/live/207119423116137327.m3u8
+http://127.0.0.1:8099/live/207119423116137327.m3u8
 #EXTINF:-1 tvg-id="207119423338230217" tvg-name="Alkass 6" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/45/Alkass_Sports_logo_%28cropped%29.jpg" group-title="ALKASS",Alkass 6
-http://127.0.0.1:8087/live/207119423338230217.m3u8
+http://127.0.0.1:8099/live/207119423338230217.m3u8
 #EXTINF:-1 tvg-id="207119423339607536" tvg-name="Alkass 7" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/45/Alkass_Sports_logo_%28cropped%29.jpg" group-title="ALKASS",Alkass 7
-http://127.0.0.1:8087/live/207119423339607536.m3u8
+http://127.0.0.1:8099/live/207119423339607536.m3u8
 #EXTINF:-1 tvg-id="207119423668072926" tvg-name="Alkass 8" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/45/Alkass_Sports_logo_%28cropped%29.jpg" group-title="ALKASS",Alkass 8
-http://127.0.0.1:8087/live/207119423668072926.m3u8
+http://127.0.0.1:8099/live/207119423668072926.m3u8
 #EXTINF:-1 tvg-id="207119423915818743" tvg-name="MBC 1" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/8/81/Mbc1logo.png" group-title="MBC CHANNELS",MBC 1
-http://127.0.0.1:8087/live/207119423915818743.m3u8
+http://127.0.0.1:8099/live/207119423915818743.m3u8
 #EXTINF:-1 tvg-id="207119423912984840" tvg-name="MBC 2" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/5/50/MBC2_Logo.png" group-title="MBC CHANNELS",MBC 2
-http://127.0.0.1:8087/live/207119423912984840.m3u8
+http://127.0.0.1:8099/live/207119423912984840.m3u8
 #EXTINF:-1 tvg-id="207119423913874625" tvg-name="MBC 3" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/62/MBC_3_Transparent_Background_Logo.png" group-title="MBC CHANNELS",MBC 3
-http://127.0.0.1:8087/live/207119423913874625.m3u8
+http://127.0.0.1:8099/live/207119423913874625.m3u8
 #EXTINF:-1 tvg-id="207119423911074794" tvg-name="MBC 4" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/MBC_4_Logo.svg/1280px-MBC_4_Logo.svg.png" group-title="MBC CHANNELS",MBC 4
-http://127.0.0.1:8087/live/207119423911074794.m3u8
+http://127.0.0.1:8099/live/207119423911074794.m3u8
 #EXTINF:-1 tvg-id="207119423911865179" tvg-name="MBC 5" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/3/3b/5_MBC.webp" group-title="MBC CHANNELS",MBC 5
-http://127.0.0.1:8087/live/207119423911865179.m3u8
+http://127.0.0.1:8099/live/207119423911865179.m3u8
 #EXTINF:-1 tvg-id="207119423919418546" tvg-name="MBC IRAQ" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/9/99/MBC_Iraq.svg" group-title="MBC CHANNELS",MBC IRAQ
-http://127.0.0.1:8087/live/207119423919418546.m3u8
+http://127.0.0.1:8099/live/207119423919418546.m3u8
 #EXTINF:-1 tvg-id="207119423919862979" tvg-name="MBC Maser" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/7/7c/MBC_Masr_Logo.png" group-title="MBC CHANNELS",MBC Maser
-http://127.0.0.1:8087/live/207119423919862979.m3u8
+http://127.0.0.1:8099/live/207119423919862979.m3u8
 #EXTINF:-1 tvg-id="207119423917107908" tvg-name="MBC Masr 2" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/MBC_Masr_2_Logo.svg/960px-MBC_Masr_2_Logo.svg.png" group-title="MBC CHANNELS",MBC Masr 2
-http://127.0.0.1:8087/live/207119423917107908.m3u8
+http://127.0.0.1:8099/live/207119423917107908.m3u8
 #EXTINF:-1 tvg-id="207119423918479981" tvg-name="MBC Drama" tvg-logo="https://4.bp.blogspot.com/-xdlWCS_9bjo/WxKH_A9QB4I/AAAAAAAATlM/7uO647kh7tACExdgVrp6VJg4CIYEhDO8gCLcBGAs/s1600/mbc_ae_drama_hd%2BFrequency.png" group-title="MBC CHANNELS",MBC Drama
-http://127.0.0.1:8087/live/207119423918479981.m3u8
+http://127.0.0.1:8099/live/207119423918479981.m3u8
 #EXTINF:-1 tvg-id="207119423914567286" tvg-name="MBC Drama %2B" tvg-logo="http://www.tunisvista.com/medias/mbc-drama-plus-tv-live-online-streaming.png" group-title="MBC CHANNELS",MBC Drama %2B
-http://127.0.0.1:8087/live/207119423914567286.m3u8
+http://127.0.0.1:8099/live/207119423914567286.m3u8
 #EXTINF:-1 tvg-id="207119423907160900" tvg-name="MBC Maser Drama" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/61/MBC_Masr_Drama_Logo.svg" group-title="MBC CHANNELS",MBC Maser Drama
-http://127.0.0.1:8087/live/207119423907160900.m3u8
+http://127.0.0.1:8099/live/207119423907160900.m3u8
 #EXTINF:-1 tvg-id="207119423908867395" tvg-name="MBC Action" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/6/6b/1logo_mbc_action.png" group-title="MBC CHANNELS",MBC Action
-http://127.0.0.1:8087/live/207119423908867395.m3u8
+http://127.0.0.1:8099/live/207119423908867395.m3u8
 #EXTINF:-1 tvg-id="207119423909471538" tvg-name="MBC Max" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/3/32/MBC_Max_logo.png" group-title="MBC CHANNELS",MBC Max
-http://127.0.0.1:8087/live/207119423909471538.m3u8
+http://127.0.0.1:8099/live/207119423909471538.m3u8
 #EXTINF:-1 tvg-id="207119423906435821" tvg-name="MBC Bollywood" tvg-logo="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/7d8b44a9-c029-43b0-9982-bf2769d2232a/djp77td-9f83df44-afc5-4a34-aa20-5238df55770e.png/v1/fill/w_447,h_773/mbc_bollywood_logo_letter_b_2013_now__by_gaafar278_djp77td-fullview.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NzczIiwicGF0aCI6IlwvZlwvN2Q4YjQ0YTktYzAyOS00M2IwLTk5ODItYmYyNzY5ZDIyMzJhXC9kanA3N3RkLTlmODNkZjQ0LWFmYzUtNGEzNC1hYTIwLTUyMzhkZjU1NzcwZS5wbmciLCJ3aWR0aCI6Ijw9NDQ3In1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.-dna2joeA5yAh_AQBwm2RpTWROXKh0ZyvLWA64thi-M" group-title="MBC CHANNELS",MBC Bollywood
-http://127.0.0.1:8087/live/207119423906435821.m3u8
+http://127.0.0.1:8099/live/207119423906435821.m3u8
 #EXTINF:-1 tvg-id="207119423938377591" tvg-name="MBC FM" tvg-logo="https://www.lyngsat.com/logo/radio/mm/mbc_ae_fm.png" group-title="MBC CHANNELS",MBC FM
-http://127.0.0.1:8087/live/207119423938377591.m3u8
+http://127.0.0.1:8099/live/207119423938377591.m3u8
 #EXTINF:-1 tvg-id="207119423939223286" tvg-name="Panorama FM" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Panorama_FM_Logo.svg/1200px-Panorama_FM_Logo.svg.png" group-title="MBC CHANNELS",Panorama FM
-http://127.0.0.1:8087/live/207119423939223286.m3u8
+http://127.0.0.1:8099/live/207119423939223286.m3u8
 #EXTINF:-1 tvg-id="207119423935384897" tvg-name="Wanasah" tvg-logo="https://upload.wikimedia.org/wikipedia/ar/5/51/Wanasah.png" group-title="MBC CHANNELS",Wanasah
-http://127.0.0.1:8087/live/207119423935384897.m3u8
+http://127.0.0.1:8099/live/207119423935384897.m3u8
 #EXTINF:-1 tvg-id="207119423992150838" tvg-name="France 2" tvg-logo="https://www.francetvpub.fr/wp-content/uploads/2018/01/france_2_logo_rvb_2_couleur_noir-crop-1-300x239.png" group-title="FRANCE CHANNELS",France 2
-http://127.0.0.1:8087/live/207119423992150838.m3u8
+http://127.0.0.1:8099/live/207119423992150838.m3u8
 #EXTINF:-1 tvg-id="207119423993402295" tvg-name="France 3" tvg-logo="https://www.francetvpub.fr/wp-content/uploads/2018/01/france_3_logo_rvb_3_couleur_noir-crop-1-300x239.png" group-title="FRANCE CHANNELS",France 3
-http://127.0.0.1:8087/live/207119423993402295.m3u8
+http://127.0.0.1:8099/live/207119423993402295.m3u8
 #EXTINF:-1 tvg-id="207119423990875592" tvg-name="France 4" tvg-logo="https://www.francetvpub.fr/wp-content/uploads/2018/01/france_4_logo_rvb_4_couleur_noir-crop-1-300x239.png" group-title="FRANCE CHANNELS",France 4
-http://127.0.0.1:8087/live/207119423990875592.m3u8
+http://127.0.0.1:8099/live/207119423990875592.m3u8
 #EXTINF:-1 tvg-id="207119423991765377" tvg-name="France 5" tvg-logo="https://www.francetvpub.fr/wp-content/uploads/2018/01/france_5_logo_rvb_5_couleur_noir-crop-1-300x239.png" group-title="FRANCE CHANNELS",France 5
-http://127.0.0.1:8087/live/207119423991765377.m3u8
+http://127.0.0.1:8099/live/207119423991765377.m3u8
 #EXTINF:-1 tvg-id="207119424022612355" tvg-name="France Info" tvg-logo="https://i.imgur.com/wbZEvwV.jpg" group-title="FRANCE CHANNELS",France Info
-http://127.0.0.1:8087/live/207119424022612355.m3u8
+http://127.0.0.1:8099/live/207119424022612355.m3u8
 #EXTINF:-1 tvg-id="207119424013022375" tvg-name="L%27Equipe 21" tvg-logo="https://www.eurotopics.net/cache/images/6/148686-medium_logo-teaser300.jpg?B8CBC" group-title="FRANCE CHANNELS",L%27Equipe 21
-http://127.0.0.1:8087/live/207119424013022375.m3u8
+http://127.0.0.1:8099/live/207119424013022375.m3u8
 #EXTINF:-1 tvg-id="207119424020164484" tvg-name="RMC Sport 1" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Logo_RMC_Sport_1_2018.svg/2560px-Logo_RMC_Sport_1_2018.svg.png" group-title="FRANCE CHANNELS",RMC Sport 1
-http://127.0.0.1:8087/live/207119424020164484.m3u8
+http://127.0.0.1:8099/live/207119424020164484.m3u8
 #EXTINF:-1 tvg-id="207119424020910637" tvg-name="RMC Sport 2" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Logo_RMC_Sport_2_2018.svg/2560px-Logo_RMC_Sport_2_2018.svg.png" group-title="FRANCE CHANNELS",RMC Sport 2
-http://127.0.0.1:8087/live/207119424020910637.m3u8
+http://127.0.0.1:8099/live/207119424020910637.m3u8
 #EXTINF:-1 tvg-id="207119424017110904" tvg-name="RMC Decouv" tvg-logo="https://i.imgur.com/VChW9T0.png" group-title="FRANCE CHANNELS",RMC Decouv
-http://127.0.0.1:8087/live/207119424017110904.m3u8
+http://127.0.0.1:8099/live/207119424017110904.m3u8
 #EXTINF:-1 tvg-id="207119424014337190" tvg-name="Eurosport 1" tvg-logo="https://cdn.broadbandtvnews.com/wp-content/uploads/2015/11/14120518/Eurosport-1-symbol.png" group-title="FRANCE CHANNELS",Eurosport 1
-http://127.0.0.1:8087/live/207119424014337190.m3u8
+http://127.0.0.1:8099/live/207119424014337190.m3u8
 #EXTINF:-1 tvg-id="207119424011212253" tvg-name="Eurosport 2" tvg-logo="https://cdn.broadbandtvnews.com/wp-content/uploads/2015/11/14120519/Eurosport-2-symbol.png" group-title="FRANCE CHANNELS",Eurosport 2
-http://127.0.0.1:8087/live/207119424011212253.m3u8
+http://127.0.0.1:8099/live/207119424011212253.m3u8
 #EXTINF:-1 tvg-id="207119423603649061" tvg-name="TV5MONDE Maghreb" tvg-logo="https://1.bp.blogspot.com/-bW7xOg7vH6s/XLaxxdalFxI/AAAAAAAAMYk/A6h5rS9XG44A2vj8iaE99mK0JLHZt-zpACLcBGAs/w0/download%2B%25281%2529.jpeg" group-title="FRANCE CHANNELS",TV5MONDE Maghreb
-http://127.0.0.1:8087/live/207119423603649061.m3u8
+http://127.0.0.1:8099/live/207119423603649061.m3u8
 #EXTINF:-1 tvg-id="207119423599839374" tvg-name="TV5MONDE Europe" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Logo_TV5_Monde_-_2021.svg/1200px-Logo_TV5_Monde_-_2021.svg.png" group-title="FRANCE CHANNELS",TV5MONDE Europe
-http://127.0.0.1:8087/live/207119423599839374.m3u8
+http://127.0.0.1:8099/live/207119423599839374.m3u8
 #EXTINF:-1 tvg-id="207119424039892749" tvg-name="Euronews" tvg-logo="https://i.imgur.com/pjsFXSQ.jpg" group-title="FRANCE CHANNELS",Euronews
-http://127.0.0.1:8087/live/207119424039892749.m3u8
+http://127.0.0.1:8099/live/207119424039892749.m3u8
 #EXTINF:-1 tvg-id="207119424037026642" tvg-name="RT France" tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWoq8uhLsQ7Ljlj1fnyLxPKl-yS2HT4NghMWGg12k1GUc7mZG2YotVQ4r0XMsgifpJfDQ&amp;usqp=CAU" group-title="FRANCE CHANNELS",RT France
-http://127.0.0.1:8087/live/207119424037026642.m3u8
+http://127.0.0.1:8099/live/207119424037026642.m3u8
 #EXTINF:-1 tvg-id="207119424037225059" tvg-name="France 24" tvg-logo="https://upload.wikimedia.org/wikipedia/en/thumb/6/65/FRANCE_24_logo.svg/1200px-FRANCE_24_logo.svg.png" group-title="FRANCE CHANNELS",France 24
-http://127.0.0.1:8087/live/207119424037225059.m3u8
+http://127.0.0.1:8099/live/207119424037225059.m3u8
 #EXTINF:-1 tvg-id="207119424034071592" tvg-name="TV5Monde Info" tvg-logo="https://i.ibb.co/drk4BWw/tv5inf.png" group-title="FRANCE CHANNELS",TV5Monde Info
-http://127.0.0.1:8087/live/207119424034071592.m3u8
+http://127.0.0.1:8099/live/207119424034071592.m3u8
 #EXTINF:-1 tvg-id="207119422730152967" tvg-name="C8" tvg-logo="https://i.imgur.com/xjGbYQi.png" group-title="FRANCE CHANNELS",C8
-http://127.0.0.1:8087/live/207119422730152967.m3u8
+http://127.0.0.1:8099/live/207119422730152967.m3u8
 #EXTINF:-1 tvg-id="207119422731212678" tvg-name="CNEWS" tvg-logo="https://i.imgur.com/4fWH8g7.png" group-title="FRANCE CHANNELS",CNEWS
-http://127.0.0.1:8087/live/207119422731212678.m3u8
+http://127.0.0.1:8099/live/207119422731212678.m3u8
 #EXTINF:-1 tvg-id="207119422727747921" tvg-name="CSTAR" tvg-logo="https://i.imgur.com/QhAvgum.png" group-title="FRANCE CHANNELS",CSTAR
-http://127.0.0.1:8087/live/207119422727747921.m3u8
+http://127.0.0.1:8099/live/207119422727747921.m3u8
 #EXTINF:-1 tvg-id="207119422728762456" tvg-name="Public S%C3%A9nat" tvg-logo="https://i.imgur.com/bHNBylU.png" group-title="FRANCE CHANNELS",Public S%C3%A9nat
-http://127.0.0.1:8087/live/207119422728762456.m3u8
+http://127.0.0.1:8099/live/207119422728762456.m3u8
 #EXTINF:-1 tvg-id="207119423556494514" tvg-name="Tivi5MONDE" tvg-logo="https://www.tivi5mondeplus.com/sites/tivi5mondeplus.com/files/logo-ti5monde.png" group-title="FRANCE CHANNELS",Tivi5MONDE
-http://127.0.0.1:8087/live/207119423556494514.m3u8
+http://127.0.0.1:8099/live/207119423556494514.m3u8
 #EXTINF:-1 tvg-id="207119423556938947" tvg-name="TV5MONDE Style" tvg-logo="https://i.ibb.co/WPbxmgn/tv5style.png" group-title="FRANCE CHANNELS",TV5MONDE Style
-http://127.0.0.1:8087/live/207119423556938947.m3u8
+http://127.0.0.1:8099/live/207119423556938947.m3u8
 #EXTINF:-1 tvg-id="207119424012372596" tvg-name="TF1 Series" tvg-logo="https://i.imgur.com/1lpHGSP.png" group-title="FRANCE CHANNELS",TF1 Series
-http://127.0.0.1:8087/live/207119424012372596.m3u8
+http://127.0.0.1:8099/live/207119424012372596.m3u8
 #EXTINF:-1 tvg-id="207119424009481715" tvg-name="TF1" tvg-logo="https://i.imgur.com/01CWUCT.png" group-title="FRANCE CHANNELS",TF1
-http://127.0.0.1:8087/live/207119424009481715.m3u8
+http://127.0.0.1:8099/live/207119424009481715.m3u8
 #EXTINF:-1 tvg-id="207119424010195746" tvg-name="LCI" tvg-logo="https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/La_Cha%C3%AEne_Info_%28logo%29.svg/800px-La_Cha%C3%AEne_Info_%28logo%29.svg.png" group-title="FRANCE CHANNELS",LCI
-http://127.0.0.1:8087/live/207119424010195746.m3u8
+http://127.0.0.1:8099/live/207119424010195746.m3u8
 #EXTINF:-1 tvg-id="207119424007166761" tvg-name="TFX TV" tvg-logo="https://i.imgur.com/7eH9uT9.png" group-title="FRANCE CHANNELS",TFX TV
-http://127.0.0.1:8087/live/207119424007166761.m3u8
+http://127.0.0.1:8099/live/207119424007166761.m3u8
 #EXTINF:-1 tvg-id="207119424008700112" tvg-name="TMC TV" tvg-logo="https://i.imgur.com/cCKQzji.png" group-title="FRANCE CHANNELS",TMC TV
-http://127.0.0.1:8087/live/207119424008700112.m3u8
+http://127.0.0.1:8099/live/207119424008700112.m3u8
 #EXTINF:-1 tvg-id="207119424276390408" tvg-name="Arte" tvg-logo="https://i.imgur.com/Pq5E77e.png" group-title="FRANCE CHANNELS",Arte
-http://127.0.0.1:8087/live/207119424276390408.m3u8
+http://127.0.0.1:8099/live/207119424276390408.m3u8
 #EXTINF:-1 tvg-id="207119423574886719" tvg-name="BFM Toulon" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Logo_BFM_Toulon_Var.svg/1200px-Logo_BFM_Toulon_Var.svg.png" group-title="FRANCE CHANNELS",BFM Toulon
-http://127.0.0.1:8087/live/207119423574886719.m3u8
+http://127.0.0.1:8099/live/207119423574886719.m3u8
 #EXTINF:-1 tvg-id="207119423573064317" tvg-name="BFM Normandie" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Logo_BFM_Normandie.svg/1200px-Logo_BFM_Normandie.svg.png" group-title="FRANCE CHANNELS",BFM Normandie
-http://127.0.0.1:8087/live/207119423573064317.m3u8
+http://127.0.0.1:8099/live/207119423573064317.m3u8
 #EXTINF:-1 tvg-id="207119423574280212" tvg-name="BFM Nice" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Logo_BFM_Nice_C%C3%B4te_d_Azur.svg/640px-Logo_BFM_Nice_C%C3%B4te_d_Azur.svg.png" group-title="FRANCE CHANNELS",BFM Nice
-http://127.0.0.1:8087/live/207119423574280212.m3u8
+http://127.0.0.1:8099/live/207119423574280212.m3u8
 #EXTINF:-1 tvg-id="207119423570638666" tvg-name="BFM Marseille" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Logo_BFM_Marseille_Provence.svg/1200px-Logo_BFM_Marseille_Provence.svg.png" group-title="FRANCE CHANNELS",BFM Marseille
-http://127.0.0.1:8087/live/207119423570638666.m3u8
+http://127.0.0.1:8099/live/207119423570638666.m3u8
 #EXTINF:-1 tvg-id="207119423571588539" tvg-name="BFM H.Provence" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/BFM-DICI_Haute-Provence.png/800px-BFM-DICI_Haute-Provence.png" group-title="FRANCE CHANNELS",BFM H.Provence
-http://127.0.0.1:8087/live/207119423571588539.m3u8
+http://127.0.0.1:8099/live/207119423571588539.m3u8
 #EXTINF:-1 tvg-id="207119423602095068" tvg-name="BFM Alpes" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/BFM-DICI_Alpes_du_Sud.png/2048px-BFM-DICI_Alpes_du_Sud.png" group-title="FRANCE CHANNELS",BFM Alpes
-http://127.0.0.1:8087/live/207119423602095068.m3u8
+http://127.0.0.1:8099/live/207119423602095068.m3u8
 #EXTINF:-1 tvg-id="207119423378023876" tvg-name="BFM TV" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Logo_BFMTV_2019.svg/800px-Logo_BFMTV_2019.svg.png" group-title="FRANCE CHANNELS",BFM TV
-http://127.0.0.1:8087/live/207119423378023876.m3u8
+http://127.0.0.1:8099/live/207119423378023876.m3u8
 #EXTINF:-1 tvg-id="207119423379395949" tvg-name="BFM Alsace" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Logo_BFM_Alsace.svg/langfr-800px-Logo_BFM_Alsace.svg.png" group-title="FRANCE CHANNELS",BFM Alsace
-http://127.0.0.1:8087/live/207119423379395949.m3u8
+http://127.0.0.1:8099/live/207119423379395949.m3u8
 #EXTINF:-1 tvg-id="207119423376140210" tvg-name="BFM Lyon" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Logo_BFM_Lyon.svg/langfr-150px-Logo_BFM_Lyon.svg.png" group-title="FRANCE CHANNELS",BFM Lyon
-http://127.0.0.1:8087/live/207119423376140210.m3u8
+http://127.0.0.1:8099/live/207119423376140210.m3u8
 #EXTINF:-1 tvg-id="207119423376584643" tvg-name="BFM Business" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Logo_BFM_Business_2020.svg/600px-Logo_BFM_Business_2020.svg.png" group-title="FRANCE CHANNELS",BFM Business
-http://127.0.0.1:8087/live/207119423376584643.m3u8
+http://127.0.0.1:8099/live/207119423376584643.m3u8
 #EXTINF:-1 tvg-id="207119424035088993" tvg-name="BFM Lille" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Logo_BFM_Grand_Lille.svg/langfr-800px-Logo_BFM_Grand_Lille.svg.png" group-title="FRANCE CHANNELS",BFM Lille
-http://127.0.0.1:8087/live/207119424035088993.m3u8
+http://127.0.0.1:8099/live/207119424035088993.m3u8
 #EXTINF:-1 tvg-id="207119424032530326" tvg-name="BFM Littoral" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Logo_BFM_Grand_Littoral.svg/1200px-Logo_BFM_Grand_Littoral.svg.png" group-title="FRANCE CHANNELS",BFM Littoral
-http://127.0.0.1:8087/live/207119424032530326.m3u8
+http://127.0.0.1:8099/live/207119424032530326.m3u8
 #EXTINF:-1 tvg-id="207119424032884631" tvg-name="BFM Paris" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Logo_BFM_Paris_2022.svg/langfr-800px-Logo_BFM_Paris_2022.svg.png" group-title="FRANCE CHANNELS",BFM Paris
-http://127.0.0.1:8087/live/207119424032884631.m3u8
+http://127.0.0.1:8099/live/207119424032884631.m3u8
 #EXTINF:-1 tvg-id="207119423555144897" tvg-name="TECH%26CO" tvg-logo="https://upload.wikimedia.org/wikipedia/fr/thumb/8/83/Tech_%26_Co.svg/768px-Tech_%26_Co.svg.png" group-title="FRANCE CHANNELS",TECH%26CO
-http://127.0.0.1:8087/live/207119423555144897.m3u8
+http://127.0.0.1:8099/live/207119423555144897.m3u8
 #EXTINF:-1 tvg-id="207119424056011212" tvg-name="ACTION HD" tvg-logo="https://i.imgur.com/P92AHnO.png" group-title="FRANCE CHANNELS",ACTION HD
-http://127.0.0.1:8087/live/207119424056011212.m3u8
+http://127.0.0.1:8099/live/207119424056011212.m3u8
 #EXTINF:-1 tvg-id="207119424030326940" tvg-name="Paris Premier" tvg-logo="https://thumb.canalplus.pro/http/unsafe/epg.canal-plus.com/mycanal/img/CHN43FN/PNG/213X160/CHN43FB_294.PNG" group-title="FRANCE CHANNELS",Paris Premier
-http://127.0.0.1:8087/live/207119424030326940.m3u8
+http://127.0.0.1:8099/live/207119424030326940.m3u8
 #EXTINF:-1 tvg-id="207119424030832357" tvg-name="NRJ12" tvg-logo="https://i.imgur.com/VSS3lnq.png" group-title="FRANCE CHANNELS",NRJ12
-http://127.0.0.1:8087/live/207119424030832357.m3u8
+http://127.0.0.1:8099/live/207119424030832357.m3u8
 #EXTINF:-1 tvg-id="207119424027658495" tvg-name="NRJ Hits" tvg-logo="https://upload.wikimedia.org/wikipedia/fr/thumb/3/36/NRJ_Hits_2017.svg/1200px-NRJ_Hits_2017.svg.png" group-title="FRANCE CHANNELS",NRJ Hits
-http://127.0.0.1:8087/live/207119424027658495.m3u8
+http://127.0.0.1:8099/live/207119424027658495.m3u8
 #EXTINF:-1 tvg-id="207119424028680958" tvg-name="M6" tvg-logo="https://i.imgur.com/EilhGu3.png" group-title="FRANCE CHANNELS",M6
-http://127.0.0.1:8087/live/207119424028680958.m3u8
+http://127.0.0.1:8099/live/207119424028680958.m3u8
 #EXTINF:-1 tvg-id="207119424025882249" tvg-name="6ter" tvg-logo="https://i.imgur.com/gNnFfjR.png" group-title="FRANCE CHANNELS",6ter
-http://127.0.0.1:8087/live/207119424025882249.m3u8
+http://127.0.0.1:8099/live/207119424025882249.m3u8
 #EXTINF:-1 tvg-id="207119424027155632" tvg-name="W9" tvg-logo="https://i.imgur.com/kGcOLgq.png" group-title="FRANCE CHANNELS",W9
-http://127.0.0.1:8087/live/207119424027155632.m3u8
+http://127.0.0.1:8099/live/207119424027155632.m3u8
 #EXTINF:-1 tvg-id="207119424023727403" tvg-name="13 Eme Rue" tvg-logo="https://upload.wikimedia.org/wikipedia/fr/thumb/2/29/Logo_13e_Rue_%282017%29.svg/1200px-Logo_13e_Rue_%282017%29.svg.png" group-title="FRANCE CHANNELS",13 Eme Rue
-http://127.0.0.1:8087/live/207119424023727403.m3u8
+http://127.0.0.1:8099/live/207119424023727403.m3u8
 #EXTINF:-1 tvg-id="207119424055361621" tvg-name="CINE Emotion" tvg-logo="https://thumb.canalplus.pro/http/unsafe/epg.canal-plus.com/mycanal/img/CHN43FN/PNG/213X160/CHN43FB_396.PNG" group-title="FRANCE CHANNELS",CINE Emotion
-http://127.0.0.1:8087/live/207119424055361621.m3u8
+http://127.0.0.1:8099/live/207119424055361621.m3u8
 #EXTINF:-1 tvg-id="207119424025169978" tvg-name="CINE PREMIER" tvg-logo="https://thumb.canalplus.pro/http/unsafe/epg.canal-plus.com/mycanal/img/CHN43FN/PNG/213X160/CHN43FB_322.PNG" group-title="FRANCE CHANNELS",CINE PREMIER
-http://127.0.0.1:8087/live/207119424025169978.m3u8
+http://127.0.0.1:8099/live/207119424025169978.m3u8
 #EXTINF:-1 tvg-id="207119424052852999" tvg-name="CANAL PLUS" tvg-logo="https://i.imgur.com/c7sEUYE.png" group-title="FRANCE CHANNELS",CANAL PLUS
-http://127.0.0.1:8087/live/207119424052852999.m3u8
+http://127.0.0.1:8099/live/207119424052852999.m3u8
 #EXTINF:-1 tvg-id="207119424053912710" tvg-name="CANAL%2B SPORT" tvg-logo="https://thumb.canalplus.pro/http/unsafe/epg.canal-plus.com/mycanal/img/CHN43FN/PNG/213X160/CHN43FB_177.PNG" group-title="FRANCE CHANNELS",CANAL%2B SPORT
-http://127.0.0.1:8087/live/207119424053912710.m3u8
+http://127.0.0.1:8099/live/207119424053912710.m3u8
 #EXTINF:-1 tvg-id="207119424051329514" tvg-name="CANAL%2B CINEMA" tvg-logo="https://thumb.canalplus.pro/http/unsafe/epg.canal-plus.com/mycanal/img/CHN43FN/PNG/213X160/CHN43FB_198.PNG" group-title="FRANCE CHANNELS",CANAL%2B CINEMA
-http://127.0.0.1:8087/live/207119424051329514.m3u8
+http://127.0.0.1:8099/live/207119424051329514.m3u8
 #EXTINF:-1 tvg-id="207119424052119899" tvg-name="CANAL%2B DECALE" tvg-logo="https://thumb.canalplus.pro/http/unsafe/epg.canal-plus.com/mycanal/img/CHN43FN/PNG/213X160/CHN43FB_257.PNG" group-title="FRANCE CHANNELS",CANAL%2B DECALE
-http://127.0.0.1:8087/live/207119424052119899.m3u8
+http://127.0.0.1:8099/live/207119424052119899.m3u8
 #EXTINF:-1 tvg-id="207119424049429884" tvg-name="CANAL%2B FAMILY" tvg-logo="https://thumb.canalplus.pro/http/unsafe/epg.canal-plus.com/mycanal/img/CHN43FB/PNG/220X165/CHN43FB_259.PNG" group-title="FRANCE CHANNELS",CANAL%2B FAMILY
-http://127.0.0.1:8087/live/207119424049429884.m3u8
+http://127.0.0.1:8099/live/207119424049429884.m3u8
 #EXTINF:-1 tvg-id="207119424050235461" tvg-name="CANAL%2B SERIES" tvg-logo="https://thumb.canalplus.pro/http/unsafe/epg.canal-plus.com/mycanal/img/CHN43FB/PNG/213X160/CHN43FB_481.PNG" group-title="FRANCE CHANNELS",CANAL%2B SERIES
-http://127.0.0.1:8087/live/207119424050235461.m3u8
+http://127.0.0.1:8099/live/207119424050235461.m3u8
 #EXTINF:-1 tvg-id="207119424048137391" tvg-name="CANALPLAY 1" tvg-logo="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhEF64-3MIZZPB4_wluIL-3eqYCtQhymzYnSvGku4ksiMY7-yc-PEN4dsLN0yVWyoUSwubdMfBXcH5W9RGOryFgRQch8U1T3r9TJZrzTxgdJfnN7VpXe5omfioVW7cQqWhqvAk0BfsUB8R2FufkIByinX70mbrYCeLVI8XWB1ezY4jQO-d1ZPStAGev/s1600/canal_play_1.png" group-title="FRANCE CHANNELS",CANALPLAY 1
-http://127.0.0.1:8087/live/207119424048137391.m3u8
+http://127.0.0.1:8099/live/207119424048137391.m3u8
 #EXTINF:-1 tvg-id="207119424045043168" tvg-name="CANALPLAY 2" tvg-logo="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhsVo4FmCTijXss_4MtG75kX7ut1RnTd7xU7w_jneIkivHnJrqIDRphvH0UEqwg4RyE-unl0Bucye3t5A8yp_bMQbXkfUwaRYCo8xSSxVz6wUQWL9W4cdZOD_xNcNrAcCsPp_BhMt_hF-gn2tReR87FGp_L6wWe3WE1YZfyHMFWqv7WY4p8pbQit_PB/s1600/canal_play_2.png" group-title="FRANCE CHANNELS",CANALPLAY 2
-http://127.0.0.1:8087/live/207119424045043168.m3u8
+http://127.0.0.1:8099/live/207119424045043168.m3u8
 #EXTINF:-1 tvg-id="207119424045699129" tvg-name="CANALPLAY 3" tvg-logo="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgmOjdEyhOmgF4ggEihuLISwkM1kMFg6npotj_KGsDcclsjLclVAqT3cXXDF3udUJIS3rEi73VIHfNOO66Og3Jf6UPpeTsBUZKHvH1e0A_4jGpza0Ep0dPov-PUcwYcdxHpPHnmMZ1xD2S2U7HbtuVMpgFyKo56etoosjknSFDCyUigHAyGLZmWeNLH/s1600/canal_play_3.png" group-title="FRANCE CHANNELS",CANALPLAY 3
-http://127.0.0.1:8087/live/207119424045699129.m3u8
+http://127.0.0.1:8099/live/207119424045699129.m3u8
 #EXTINF:-1 tvg-id="207119424042896050" tvg-name="CANALPLAY 4" tvg-logo="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiPBBU3sKd705_pW31e11bvB-wn8qAYUfzLM4gy8Y6vnQ-euyrRouRHi-wjwy8cas4IxrV0OILOUK-9EKqDicZsXNlVVqP7ieu8fhu4iSG0mPQzLIZE7yUqxWPaONe6KWPlsbtnjLnUnWI0ubelUYSVPLoNBPwEHTiO9RvoRywiUemi-73ER14RcwY5/s1600/canal_play_4.png" group-title="FRANCE CHANNELS",CANALPLAY 4
-http://127.0.0.1:8087/live/207119424042896050.m3u8
+http://127.0.0.1:8099/live/207119424042896050.m3u8
 #EXTINF:-1 tvg-id="207119424044389059" tvg-name="CANALPLAY 5" tvg-logo="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEipMSCOTEeEoqfQE4P_csXPC67vhkjkHSGKu_kMgNksfX5seQXgs26Mb43Ala4wkoLFLxj_6aT_ojWWI3Epe_aj6o0A_Az8sQrBZrUupTqK8Bbspw22WwgEcyyUcLyoWrF-TbSrO_d1pizS1X4MmDsd9H97O6gYTkM7Wed4-e8VJm4GY_kTwEwXSn7g/s1600/canal_play_5.png" group-title="FRANCE CHANNELS",CANALPLAY 5
-http://127.0.0.1:8087/live/207119424044389059.m3u8
+http://127.0.0.1:8099/live/207119424044389059.m3u8
 #EXTINF:-1 tvg-id="207119424057425778" tvg-name="Planete %2B CI" tvg-logo="https://i.imgur.com/RpyXijh.png" group-title="FRANCE CHANNELS",Planete %2B CI
-http://127.0.0.1:8087/live/207119424057425778.m3u8
+http://127.0.0.1:8099/live/207119424057425778.m3u8
 #EXTINF:-1 tvg-id="207119424058292867" tvg-name="Animaux TV" tvg-logo="https://i.imgur.com/P29gzN9.png" group-title="FRANCE CHANNELS",Animaux TV
-http://127.0.0.1:8087/live/207119424058292867.m3u8
+http://127.0.0.1:8099/live/207119424058292867.m3u8
 #EXTINF:-1 tvg-id="207119424089036960" tvg-name="Nat Geo Wild" tvg-logo="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhRmf3dMvlhE_88uK8hIX56MZB-Bcwd9y2ZrQRSD9ey5tdTKJ0CkE5QdLuEl42mVwnIJkKQ78WMEpnu8ZL5xrTBhmmSBZsWsRw60PlECaS97RFJmFwSp2pp9NeISOrwzExC8BYpsksRnzBSzcYSS5qO6coKvQB3rZ3G92svpaFgo9dquCr5168UCX5n/s320/nat_geo_wild.png" group-title="FRANCE CHANNELS",Nat Geo Wild
-http://127.0.0.1:8087/live/207119424089036960.m3u8
+http://127.0.0.1:8099/live/207119424089036960.m3u8
 #EXTINF:-1 tvg-id="207119424197332364" tvg-name="Le Figaro IDF" tvg-logo="https://i.ibb.co/hcPj99k/fgro.png" group-title="FRANCE CHANNELS",Le Figaro IDF
-http://127.0.0.1:8087/live/207119424197332364.m3u8
+http://127.0.0.1:8099/live/207119424197332364.m3u8
 #EXTINF:-1 tvg-id="207119424234301542" tvg-name="Monde du Loisir" tvg-logo="https://yt3.ggpht.com/ytc/AAUvwngiNGUX760PCt5cs_chvGXbZ1FI8ILtk4bbWA0w=s900-c-k-c0x00ffffff-no-rj" group-title="FRANCE CHANNELS",Monde du Loisir
-http://127.0.0.1:8087/live/207119424234301542.m3u8
+http://127.0.0.1:8099/live/207119424234301542.m3u8
 #EXTINF:-1 tvg-id="207119424230438113" tvg-name="Le Figaro Live" tvg-logo="https://i.ibb.co/hcPj99k/fgro.png" group-title="FRANCE CHANNELS",Le Figaro Live
-http://127.0.0.1:8087/live/207119424230438113.m3u8
+http://127.0.0.1:8099/live/207119424230438113.m3u8
 #EXTINF:-1 tvg-id="207119424227132882" tvg-name="CANAL J" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Canal_J_Logo_2019.svg/1200px-Canal_J_Logo_2019.svg.png" group-title="FRANCE CHANNELS",CANAL J
-http://127.0.0.1:8087/live/207119424227132882.m3u8
+http://127.0.0.1:8099/live/207119424227132882.m3u8
 #EXTINF:-1 tvg-id="207119424254185681" tvg-name="Gulli" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/e/eb/Gulli_2017_nouveau_logo.jpg" group-title="FRANCE CHANNELS",Gulli
-http://127.0.0.1:8087/live/207119424254185681.m3u8
+http://127.0.0.1:8099/live/207119424254185681.m3u8
 #EXTINF:-1 tvg-id="207119424255200216" tvg-name="Disney XD" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Disney_XD_-_2015.svg/1200px-Disney_XD_-_2015.svg.png" group-title="FRANCE CHANNELS",Disney XD
-http://127.0.0.1:8087/live/207119424255200216.m3u8
+http://127.0.0.1:8099/live/207119424255200216.m3u8
 #EXTINF:-1 tvg-id="207119424252396423" tvg-name="Boomerang FR" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Boomerang_2014_logo.svg/280px-Boomerang_2014_logo.svg.png" group-title="FRANCE CHANNELS",Boomerang FR
-http://127.0.0.1:8087/live/207119424252396423.m3u8
+http://127.0.0.1:8099/live/207119424252396423.m3u8
 #EXTINF:-1 tvg-id="207119424253456134" tvg-name="Disney JR" tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQmGQIsgzsWTdPvHjHB5E2VLM_DVoYqx83pt3aww-l&amp;s" group-title="FRANCE CHANNELS",Disney JR
-http://127.0.0.1:8087/live/207119424253456134.m3u8
+http://127.0.0.1:8099/live/207119424253456134.m3u8
 #EXTINF:-1 tvg-id="207119424250441405" tvg-name="Cartoon Network" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Cartoon_Network_2010_logo.svg/640px-Cartoon_Network_2010_logo.svg.png" group-title="FRANCE CHANNELS",Cartoon Network
-http://127.0.0.1:8087/live/207119424250441405.m3u8
+http://127.0.0.1:8099/live/207119424250441405.m3u8
 #EXTINF:-1 tvg-id="207119424251338580" tvg-name="Nickelodeon FR" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/f/fa/Nickelodeon_logo_2009.png" group-title="FRANCE CHANNELS",Nickelodeon FR
-http://127.0.0.1:8087/live/207119424251338580.m3u8
+http://127.0.0.1:8099/live/207119424251338580.m3u8
 #EXTINF:-1 tvg-id="207119424248118099" tvg-name="Nick JR" tvg-logo="https://i.imgur.com/xpPToLh.png" group-title="FRANCE CHANNELS",Nick JR
-http://127.0.0.1:8087/live/207119424248118099.m3u8
+http://127.0.0.1:8099/live/207119424248118099.m3u8
 #EXTINF:-1 tvg-id="207119424249368706" tvg-name="MANGAS" tvg-logo="https://i.imgur.com/D3sP87Y.png" group-title="FRANCE CHANNELS",MANGAS
-http://127.0.0.1:8087/live/207119424249368706.m3u8
+http://127.0.0.1:8099/live/207119424249368706.m3u8
 #EXTINF:-1 tvg-id="207119424246397193" tvg-name="Boing TV" tvg-logo="https://mr.comingsoon.it/imgdb/guidatv/loghi-225px/28.png" group-title="FRANCE CHANNELS",Boing TV
-http://127.0.0.1:8087/live/207119424246397193.m3u8
+http://127.0.0.1:8099/live/207119424246397193.m3u8
 #EXTINF:-1 tvg-id="207119424245073001" tvg-name="Nord Africaine" tvg-logo="https://i1.wp.com/www.millereponses.com/wp-content/uploads/2018/11/chaine-nord-africaine-frequence-nilesat.jpg?ssl=1" group-title="FRANCE CHANNELS",Nord Africaine
-http://127.0.0.1:8087/live/207119424245073001.m3u8
+http://127.0.0.1:8099/live/207119424245073001.m3u8
 #EXTINF:-1 tvg-id="207119424271244186" tvg-name="TMA Caraibes" tvg-logo="https://televisiontma.pagesperso-orange.fr/Images/Logo-TMA-pour-annonceurs.png" group-title="FRANCE CHANNELS",TMA Caraibes
-http://127.0.0.1:8087/live/207119424271244186.m3u8
+http://127.0.0.1:8099/live/207119424271244186.m3u8
 #EXTINF:-1 tvg-id="207119424272746763" tvg-name="Contact fell" tvg-logo="https://static-media.streema.com/media/cache/27/8d/278de32dd4ce0fa74159dd692ddd9d03.jpg" group-title="FRANCE CHANNELS",Contact fell
-http://127.0.0.1:8087/live/207119424272746763.m3u8
+http://127.0.0.1:8099/live/207119424272746763.m3u8
 #EXTINF:-1 tvg-id="207119424266558684" tvg-name="Vi%C3%A0Vosges" tvg-logo="http://www.fig.saint-die-des-vosges.fr/images/LOGOS2020/logo-77.jpg" group-title="FRANCE CHANNELS",Vi%C3%A0Vosges
-http://127.0.0.1:8087/live/207119424266558684.m3u8
+http://127.0.0.1:8099/live/207119424266558684.m3u8
 #EXTINF:-1 tvg-id="207119424263023119" tvg-name="Vi%C3%A0MAT%C3%89L%C3%89" tvg-logo="https://cdn.woopic.com/v1/AUTH_9ffb653181284b0abe5e45d7014095b2/boutique-tv/viamatele_fdblc_1440@1x_601183634d12370bc603dd80.png" group-title="FRANCE CHANNELS",Vi%C3%A0MAT%C3%89L%C3%89
-http://127.0.0.1:8087/live/207119424263023119.m3u8
+http://127.0.0.1:8099/live/207119424263023119.m3u8
 #EXTINF:-1 tvg-id="207119424264302990" tvg-name="Vi%C3%A0Moselle TV" tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8SuR64bNHLwm9HmQs5jFj5TzX0qEQdTHkfRZdYGLEpIcaOXWHNpuuipdroeKZALc_-H8&amp;usqp=CAU" group-title="FRANCE CHANNELS",Vi%C3%A0Moselle TV
-http://127.0.0.1:8087/live/207119424264302990.m3u8
+http://127.0.0.1:8099/live/207119424264302990.m3u8
 #EXTINF:-1 tvg-id="207119424262504128" tvg-name="TV3V" tvg-logo="https://i.imgur.com/05RMwlR.png" group-title="FRANCE CHANNELS",TV3V
-http://127.0.0.1:8087/live/207119424262504128.m3u8
+http://127.0.0.1:8099/live/207119424262504128.m3u8
 #EXTINF:-1 tvg-id="207119424258776739" tvg-name="TV7 Colmar" tvg-logo="https://is1-ssl.mzstatic.com/image/thumb/Purple113/v4/d2/57/41/d2574198-6a59-4888-646c-4350dd90b61a/source/512x512bb.jpg" group-title="FRANCE CHANNELS",TV7 Colmar
-http://127.0.0.1:8087/live/207119424258776739.m3u8
+http://127.0.0.1:8099/live/207119424258776739.m3u8
 #EXTINF:-1 tvg-id="207119424260356754" tvg-name="TV78" tvg-logo="https://compagnieaffable.files.wordpress.com/2018/06/logo-tv78.png" group-title="FRANCE CHANNELS",TV78
-http://127.0.0.1:8087/live/207119424260356754.m3u8
+http://127.0.0.1:8099/live/207119424260356754.m3u8
 #EXTINF:-1 tvg-id="207119424290801922" tvg-name="TVR Bretagne" tvg-logo="https://www.tvr.bzh/favicon-1024.png" group-title="FRANCE CHANNELS",TVR Bretagne
-http://127.0.0.1:8087/live/207119424290801922.m3u8
+http://127.0.0.1:8099/live/207119424290801922.m3u8
 #EXTINF:-1 tvg-id="207119424291648467" tvg-name="TebeSud" tvg-logo="https://www.tv-direct.fr/assets/logo/chaines/tebesud.jpg" group-title="FRANCE CHANNELS",TebeSud
-http://127.0.0.1:8087/live/207119424291648467.m3u8
+http://127.0.0.1:8099/live/207119424291648467.m3u8
 #EXTINF:-1 tvg-id="207119424288577492" tvg-name="Tebeo" tvg-logo="https://www.tv-direct.fr/assets/logo/chaines/tebeo.jpg" group-title="FRANCE CHANNELS",Tebeo
-http://127.0.0.1:8087/live/207119424288577492.m3u8
+http://127.0.0.1:8099/live/207119424288577492.m3u8
 #EXTINF:-1 tvg-id="207119424288728893" tvg-name="Luxe TV" tvg-logo="https://i.ibb.co/h8hQnT2/1-min-2.jpg" group-title="FRANCE CHANNELS",Luxe TV
-http://127.0.0.1:8087/live/207119424288728893.m3u8
+http://127.0.0.1:8099/live/207119424288728893.m3u8
 #EXTINF:-1 tvg-id="207119424286500742" tvg-name="Fashion TV" tvg-logo="https://i.imgur.com/AdABdib.png" group-title="FRANCE CHANNELS",Fashion TV
-http://127.0.0.1:8087/live/207119424286500742.m3u8
+http://127.0.0.1:8099/live/207119424286500742.m3u8
 #EXTINF:-1 tvg-id="207119424287538183" tvg-name="Fuel TV" tvg-logo="https://media-exp1.licdn.com/dms/image/C4D0BAQF3jF-iJ69m0A/company-logo_200_200/0/1554976939414?e=2159024400&amp;v=beta&amp;t=wJEpFbpbu9yOdnQtLM8a-BTCTnSVL1IIrzFaB1p6p3A" group-title="FRANCE CHANNELS",Fuel TV
-http://127.0.0.1:8087/live/207119424287538183.m3u8
+http://127.0.0.1:8099/live/207119424287538183.m3u8
 #EXTINF:-1 tvg-id="207119424279788397" tvg-name="Francophonie" tvg-logo="https://vipotv.com/wp-content/uploads/2019/05/Francophonie-tv.png" group-title="FRANCE CHANNELS",Francophonie
-http://127.0.0.1:8087/live/207119424279788397.m3u8
+http://127.0.0.1:8099/live/207119424279788397.m3u8
 #EXTINF:-1 tvg-id="207119424278025667" tvg-name="Bip TV" tvg-logo="https://upload.wikimedia.org/wikipedia/fr/b/b1/Bip_TV_logo.png" group-title="FRANCE CHANNELS",Bip TV
-http://127.0.0.1:8087/live/207119424278025667.m3u8
+http://127.0.0.1:8099/live/207119424278025667.m3u8
 #EXTINF:-1 tvg-id="207119424278629810" tvg-name="LN 24" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/LN24_-_Logo.png/1200px-LN24_-_Logo.png" group-title="FRANCE CHANNELS",LN 24
-http://127.0.0.1:8087/live/207119424278629810.m3u8
+http://127.0.0.1:8099/live/207119424278629810.m3u8
 #EXTINF:-1 tvg-id="207119424275183041" tvg-name="RTL9" tvg-logo="https://i.imgur.com/U4vmcU5.png" group-title="FRANCE CHANNELS",RTL9
-http://127.0.0.1:8087/live/207119424275183041.m3u8
+http://127.0.0.1:8099/live/207119424275183041.m3u8
 #EXTINF:-1 tvg-id="207119422699747687" tvg-name="africanews" tvg-logo="https://i.imgur.com/2OeD43w.jpg" group-title="FRANCE CHANNELS",africanews
-http://127.0.0.1:8087/live/207119422699747687.m3u8
+http://127.0.0.1:8099/live/207119422699747687.m3u8
 #EXTINF:-1 tvg-id="207119423528972972" tvg-name="IDF1" tvg-logo="https://rsc.idf1.fr/img/logo-l2.png" group-title="FRANCE CHANNELS",IDF1
-http://127.0.0.1:8087/live/207119423528972972.m3u8
+http://127.0.0.1:8099/live/207119423528972972.m3u8
 #EXTINF:-1 tvg-id="207119423558378180" tvg-name="M6 International" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/M6_International_logo.svg/1200px-M6_International_logo.svg.png" group-title="FRANCE CHANNELS",M6 International
-http://127.0.0.1:8087/live/207119423558378180.m3u8
+http://127.0.0.1:8099/live/207119423558378180.m3u8
 #EXTINF:-1 tvg-id="207119423559750253" tvg-name="Ch%C3%A9rie 25" tvg-logo="https://upload.wikimedia.org/wikipedia/fr/thumb/f/f0/Ch%C3%A9rie_25_logo_2015.svg/1200px-Ch%C3%A9rie_25_logo_2015.svg.png" group-title="FRANCE CHANNELS",Ch%C3%A9rie 25
-http://127.0.0.1:8087/live/207119423559750253.m3u8
+http://127.0.0.1:8099/live/207119423559750253.m3u8
 #EXTINF:-1 tvg-id="207119423554255112" tvg-name="GONG" tvg-logo="https://upload.wikimedia.org/wikipedia/fr/e/e7/Gong_%28cha%C3%AEne_de_t%C3%A9l%C3%A9vision%29_Logo.png" group-title="FRANCE CHANNELS",GONG
-http://127.0.0.1:8087/live/207119423554255112.m3u8
+http://127.0.0.1:8099/live/207119423554255112.m3u8
 #EXTINF:-1 tvg-id="207119423585197686" tvg-name="Tele Novela TV" tvg-logo="https://i.ibb.co/grBSqt4/novela.png" group-title="FRANCE CHANNELS",Tele Novela TV
-http://127.0.0.1:8087/live/207119423585197686.m3u8
+http://127.0.0.1:8099/live/207119423585197686.m3u8
 #EXTINF:-1 tvg-id="207119423586449143" tvg-name="Wild Side TV" tvg-logo="https://upload.wikimedia.org/wikipedia/fr/0/00/Wild_Side_Films_Logo.png" group-title="FRANCE CHANNELS",Wild Side TV
-http://127.0.0.1:8087/live/207119423586449143.m3u8
+http://127.0.0.1:8099/live/207119423586449143.m3u8
 #EXTINF:-1 tvg-id="207119423583999868" tvg-name="KTO" tvg-logo="https://upload.wikimedia.org/wikipedia/fr/4/4f/Logo_de_KTO_T%C3%A9l%C3%A9vision_catholique_2022.png" group-title="FRANCE CHANNELS",KTO
-http://127.0.0.1:8087/live/207119423583999868.m3u8
+http://127.0.0.1:8099/live/207119423583999868.m3u8
 #EXTINF:-1 tvg-id="207119423584805445" tvg-name="Museum TV" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/f/f0/Logomuseumtv.png" group-title="FRANCE CHANNELS",Museum TV
-http://127.0.0.1:8087/live/207119423584805445.m3u8
+http://127.0.0.1:8099/live/207119423584805445.m3u8
 #EXTINF:-1 tvg-id="207119423580992405" tvg-name="FUN Radio" tvg-logo="https://i.ibb.co/ByN83p3/funradtv.png" group-title="FRANCE CHANNELS",FUN Radio
-http://127.0.0.1:8087/live/207119423580992405.m3u8
+http://127.0.0.1:8099/live/207119423580992405.m3u8
 #EXTINF:-1 tvg-id="207119423582690572" tvg-name="Generations TV" tvg-logo="https://static.wikia.nocookie.net/logopedia/images/c/cd/GENERATIONS_TV_2018.png/revision/latest?cb=20191026203902" group-title="FRANCE CHANNELS",Generations TV
-http://127.0.0.1:8087/live/207119423582690572.m3u8
+http://127.0.0.1:8099/live/207119423582690572.m3u8
 #EXTINF:-1 tvg-id="207119423579448171" tvg-name="Melody TV" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/4f/Melody_logo_2013.png" group-title="FRANCE CHANNELS",Melody TV
-http://127.0.0.1:8087/live/207119423579448171.m3u8
+http://127.0.0.1:8099/live/207119423579448171.m3u8
 #EXTINF:-1 tvg-id="207119423580160890" tvg-name="Trace Urban" tvg-logo="https://upload.wikimedia.org/wikipedia/fr/9/9a/Traceurban2022.png" group-title="FRANCE CHANNELS",Trace Urban
-http://127.0.0.1:8087/live/207119423580160890.m3u8
+http://127.0.0.1:8099/live/207119423580160890.m3u8
 #EXTINF:-1 tvg-id="207119423577304777" tvg-name="Trace Sport" tvg-logo="https://upload.wikimedia.org/wikipedia/fr/4/4d/Tracesportstars2022.png" group-title="FRANCE CHANNELS",Trace Sport
-http://127.0.0.1:8087/live/207119423577304777.m3u8
+http://127.0.0.1:8099/live/207119423577304777.m3u8
 #EXTINF:-1 tvg-id="207119423578682096" tvg-name="Sport en France" tvg-logo="https://upload.wikimedia.org/wikipedia/fr/8/83/Sport_en_France_Logo.png" group-title="FRANCE CHANNELS",Sport en France
-http://127.0.0.1:8087/live/207119423578682096.m3u8
+http://127.0.0.1:8099/live/207119423578682096.m3u8
 #EXTINF:-1 tvg-id="207119423598040512" tvg-name="TRT Diyanet %C3%87ocuk" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/a/af/TRT_Diyanet_%C3%87ocuk_logo.png" group-title="TURKISH CHANNELS",TRT Diyanet %C3%87ocuk
-http://127.0.0.1:8087/live/207119423598040512.m3u8
+http://127.0.0.1:8099/live/207119423598040512.m3u8
 #EXTINF:-1 tvg-id="207119423595893138" tvg-name="Cartoon Network Turk" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Cartoon_Network_2010_logo.svg/1200px-Cartoon_Network_2010_logo.svg.png" group-title="TURKISH CHANNELS",Cartoon Network Turk
-http://127.0.0.1:8087/live/207119423595893138.m3u8
+http://127.0.0.1:8099/live/207119423595893138.m3u8
 #EXTINF:-1 tvg-id="207119423597458851" tvg-name="Haber Global" tvg-logo="https://i.haberglobal.com.tr/frontend/assets/v2/images/basin-odasi/H-G-renkli-logo.jpg" group-title="TURKISH CHANNELS",Haber Global
-http://127.0.0.1:8087/live/207119423597458851.m3u8
+http://127.0.0.1:8099/live/207119423597458851.m3u8
 #EXTINF:-1 tvg-id="207119423593659347" tvg-name="TV100" tvg-logo="https://media.licdn.com/dms/image/C4E0BAQHJMw_6L0muwg/company-logo_200_200/0/1590742162841?e=2147483647&amp;v=beta&amp;t=apifwBMrEPcTYGZ1Xjl33q-Hxpkbfu6ca6j9pkgPY3A" group-title="TURKISH CHANNELS",TV100
-http://127.0.0.1:8087/live/207119423593659347.m3u8
+http://127.0.0.1:8099/live/207119423593659347.m3u8
 #EXTINF:-1 tvg-id="207119423594909954" tvg-name="CNN T%C3%BCrk" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/CNN_T%C3%BCrk_logo.svg/150px-CNN_T%C3%BCrk_logo.svg.png" group-title="TURKISH CHANNELS",CNN T%C3%BCrk
-http://127.0.0.1:8087/live/207119423594909954.m3u8
+http://127.0.0.1:8099/live/207119423594909954.m3u8
 #EXTINF:-1 tvg-id="207119423591788349" tvg-name="NTV" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/NTV_%28Turkey%29_logo.svg/250px-NTV_%28Turkey%29_logo.svg.png" group-title="TURKISH CHANNELS",NTV
-http://127.0.0.1:8087/live/207119423591788349.m3u8
+http://127.0.0.1:8099/live/207119423591788349.m3u8
 #EXTINF:-1 tvg-id="207119423592685524" tvg-name="EKO T%C3%9CRK" tvg-logo="https://www.aitomorrowsummit.com/ekoturk-yeni.png" group-title="TURKISH CHANNELS",EKO T%C3%9CRK
-http://127.0.0.1:8087/live/207119423592685524.m3u8
+http://127.0.0.1:8099/live/207119423592685524.m3u8
 #EXTINF:-1 tvg-id="207119423589549063" tvg-name="TBMM TV" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/TBMM_TV_logo.svg/1200px-TBMM_TV_logo.svg.png" group-title="TURKISH CHANNELS",TBMM TV
-http://127.0.0.1:8087/live/207119423589549063.m3u8
+http://127.0.0.1:8099/live/207119423589549063.m3u8
 #EXTINF:-1 tvg-id="207119423590608774" tvg-name="DHA" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/9/9a/DHA_logo.png" group-title="TURKISH CHANNELS",DHA
-http://127.0.0.1:8087/live/207119423590608774.m3u8
+http://127.0.0.1:8099/live/207119423590608774.m3u8
 #EXTINF:-1 tvg-id="207119423588192593" tvg-name="Anadolu Agency" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Anadolu_Agency_logo_2023_%282%29.svg/1200px-Anadolu_Agency_logo_2023_%282%29.svg.png" group-title="TURKISH CHANNELS",Anadolu Agency
-http://127.0.0.1:8087/live/207119423588192593.m3u8
+http://127.0.0.1:8099/live/207119423588192593.m3u8
 #EXTINF:-1 tvg-id="207119423589207128" tvg-name="Flash Haber" tvg-logo="https://upload.wikimedia.org/wikipedia/tr/7/75/Flash_haber_logo.jpeg" group-title="TURKISH CHANNELS",Flash Haber
-http://127.0.0.1:8087/live/207119423589207128.m3u8
+http://127.0.0.1:8099/live/207119423589207128.m3u8
 #EXTINF:-1 tvg-id="207119423619143723" tvg-name="S%C3%B6zc%C3%BC TV" tvg-logo="https://upload.wikimedia.org/wikipedia/tr/e/ed/SZC_TV_logo.png" group-title="TURKISH CHANNELS",S%C3%B6zc%C3%BC TV
-http://127.0.0.1:8087/live/207119423619143723.m3u8
+http://127.0.0.1:8099/live/207119423619143723.m3u8
 #EXTINF:-1 tvg-id="207119423620586298" tvg-name="KRT TV" tvg-logo="https://upload.wikimedia.org/wikipedia/tr/archive/e/e8/20230514111511%21KRT_TV_logosu.png" group-title="TURKISH CHANNELS",KRT TV
-http://127.0.0.1:8087/live/207119423620586298.m3u8
+http://127.0.0.1:8099/live/207119423620586298.m3u8
 #EXTINF:-1 tvg-id="207119423616905000" tvg-name="Tele1" tvg-logo="https://tele1.com.tr/wp-content/uploads/2018/11/tele1_logo-1.png" group-title="TURKISH CHANNELS",Tele1
-http://127.0.0.1:8087/live/207119423616905000.m3u8
+http://127.0.0.1:8099/live/207119423616905000.m3u8
 #EXTINF:-1 tvg-id="207119423617922401" tvg-name="Halk TV" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/4/42/Halk_TV_logo.png" group-title="TURKISH CHANNELS",Halk TV
-http://127.0.0.1:8087/live/207119423617922401.m3u8
+http://127.0.0.1:8099/live/207119423617922401.m3u8
 #EXTINF:-1 tvg-id="207119423615363734" tvg-name="Ulusal Kanal" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Ulusal_Kanal_logo.png/250px-Ulusal_Kanal_logo.png" group-title="TURKISH CHANNELS",Ulusal Kanal
-http://127.0.0.1:8087/live/207119423615363734.m3u8
+http://127.0.0.1:8099/live/207119423615363734.m3u8
 #EXTINF:-1 tvg-id="207119423615718039" tvg-name="Bbn T%C3%BCrk" tvg-logo="https://www.dsmart.com.tr/api/v1/public/images/kanallar/bbnturk.png" group-title="TURKISH CHANNELS",Bbn T%C3%BCrk
-http://127.0.0.1:8087/live/207119423615718039.m3u8
+http://127.0.0.1:8099/live/207119423615718039.m3u8
 #EXTINF:-1 tvg-id="207119423613251428" tvg-name="Beng%C3%BC T%C3%BCrk" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Beng%C3%BCt%C3%BCrk_TV.png/1200px-Beng%C3%BCt%C3%BCrk_TV.png" group-title="TURKISH CHANNELS",Beng%C3%BC T%C3%BCrk
-http://127.0.0.1:8087/live/207119423613251428.m3u8
+http://127.0.0.1:8099/live/207119423613251428.m3u8
 #EXTINF:-1 tvg-id="207119423614337549" tvg-name="TGRT Haber" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/e/e1/TGRT_Haber_logosu.png" group-title="TURKISH CHANNELS",TGRT Haber
-http://127.0.0.1:8087/live/207119423614337549.m3u8
+http://127.0.0.1:8099/live/207119423614337549.m3u8
 #EXTINF:-1 tvg-id="207119423610422866" tvg-name="A Haber" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/7/7c/Ahaber_Logo.png" group-title="TURKISH CHANNELS",A Haber
-http://127.0.0.1:8087/live/207119423610422866.m3u8
+http://127.0.0.1:8099/live/207119423610422866.m3u8
 #EXTINF:-1 tvg-id="207119423611669859" tvg-name="TV NET" tvg-logo="https://www.tvyayinakisi.com/wp-content/uploads/2020/05/tvnet-logo.jpg" group-title="TURKISH CHANNELS",TV NET
-http://127.0.0.1:8087/live/207119423611669859.m3u8
+http://127.0.0.1:8099/live/207119423611669859.m3u8
 #EXTINF:-1 tvg-id="207119423609105792" tvg-name="TV 24" tvg-logo="https://upload.wikimedia.org/wikipedia/tr/a/a6/24_TV_logosu.png" group-title="TURKISH CHANNELS",TV 24
-http://127.0.0.1:8087/live/207119423609105792.m3u8
+http://127.0.0.1:8099/live/207119423609105792.m3u8
 #EXTINF:-1 tvg-id="207119423610011097" tvg-name="%C3%9CLKE TV" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/%C3%9Clke_TV_logo.svg/320px-%C3%9Clke_TV_logo.svg.png" group-title="TURKISH CHANNELS",%C3%9CLKE TV
-http://127.0.0.1:8087/live/207119423610011097.m3u8
+http://127.0.0.1:8099/live/207119423610011097.m3u8
 #EXTINF:-1 tvg-id="207119423606633362" tvg-name="Akit TV" tvg-logo="https://upload.wikimedia.org/wikipedia/tr/c/cf/Akit_TV.png" group-title="TURKISH CHANNELS",Akit TV
-http://127.0.0.1:8087/live/207119423606633362.m3u8
+http://127.0.0.1:8099/live/207119423606633362.m3u8
 #EXTINF:-1 tvg-id="207119423607150499" tvg-name="Yol TV" tvg-logo="https://www.broadcastprome.com/wp-content/uploads/2018/06/YOL-TV.jpg" group-title="TURKISH CHANNELS",Yol TV
-http://127.0.0.1:8087/live/207119423607150499.m3u8
+http://127.0.0.1:8099/live/207119423607150499.m3u8
 #EXTINF:-1 tvg-id="207119423373900808" tvg-name="A Spor" tvg-logo="https://i.imgur.com/0NuCCxm.png" group-title="TURKISH CHANNELS",A Spor
-http://127.0.0.1:8087/live/207119423373900808.m3u8
+http://127.0.0.1:8099/live/207119423373900808.m3u8
 #EXTINF:-1 tvg-id="207119423141797850" tvg-name="TRT 1" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/TRT_1_logo_%282021-%29.svg/512px-TRT_1_logo_%282021-%29.svg.png" group-title="TURKISH CHANNELS",TRT 1
-http://127.0.0.1:8087/live/207119423141797850.m3u8
+http://127.0.0.1:8099/live/207119423141797850.m3u8
 #EXTINF:-1 tvg-id="207119423139285320" tvg-name="TRT 2" tvg-logo="https://i.imgur.com/h9Q88CW.png" group-title="TURKISH CHANNELS",TRT 2
-http://127.0.0.1:8087/live/207119423139285320.m3u8
+http://127.0.0.1:8099/live/207119423139285320.m3u8
 #EXTINF:-1 tvg-id="207119423140175105" tvg-name="TRT Arabic" tvg-logo="https://i.imgur.com/dEfI2M9.png" group-title="TURKISH CHANNELS",TRT Arabic
-http://127.0.0.1:8087/live/207119423140175105.m3u8
+http://127.0.0.1:8099/live/207119423140175105.m3u8
 #EXTINF:-1 tvg-id="207119423136366262" tvg-name="TRT Avaz" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/TRT_Avaz_logo.svg/512px-TRT_Avaz_logo.svg.png" group-title="TURKISH CHANNELS",TRT Avaz
-http://127.0.0.1:8087/live/207119423136366262.m3u8
+http://127.0.0.1:8099/live/207119423136366262.m3u8
 #EXTINF:-1 tvg-id="207119423137617719" tvg-name="TRT Belgesel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/TRT_Belgesel_logo_%282019-%29.svg/512px-TRT_Belgesel_logo_%282019-%29.svg.png" group-title="TURKISH CHANNELS",TRT Belgesel
-http://127.0.0.1:8087/live/207119423137617719.m3u8
+http://127.0.0.1:8099/live/207119423137617719.m3u8
 #EXTINF:-1 tvg-id="207119423135019780" tvg-name="TRT Cocuk" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/TRT_%C3%87ocuk_logo_%282021%29.svg/512px-TRT_%C3%87ocuk_logo_%282021%29.svg.png" group-title="TURKISH CHANNELS",TRT Cocuk
-http://127.0.0.1:8087/live/207119423135019780.m3u8
+http://127.0.0.1:8099/live/207119423135019780.m3u8
 #EXTINF:-1 tvg-id="207119423135765933" tvg-name="TRT EBA Ilkokul" tvg-logo="https://i.imgur.com/IUha5eQ.jpg" group-title="TURKISH CHANNELS",TRT EBA Ilkokul
-http://127.0.0.1:8087/live/207119423135765933.m3u8
+http://127.0.0.1:8099/live/207119423135765933.m3u8
 #EXTINF:-1 tvg-id="207119423165960690" tvg-name="TRT EBA Lise" tvg-logo="https://i.imgur.com/IUha5eQ.jpg" group-title="TURKISH CHANNELS",TRT EBA Lise
-http://127.0.0.1:8087/live/207119423165960690.m3u8
+http://127.0.0.1:8099/live/207119423165960690.m3u8
 #EXTINF:-1 tvg-id="207119423166827779" tvg-name="TRT EBA Ortaokul" tvg-logo="https://i.imgur.com/IUha5eQ.jpg" group-title="TURKISH CHANNELS",TRT EBA Ortaokul
-http://127.0.0.1:8087/live/207119423166827779.m3u8
+http://127.0.0.1:8099/live/207119423166827779.m3u8
 #EXTINF:-1 tvg-id="207119423164017440" tvg-name="TRT Haber" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/TRT_Haber_Eyl%C3%BCl_2020_Logo.svg/512px-TRT_Haber_Eyl%C3%BCl_2020_Logo.svg.png" group-title="TURKISH CHANNELS",TRT Haber
-http://127.0.0.1:8087/live/207119423164017440.m3u8
+http://127.0.0.1:8099/live/207119423164017440.m3u8
 #EXTINF:-1 tvg-id="207119423165618041" tvg-name="TRT Kurdi" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/TRT_Kurd%C3%AE_logo.svg/512px-TRT_Kurd%C3%AE_logo.svg.png" group-title="TURKISH CHANNELS",TRT Kurdi
-http://127.0.0.1:8087/live/207119423165618041.m3u8
+http://127.0.0.1:8099/live/207119423165618041.m3u8
 #EXTINF:-1 tvg-id="207119423161709065" tvg-name="TRT Muzik" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/TRT_M%C3%BCzik.svg/512px-TRT_M%C3%BCzik.svg.png" group-title="TURKISH CHANNELS",TRT Muzik
-http://127.0.0.1:8087/live/207119423161709065.m3u8
+http://127.0.0.1:8099/live/207119423161709065.m3u8
 #EXTINF:-1 tvg-id="207119423162982448" tvg-name="TRT Turk" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/TRT_T%C3%BCrk_logo.svg/512px-TRT_T%C3%BCrk_logo.svg.png" group-title="TURKISH CHANNELS",TRT Turk
-http://127.0.0.1:8087/live/207119423162982448.m3u8
+http://127.0.0.1:8099/live/207119423162982448.m3u8
 #EXTINF:-1 tvg-id="207119423160339583" tvg-name="TRT World" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/TRT_World.svg/512px-TRT_World.svg.png" group-title="TURKISH CHANNELS",TRT World
-http://127.0.0.1:8087/live/207119423160339583.m3u8
+http://127.0.0.1:8099/live/207119423160339583.m3u8
 #EXTINF:-1 tvg-id="207119423948682811" tvg-name="CN Arabic" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/b/bb/Cartoon_Network_Arabic_logo.png" group-title="KIDS CHANNELS",CN Arabic
-http://127.0.0.1:8087/live/207119423948682811.m3u8
+http://127.0.0.1:8099/live/207119423948682811.m3u8
 #EXTINF:-1 tvg-id="207119423944249438" tvg-name="Gulli Arabic" tvg-logo="https://upload.wikimedia.org/wikipedia/fr/9/98/Gulli_Bil_Arabi_138_138.jpg" group-title="KIDS CHANNELS",Gulli Arabic
-http://127.0.0.1:8087/live/207119423944249438.m3u8
+http://127.0.0.1:8099/live/207119423944249438.m3u8
 #EXTINF:-1 tvg-id="207119423945693791" tvg-name="Boomerang AR" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Boomerang_2014_logo.svg/280px-Boomerang_2014_logo.svg.png" group-title="KIDS CHANNELS",Boomerang AR
-http://127.0.0.1:8087/live/207119423945693791.m3u8
+http://127.0.0.1:8099/live/207119423945693791.m3u8
 #EXTINF:-1 tvg-id="207119423943023593" tvg-name="Spacetoon" tvg-logo="https://upload.wikimedia.org/wikipedia/en/2/2b/Spacetoon_logo.png" group-title="KIDS CHANNELS",Spacetoon
-http://127.0.0.1:8087/live/207119423943023593.m3u8
+http://127.0.0.1:8099/live/207119423943023593.m3u8
 #EXTINF:-1 tvg-id="207119424801449444" tvg-name="beIN Jeem" tvg-logo="https://assets.bein.com/mena/sites/3/2020/06/Jeem-HD-1-01.png" group-title="KIDS CHANNELS",beIN Jeem
-http://127.0.0.1:8087/live/207119424801449444.m3u8
+http://127.0.0.1:8099/live/207119424801449444.m3u8
 #EXTINF:-1 tvg-id="207119424798141519" tvg-name="beIN Baraem" tvg-logo="https://www.bein.com/en/wp-content/uploads/sites/3/2020/06/Bara3em-1.png" group-title="KIDS CHANNELS",beIN Baraem
-http://127.0.0.1:8087/live/207119424798141519.m3u8
+http://127.0.0.1:8099/live/207119424798141519.m3u8
 #EXTINF:-1 tvg-id="207119424799102670" tvg-name="OSN Kids" tvg-logo="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh5w0X1fgeN8OXfTjhXfjfRpGukdaZxMmvCdIxKHSLewSXzvgnNyU6iAQtwNYtLUUqiHMh48dUkHosVZlIysSeN9eQFPP4PY8sFpKGDY1TUtj-Mqip1bnk7GXPTiu6sAJgzRfxsbLUf4Ysmb2vDdKUJfaJZKHCmnVH1T8B7TNicZlNx4Q5sYRu9lcu4/s1600/1232_1.png" group-title="KIDS CHANNELS",OSN Kids
-http://127.0.0.1:8087/live/207119424799102670.m3u8
+http://127.0.0.1:8099/live/207119424799102670.m3u8
 #EXTINF:-1 tvg-id="207119424796103644" tvg-name="MBC 3" tvg-logo="https://i.imgur.com/cvnDXs8.png" group-title="KIDS CHANNELS",MBC 3
-http://127.0.0.1:8087/live/207119424796103644.m3u8
+http://127.0.0.1:8099/live/207119424796103644.m3u8
 #EXTINF:-1 tvg-id="207119424816948205" tvg-name="Rotana Kids" tvg-logo="https://i.imgur.com/93iaml1.png" group-title="KIDS CHANNELS",Rotana Kids
-http://127.0.0.1:8087/live/207119424816948205.m3u8
+http://127.0.0.1:8099/live/207119424816948205.m3u8
 #EXTINF:-1 tvg-id="207119424814286967" tvg-name="Toyor Aljanah" tvg-logo="https://static.wikia.nocookie.net/logopedia/images/f/f5/Toyor_Aljanah.png/revision/latest?cb=20190914133539" group-title="KIDS CHANNELS",Toyor Aljanah
-http://127.0.0.1:8087/live/207119424814286967.m3u8
+http://127.0.0.1:8099/live/207119424814286967.m3u8
 #EXTINF:-1 tvg-id="207119424815132662" tvg-name="Karameesh" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/f/f9/%D9%83%D8%B1%D8%A7%D9%85%D9%8A%D8%B4.jpg" group-title="KIDS CHANNELS",Karameesh
-http://127.0.0.1:8087/live/207119424815132662.m3u8
+http://127.0.0.1:8099/live/207119424815132662.m3u8
 #EXTINF:-1 tvg-id="207119424812342849" tvg-name="Taha Kids" tvg-logo="https://i.imgur.com/k5a8vHU.png" group-title="KIDS CHANNELS",Taha Kids
-http://127.0.0.1:8087/live/207119424812342849.m3u8
+http://127.0.0.1:8099/live/207119424812342849.m3u8
 #EXTINF:-1 tvg-id="207119424813550216" tvg-name="Atfal Wa Mawahib" tvg-logo="https://lyricstranslate.com/files/styles/artist/public/Screenshot_20200606-163241.jpg" group-title="KIDS CHANNELS",Atfal Wa Mawahib
-http://127.0.0.1:8087/live/207119424813550216.m3u8
+http://127.0.0.1:8099/live/207119424813550216.m3u8
 #EXTINF:-1 tvg-id="207119424843887835" tvg-name="Almajd Kids" tvg-logo="https://static.wikia.nocookie.net/logopedia/images/7/7a/%D9%82%D9%86%D8%A7%D8%A9_%D8%A7%D9%84%D9%85%D8%AC%D8%AF_%D9%84%D9%84%D8%A3%D8%B7%D9%81%D8%A7%D9%84.jpg/revision/latest?cb=20190621093107" group-title="KIDS CHANNELS",Almajd Kids
-http://127.0.0.1:8087/live/207119424843887835.m3u8
+http://127.0.0.1:8099/live/207119424843887835.m3u8
 #EXTINF:-1 tvg-id="207119424845194602" tvg-name="Almajd Bassma" tvg-logo="https://static.wikia.nocookie.net/tvpedia/images/2/21/Basma_Channel.png/revision/latest/thumbnail/width/360/height/360?cb=20210618181946&amp;path-prefix=ru" group-title="KIDS CHANNELS",Almajd Bassma
-http://127.0.0.1:8087/live/207119424845194602.m3u8
+http://127.0.0.1:8099/live/207119424845194602.m3u8
 #EXTINF:-1 tvg-id="207119424842181848" tvg-name="Almajd Rawda" tvg-logo="https://almajdtv.com/wp-content/uploads/2021/08/Rawda_logo.png" group-title="KIDS CHANNELS",Almajd Rawda
-http://127.0.0.1:8087/live/207119424842181848.m3u8
+http://127.0.0.1:8099/live/207119424842181848.m3u8
 #EXTINF:-1 tvg-id="207119424843264465" tvg-name="Majids Kids" tvg-logo="https://i.imgur.com/cnRR0fQ.png" group-title="KIDS CHANNELS",Majids Kids
-http://127.0.0.1:8087/live/207119424843264465.m3u8
+http://127.0.0.1:8099/live/207119424843264465.m3u8
 #EXTINF:-1 tvg-id="207119424839389190" tvg-name="CANAL J" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Canal_J_Logo_2019.svg/1200px-Canal_J_Logo_2019.svg.png" group-title="KIDS CHANNELS",CANAL J
-http://127.0.0.1:8087/live/207119424839389190.m3u8
+http://127.0.0.1:8099/live/207119424839389190.m3u8
 #EXTINF:-1 tvg-id="207119424840426631" tvg-name="Gulli" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/e/eb/Gulli_2017_nouveau_logo.jpg" group-title="KIDS CHANNELS",Gulli
-http://127.0.0.1:8087/live/207119424840426631.m3u8
+http://127.0.0.1:8099/live/207119424840426631.m3u8
 #EXTINF:-1 tvg-id="207119424837271636" tvg-name="Disney XD" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Disney_XD_-_2015.svg/1200px-Disney_XD_-_2015.svg.png" group-title="KIDS CHANNELS",Disney XD
-http://127.0.0.1:8087/live/207119424837271636.m3u8
+http://127.0.0.1:8099/live/207119424837271636.m3u8
 #EXTINF:-1 tvg-id="207119424838471613" tvg-name="Boomerang FR" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Boomerang_2014_logo.svg/280px-Boomerang_2014_logo.svg.png" group-title="KIDS CHANNELS",Boomerang FR
-http://127.0.0.1:8087/live/207119424838471613.m3u8
+http://127.0.0.1:8099/live/207119424838471613.m3u8
 #EXTINF:-1 tvg-id="207119424835301762" tvg-name="Disney JR" tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQmGQIsgzsWTdPvHjHB5E2VLM_DVoYqx83pt3aww-l&amp;s" group-title="KIDS CHANNELS",Disney JR
-http://127.0.0.1:8087/live/207119424835301762.m3u8
+http://127.0.0.1:8099/live/207119424835301762.m3u8
 #EXTINF:-1 tvg-id="207119424836148307" tvg-name="Cartoon Network" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Cartoon_Network_2010_logo.svg/640px-Cartoon_Network_2010_logo.svg.png" group-title="KIDS CHANNELS",Cartoon Network
-http://127.0.0.1:8087/live/207119424836148307.m3u8
+http://127.0.0.1:8099/live/207119424836148307.m3u8
 #EXTINF:-1 tvg-id="207119424833603632" tvg-name="Nickelodeon FR" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/f/fa/Nickelodeon_logo_2009.png" group-title="KIDS CHANNELS",Nickelodeon FR
-http://127.0.0.1:8087/live/207119424833603632.m3u8
+http://127.0.0.1:8099/live/207119424833603632.m3u8
 #EXTINF:-1 tvg-id="207119424834427401" tvg-name="Nick JR" tvg-logo="https://i.imgur.com/xpPToLh.png" group-title="KIDS CHANNELS",Nick JR
-http://127.0.0.1:8087/live/207119424834427401.m3u8
+http://127.0.0.1:8099/live/207119424834427401.m3u8
 #EXTINF:-1 tvg-id="207119424831603865" tvg-name="MANGAS" tvg-logo="https://i.imgur.com/D3sP87Y.png" group-title="KIDS CHANNELS",MANGAS
-http://127.0.0.1:8087/live/207119424831603865.m3u8
+http://127.0.0.1:8099/live/207119424831603865.m3u8
 #EXTINF:-1 tvg-id="207119424832169792" tvg-name="Boing TV" tvg-logo="https://mr.comingsoon.it/imgdb/guidatv/loghi-225px/28.png" group-title="KIDS CHANNELS",Boing TV
-http://127.0.0.1:8087/live/207119424832169792.m3u8
+http://127.0.0.1:8099/live/207119424832169792.m3u8
 #EXTINF:-1 tvg-id="207119423145703463" tvg-name="Weyyak Action" tvg-logo="https://content.weyyak.com/207c8580-318d-ea11-831d-02d662556796/poster-image?c=47183?d=150x150" group-title="WEYYAK",Weyyak Action
-http://127.0.0.1:8087/live/207119423145703463.m3u8
+http://127.0.0.1:8099/live/207119423145703463.m3u8
 #EXTINF:-1 tvg-id="207119423145969702" tvg-name="Weyyak Drama" tvg-logo="https://content.weyyak.com/d995517f-bc87-ea11-831d-02d662556796/poster-image?c=05165?d=280x150" group-title="WEYYAK",Weyyak Drama
-http://127.0.0.1:8087/live/207119423145969702.m3u8
+http://127.0.0.1:8099/live/207119423145969702.m3u8
 #EXTINF:-1 tvg-id="207119423143381873" tvg-name="Weyyak Mix" tvg-logo="https://content.weyyak.com/bc777336-328d-ea11-831d-02d662556796/poster-image?c=35058?d=280x150" group-title="WEYYAK",Weyyak Mix
-http://127.0.0.1:8087/live/207119423143381873.m3u8
+http://127.0.0.1:8099/live/207119423143381873.m3u8
 #EXTINF:-1 tvg-id="207119423144549112" tvg-name="Weyyak Nawaem" tvg-logo="https://content.weyyak.com/d867c2e9-328d-ea11-831d-02d662556796/poster-image?c=23228?d=280x150" group-title="WEYYAK",Weyyak Nawaem
-http://127.0.0.1:8087/live/207119423144549112.m3u8
+http://127.0.0.1:8099/live/207119423144549112.m3u8
 #EXTINF:-1 tvg-id="207119423140577355" tvg-name="Smashi" tvg-logo="https://pbs.twimg.com/profile_images/1355872820807540737/aNLrnK4f_400x400.jpg" group-title="WEYYAK",Smashi
-http://127.0.0.1:8087/live/207119423140577355.m3u8
+http://127.0.0.1:8099/live/207119423140577355.m3u8
 #EXTINF:-1 tvg-id="207119423503641497" tvg-name="Shahid Movies" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Movies
-http://127.0.0.1:8087/live/207119423503641497.m3u8
+http://127.0.0.1:8099/live/207119423503641497.m3u8
 #EXTINF:-1 tvg-id="207119423514984936" tvg-name="Shahid Aflam" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Aflam
-http://127.0.0.1:8087/live/207119423514984936.m3u8
+http://127.0.0.1:8099/live/207119423514984936.m3u8
 #EXTINF:-1 tvg-id="207119423507054862" tvg-name="Ragel We Set Settat" tvg-logo="https://i.imgur.com/E0stXgP.png" group-title="SHAHID VIP",Ragel We Set Settat
-http://127.0.0.1:8087/live/207119423507054862.m3u8
+http://127.0.0.1:8099/live/207119423507054862.m3u8
 #EXTINF:-1 tvg-id="207119423536663058" tvg-name="Naser Al Qassaby" tvg-logo="https://i.imgur.com/GtA3e2R.png" group-title="SHAHID VIP",Naser Al Qassaby
-http://127.0.0.1:8087/live/207119423536663058.m3u8
+http://127.0.0.1:8099/live/207119423536663058.m3u8
 #EXTINF:-1 tvg-id="207119423259559573" tvg-name="Shahid Wi Fi" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Wi Fi
-http://127.0.0.1:8087/live/207119423259559573.m3u8
+http://127.0.0.1:8099/live/207119423259559573.m3u8
 #EXTINF:-1 tvg-id="207119423254103536" tvg-name="Shahid WWE" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid WWE
-http://127.0.0.1:8087/live/207119423254103536.m3u8
+http://127.0.0.1:8099/live/207119423254103536.m3u8
 #EXTINF:-1 tvg-id="207119423236580660" tvg-name="Shahid Maraya" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Maraya
-http://127.0.0.1:8087/live/207119423236580660.m3u8
+http://127.0.0.1:8099/live/207119423236580660.m3u8
 #EXTINF:-1 tvg-id="207119423264691633" tvg-name="Shahid Bab Al Hara" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Bab Al Hara
-http://127.0.0.1:8087/live/207119423264691633.m3u8
+http://127.0.0.1:8099/live/207119423264691633.m3u8
 #EXTINF:-1 tvg-id="207119423281180039" tvg-name="Shahid El Kebeer" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid El Kebeer
-http://127.0.0.1:8087/live/207119423281180039.m3u8
+http://127.0.0.1:8099/live/207119423281180039.m3u8
 #EXTINF:-1 tvg-id="207119423264133734" tvg-name="Shahid Fareej" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Fareej
-http://127.0.0.1:8087/live/207119423264133734.m3u8
+http://127.0.0.1:8099/live/207119423264133734.m3u8
 #EXTINF:-1 tvg-id="207119423260959797" tvg-name="Shahid Al Meerath" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Al Meerath
-http://127.0.0.1:8087/live/207119423260959797.m3u8
+http://127.0.0.1:8099/live/207119423260959797.m3u8
 #EXTINF:-1 tvg-id="207119423254823369" tvg-name="Desi Play" tvg-logo="https://i.imgur.com/qovIt8v.jpg" group-title="SHAHID VIP",Desi Play
-http://127.0.0.1:8087/live/207119423254823369.m3u8
+http://127.0.0.1:8099/live/207119423254823369.m3u8
 #EXTINF:-1 tvg-id="207119423268062178" tvg-name="Shahid The Game" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid The Game
-http://127.0.0.1:8087/live/207119423268062178.m3u8
+http://127.0.0.1:8099/live/207119423268062178.m3u8
 #EXTINF:-1 tvg-id="207119423262037164" tvg-name="Shahid Selfie" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Selfie
-http://127.0.0.1:8087/live/207119423262037164.m3u8
+http://127.0.0.1:8099/live/207119423262037164.m3u8
 #EXTINF:-1 tvg-id="207119423285185917" tvg-name="Shahid Tash" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Tash
-http://127.0.0.1:8087/live/207119423285185917.m3u8
+http://127.0.0.1:8099/live/207119423285185917.m3u8
 #EXTINF:-1 tvg-id="207119423266925491" tvg-name="Shahid Top Chef" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Top Chef
-http://127.0.0.1:8087/live/207119423266925491.m3u8
+http://127.0.0.1:8099/live/207119423266925491.m3u8
 #EXTINF:-1 tvg-id="207119423262818919" tvg-name="Shahid Hassino" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Hassino
-http://127.0.0.1:8087/live/207119423262818919.m3u8
+http://127.0.0.1:8099/live/207119423262818919.m3u8
 #EXTINF:-1 tvg-id="207119423256966763" tvg-name="Shahid Movies Action" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Movies Action
-http://127.0.0.1:8087/live/207119423256966763.m3u8
+http://127.0.0.1:8099/live/207119423256966763.m3u8
 #EXTINF:-1 tvg-id="207119423256630906" tvg-name="Shahid Movies Thriller" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Movies Thriller
-http://127.0.0.1:8087/live/207119423256630906.m3u8
+http://127.0.0.1:8099/live/207119423256630906.m3u8
 #EXTINF:-1 tvg-id="207119423265436216" tvg-name="Shahid Al Asouf" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Al Asouf
-http://127.0.0.1:8087/live/207119423265436216.m3u8
+http://127.0.0.1:8099/live/207119423265436216.m3u8
 #EXTINF:-1 tvg-id="207119423258112012" tvg-name="Shahid Masrah Misr" tvg-logo="https://i.ibb.co/bK3nHHX/image.png" group-title="SHAHID VIP",Shahid Masrah Misr
-http://127.0.0.1:8087/live/207119423258112012.m3u8
+http://127.0.0.1:8099/live/207119423258112012.m3u8

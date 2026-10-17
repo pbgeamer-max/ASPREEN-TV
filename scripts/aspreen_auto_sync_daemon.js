@@ -28,7 +28,8 @@ function sleep(ms) {
 function runPythonHarvest() {
   return new Promise((resolve, reject) => {
     log('🔄 بدء مزامنة وتحديث روابط القنوات من yacine.website...');
-    const py = spawn('python', [HARVEST_SCRIPT], {
+    const pyBin = process.env.PYTHON_BIN || (process.platform === 'win32' ? 'python' : 'python3');
+    const py = spawn(pyBin, [HARVEST_SCRIPT], {
       cwd: path.join(__dirname, '..'),
       stdio: 'inherit',
     });

@@ -353,15 +353,12 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(content)
             return
 
-        # 3. Raw Channel Playlist (for local FFmpeg ingest): /raw/<channel_id>.m3u8
-        match_raw = re.match(r"^/raw/(\d+)\.m3u8$", path)
-        if match_raw:
-            cid = match_raw.group(1)
         # 3. Stream M3U8 Playlist: /live/<channel_id>.m3u8 or /raw/<channel_id>.m3u8 (Direct 100% Pure Stable Stream)
         match_live = re.match(r"^/(?:live|raw)/(\d+)\.m3u8$", path)
         if match_live:
             cid = match_live.group(1)
-            self.handle_channel_playlist(cid, is_raw=False)
+            force_proxy = query.get("proxy", ["0"])[0] in ("1", "true")
+            self.handle_channel_playlist(cid, is_raw=False, force_proxy=force_proxy)
             return
 
         # 6. Proxy Segment Chunk: /ts or /live/ts or /raw/ts
@@ -369,7 +366,11 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             parsed_ts = urllib.parse.urlparse(self.path)
             qs_ts = urllib.parse.parse_qs(parsed_ts.query)
             target_url = qs_ts.get("url", [""])[0]
+            ua_override = qs_ts.get("ua", [""])[0]
             ref_override = qs_ts.get("ref", [""])[0]
+            if ua_override and "ua=" not in target_url:
+                sep = "&" if "?" in target_url else "?"
+                target_url += f"{sep}ua={ua_override}"
             if not target_url and self.path.startswith("/ts?url="):
                 target_url = urllib.parse.unquote(self.path[8:])
             elif not target_url and self.path.startswith("/live/ts?url="):
@@ -389,10 +390,10 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
 
-    def handle_channel_playlist(self, cid, is_raw=False):
+    def handle_channel_playlist(self, cid, is_raw=False, force_proxy=False):
         """Fetches upstream M3U8, rewrites segment URLs, and returns to client"""
         now_ts = time.time()
-        cache_key = f"{cid}_raw" if is_raw else cid
+        cache_key = f"{cid}_proxy" if force_proxy else (f"{cid}_raw" if is_raw else cid)
         with m3u8_cache_lock:
             cached_data = m3u8_cache.get(cache_key)
             if cached_data and now_ts < cached_data[1]:
@@ -534,35 +535,6 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 if target_fetch_url:
                     m3u_text = fetch_m3u(target_fetch_url, req_ua, max_retries=2)
 
-        # If still down (e.g. 1080P feed is offline upstream), auto-failover to sibling qualities (720P, 360P)
-        if not m3u_text or "#EXTM3U" not in m3u_text or "No URLs available" in m3u_text:
-            ch_name = ch.get("name", "").strip().lower()
-            with cache_lock:
-                siblings = []
-                for other_cid, other_ch in channels_cache.items():
-                    if other_cid != cid and other_ch.get("name", "").strip().lower() == ch_name:
-                        gt = other_ch.get("groupTitle", "")
-                        prio = 1 if "720P" in gt else (2 if "360P" in gt else (3 if "1080P" in gt else 4))
-                        siblings.append((prio, other_cid, other_ch))
-                siblings.sort(key=lambda x: x[0])
-
-            for _, sib_cid, sib_ch in siblings:
-                sib_target, sib_ua = build_target_and_ua(sib_ch)
-                if not sib_target or sib_target.startswith("http://127.0.0.1"):
-                    renew_single_channel_stream(sib_cid)
-                    with cache_lock:
-                        sib_ch = channels_cache.get(sib_cid, {})
-                        sib_target, sib_ua = build_target_and_ua(sib_ch)
-                if sib_target:
-                    sib_m3u = fetch_m3u(sib_target, sib_ua, max_retries=2)
-                    if sib_m3u and "#EXTM3U" in sib_m3u and "No URLs available" not in sib_m3u:
-                        print(f" [⚡] تحويل ذكي وتلقائي للقناة {ch.get('name')} إلى جودة بديلة متاحة ({sib_ch.get('groupTitle')}) لضمان استمرار البث 24 ساعة بدون انقطاع!")
-                        m3u_text = sib_m3u
-                        target_fetch_url = sib_target
-                        req_ua = sib_ua
-                        ch = sib_ch
-                        break
-
         if not m3u_text or "#EXTM3U" not in m3u_text:
             err_msg = ch.get("status_message", "القناة غير متوفرة حالياً من المصدر الأصلي")
             self.send_response(503)
@@ -575,10 +547,30 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 pass
             return
 
-        # Extract query token from target_fetch_url if present (e.g. t=...&e=...)
-        stream_query_token = ""
-        if "?" in target_fetch_url:
-            stream_query_token = target_fetch_url.split("?", 1)[1]
+        # Check media sequence to prevent backwards jumps from load-balanced mirrors
+        match_seq = re.search(r"#EXT-X-MEDIA-SEQUENCE:(\d+)", m3u_text)
+        if match_seq:
+            curr_seq = int(match_seq.group(1))
+            prev_seq = channel_max_sequence.get(cid, 0)
+            if curr_seq < prev_seq and (prev_seq - curr_seq) < 30:
+                with m3u8_cache_lock:
+                    cached_data = m3u8_cache.get(cache_key)
+                    if cached_data:
+                        self.send_response(200)
+                        self.send_cors_headers()
+                        self.send_header("Content-Type", "application/vnd.apple.mpegurl")
+                        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                        self.send_header("Pragma", "no-cache")
+                        self.send_header("Expires", "0")
+                        self.send_header("Content-Length", str(len(cached_data[0])))
+                        self.end_headers()
+                        try:
+                            self.wfile.write(cached_data[0])
+                        except (BrokenPipeError, ConnectionResetError):
+                            pass
+                        return
+            else:
+                channel_max_sequence[cid] = curr_seq
 
         # Rewrite segment and key URLs while preserving 100% of upstream headers, timestamps, and sequence order
         rewritten = []
@@ -591,23 +583,38 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     def replace_uri(m):
                         u = m.group(1)
                         full_u = urllib.parse.urljoin(target_fetch_url, u)
-                        enc_u = urllib.parse.quote(full_u, safe="")
-                        enc_r = urllib.parse.quote(channel_referer, safe="")
-                        return f'URI="/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
+                        if force_proxy:
+                            enc_u = urllib.parse.quote(full_u, safe="")
+                            enc_r = urllib.parse.quote(channel_referer, safe="")
+                            return f'URI="/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
+                        if "play.php?" in full_u:
+                            return f'URI="https://yacine.website/play.php?{full_u.split("?", 1)[1]}&dummy=.key"'
+                        b64_k = base64.b64encode(full_u.encode()).decode()
+                        b64_u = base64.b64encode((req_ua or DEFAULT_UA).encode()).decode()
+                        return f'URI="https://yacine.website/play.php?url={b64_k}&ua={b64_u}&dummy=.key"'
                     rewritten.append(re.sub(r'URI="([^"]+)"', replace_uri, l))
                 else:
                     rewritten.append(l)
             else:
-                # Segment URL: rewrite cleanly to persistent proxy chunk endpoint
+                # Segment URL
                 seg_full = urllib.parse.urljoin(target_fetch_url, l)
-                if "new-redirect.online" in seg_full and "play.php" not in seg_full:
+                if "play.php?" in l:
+                    direct_seg = f"https://yacine.website/play.php?{l.split('?', 1)[1]}&dummy=.ts"
+                elif "new-redirect.online" in seg_full and "play.php" not in seg_full:
                     b64_url = base64.b64encode(seg_full.encode()).decode()
                     b64_ua = base64.b64encode((req_ua or DEFAULT_UA).encode()).decode()
-                    seg_full = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
+                    direct_seg = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}&dummy=.ts"
+                elif "play.php?" in seg_full:
+                    direct_seg = f"{seg_full}&dummy=.ts" if "&dummy=" not in seg_full else seg_full
+                else:
+                    direct_seg = seg_full
 
-                encoded_seg = urllib.parse.quote(seg_full, safe="")
-                encoded_ref = urllib.parse.quote(channel_referer, safe="")
-                rewritten.append(f"/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
+                if force_proxy:
+                    encoded_seg = urllib.parse.quote(direct_seg, safe="")
+                    encoded_ref = urllib.parse.quote(channel_referer, safe="")
+                    rewritten.append(f"/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
+                else:
+                    rewritten.append(direct_seg)
 
         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
         with m3u8_cache_lock:
@@ -632,6 +639,12 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             b64_t = base64.b64encode(target_url.encode()).decode()
             b64_u = base64.b64encode(DEFAULT_UA.encode()).decode()
             target_url = f"https://yacine.website/play.php?url={b64_t}&ua={b64_u}"
+
+        # Ensure play.php always has ua parameter
+        if "play.php" in target_url and "ua=" not in target_url:
+            b64_u = base64.b64encode(DEFAULT_UA.encode()).decode()
+            sep = "&" if "?" in target_url else "?"
+            target_url = f"{target_url}{sep}ua={b64_u}"
 
         decoded_ua = ""
         if "ua=" in target_url:
@@ -674,7 +687,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                             headers["Referer"] = "https://yacine.website/"
                             time.sleep(0.3)
                             continue
-                        self.send_response(502)
+                        self.send_response(404)
                         self.send_cors_headers()
                         self.end_headers()
                         return
@@ -742,13 +755,14 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 # Client disconnected or seeked in player - normal in live streaming
                 return
             except Exception as e:
-                if attempt < 2:
-                    time.sleep(0.5)
+                if attempt < 1:
+                    time.sleep(0.3)
                     continue
                 try:
-                    self.send_response(502)
+                    self.send_response(404)
+                    self.send_cors_headers()
                     self.end_headers()
-                except Exception:
+                except (BrokenPipeError, ConnectionResetError):
                     pass
                 return
 
