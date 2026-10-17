@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
-import { HlsPlayerModal } from '@/components/player/hls-player';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api-client';
 import { StreamToken, AdminSettings } from '@aspreen/shared';
@@ -36,10 +35,7 @@ export default function StreamTokensPage() {
   } | null>(null);
   const [copiedType, setCopiedType] = useState<'hls' | 'ts' | null>(null);
 
-  // Player preview
-  const [playerModalOpen, setPlayerModalOpen] = useState(false);
-  const [playerUrl, setPlayerUrl] = useState('');
-  const [playerName, setPlayerName] = useState('');
+
 
   const fetchTokens = async () => {
     try {
@@ -291,13 +287,6 @@ export default function StreamTokensPage() {
           </div>
         )}
 
-        {/* Player Modal */}
-        <HlsPlayerModal
-          streamUrl={playerUrl}
-          channelName={playerName}
-          isOpen={playerModalOpen}
-          onClose={() => setPlayerModalOpen(false)}
-        />
       </main>
     </div>
   );

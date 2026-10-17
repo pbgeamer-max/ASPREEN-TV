@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
-import { HlsPlayerModal } from '@/components/player/hls-player';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api-client';
 import { Channel, Source, TranscodingPresetId, StreamProbeInfo, ExportLinksResult } from '@aspreen/shared';
@@ -47,12 +46,11 @@ export default function ChannelsPage() {
   const [selectedSourceId, setSelectedSourceId] = useState<string>('');
   const [selectedGroup, setSelectedGroup] = useState<string>('');
 
-  // Player preview modal
-  const [playerModalOpen, setPlayerModalOpen] = useState(false);
-  const [activePlayerUrl, setActivePlayerUrl] = useState('');
-  const [activePlayerName, setActivePlayerName] = useState('');
-  const [activePlayerServers, setActivePlayerServers] = useState<any[]>([]);
+  // Stream Links & Distribution modal
+  const [linksModalOpen, setLinksModalOpen] = useState(false);
+  const [selectedChannelForLinks, setSelectedChannelForLinks] = useState<Channel | null>(null);
   const [copiedChannelId, setCopiedChannelId] = useState<string | null>(null);
+  const [copiedServerKey, setCopiedServerKey] = useState<string | null>(null);
 
 
 
@@ -251,17 +249,9 @@ export default function ChannelsPage() {
     }
   };
 
-  const handlePlayPreview = async (channel: Channel) => {
-    try {
-      // 1. Direct proxy stream URL (zero delay, zero buttons)
-      const streamToPlay = `/live/${channel.id}.m3u8`;
-      setActivePlayerUrl(streamToPlay);
-      setActivePlayerName(channel.name);
-      setActivePlayerServers(channel.servers || []);
-      setPlayerModalOpen(true);
-    } catch (err: any) {
-      console.error('Play error:', err);
-    }
+  const handleOpenStreamLinks = (channel: Channel) => {
+    setSelectedChannelForLinks(channel);
+    setLinksModalOpen(true);
   };
 
 
@@ -529,7 +519,7 @@ export default function ChannelsPage() {
                     {paginatedChannels.map((ch) => (
                       <tr
                         key={ch.id}
-                        onClick={() => handlePlayPreview(ch)}
+                        onClick={() => handleOpenStreamLinks(ch)}
                         className="hover:bg-[#1A1A1A] cursor-pointer transition-colors group"
                       >
                         <td className="py-3 px-4 font-medium text-[#F5F5F5]">
@@ -589,26 +579,26 @@ export default function ChannelsPage() {
                         </td>
                         <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="inline-flex items-center gap-2">
-                            {/* Instant 24/7 Watch Button */}
+                            {/* Open Stream Links Modal */}
                             <button
-                              onClick={() => handlePlayPreview(ch)}
-                              title="Watch Live Stream 24/7"
-                              className="px-3 py-1 rounded bg-[#E50914] hover:bg-[#b80710] text-white flex items-center gap-1.5 font-medium text-xs transition-colors shadow-sm"
+                              onClick={() => handleOpenStreamLinks(ch)}
+                              title="عرض وتوزيع روابط البث المباشر لكافة السيرفرات"
+                              className="px-3 py-1 rounded bg-[#0284C7]/20 hover:bg-[#0284C7]/30 text-[#38BDF8] border border-[#0284C7]/40 flex items-center gap-1.5 font-medium text-xs transition-colors shadow-sm"
                             >
-                              <Play className="w-3.5 h-3.5 fill-current" />
-                              <span>Watch Live</span>
+                              <Radio className="w-3.5 h-3.5" />
+                              <span>روابط البث</span>
                             </button>
 
-                            {/* Copy Rebroadcast Link Button */}
+                            {/* Copy Direct TS Link Button */}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                const fullUrl = `${window.location.origin}/live/${ch.id}.m3u8`;
+                                const fullUrl = `${window.location.origin}/live/${ch.id}.ts?server=1`;
                                 navigator.clipboard.writeText(fullUrl);
                                 setCopiedChannelId(ch.id);
                                 setTimeout(() => setCopiedChannelId(null), 2000);
                               }}
-                              title="نسخ رابط البث المعاد الخاص بموقعك"
+                              title="نسخ رابط البث الفضائي المباشر TS (الموصى به لـ VLC و IPTV بدون توقف)"
                               className="px-2.5 py-1 rounded bg-[#1A1A1A] hover:bg-[#262626] text-[#D4D4D8] hover:text-white flex items-center gap-1.5 font-medium text-xs transition-colors border border-[#2A2A2A]"
                             >
                               {copiedChannelId === ch.id ? (
@@ -619,7 +609,7 @@ export default function ChannelsPage() {
                               ) : (
                                 <>
                                   <Copy className="w-3.5 h-3.5 text-[#A1A1AA]" />
-                                  <span>رابط البث</span>
+                                  <span>نسخ TS</span>
                                 </>
                               )}
                             </button>
@@ -1069,14 +1059,190 @@ export default function ChannelsPage() {
           </div>
         )}
 
-        {/* HLS Player Modal */}
-        <HlsPlayerModal
-          streamUrl={activePlayerUrl}
-          channelName={activePlayerName}
-          servers={activePlayerServers}
-          isOpen={playerModalOpen}
-          onClose={() => setPlayerModalOpen(false)}
-        />
+        {/* Stream Links & Server Dispatcher Modal */}
+        {linksModalOpen && selectedChannelForLinks && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
+            <div className="bg-[#111111] border border-[#262626] rounded-xl max-w-2xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="px-6 py-4 border-b border-[#262626] flex items-center justify-between bg-[#141414]">
+                <div className="flex items-center gap-3">
+                  {selectedChannelForLinks.logoUrl ? (
+                    <img
+                      src={selectedChannelForLinks.logoUrl}
+                      alt={selectedChannelForLinks.name}
+                      className="w-10 h-10 object-contain rounded bg-[#0A0A0A] p-1 border border-[#262626]"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded bg-[#1E293B] flex items-center justify-center border border-[#334155]">
+                      <Radio className="w-5 h-5 text-[#38BDF8]" />
+                    </div>
+                  )}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-bold text-white">{selectedChannelForLinks.name}</h3>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        مباشر • LIVE
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#A1A1AA] mt-0.5">
+                      موزع الروابط المباشرة • {selectedChannelForLinks.groupTitle || 'عام'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setLinksModalOpen(false)}
+                  className="text-[#71717A] hover:text-white p-1 rounded-md hover:bg-[#222] transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 overflow-y-auto space-y-5">
+                {/* Notice */}
+                <div className="p-3.5 bg-[#0F172A]/80 border border-[#1E3A8A]/50 rounded-lg text-xs flex items-start gap-3">
+                  <Info className="w-4 h-4 text-[#38BDF8] shrink-0 mt-0.5" />
+                  <div className="text-[#94A3B8] leading-relaxed">
+                    <span className="text-white font-semibold">ملاحظة لبرنامج VLC وتطبيقات IPTV:</span>
+                    <br />
+                    اختر <strong className="text-emerald-400">رابط TS المباشر</strong> لتشغيل متواصل 24 ساعة بدون أي تقطيع أو توقف.
+                    اختر <strong className="text-[#38BDF8]">رابط M3U8</strong> لمشغلات HLS والتطبيقات الذكية.
+                  </div>
+                </div>
+
+                {/* Available Servers */}
+                <div className="space-y-4">
+                  {(selectedChannelForLinks.servers && selectedChannelForLinks.servers.length > 0
+                    ? selectedChannelForLinks.servers
+                    : [
+                        { id: 'server-1', name: 'سيرفر 1 (VIP فضائي 24/7 - FHD)', quality: '1080p' },
+                        { id: 'server-2', name: 'سيرفر 2 (VIP احتياطي - HD)', quality: 'HD' },
+                        { id: 'server-3', name: 'سيرفر 3 (سيرفر المباريات)', quality: 'SD/HD' },
+                      ]
+                  ).map((srv: any, idx: number) => {
+                    const srvNum = idx + 1;
+                    const hlsUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/live/${selectedChannelForLinks.id}.m3u8?server=${srvNum}`;
+                    const tsUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/live/${selectedChannelForLinks.id}.ts?server=${srvNum}`;
+                    const keyHls = `hls_${srvNum}`;
+                    const keyTs = `ts_${srvNum}`;
+
+                    return (
+                      <div key={srv.id || idx} className="p-4 bg-[#0A0A0A] border border-[#262626] rounded-xl space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="text-xs font-bold text-white">{srv.name || `سيرفر ${srvNum}`}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#1F2937] text-[#9CA3AF] border border-[#374151]">
+                              {srv.quality || 'FHD'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Direct TS Link (Primary for VLC / IPTV) */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                              ⚡ رابط TS المباشر (الموصى به لـ VLC و IPTV بدون توقف):
+                            </span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(tsUrl);
+                                setCopiedServerKey(keyTs);
+                                setTimeout(() => setCopiedServerKey(null), 2000);
+                              }}
+                              className="px-2.5 py-0.5 rounded bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 transition-colors font-medium text-[11px]"
+                            >
+                              {copiedServerKey === keyTs ? (
+                                <>
+                                  <Check className="w-3 h-3 text-emerald-400" />
+                                  <span>تم النسخ!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3" />
+                                  <span>نسخ رابط TS</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                          <div className="bg-[#141414] border border-[#2A2A2A] rounded p-2 font-mono text-[11px] text-[#A1A1AA] select-all break-all">
+                            {tsUrl}
+                          </div>
+                        </div>
+
+                        {/* HLS Link */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-[#38BDF8] font-semibold flex items-center gap-1">
+                              📋 رابط M3U8 (لمشغلات HLS والتطبيقات الذكية):
+                            </span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(hlsUrl);
+                                setCopiedServerKey(keyHls);
+                                setTimeout(() => setCopiedServerKey(null), 2000);
+                              }}
+                              className="px-2.5 py-0.5 rounded bg-[#0284C7]/20 hover:bg-[#0284C7]/40 text-[#38BDF8] border border-[#0284C7]/30 flex items-center gap-1 transition-colors font-medium text-[11px]"
+                            >
+                              {copiedServerKey === keyHls ? (
+                                <>
+                                  <Check className="w-3 h-3 text-emerald-400" />
+                                  <span>تم النسخ!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3" />
+                                  <span>نسخ M3U8</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                          <div className="bg-[#141414] border border-[#2A2A2A] rounded p-2 font-mono text-[11px] text-[#A1A1AA] select-all break-all">
+                            {hlsUrl}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Single Channel M3U Download Button */}
+                <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                  <button
+                    onClick={() => {
+                      const origin = window.location.origin;
+                      const m3uContent = `#EXTM3U\n#EXTINF:-1 tvg-id="${selectedChannelForLinks.id}" tvg-name="${selectedChannelForLinks.name}" tvg-logo="${selectedChannelForLinks.logoUrl || ''}" group-title="${selectedChannelForLinks.groupTitle || 'Live'}",${selectedChannelForLinks.name} (TS Direct)\n${origin}/live/${selectedChannelForLinks.id}.ts?server=1\n#EXTINF:-1 tvg-id="${selectedChannelForLinks.id}" tvg-name="${selectedChannelForLinks.name}" tvg-logo="${selectedChannelForLinks.logoUrl || ''}" group-title="${selectedChannelForLinks.groupTitle || 'Live'}",${selectedChannelForLinks.name} (HLS)\n${origin}/live/${selectedChannelForLinks.id}.m3u8?server=1\n`;
+                      const blob = new Blob([m3uContent], { type: 'audio/x-mpegurl;charset=utf-8' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${selectedChannelForLinks.name.replace(/[^a-zA-Z0-9_\u0600-\u06FF]+/g, '_')}.m3u`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="w-full btn-secondary py-2 px-4 text-xs gap-2 justify-center bg-[#1E293B] hover:bg-[#334155] text-white border-[#334155]"
+                  >
+                    <Download className="w-3.5 h-3.5 text-[#38BDF8]" />
+                    <span>تحميل ملف M3U لهذه القناة (VLC Ready)</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/playlist.m3u`);
+                      alert('تم نسخ رابط قائمة كل القنوات المباشرة M3U!');
+                    }}
+                    className="w-full btn-secondary py-2 px-4 text-xs gap-2 justify-center"
+                  >
+                    <Copy className="w-3.5 h-3.5 text-[#A1A1AA]" />
+                    <span>نسخ رابط جميع القنوات (/playlist.m3u)</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </main>
     </div>

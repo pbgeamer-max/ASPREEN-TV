@@ -134,13 +134,13 @@ class OnDemandStreamManager:
                     "-probesize", "250000",
                     "-analyzeduration", "250000",
                     "-user_agent", "VLC/3.0.18 LibVLC/3.0.18",
-                    "-reconnect", "1", "-reconnect_at_eof", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "2",
+                    "-reconnect", "1", "-reconnect_at_eof", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5",
                     "-i", upstream_url,
                     "-c", "copy",
                     "-f", "hls",
-                    "-hls_time", "1.5",
-                    "-hls_list_size", "6",
-                    "-hls_flags", "delete_segments+split_by_time",
+                    "-hls_time", "3",
+                    "-hls_list_size", "30",
+                    "-hls_flags", "delete_segments",
                     m3u8_path
                 ]
                 try:
@@ -498,6 +498,13 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.handle_channel_playlist(cid, is_raw=False, force_proxy=force_proxy)
             return
 
+        # 5. Direct Continuous MPEG-TS Stream: /live/<channel_id>.ts or /raw/<channel_id>.ts (Rock-Solid for VLC / IPTV)
+        match_ts = re.match(r"^/(?:live|raw)/([^/]+)\.ts$", path)
+        if match_ts:
+            cid = match_ts.group(1)
+            self.handle_direct_ts_stream(cid)
+            return
+
         # 6. Proxy Segment Chunk: /ts or /live/ts or /raw/ts
         if self.path.startswith("/ts?") or self.path.startswith("/live/ts?") or self.path.startswith("/raw/ts?") or self.path.startswith("/ts/") or self.path.startswith("/live/ts/") or self.path.startswith("/raw/ts/"):
             parsed_ts = urllib.parse.urlparse(self.path)
@@ -527,9 +534,119 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
 
+    def build_target_and_ua(self, channel_obj, srv_choice="1"):
+        """Extracts target upstream URL and headers for requested server"""
+        servers_list = channel_obj.get("servers", [])
+        target = ""
+        target_sid = f"server-{srv_choice}" if not str(srv_choice).startswith("server-") else str(srv_choice)
+        if servers_list:
+            for s in servers_list:
+                sid = str(s.get("id", ""))
+                if sid == target_sid or sid == str(srv_choice):
+                    s_url = s.get("upstreamUrl") or s.get("url", "")
+                    if s_url and not s_url.startswith("/live/"):
+                        target = s_url
+                        break
+
+        if not target:
+            play_url = channel_obj.get("playUrl", "")
+            stream_url = channel_obj.get("streamUrl", "")
+            ua_candidate = channel_obj.get("userAgent", "")
+
+            if play_url and "play.php" in play_url:
+                target = play_url
+            elif "new-redirect.online" in stream_url:
+                b64_url = base64.b64encode(stream_url.encode()).decode()
+                ua_for_param = ua_candidate or DEFAULT_UA
+                b64_ua = base64.b64encode(ua_for_param.encode()).decode()
+                target = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
+            elif play_url:
+                target = play_url
+            else:
+                target = stream_url
+
+        ua_candidate = channel_obj.get("userAgent", "")
+        extracted_ua = ""
+        if "ua=" in target:
+            parsed_q = urllib.parse.parse_qs(urllib.parse.urlparse(target).query)
+            encoded_ua = parsed_q.get("ua", [""])[0]
+            if encoded_ua:
+                try:
+                    extracted_ua = base64.b64decode(encoded_ua).decode("utf-8", errors="ignore")
+                except Exception:
+                    pass
+
+        if "workers.dev" in target or ".css" in target or "speedcdn" in target:
+            final_ua = "OSCARTV2021"
+        else:
+            final_ua = extracted_ua or ua_candidate or DEFAULT_UA
+        return target, final_ua
+
+    def handle_direct_ts_stream(self, cid):
+        """Streams continuous live MPEG-TS directly to VLC / IPTV players without ANY interruption"""
+        parsed_url = urllib.parse.urlparse(self.path)
+        qs = urllib.parse.parse_qs(parsed_url.query)
+        requested_server = qs.get("server", ["1"])[0]
+
+        with cache_lock:
+            ch = channels_cache.get(cid)
+        if not ch:
+            load_channels_from_disk()
+            with cache_lock:
+                ch = channels_cache.get(cid)
+
+        if not ch:
+            self.send_response(404)
+            self.send_cors_headers()
+            self.end_headers()
+            self.wfile.write(b"Channel Not Found")
+            return
+
+        target_fetch_url, req_ua = self.build_target_and_ua(ch, requested_server)
+        if not target_fetch_url:
+            self.send_response(502)
+            self.send_cors_headers()
+            self.end_headers()
+            self.wfile.write(b"Upstream Unavailable")
+            return
+
+        headers = {
+            "User-Agent": req_ua or "VLC/3.0.18 LibVLC/3.0.18",
+            "Accept": "*/*",
+            "Connection": "close"
+        }
+        if "yacine.website" in target_fetch_url or "new-redirect.online" in target_fetch_url:
+            headers["Referer"] = "https://yacine.website/"
+            headers["Origin"] = "https://yacine.website"
+            headers["X-Forwarded-For"] = "156.200.1.1"
+
+        try:
+            req = urllib.request.Request(target_fetch_url, headers=headers)
+            with PROXY_OPENER.open(req, timeout=15) as upstream:
+                self.send_response(200)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "video/mp2t")
+                self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                self.send_header("Connection", "close")
+                self.end_headers()
+
+                while True:
+                    chunk = upstream.read(64 * 1024)
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        except Exception:
+            try:
+                self.send_response(502)
+                self.send_cors_headers()
+                self.end_headers()
+            except Exception:
+                pass
+
     def handle_channel_playlist(self, cid, is_raw=False, force_proxy=False):
-        """Fetches upstream M3U8, rewrites segment URLs, and returns to client"""
-        accept_hdr = self.headers.get("Accept", "")
+        """Fetches upstream M3U8, rewrites segment URLs, and returns pure M3U8 to client"""
         ua_hdr = self.headers.get("User-Agent", "").lower()
         host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", "localhost"))
         if "127.0.0.1" in host or "localhost" in host:
@@ -540,123 +657,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         base_origin = f"{proto}://{host}"
 
         is_iptv_or_player = any(app in ua_hdr for app in ["vlc", "kodi", "tivimate", "iptv", "ffmpeg", "mpv", "exoplayer", "libvlc", "lavf", "smart", "ott", "player"])
-        is_browser = "text/html" in accept_hdr and not is_iptv_or_player
-        
-        parsed_url = urllib.parse.urlparse(self.path)
-        qs = urllib.parse.parse_qs(parsed_url.query)
-        is_raw_requested = is_raw or qs.get("raw", ["0"])[0] in ("1", "true")
-        
-        # If client is VLC or IPTV app, auto-enable proxying so they never get blocked by yacine anti-bot headers
         if is_iptv_or_player:
             force_proxy = True
-
-        if is_browser and not is_raw_requested:
-            with cache_lock:
-                ch_info = channels_cache.get(cid, {})
-                ch_name = ch_info.get("name", "Live Stream")
-                ch_logo = ch_info.get("logoUrl", "")
-            
-            html_player = f"""<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{ch_name} — ASPREEN TV Live</title>
-    <link rel="icon" href="{ch_logo}">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        body {{ background: #07090e; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }}
-        .player-wrapper {{ width: 100vw; height: 100vh; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }}
-        video {{ width: 100%; height: 100%; object-fit: contain; }}
-        .overlay {{ position: absolute; top: 16px; right: 20px; z-index: 10; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.65); padding: 8px 16px; border-radius: 30px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }}
-        .badge {{ background: #22c55e; color: #000; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 12px; letter-spacing: 0.5px; }}
-        .title {{ font-size: 14px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }}
-        .unmute-btn {{ position: absolute; bottom: 80px; z-index: 20; background: #22c55e; color: #000; border: none; border-radius: 24px; padding: 12px 24px; font-size: 15px; font-weight: 700; cursor: pointer; display: none; box-shadow: 0 4px 15px rgba(34,197,94,0.4); }}
-    </style>
-</head>
-<body>
-    <div class="player-wrapper">
-        <div class="overlay">
-            <span class="badge">مباشر • LIVE</span>
-            <span class="title">{ch_name}</span>
-        </div>
-        <video id="video-player" controls autoplay playsinline></video>
-        <button id="unmute-btn" class="unmute-btn">انقر لتشغيل الصوت 🔊</button>
-    </div>
-    <script>
-        const video = document.getElementById('video-player');
-        const unmuteBtn = document.getElementById('unmute-btn');
-        const streamUrl = window.location.pathname + '?raw=1';
-
-        unmuteBtn.addEventListener('click', () => {{
-            video.muted = false;
-            unmuteBtn.style.display = 'none';
-        }});
-
-        if (Hls.isSupported()) {{
-            const hls = new Hls({{
-                enableWorker: true,
-                lowLatencyMode: false,
-                backBufferLength: 90,
-                maxBufferLength: 45,
-                maxMaxBufferLength: 90,
-                liveSyncDurationCount: 4,
-                liveMaxLatencyDurationCount: 15,
-                manifestLoadingTimeOut: 15000,
-                manifestLoadingMaxRetry: 10,
-                fragLoadingTimeOut: 20000,
-                fragLoadingMaxRetry: 10
-            }});
-            hls.loadSource(streamUrl);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {{
-                video.play().then(() => {{
-                    if (video.muted) unmuteBtn.style.display = 'block';
-                }}).catch(() => {{
-                    video.muted = true;
-                    video.play().then(() => {{
-                        unmuteBtn.style.display = 'block';
-                    }});
-                }});
-            }});
-            hls.on(Hls.Events.ERROR, (event, data) => {{
-                if (data.fatal) {{
-                    switch (data.type) {{
-                        case Hls.ErrorTypes.NETWORK_ERROR:
-                            hls.startLoad();
-                            break;
-                        case Hls.ErrorTypes.MEDIA_ERROR:
-                            hls.recoverMediaError();
-                            break;
-                        default:
-                            hls.destroy();
-                            break;
-                    }}
-                }}
-            }});
-        }} else if (video.canPlayType('application/vnd.apple.mpegurl')) {{
-            video.src = streamUrl;
-            video.play().catch(() => {{
-                video.muted = true;
-                video.play();
-                unmuteBtn.style.display = 'block';
-            }});
-        }}
-    </script>
-</body>
-</html>"""
-            html_bytes = html_player.encode("utf-8")
-            self.send_response(200)
-            self.send_cors_headers()
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(html_bytes)))
-            self.end_headers()
-            try:
-                self.wfile.write(html_bytes)
-            except (BrokenPipeError, ConnectionResetError):
-                pass
-            return
 
         now_ts = time.time()
         parsed_url = urllib.parse.urlparse(self.path)
@@ -667,7 +669,6 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         with m3u8_cache_lock:
             cached_data = m3u8_cache.get(cache_key)
             if cached_data and now_ts < cached_data[1]:
-
                 self.send_response(200)
                 self.send_cors_headers()
                 self.send_header("Content-Type", "application/vnd.apple.mpegurl")
@@ -708,65 +709,14 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             slug = re.sub(r'[^a-zA-Z0-9]+', '-', ch.get('name', 'live')).strip('-') or 'live'
             channel_referer = f"https://yacine.website/channel/{cid}/{slug}"
 
-        def build_target_and_ua(channel_obj, srv_choice="1"):
-            # Check if an alternative server was explicitly requested (e.g. server=2 or server=3)
-            servers_list = channel_obj.get("servers", [])
-            target = ""
-            target_sid = f"server-{srv_choice}" if not str(srv_choice).startswith("server-") else str(srv_choice)
-            if servers_list:
-                for s in servers_list:
-                    sid = str(s.get("id", ""))
-                    if sid == target_sid or sid == str(srv_choice):
-                        s_url = s.get("upstreamUrl") or s.get("url", "")
-                        if s_url and not s_url.startswith("/live/"):
-                            target = s_url
-                            break
-
-            if not target:
-                play_url = channel_obj.get("playUrl", "")
-                stream_url = channel_obj.get("streamUrl", "")
-                ua_candidate = channel_obj.get("userAgent", "")
-
-                # Always prefer playUrl because upstream direct streamUrl (new-redirect.online) returns 403 Forbidden!
-                if play_url and "play.php" in play_url:
-                    target = play_url
-                elif "new-redirect.online" in stream_url:
-                    b64_url = base64.b64encode(stream_url.encode()).decode()
-                    ua_for_param = ua_candidate or DEFAULT_UA
-                    b64_ua = base64.b64encode(ua_for_param.encode()).decode()
-                    target = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
-                elif play_url:
-                    target = play_url
-                else:
-                    target = stream_url
-
-            ua_candidate = channel_obj.get("userAgent", "")
-            # Extract exact UA if encoded in query string
-            extracted_ua = ""
-            if "ua=" in target:
-                parsed_q = urllib.parse.parse_qs(urllib.parse.urlparse(target).query)
-                encoded_ua = parsed_q.get("ua", [""])[0]
-                if encoded_ua:
-                    try:
-                        extracted_ua = base64.b64decode(encoded_ua).decode("utf-8", errors="ignore")
-                    except Exception:
-                        pass
-
-            if "workers.dev" in target or ".css" in target or "speedcdn" in target:
-                final_ua = "OSCARTV2021"
-            else:
-                final_ua = extracted_ua or ua_candidate or DEFAULT_UA
-            return target, final_ua
-
-        target_fetch_url, req_ua = build_target_and_ua(ch, requested_server)
-
+        target_fetch_url, req_ua = self.build_target_and_ua(ch, requested_server)
 
         # Only trigger renewal if we have no target stream url at all
         if not target_fetch_url or target_fetch_url.startswith("http://127.0.0.1"):
             renew_single_channel_stream(cid)
             with cache_lock:
                 ch = channels_cache.get(cid, {})
-                target_fetch_url, req_ua = build_target_and_ua(ch)
+                target_fetch_url, req_ua = self.build_target_and_ua(ch)
 
         if not target_fetch_url:
             self.send_response(502)
@@ -787,7 +737,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-Type", "text/plain; charset=utf-8")
                 self.end_headers()
                 try:
-                    self.wfile.write(b"Server 2 Initializing Stream...")
+                    self.wfile.write(b"Server Initializing Stream...")
                 except (BrokenPipeError, ConnectionResetError):
                     pass
                 return
@@ -801,9 +751,22 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     rewritten.append(l)
                 else:
                     seg_name = os.path.basename(l)
-                    rewritten.append(f"/live/segment/{stream_key}/{seg_name}")
+                    rewritten.append(f"{base_origin}/live/segment/{stream_key}/{seg_name}")
 
             out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
+            self.send_response(200)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "application/vnd.apple.mpegurl")
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
+            self.send_header("Content-Length", str(len(out_body)))
+            self.end_headers()
+            try:
+                self.wfile.write(out_body)
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+            return
             self.send_response(200)
             self.send_cors_headers()
             self.send_header("Content-Type", "application/vnd.apple.mpegurl")
@@ -859,7 +822,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             if renew_single_channel_stream(cid):
                 with cache_lock:
                     ch = channels_cache.get(cid, {})
-                    target_fetch_url, req_ua = build_target_and_ua(ch)
+                    target_fetch_url, req_ua = self.build_target_and_ua(ch)
                 if target_fetch_url:
                     m3u_text = fetch_m3u(target_fetch_url, req_ua, max_retries=2)
 
