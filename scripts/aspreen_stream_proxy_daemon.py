@@ -21,6 +21,7 @@ import base64
 import socket
 import threading
 import subprocess
+import shutil
 import ssl
 import urllib.request
 import urllib.parse
@@ -90,6 +91,120 @@ last_renew_time = 0
 total_refreshes = 0
 
 # Direct 24/7 Pure Stream Configuration (Zero transcoding / Zero CPU / 100% stable)
+
+# -----------------------------------------------------------------------------
+# On-Demand HLS Stream Manager (Multi-User Stream Fanout / Relay Engine)
+# يحول رابط البث (TS) إلى شرائح HLS لحظياً بدون أي استهلاك للمعالج (-c copy)
+# يتصل بالسيرفر الأصلي باتصال واحد فقط، ويوزع البث على آلاف المستخدمين في موقعك
+# -----------------------------------------------------------------------------
+HLS_STORAGE_PATH = os.environ.get("STREAM_STORAGE_PATH", os.path.join(DATA_DIR, "hls"))
+HLS_ONDEMAND_DIR = os.path.join(HLS_STORAGE_PATH, "ondemand")
+os.makedirs(HLS_ONDEMAND_DIR, exist_ok=True)
+
+class OnDemandStreamManager:
+    def __init__(self, base_dir):
+        self.base_dir = base_dir
+        self.workers = {}  # stream_key -> {"proc": Popen, "hls_dir": str, "m3u8_path": str, "last_active": float, "upstream_url": str}
+        self.lock = threading.Lock()
+        os.makedirs(self.base_dir, exist_ok=True)
+        self.cleaner_thread = threading.Thread(target=self._cleanup_loop, daemon=True)
+        self.cleaner_thread.start()
+
+    def get_or_start_stream(self, cid, server_id, upstream_url):
+        stream_key = f"{cid}_s{server_id}"
+        with self.lock:
+            worker = self.workers.get(stream_key)
+            if worker and worker["proc"].poll() is None:
+                worker["last_active"] = time.time()
+                m3u8_path = worker["m3u8_path"]
+            else:
+                hls_dir = os.path.join(self.base_dir, stream_key)
+                if os.path.exists(hls_dir):
+                    shutil.rmtree(hls_dir, ignore_errors=True)
+                os.makedirs(hls_dir, exist_ok=True)
+                m3u8_path = os.path.join(hls_dir, "index.m3u8")
+
+                cmd = [
+                    "ffmpeg", "-y", "-hide_banner", "-loglevel", "warning",
+                    "-fflags", "+nobuffer+flush_packets",
+                    "-probesize", "500000",
+                    "-analyzeduration", "500000",
+                    "-user_agent", "VLC/3.0.18 LibVLC/3.0.18",
+                    "-reconnect", "1", "-reconnect_at_eof", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5",
+                    "-i", upstream_url,
+                    "-c", "copy",
+                    "-f", "hls",
+                    "-hls_time", "2",
+                    "-hls_list_size", "5",
+                    "-hls_flags", "delete_segments+split_by_time",
+                    m3u8_path
+                ]
+                try:
+                    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    self.workers[stream_key] = {
+                        "proc": proc,
+                        "hls_dir": hls_dir,
+                        "m3u8_path": m3u8_path,
+                        "last_active": time.time(),
+                        "upstream_url": upstream_url
+                    }
+                    print(f" [✓] تشغيل موزع البث الحصري للقناة {stream_key} (اتصال واحد بالأصل ومشاركة لآلاف الزوار)")
+                except Exception as e:
+                    print(f" [!] خطأ في تشغيل محرك تحويل البث On-Demand: {e}")
+                    return None, None
+
+        # Wait up to 8.0 seconds for first manifest
+        for _ in range(32):
+            if os.path.exists(m3u8_path) and os.path.getsize(m3u8_path) > 20:
+                try:
+                    with open(m3u8_path, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read()
+                    if "#EXTINF" in content:
+                        return stream_key, content
+                except Exception:
+                    pass
+            time.sleep(0.25)
+
+        if os.path.exists(m3u8_path):
+            try:
+                with open(m3u8_path, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                return stream_key, content
+            except Exception:
+                pass
+        return stream_key, None
+
+    def touch(self, stream_key):
+        with self.lock:
+            if stream_key in self.workers:
+                self.workers[stream_key]["last_active"] = time.time()
+
+    def _cleanup_loop(self):
+        while True:
+            time.sleep(15)
+            now = time.time()
+            to_stop = []
+            with self.lock:
+                for sk, w in list(self.workers.items()):
+                    if now - w.get("last_active", now) > 90 or w["proc"].poll() is not None:
+                        to_stop.append(sk)
+
+            for sk in to_stop:
+                with self.lock:
+                    worker = self.workers.pop(sk, None)
+                if worker:
+                    try:
+                        worker["proc"].terminate()
+                        worker["proc"].wait(timeout=2)
+                    except Exception:
+                        try:
+                            worker["proc"].kill()
+                        except Exception:
+                            pass
+                    shutil.rmtree(worker["hls_dir"], ignore_errors=True)
+                    print(f" [i] إيقاف جلسة البث On-Demand للقناة {sk} لعدم وجود مشاهدين لتوفير الاتصال.")
+
+ON_DEMAND_STREAM_MANAGER = OnDemandStreamManager(HLS_ONDEMAND_DIR)
 
 
 def send_telegram_message(text: str):
@@ -357,8 +472,16 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(content)
             return
 
-        # 3. Stream M3U8 Playlist: /live/<channel_id>.m3u8 or /raw/<channel_id>.m3u8 (Direct 100% Pure Stable Stream)
-        match_live = re.match(r"^/(?:live|raw)/(\d+)\.m3u8$", path)
+        # 3. On-Demand HLS Sliced Segments: /live/segment/<stream_key>/<segment_file>
+        match_seg = re.match(r"^/live/segment/([^/]+)/([^/]+)$", path)
+        if match_seg:
+            stream_key = match_seg.group(1)
+            seg_file = match_seg.group(2)
+            self.handle_ondemand_segment(stream_key, seg_file)
+            return
+
+        # 4. Stream M3U8 Playlist: /live/<channel_id>.m3u8 or /raw/<channel_id>.m3u8 (Direct 100% Pure Stable Stream)
+        match_live = re.match(r"^/(?:live|raw)/([^/]+)\.m3u8$", path)
         if match_live:
             cid = match_live.group(1)
             force_proxy = query.get("proxy", ["0"])[0] in ("1", "true")
@@ -583,7 +706,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 for s in servers_list:
                     sid = str(s.get("id", ""))
                     if sid == f"server-{srv_choice}" or sid == srv_choice:
-                        s_url = s.get("url", "")
+                        s_url = s.get("upstreamUrl") or s.get("url", "")
                         if s_url and not s_url.startswith("/live/"):
                             target = s_url
                             break
@@ -644,12 +767,44 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 pass
             return
 
-        # If alternative server is a direct continuous TS stream (e.g. VIP OTT), redirect directly
+        # If alternative server is a direct continuous TS stream (e.g. VIP OTT), slice on-demand to HLS
         if target_fetch_url and ("extension=ts" in target_fetch_url or target_fetch_url.endswith(".ts")):
-            self.send_response(302)
+            stream_key, m3u_text = ON_DEMAND_STREAM_MANAGER.get_or_start_stream(cid, requested_server, target_fetch_url)
+            if not m3u_text:
+                self.send_response(503)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.end_headers()
+                try:
+                    self.wfile.write(b"Server 2 Initializing Stream...")
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+                return
+
+            rewritten = []
+            for line in m3u_text.splitlines():
+                l = line.strip()
+                if not l:
+                    continue
+                if l.startswith("#"):
+                    rewritten.append(l)
+                else:
+                    seg_name = os.path.basename(l)
+                    rewritten.append(f"/live/segment/{stream_key}/{seg_name}")
+
+            out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
+            self.send_response(200)
             self.send_cors_headers()
-            self.send_header("Location", target_fetch_url)
+            self.send_header("Content-Type", "application/vnd.apple.mpegurl")
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
+            self.send_header("Content-Length", str(len(out_body)))
             self.end_headers()
+            try:
+                self.wfile.write(out_body)
+            except (BrokenPipeError, ConnectionResetError):
+                pass
             return
 
 
@@ -926,8 +1081,44 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                 except (BrokenPipeError, ConnectionResetError):
                     pass
-                return
+    def handle_ondemand_segment(self, stream_key, seg_file):
+        """Serves on-demand HLS sliced TS segment directly with zero upstream overhead"""
+        ON_DEMAND_STREAM_MANAGER.touch(stream_key)
+        clean_key = re.sub(r"[^a-zA-Z0-9_\-]", "", stream_key)
+        clean_file = re.sub(r"[^a-zA-Z0-9_\-\.]", "", seg_file)
+        seg_path = os.path.join(ON_DEMAND_STREAM_MANAGER.base_dir, clean_key, clean_file)
 
+        # Wait briefly up to 1.5s if segment is still finishing write
+        for _ in range(15):
+            if os.path.exists(seg_path) and os.path.getsize(seg_path) > 0:
+                break
+            time.sleep(0.1)
+
+        if not os.path.exists(seg_path):
+            self.send_response(404)
+            self.send_cors_headers()
+            self.end_headers()
+            return
+
+        try:
+            with open(seg_path, "rb") as f:
+                data = f.read()
+            self.send_response(200)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "video/mp2t")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "public, max-age=60")
+            self.end_headers()
+            self.wfile.write(data)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        except Exception:
+            try:
+                self.send_response(500)
+                self.send_cors_headers()
+                self.end_headers()
+            except Exception:
+                pass
 
 
 def start_server():

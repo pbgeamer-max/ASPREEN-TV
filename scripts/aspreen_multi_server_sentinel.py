@@ -115,11 +115,10 @@ def build_multiserver_catalog():
         servers = []
 
         # Server 1: Yacine TV (HLS / FHD)
-        s1_url = ch.get("playUrl") or ch.get("streamUrl") or f"/live/{cid}.m3u8"
         servers.append({
             "id": "server-1",
             "name": "سيرفر 1 (ياسين TV - FHD)",
-            "url": f"/live/{cid}.m3u8",
+            "url": f"/live/{cid}.m3u8?server=1",
             "quality": "FHD",
             "isDefault": True,
             "status": ch.get("status", "live")
@@ -138,8 +137,9 @@ def build_multiserver_catalog():
             vname, vurl = matched_vip_urls[0]
             servers.append({
                 "id": "server-2",
-                "name": "سيرفر 2 (VIP OTT 2027)",
-                "url": vurl,
+                "name": "سيرفر 2 (VIP OTT 1080p)",
+                "url": f"/live/{cid}.m3u8?server=2",
+                "upstreamUrl": vurl,
                 "quality": "1080p",
                 "status": "live"
             })
@@ -151,18 +151,20 @@ def build_multiserver_catalog():
                 servers.append({
                     "id": "server-3",
                     "name": "سيرفر 3 (VIP احتياطي)",
-                    "url": vurl2,
+                    "url": f"/live/{cid}.m3u8?server=3",
+                    "upstreamUrl": vurl2,
                     "quality": "HD",
                     "status": "live"
                 })
         else:
             # For non-VIP channels, provide standard high-speed fallback server
             direct_m3u8 = ch.get("directM3u8") or ch.get("streamUrl")
-            if direct_m3u8 and direct_m3u8 != s1_url:
+            if direct_m3u8 and not direct_m3u8.startswith("/live/"):
                 servers.append({
                     "id": "server-2",
                     "name": "سيرفر 2 (مباشر CDN)",
-                    "url": direct_m3u8,
+                    "url": f"/live/{cid}.m3u8?server=2",
+                    "upstreamUrl": direct_m3u8,
                     "quality": "HD",
                     "status": "live"
                 })

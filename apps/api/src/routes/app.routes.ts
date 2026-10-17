@@ -196,8 +196,12 @@ export async function appRoutes(server: FastifyInstance) {
         status: ch.inputStatus === 'OFFLINE' ? 'OFFLINE' : 'ONLINE',
         order,
         servers: ch.servers && ch.servers.length > 0 ? ch.servers.map((s) => ({
-          ...s,
-          url: s.url.startsWith('/') ? `${effectiveBaseUrl}${s.url}` : s.url
+          id: s.id,
+          name: s.name,
+          url: s.url.startsWith('/') ? `${effectiveBaseUrl}${s.url}` : s.url,
+          quality: s.quality,
+          isDefault: s.isDefault,
+          status: s.status,
         })) : undefined,
       };
     });
