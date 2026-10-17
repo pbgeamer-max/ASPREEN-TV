@@ -397,6 +397,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
     def handle_channel_playlist(self, cid, is_raw=False, force_proxy=False):
         """Fetches upstream M3U8, rewrites segment URLs, and returns to client"""
         accept_hdr = self.headers.get("Accept", "")
+        ua_hdr = self.headers.get("User-Agent", "").lower()
         host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", "localhost"))
         if "127.0.0.1" in host or "localhost" in host:
             host = "aspreen-tv-production.up.railway.app"
