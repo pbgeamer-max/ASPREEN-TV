@@ -132,28 +132,50 @@ class OnDemandStreamManager:
                     "ffmpeg", "-y", "-hide_banner", "-loglevel", "warning",
                     "-fflags", "+genpts+nobuffer+flush_packets",
                     "-avoid_negative_ts", "make_zero",
-                    "-probesize", "320000",
-                    "-analyzeduration", "320000",
-                    "-user_agent", "VLC/3.0.18 LibVLC/3.0.18",
-                    "-reconnect", "1", "-reconnect_at_eof", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "2",
-                    "-i", upstream_url,
+                    "-i", "pipe:0",
                     "-c", "copy",
                     "-f", "hls",
                     "-hls_time", "2",
-                    "-hls_list_size", "25",
-                    "-hls_flags", "delete_segments+append_list",
+                    "-hls_list_size", "15",
+                    "-hls_flags", "delete_segments",
                     m3u8_path
                 ]
                 try:
-                    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    stop_event = threading.Event()
+
+                    def feeder_loop(p, u, stop_ev, sk):
+                        headers = {"User-Agent": "VLC/3.0.18 LibVLC/3.0.18", "Connection": "keep-alive"}
+                        while not stop_ev.is_set():
+                            try:
+                                req = urllib.request.Request(u, headers=headers)
+                                with PROXY_OPENER.open(req, timeout=12) as resp:
+                                    while not stop_ev.is_set():
+                                        chunk = resp.read(32 * 1024)
+                                        if not chunk:
+                                            # Upstream closed connection (~45s limit), loop immediately to reconnect seamlessly
+                                            break
+                                        try:
+                                            p.stdin.write(chunk)
+                                            p.stdin.flush()
+                                        except (BrokenPipeError, OSError):
+                                            return
+                            except Exception:
+                                time.sleep(0.3)
+
+                    t_feed = threading.Thread(target=feeder_loop, args=(proc, upstream_url, stop_event, stream_key), daemon=True)
+                    t_feed.start()
+
                     self.workers[stream_key] = {
                         "proc": proc,
                         "hls_dir": hls_dir,
                         "m3u8_path": m3u8_path,
                         "last_active": time.time(),
-                        "upstream_url": upstream_url
+                        "upstream_url": upstream_url,
+                        "stop_event": stop_event,
+                        "feeder_thread": t_feed
                     }
-                    print(f" [✓] تشغيل موزع البث الحصري للقناة {stream_key} (اتصال واحد بالأصل ومشاركة لآلاف الزوار)")
+                    print(f" [✓] تشغيل موزع البث الحصري للقناة {stream_key} (اتصال واحد دائم ومشاركة لآلاف الزوار)")
                 except Exception as e:
                     print(f" [!] خطأ في تشغيل محرك تحويل البث On-Demand: {e}")
                     return None, None
@@ -191,13 +213,20 @@ class OnDemandStreamManager:
             to_stop = []
             with self.lock:
                 for sk, w in list(self.workers.items()):
-                    if now - w.get("last_active", now) > 90 or w["proc"].poll() is not None:
-                        to_stop.append(sk)
+                    if w["proc"].poll() is not None:
+                        to_stop.append((sk, f"توقف FFmpeg (كود: {w['proc'].poll()})"))
+                    elif (now - w.get("last_active", now)) > 120:
+                        to_stop.append((sk, "120 ثانية خمول بدون مشاهدين"))
 
-            for sk in to_stop:
+            for sk, reason in to_stop:
                 with self.lock:
                     worker = self.workers.pop(sk, None)
                 if worker:
+                    worker.get("stop_event", threading.Event()).set()
+                    try:
+                        worker["proc"].stdin.close()
+                    except Exception:
+                        pass
                     try:
                         worker["proc"].terminate()
                         worker["proc"].wait(timeout=2)
@@ -207,7 +236,7 @@ class OnDemandStreamManager:
                         except Exception:
                             pass
                     shutil.rmtree(worker["hls_dir"], ignore_errors=True)
-                    print(f" [i] إيقاف جلسة البث On-Demand للقناة {sk} لعدم وجود مشاهدين لتوفير الاتصال.")
+                    print(f" [i] إيقاف جلسة البث On-Demand للقناة {sk} ({reason}).")
 
             # Prune hot in-memory segment cache
             with hot_cache_lock:
@@ -538,49 +567,6 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
 
-    def handle_ondemand_segment(self, stream_key, seg_file):
-        """Serves live HLS segments sliced on-the-fly by on-demand FFmpeg stream worker"""
-        seg_file = os.path.basename(seg_file)
-        clean_key = re.sub(r'[^a-zA-Z0-9_-]+', '', stream_key)
-        seg_path = os.path.join(HLS_ONDEMAND_DIR, clean_key, seg_file)
-
-        ON_DEMAND_STREAM_MANAGER.touch(clean_key)
-
-        for _ in range(16):
-            if os.path.exists(seg_path) and os.path.getsize(seg_path) > 0:
-                break
-            time.sleep(0.25)
-
-        if not os.path.exists(seg_path) or os.path.getsize(seg_path) == 0:
-            self.send_response(404)
-            self.send_cors_headers()
-            self.end_headers()
-            try:
-                self.wfile.write(b"Segment Not Found")
-            except (BrokenPipeError, ConnectionResetError):
-                pass
-            return
-
-        try:
-            with open(seg_path, "rb") as f:
-                data = f.read()
-            self.send_response(200)
-            self.send_cors_headers()
-            self.send_header("Content-Type", "video/mp2t")
-            self.send_header("Cache-Control", "public, max-age=60, immutable")
-            self.send_header("Content-Length", str(len(data)))
-            self.end_headers()
-            self.wfile.write(data)
-        except (BrokenPipeError, ConnectionResetError):
-            pass
-        except Exception:
-            try:
-                self.send_response(500)
-                self.send_cors_headers()
-                self.end_headers()
-            except Exception:
-                pass
-
     def build_target_and_ua(self, channel_obj, srv_choice="1"):
         """Extracts target upstream URL and headers for requested server"""
         servers_list = channel_obj.get("servers", [])
@@ -780,6 +766,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         # If alternative server is a direct continuous TS stream (e.g. VIP OTT), slice on-demand to HLS
         if target_fetch_url and ("extension=ts" in target_fetch_url or target_fetch_url.endswith(".ts")):
             stream_key, m3u_text = ON_DEMAND_STREAM_MANAGER.get_or_start_stream(cid, requested_server, target_fetch_url)
+            if stream_key:
+                ON_DEMAND_STREAM_MANAGER.touch(stream_key)
             if not m3u_text:
                 self.send_response(503)
                 self.send_cors_headers()
