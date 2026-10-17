@@ -580,72 +580,38 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         if "?" in target_fetch_url:
             stream_query_token = target_fetch_url.split("?", 1)[1]
 
-        # Parse playlist: isolate headers and active live segment pairs
-        header_lines = []
-        seg_pairs = []
-        curr_inf = None
-        media_seq = None
-
-        lines = m3u_text.splitlines()
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-            if line.startswith("#EXT-X-MEDIA-SEQUENCE:"):
-                try:
-                    media_seq = int(line.split(":")[1])
-                except Exception:
-                    pass
-                continue
-            if line.startswith("#EXTINF"):
-                curr_inf = line
-            elif not line.startswith("#") and curr_inf:
-                seg_pairs.append((curr_inf, line))
-                curr_inf = None
-            else:
-                header_lines.append(line)
-
+        # Rewrite segment and key URLs while preserving 100% of upstream headers, timestamps, and sequence order
         rewritten = []
-        for h in header_lines:
-            if 'URI="' in h:
-                def replace_uri(m):
-                    u = m.group(1)
-                    full_u = urllib.parse.urljoin(target_fetch_url, u)
-                    enc_u = urllib.parse.quote(full_u, safe="")
-                    enc_r = urllib.parse.quote(channel_referer, safe="")
-                    return f'URI="/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
-                rewritten.append(re.sub(r'URI="([^"]+)"', replace_uri, h))
+        for line in m3u_text.splitlines():
+            l = line.strip()
+            if not l:
+                continue
+            if l.startswith("#"):
+                if 'URI="' in l:
+                    def replace_uri(m):
+                        u = m.group(1)
+                        full_u = urllib.parse.urljoin(target_fetch_url, u)
+                        enc_u = urllib.parse.quote(full_u, safe="")
+                        enc_r = urllib.parse.quote(channel_referer, safe="")
+                        return f'URI="/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
+                    rewritten.append(re.sub(r'URI="([^"]+)"', replace_uri, l))
+                else:
+                    rewritten.append(l)
             else:
-                rewritten.append(h)
+                # Segment URL: rewrite cleanly to persistent proxy chunk endpoint
+                seg_full = urllib.parse.urljoin(target_fetch_url, l)
+                if "new-redirect.online" in seg_full and "play.php" not in seg_full:
+                    b64_url = base64.b64encode(seg_full.encode()).decode()
+                    b64_ua = base64.b64encode((req_ua or DEFAULT_UA).encode()).decode()
+                    seg_full = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
 
-        if media_seq is not None:
-            last_seq = channel_max_sequence.get(cid, 0)
-            if media_seq < last_seq:
-                media_seq = last_seq
-            else:
-                channel_max_sequence[cid] = media_seq
-            # Place media sequence right after #EXTM3U
-            idx = 1 if len(rewritten) > 0 and rewritten[0].startswith("#EXTM3U") else 0
-            rewritten.insert(idx, f"#EXT-X-MEDIA-SEQUENCE:{media_seq}")
-
-        for inf, seg_url in seg_pairs:
-            # Resolve relative segment URL against playlist URL
-            seg_full = urllib.parse.urljoin(target_fetch_url, seg_url)
-
-            # If it's a raw new-redirect.online url without play.php, wrap it
-            if "new-redirect.online" in seg_full and "play.php" not in seg_full:
-                b64_url = base64.b64encode(seg_full.encode()).decode()
-                b64_ua = base64.b64encode((req_ua or DEFAULT_UA).encode()).decode()
-                seg_full = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
-
-            encoded_seg = urllib.parse.quote(seg_full, safe="")
-            encoded_ref = urllib.parse.quote(channel_referer, safe="")
-            rewritten.append(inf)
-            rewritten.append(f"/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
+                encoded_seg = urllib.parse.quote(seg_full, safe="")
+                encoded_ref = urllib.parse.quote(channel_referer, safe="")
+                rewritten.append(f"/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
 
         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
         with m3u8_cache_lock:
-            m3u8_cache[cache_key] = (out_body, time.time() + 3.0)
+            m3u8_cache[cache_key] = (out_body, time.time() + 2.0)
         self.send_response(200)
         self.send_cors_headers()
         self.send_header("Content-Type", "application/vnd.apple.mpegurl")
@@ -708,11 +674,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                             headers["Referer"] = "https://yacine.website/"
                             time.sleep(0.3)
                             continue
-                        # Return empty TS segment with 200 to prevent HLS.js crashing on expired live segments
-                        self.send_response(200)
+                        self.send_response(502)
                         self.send_cors_headers()
-                        self.send_header("Content-Type", "video/mp2t")
-                        self.send_header("Content-Length", "0")
                         self.end_headers()
                         return
 
