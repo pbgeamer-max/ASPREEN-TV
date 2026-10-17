@@ -123,22 +123,19 @@ class OnDemandStreamManager:
                 m3u8_path = worker["m3u8_path"]
             else:
                 hls_dir = os.path.join(self.base_dir, stream_key)
-                if os.path.exists(hls_dir):
-                    shutil.rmtree(hls_dir, ignore_errors=True)
                 os.makedirs(hls_dir, exist_ok=True)
                 m3u8_path = os.path.join(hls_dir, "index.m3u8")
 
                 cmd = [
                     "ffmpeg", "-y", "-hide_banner", "-loglevel", "warning",
-                    "-re",
-                    "-fflags", "+genpts+nobuffer+flush_packets",
+                    "-fflags", "+genpts+nobuffer+flush_packets+discardcorrupt",
                     "-avoid_negative_ts", "make_zero",
                     "-i", "pipe:0",
                     "-c", "copy",
                     "-f", "hls",
                     "-hls_time", "2",
-                    "-hls_list_size", "30",
-                    "-hls_delete_threshold", "20",
+                    "-hls_list_size", "25",
+                    "-hls_delete_threshold", "15",
                     "-hls_flags", "delete_segments+append_list",
                     m3u8_path
                 ]
@@ -155,16 +152,16 @@ class OnDemandStreamManager:
                                     while not stop_ev.is_set():
                                         chunk = resp.read(32 * 1024)
                                         if not chunk:
-                                            # Upstream closed connection (~45s limit), loop immediately to reconnect seamlessly
+                                            # Upstream closed connection, loop immediately to reconnect seamlessly
                                             break
                                         try:
                                             p.stdin.write(chunk)
                                             p.stdin.flush()
                                         except (BrokenPipeError, OSError):
                                             return
-                                time.sleep(0.1)
+                                time.sleep(0.15)
                             except Exception:
-                                time.sleep(0.3)
+                                time.sleep(0.5)
 
                     t_feed = threading.Thread(target=feeder_loop, args=(proc, upstream_url, stop_event, stream_key), daemon=True)
                     t_feed.start()

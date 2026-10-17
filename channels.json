@@ -6,60 +6,51 @@
     "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png",
     "orderIndex": 1,
-    "streamUrl": "http://re300.new-redirect.online/live/674534/index.m3u8?t=DhAmh9t4fjIrNhFjUTdsEg&e=1792294881",
-    "directM3u8": "http://re300.new-redirect.online/live/674534/index.m3u8?t=DhAmh9t4fjIrNhFjUTdsEg&e=1792294881",
+    "streamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242288&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242288&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-news.m3u8",
-    "referer": "https://yacine.website/channel/207119423119893112/live",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
-        "upstreamUrl": "http://re300.new-redirect.online/live/674534/index.m3u8?t=DhAmh9t4fjIrNhFjUTdsEg&e=1792294881",
+        "name": "سيرفر 1 (BEIN SPORTS 4K (BEIN SPORTS NEWS 4K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242288&extension=ts",
         "url": "/live/bein-vip-bein-sports-news.m3u8?server=1",
-        "quality": "1080p",
-        "isDefault": true,
-        "status": "live"
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS NEWS 4K S1)"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (احتياطي فضائي) (BEIN SPORTS 4K (BEIN SPORTS NEWS 4K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242288&extension=ts",
+        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS NEWS 4K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985126&extension=ts",
         "url": "/live/bein-vip-bein-sports-news.m3u8?server=2",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS NEWS 4K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS NEWS 4K S2)"
       },
       {
         "id": "server-3",
-        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS NEWS 4K S2))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985126&extension=ts",
+        "name": "سيرفر 3 (BEIN SPORTS 8K (BEIN SPORTS NEWS 8K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242273&extension=ts",
         "url": "/live/bein-vip-bein-sports-news.m3u8?server=3",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS NEWS 4K S2)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS NEWS 8K S1)"
       },
       {
         "id": "server-4",
-        "name": "سيرفر 3 (BEIN SPORTS 8K (BEIN SPORTS NEWS 8K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242273&extension=ts",
+        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS NEWS 8K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985044&extension=ts",
         "url": "/live/bein-vip-bein-sports-news.m3u8?server=4",
-        "resolution": "BEIN SPORTS 8K (BEIN SPORTS NEWS 8K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS NEWS 8K S2)"
       },
       {
         "id": "server-5",
-        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS NEWS 8K S2))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985044&extension=ts",
+        "name": "سيرفر 5 (BEIN SPORTS HD (BEIN SPORTS NEWS HD S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985171&extension=ts",
         "url": "/live/bein-vip-bein-sports-news.m3u8?server=5",
-        "resolution": "BEIN SPORTS 8K (BEIN SPORTS NEWS 8K S2)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS HD (BEIN SPORTS NEWS HD S2)"
       }
     ],
-    "source": "yacine.website",
+    "source": "private-vip",
     "status": "live",
-    "lastRenewed": 1792276924.2754433,
-    "yacineId": "207119423119893112",
-    "playUrl": "https://yacine.website/play.php?url=aHR0cDovL3JlMzAwLm5ldy1yZWRpcmVjdC5vbmxpbmUvbGl2ZS82NzQ1MzQvaW5kZXgubTN1OD90PURoQW1oOXQ0ZmpJck5oRmpVVGRzRWcmZT0xNzkyMjk0ODgx&ua=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1MC4wLjAuMCBTYWZhcmkvNTM3LjM2",
-    "status_message": "بث مباشر فائق الثبات HLS 24/7"
+    "lastRenewed": 1792272155.7401712
   },
   {
     "id": "bein-vip-bein-sports-global",
@@ -68,60 +59,51 @@
     "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png",
     "orderIndex": 2,
-    "streamUrl": "http://re300.new-redirect.online/live/674534/index.m3u8?t=DhAmh9t4fjIrNhFjUTdsEg&e=1792294881",
-    "directM3u8": "http://re300.new-redirect.online/live/674534/index.m3u8?t=DhAmh9t4fjIrNhFjUTdsEg&e=1792294881",
+    "streamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242287&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242287&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-global.m3u8",
-    "referer": "https://yacine.website/channel/207119423119893112/live",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
-        "upstreamUrl": "http://re300.new-redirect.online/live/674534/index.m3u8?t=DhAmh9t4fjIrNhFjUTdsEg&e=1792294881",
+        "name": "سيرفر 1 (BEIN SPORTS 4K (BEIN SPORTS GLOBAL 4K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242287&extension=ts",
         "url": "/live/bein-vip-bein-sports-global.m3u8?server=1",
-        "quality": "1080p",
-        "isDefault": true,
-        "status": "live"
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS GLOBAL 4K S1)"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (احتياطي فضائي) (BEIN SPORTS 4K (BEIN SPORTS GLOBAL 4K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242287&extension=ts",
+        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS GLOBAL 4K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985125&extension=ts",
         "url": "/live/bein-vip-bein-sports-global.m3u8?server=2",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS GLOBAL 4K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS GLOBAL 4K S2)"
       },
       {
         "id": "server-3",
-        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS GLOBAL 4K S2))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985125&extension=ts",
+        "name": "سيرفر 3 (BEIN SPORTS 8K (BEIN SPORTS GLOBAL 8K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242272&extension=ts",
         "url": "/live/bein-vip-bein-sports-global.m3u8?server=3",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS GLOBAL 4K S2)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS GLOBAL 8K S1)"
       },
       {
         "id": "server-4",
-        "name": "سيرفر 3 (BEIN SPORTS 8K (BEIN SPORTS GLOBAL 8K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242272&extension=ts",
+        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS GLOBAL 8K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985043&extension=ts",
         "url": "/live/bein-vip-bein-sports-global.m3u8?server=4",
-        "resolution": "BEIN SPORTS 8K (BEIN SPORTS GLOBAL 8K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS GLOBAL 8K S2)"
       },
       {
         "id": "server-5",
-        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS GLOBAL 8K S2))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985043&extension=ts",
+        "name": "سيرفر 5 (BEIN SPORTS HD (BEIN SPORTS GLOBAL HD S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985170&extension=ts",
         "url": "/live/bein-vip-bein-sports-global.m3u8?server=5",
-        "resolution": "BEIN SPORTS 8K (BEIN SPORTS GLOBAL 8K S2)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS HD (BEIN SPORTS GLOBAL HD S2)"
       }
     ],
-    "source": "yacine.website",
+    "source": "private-vip",
     "status": "live",
-    "lastRenewed": 1792276925.3948278,
-    "yacineId": "207119423119893112",
-    "playUrl": "https://yacine.website/play.php?url=aHR0cDovL3JlMzAwLm5ldy1yZWRpcmVjdC5vbmxpbmUvbGl2ZS82NzQ1MzQvaW5kZXgubTN1OD90PURoQW1oOXQ0ZmpJck5oRmpVVGRzRWcmZT0xNzkyMjk0ODgx&ua=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1MC4wLjAuMCBTYWZhcmkvNTM3LjM2",
-    "status_message": "بث مباشر فائق الثبات HLS 24/7"
+    "lastRenewed": 1792272155.7401845
   },
   {
     "id": "bein-vip-bein-sports-1",
@@ -130,60 +112,51 @@
     "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png",
     "orderIndex": 3,
-    "streamUrl": "http://re300.new-redirect.online/live/918454578001/index.m3u8?t=5KOaqJXEsZqrfNJ0UX1ElA&e=1792294927",
-    "directM3u8": "http://re300.new-redirect.online/live/918454578001/index.m3u8?t=5KOaqJXEsZqrfNJ0UX1ElA&e=1792294927",
+    "streamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242268&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242268&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-1.m3u8",
-    "referer": "https://yacine.website/channel/207119423132628321/live",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
-        "upstreamUrl": "http://re300.new-redirect.online/live/918454578001/index.m3u8?t=5KOaqJXEsZqrfNJ0UX1ElA&e=1792294927",
+        "name": "سيرفر 1 (BEIN SPORTS 4K (BEIN SPORTS 1 4K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242268&extension=ts",
         "url": "/live/bein-vip-bein-sports-1.m3u8?server=1",
-        "quality": "1080p",
-        "isDefault": true,
-        "status": "live"
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 1 4K S1)"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (احتياطي فضائي) (BEIN SPORTS 4K (BEIN SPORTS 1 4K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242268&extension=ts",
+        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 1 4K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985127&extension=ts",
         "url": "/live/bein-vip-bein-sports-1.m3u8?server=2",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 1 4K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 1 4K S2)"
       },
       {
         "id": "server-3",
-        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 1 4K S2))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985127&extension=ts",
+        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 1 4K S3))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985136&extension=ts",
         "url": "/live/bein-vip-bein-sports-1.m3u8?server=3",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 1 4K S2)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 1 4K S3)"
       },
       {
         "id": "server-4",
-        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 1 4K S3))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985136&extension=ts",
+        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 1 8K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242283&extension=ts",
         "url": "/live/bein-vip-bein-sports-1.m3u8?server=4",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 1 4K S3)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 1 8K S1)"
       },
       {
         "id": "server-5",
-        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 1 8K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242283&extension=ts",
+        "name": "سيرفر 5 (BEIN SPORTS 8K (BEIN SPORTS 1 8K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985045&extension=ts",
         "url": "/live/bein-vip-bein-sports-1.m3u8?server=5",
-        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 1 8K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 1 8K S2)"
       }
     ],
-    "source": "yacine.website",
+    "source": "private-vip",
     "status": "live",
-    "lastRenewed": 1792276926.2242007,
-    "yacineId": "207119423132628321",
-    "playUrl": "https://yacine.website/play.php?url=aHR0cDovL3JlMzAwLm5ldy1yZWRpcmVjdC5vbmxpbmUvbGl2ZS85MTg0NTQ1NzgwMDEvaW5kZXgubTN1OD90PTVLT2FxSlhFc1pxcmZOSjBVWDFFbEEmZT0xNzkyMjk0OTI3&ua=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1MC4wLjAuMCBTYWZhcmkvNTM3LjM2",
-    "status_message": "بث مباشر فائق الثبات HLS 24/7"
+    "lastRenewed": 1792272155.740192
   },
   {
     "id": "bein-vip-bein-sports-2",
@@ -192,60 +165,51 @@
     "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png",
     "orderIndex": 4,
-    "streamUrl": "http://re300.new-redirect.online/live/69854211/index.m3u8?t=sQzRbKSkr_Pi-JqPPTUYkA&e=1792294928",
-    "directM3u8": "http://re300.new-redirect.online/live/69854211/index.m3u8?t=sQzRbKSkr_Pi-JqPPTUYkA&e=1792294928",
+    "streamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242267&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242267&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-2.m3u8",
-    "referer": "https://yacine.website/channel/207119423133708072/live",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
-        "upstreamUrl": "http://re300.new-redirect.online/live/69854211/index.m3u8?t=sQzRbKSkr_Pi-JqPPTUYkA&e=1792294928",
+        "name": "سيرفر 1 (BEIN SPORTS 4K (BEIN SPORTS 2 4K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242267&extension=ts",
         "url": "/live/bein-vip-bein-sports-2.m3u8?server=1",
-        "quality": "1080p",
-        "isDefault": true,
-        "status": "live"
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 2 4K S1)"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (احتياطي فضائي) (BEIN SPORTS 4K (BEIN SPORTS 2 4K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242267&extension=ts",
+        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 2 4K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985128&extension=ts",
         "url": "/live/bein-vip-bein-sports-2.m3u8?server=2",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 2 4K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 2 4K S2)"
       },
       {
         "id": "server-3",
-        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 2 4K S2))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985128&extension=ts",
+        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 2 4K S3))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985137&extension=ts",
         "url": "/live/bein-vip-bein-sports-2.m3u8?server=3",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 2 4K S2)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 2 4K S3)"
       },
       {
         "id": "server-4",
-        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 2 4K S3))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985137&extension=ts",
+        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 2 8K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242282&extension=ts",
         "url": "/live/bein-vip-bein-sports-2.m3u8?server=4",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 2 4K S3)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 2 8K S1)"
       },
       {
         "id": "server-5",
-        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 2 8K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242282&extension=ts",
+        "name": "سيرفر 5 (BEIN SPORTS 8K (BEIN SPORTS 2 8K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985046&extension=ts",
         "url": "/live/bein-vip-bein-sports-2.m3u8?server=5",
-        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 2 8K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 2 8K S2)"
       }
     ],
-    "source": "yacine.website",
+    "source": "private-vip",
     "status": "live",
-    "lastRenewed": 1792276927.0312612,
-    "yacineId": "207119423133708072",
-    "playUrl": "https://yacine.website/play.php?url=aHR0cDovL3JlMzAwLm5ldy1yZWRpcmVjdC5vbmxpbmUvbGl2ZS82OTg1NDIxMS9pbmRleC5tM3U4P3Q9c1F6UmJLU2tyX1BpLUpxUFBUVVlrQSZlPTE3OTIyOTQ5Mjg=&ua=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1MC4wLjAuMCBTYWZhcmkvNTM3LjM2",
-    "status_message": "بث مباشر فائق الثبات HLS 24/7"
+    "lastRenewed": 1792272155.740198
   },
   {
     "id": "bein-vip-bein-sports-3",
@@ -254,60 +218,51 @@
     "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png",
     "orderIndex": 5,
-    "streamUrl": "http://re300.new-redirect.online/live/645587700/index.m3u8?t=C_be-x5eRj7HBEYjOlDZOw&e=1792294929",
-    "directM3u8": "http://re300.new-redirect.online/live/645587700/index.m3u8?t=C_be-x5eRj7HBEYjOlDZOw&e=1792294929",
+    "streamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242266&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242266&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-3.m3u8",
-    "referer": "https://yacine.website/channel/207119423130423959/live",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
-        "upstreamUrl": "http://re300.new-redirect.online/live/645587700/index.m3u8?t=C_be-x5eRj7HBEYjOlDZOw&e=1792294929",
+        "name": "سيرفر 1 (BEIN SPORTS 4K (BEIN SPORTS 3 4K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242266&extension=ts",
         "url": "/live/bein-vip-bein-sports-3.m3u8?server=1",
-        "quality": "1080p",
-        "isDefault": true,
-        "status": "live"
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 3 4K S1)"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (احتياطي فضائي) (BEIN SPORTS 4K (BEIN SPORTS 3 4K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242266&extension=ts",
+        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 3 4K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985129&extension=ts",
         "url": "/live/bein-vip-bein-sports-3.m3u8?server=2",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 3 4K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 3 4K S2)"
       },
       {
         "id": "server-3",
-        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 3 4K S2))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985129&extension=ts",
+        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 3 4K S3))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985138&extension=ts",
         "url": "/live/bein-vip-bein-sports-3.m3u8?server=3",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 3 4K S2)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 3 4K S3)"
       },
       {
         "id": "server-4",
-        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 3 4K S3))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985138&extension=ts",
+        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 3 8K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242281&extension=ts",
         "url": "/live/bein-vip-bein-sports-3.m3u8?server=4",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 3 4K S3)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 3 8K S1)"
       },
       {
         "id": "server-5",
-        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 3 8K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242281&extension=ts",
+        "name": "سيرفر 5 (BEIN SPORTS 8K (BEIN SPORTS 3 8K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985047&extension=ts",
         "url": "/live/bein-vip-bein-sports-3.m3u8?server=5",
-        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 3 8K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 3 8K S2)"
       }
     ],
-    "source": "yacine.website",
+    "source": "private-vip",
     "status": "live",
-    "lastRenewed": 1792276927.830335,
-    "yacineId": "207119423130423959",
-    "playUrl": "https://yacine.website/play.php?url=aHR0cDovL3JlMzAwLm5ldy1yZWRpcmVjdC5vbmxpbmUvbGl2ZS82NDU1ODc3MDAvaW5kZXgubTN1OD90PUNfYmUteDVlUmo3SEJFWWpPbERaT3cmZT0xNzkyMjk0OTI5&ua=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1MC4wLjAuMCBTYWZhcmkvNTM3LjM2",
-    "status_message": "بث مباشر فائق الثبات HLS 24/7"
+    "lastRenewed": 1792272155.7402036
   },
   {
     "id": "bein-vip-bein-sports-4",
@@ -316,60 +271,51 @@
     "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png",
     "orderIndex": 6,
-    "streamUrl": "http://re300.new-redirect.online/live/9787488847/index.m3u8?t=nWQR_QCLkIqI8gpoZLaNuw&e=1792294929",
-    "directM3u8": "http://re300.new-redirect.online/live/9787488847/index.m3u8?t=nWQR_QCLkIqI8gpoZLaNuw&e=1792294929",
+    "streamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242265&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242265&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-4.m3u8",
-    "referer": "https://yacine.website/channel/207119423131118230/live",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
-        "upstreamUrl": "http://re300.new-redirect.online/live/9787488847/index.m3u8?t=nWQR_QCLkIqI8gpoZLaNuw&e=1792294929",
+        "name": "سيرفر 1 (BEIN SPORTS 4K (BEIN SPORTS 4 4K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242265&extension=ts",
         "url": "/live/bein-vip-bein-sports-4.m3u8?server=1",
-        "quality": "1080p",
-        "isDefault": true,
-        "status": "live"
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 4 4K S1)"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (احتياطي فضائي) (BEIN SPORTS 4K (BEIN SPORTS 4 4K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242265&extension=ts",
+        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 4 4K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985130&extension=ts",
         "url": "/live/bein-vip-bein-sports-4.m3u8?server=2",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 4 4K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 4 4K S2)"
       },
       {
         "id": "server-3",
-        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 4 4K S2))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985130&extension=ts",
+        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 4 4K S3))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985139&extension=ts",
         "url": "/live/bein-vip-bein-sports-4.m3u8?server=3",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 4 4K S2)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 4 4K S3)"
       },
       {
         "id": "server-4",
-        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 4 4K S3))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985139&extension=ts",
+        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 4 8K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242280&extension=ts",
         "url": "/live/bein-vip-bein-sports-4.m3u8?server=4",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 4 4K S3)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 4 8K S1)"
       },
       {
         "id": "server-5",
-        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 4 8K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242280&extension=ts",
+        "name": "سيرفر 5 (BEIN SPORTS 8K (BEIN SPORTS 4 8K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985048&extension=ts",
         "url": "/live/bein-vip-bein-sports-4.m3u8?server=5",
-        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 4 8K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 4 8K S2)"
       }
     ],
-    "source": "yacine.website",
+    "source": "private-vip",
     "status": "live",
-    "lastRenewed": 1792276928.6367285,
-    "yacineId": "207119423131118230",
-    "playUrl": "https://yacine.website/play.php?url=aHR0cDovL3JlMzAwLm5ldy1yZWRpcmVjdC5vbmxpbmUvbGl2ZS85Nzg3NDg4ODQ3L2luZGV4Lm0zdTg/dD1uV1FSX1FDTGtJcUk4Z3BvWkxhTnV3JmU9MTc5MjI5NDkyOQ==&ua=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1MC4wLjAuMCBTYWZhcmkvNTM3LjM2",
-    "status_message": "بث مباشر فائق الثبات HLS 24/7"
+    "lastRenewed": 1792272155.740209
   },
   {
     "id": "bein-vip-bein-sports-5",
@@ -378,60 +324,51 @@
     "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png",
     "orderIndex": 7,
-    "streamUrl": "http://re300.new-redirect.online/live/610303030/index.m3u8?t=CkGaHZUqXVNSyTtGDwlAAQ&e=1792294930",
-    "directM3u8": "http://re300.new-redirect.online/live/610303030/index.m3u8?t=CkGaHZUqXVNSyTtGDwlAAQ&e=1792294930",
+    "streamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242264&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242264&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-5.m3u8",
-    "referer": "https://yacine.website/channel/207119423128371685/live",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
-        "upstreamUrl": "http://re300.new-redirect.online/live/610303030/index.m3u8?t=CkGaHZUqXVNSyTtGDwlAAQ&e=1792294930",
+        "name": "سيرفر 1 (BEIN SPORTS 4K (BEIN SPORTS 5 4K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242264&extension=ts",
         "url": "/live/bein-vip-bein-sports-5.m3u8?server=1",
-        "quality": "1080p",
-        "isDefault": true,
-        "status": "live"
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 5 4K S1)"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (احتياطي فضائي) (BEIN SPORTS 4K (BEIN SPORTS 5 4K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242264&extension=ts",
+        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 5 4K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985131&extension=ts",
         "url": "/live/bein-vip-bein-sports-5.m3u8?server=2",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 5 4K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 5 4K S2)"
       },
       {
         "id": "server-3",
-        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 5 4K S2))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985131&extension=ts",
+        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 5 4K S3))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985140&extension=ts",
         "url": "/live/bein-vip-bein-sports-5.m3u8?server=3",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 5 4K S2)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 5 4K S3)"
       },
       {
         "id": "server-4",
-        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 5 4K S3))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985140&extension=ts",
+        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 5 8K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242279&extension=ts",
         "url": "/live/bein-vip-bein-sports-5.m3u8?server=4",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 5 4K S3)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 5 8K S1)"
       },
       {
         "id": "server-5",
-        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 5 8K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242279&extension=ts",
+        "name": "سيرفر 5 (BEIN SPORTS 8K (BEIN SPORTS 5 8K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985049&extension=ts",
         "url": "/live/bein-vip-bein-sports-5.m3u8?server=5",
-        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 5 8K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 5 8K S2)"
       }
     ],
-    "source": "yacine.website",
+    "source": "private-vip",
     "status": "live",
-    "lastRenewed": 1792276929.4367409,
-    "yacineId": "207119423128371685",
-    "playUrl": "https://yacine.website/play.php?url=aHR0cDovL3JlMzAwLm5ldy1yZWRpcmVjdC5vbmxpbmUvbGl2ZS82MTAzMDMwMzAvaW5kZXgubTN1OD90PUNrR2FIWlVxWFZOU3lUdEdEd2xBQVEmZT0xNzkyMjk0OTMw&ua=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1MC4wLjAuMCBTYWZhcmkvNTM3LjM2",
-    "status_message": "بث مباشر فائق الثبات HLS 24/7"
+    "lastRenewed": 1792272155.7402165
   },
   {
     "id": "bein-vip-bein-sports-6",
@@ -440,60 +377,51 @@
     "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png",
     "orderIndex": 8,
-    "streamUrl": "http://re300.new-redirect.online/live/1515000000/index.m3u8?t=QclIMzjeMTHd_r36CtXJJw&e=1792294931",
-    "directM3u8": "http://re300.new-redirect.online/live/1515000000/index.m3u8?t=QclIMzjeMTHd_r36CtXJJw&e=1792294931",
+    "streamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242263&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242263&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-6.m3u8",
-    "referer": "https://yacine.website/channel/207119423129963420/live",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
-        "upstreamUrl": "http://re300.new-redirect.online/live/1515000000/index.m3u8?t=QclIMzjeMTHd_r36CtXJJw&e=1792294931",
+        "name": "سيرفر 1 (BEIN SPORTS 4K (BEIN SPORTS 6 4K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242263&extension=ts",
         "url": "/live/bein-vip-bein-sports-6.m3u8?server=1",
-        "quality": "1080p",
-        "isDefault": true,
-        "status": "live"
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 6 4K S1)"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (احتياطي فضائي) (BEIN SPORTS 4K (BEIN SPORTS 6 4K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242263&extension=ts",
+        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 6 4K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985132&extension=ts",
         "url": "/live/bein-vip-bein-sports-6.m3u8?server=2",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 6 4K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 6 4K S2)"
       },
       {
         "id": "server-3",
-        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 6 4K S2))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985132&extension=ts",
+        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 6 4K S3))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985141&extension=ts",
         "url": "/live/bein-vip-bein-sports-6.m3u8?server=3",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 6 4K S2)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 6 4K S3)"
       },
       {
         "id": "server-4",
-        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 6 4K S3))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985141&extension=ts",
+        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 6 8K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242278&extension=ts",
         "url": "/live/bein-vip-bein-sports-6.m3u8?server=4",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 6 4K S3)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 6 8K S1)"
       },
       {
         "id": "server-5",
-        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 6 8K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242278&extension=ts",
+        "name": "سيرفر 5 (BEIN SPORTS 8K (BEIN SPORTS 6 8K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985050&extension=ts",
         "url": "/live/bein-vip-bein-sports-6.m3u8?server=5",
-        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 6 8K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 6 8K S2)"
       }
     ],
-    "source": "yacine.website",
+    "source": "private-vip",
     "status": "live",
-    "lastRenewed": 1792276930.2809148,
-    "yacineId": "207119423129963420",
-    "playUrl": "https://yacine.website/play.php?url=aHR0cDovL3JlMzAwLm5ldy1yZWRpcmVjdC5vbmxpbmUvbGl2ZS8xNTE1MDAwMDAwL2luZGV4Lm0zdTg/dD1RY2xJTXpqZU1USGRfcjM2Q3RYSkp3JmU9MTc5MjI5NDkzMQ==&ua=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1MC4wLjAuMCBTYWZhcmkvNTM3LjM2",
-    "status_message": "بث مباشر فائق الثبات HLS 24/7"
+    "lastRenewed": 1792272155.740223
   },
   {
     "id": "bein-vip-bein-sports-7",
@@ -502,60 +430,51 @@
     "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png",
     "orderIndex": 9,
-    "streamUrl": "http://re300.new-redirect.online/live/33523510/index.m3u8?t=5fsTHTt9WtamBn-2W5FWsQ&e=1792294932",
-    "directM3u8": "http://re300.new-redirect.online/live/33523510/index.m3u8?t=5fsTHTt9WtamBn-2W5FWsQ&e=1792294932",
+    "streamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242262&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242262&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-7.m3u8",
-    "referer": "https://yacine.website/channel/207119423126609442/live",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
-        "upstreamUrl": "http://re300.new-redirect.online/live/33523510/index.m3u8?t=5fsTHTt9WtamBn-2W5FWsQ&e=1792294932",
+        "name": "سيرفر 1 (BEIN SPORTS 4K (BEIN SPORTS 7 4K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242262&extension=ts",
         "url": "/live/bein-vip-bein-sports-7.m3u8?server=1",
-        "quality": "1080p",
-        "isDefault": true,
-        "status": "live"
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 7 4K S1)"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (احتياطي فضائي) (BEIN SPORTS 4K (BEIN SPORTS 7 4K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242262&extension=ts",
+        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 7 4K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985133&extension=ts",
         "url": "/live/bein-vip-bein-sports-7.m3u8?server=2",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 7 4K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 7 4K S2)"
       },
       {
         "id": "server-3",
-        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 7 4K S2))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985133&extension=ts",
+        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 7 4K S3))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985142&extension=ts",
         "url": "/live/bein-vip-bein-sports-7.m3u8?server=3",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 7 4K S2)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 7 4K S3)"
       },
       {
         "id": "server-4",
-        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 7 4K S3))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985142&extension=ts",
+        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 7 8K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242277&extension=ts",
         "url": "/live/bein-vip-bein-sports-7.m3u8?server=4",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 7 4K S3)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 7 8K S1)"
       },
       {
         "id": "server-5",
-        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 7 8K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242277&extension=ts",
+        "name": "سيرفر 5 (BEIN SPORTS 8K (BEIN SPORTS 7 8K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985051&extension=ts",
         "url": "/live/bein-vip-bein-sports-7.m3u8?server=5",
-        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 7 8K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 7 8K S2)"
       }
     ],
-    "source": "yacine.website",
+    "source": "private-vip",
     "status": "live",
-    "lastRenewed": 1792276931.0945625,
-    "yacineId": "207119423126609442",
-    "playUrl": "https://yacine.website/play.php?url=aHR0cDovL3JlMzAwLm5ldy1yZWRpcmVjdC5vbmxpbmUvbGl2ZS8zMzUyMzUxMC9pbmRleC5tM3U4P3Q9NWZzVEhUdDlXdGFtQm4tMlc1RldzUSZlPTE3OTIyOTQ5MzI=&ua=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1MC4wLjAuMCBTYWZhcmkvNTM3LjM2",
-    "status_message": "بث مباشر فائق الثبات HLS 24/7"
+    "lastRenewed": 1792272155.7402294
   },
   {
     "id": "bein-vip-bein-sports-8",
@@ -564,60 +483,51 @@
     "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png",
     "orderIndex": 10,
-    "streamUrl": "https://re00.new-redirect.online/live/lb2/bs8-multi.m3u8",
-    "directM3u8": "https://re00.new-redirect.online/live/lb2/bs8-multi.m3u8",
+    "streamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242261&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242261&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-8.m3u8",
-    "referer": "https://yacine.website/channel/207119423126943987/live",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
-        "upstreamUrl": "https://re00.new-redirect.online/live/lb2/bs8-multi.m3u8",
+        "name": "سيرفر 1 (BEIN SPORTS 4K (BEIN SPORTS 8 4K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242261&extension=ts",
         "url": "/live/bein-vip-bein-sports-8.m3u8?server=1",
-        "quality": "1080p",
-        "isDefault": true,
-        "status": "live"
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 8 4K S1)"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (احتياطي فضائي) (BEIN SPORTS 4K (BEIN SPORTS 8 4K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242261&extension=ts",
+        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 8 4K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985134&extension=ts",
         "url": "/live/bein-vip-bein-sports-8.m3u8?server=2",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 8 4K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 8 4K S2)"
       },
       {
         "id": "server-3",
-        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 8 4K S2))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985134&extension=ts",
+        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 8 4K S3))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985143&extension=ts",
         "url": "/live/bein-vip-bein-sports-8.m3u8?server=3",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 8 4K S2)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 8 4K S3)"
       },
       {
         "id": "server-4",
-        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 8 4K S3))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985143&extension=ts",
+        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 8 8K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242276&extension=ts",
         "url": "/live/bein-vip-bein-sports-8.m3u8?server=4",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 8 4K S3)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 8 8K S1)"
       },
       {
         "id": "server-5",
-        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 8 8K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242276&extension=ts",
+        "name": "سيرفر 5 (BEIN SPORTS 8K (BEIN SPORTS 8 8K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985052&extension=ts",
         "url": "/live/bein-vip-bein-sports-8.m3u8?server=5",
-        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 8 8K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 8 8K S2)"
       }
     ],
-    "source": "yacine.website",
+    "source": "private-vip",
     "status": "live",
-    "lastRenewed": 1792276931.9017022,
-    "yacineId": "207119423126943987",
-    "playUrl": "https://yacine.website/play.php?url=aHR0cHM6Ly9yZTAwLm5ldy1yZWRpcmVjdC5vbmxpbmUvbGl2ZS9sYjIvYnM4LW11bHRpLm0zdTg=&ua=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1MC4wLjAuMCBTYWZhcmkvNTM3LjM2",
-    "status_message": "بث مباشر فائق الثبات HLS 24/7"
+    "lastRenewed": 1792272155.7402358
   },
   {
     "id": "bein-vip-bein-sports-9",
@@ -626,60 +536,51 @@
     "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png",
     "orderIndex": 11,
-    "streamUrl": "http://re300.new-redirect.online/live/34114434/index.m3u8?t=-thTZrIAFtdvqFcGEmFLcg&e=1792294933",
-    "directM3u8": "http://re300.new-redirect.online/live/34114434/index.m3u8?t=-thTZrIAFtdvqFcGEmFLcg&e=1792294933",
+    "streamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242260&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242260&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-9.m3u8",
-    "referer": "https://yacine.website/channel/207119423124591988/live",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
-        "upstreamUrl": "http://re300.new-redirect.online/live/34114434/index.m3u8?t=-thTZrIAFtdvqFcGEmFLcg&e=1792294933",
+        "name": "سيرفر 1 (BEIN SPORTS 4K (BEIN SPORTS 9 4K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242260&extension=ts",
         "url": "/live/bein-vip-bein-sports-9.m3u8?server=1",
-        "quality": "1080p",
-        "isDefault": true,
-        "status": "live"
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 9 4K S1)"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (احتياطي فضائي) (BEIN SPORTS 4K (BEIN SPORTS 9 4K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242260&extension=ts",
+        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 9 4K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985135&extension=ts",
         "url": "/live/bein-vip-bein-sports-9.m3u8?server=2",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 9 4K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 9 4K S2)"
       },
       {
         "id": "server-3",
-        "name": "سيرفر 2 (BEIN SPORTS 4K (BEIN SPORTS 9 4K S2))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985135&extension=ts",
+        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 9 4K S3))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985144&extension=ts",
         "url": "/live/bein-vip-bein-sports-9.m3u8?server=3",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 9 4K S2)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 9 4K S3)"
       },
       {
         "id": "server-4",
-        "name": "سيرفر 3 (BEIN SPORTS 4K (BEIN SPORTS 9 4K S3))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985144&extension=ts",
+        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 9 8K S1))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242275&extension=ts",
         "url": "/live/bein-vip-bein-sports-9.m3u8?server=4",
-        "resolution": "BEIN SPORTS 4K (BEIN SPORTS 9 4K S3)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 9 8K S1)"
       },
       {
         "id": "server-5",
-        "name": "سيرفر 4 (BEIN SPORTS 8K (BEIN SPORTS 9 8K S1))",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242275&extension=ts",
+        "name": "سيرفر 5 (BEIN SPORTS 8K (BEIN SPORTS 9 8K S2))",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985053&extension=ts",
         "url": "/live/bein-vip-bein-sports-9.m3u8?server=5",
-        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 9 8K S1)",
-        "isDefault": false
+        "resolution": "BEIN SPORTS 8K (BEIN SPORTS 9 8K S2)"
       }
     ],
-    "source": "yacine.website",
+    "source": "private-vip",
     "status": "live",
-    "lastRenewed": 1792276932.7107725,
-    "yacineId": "207119423124591988",
-    "playUrl": "https://yacine.website/play.php?url=aHR0cDovL3JlMzAwLm5ldy1yZWRpcmVjdC5vbmxpbmUvbGl2ZS8zNDExNDQzNC9pbmRleC5tM3U4P3Q9LXRoVFpySUFGdGR2cUZjR0VtRkxjZyZlPTE3OTIyOTQ5MzM=&ua=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1MC4wLjAuMCBTYWZhcmkvNTM3LjM2",
-    "status_message": "بث مباشر فائق الثبات HLS 24/7"
+    "lastRenewed": 1792272155.740241
   },
   {
     "id": "bein-vip-bein-sports-afc",
@@ -1040,36 +941,23 @@
     "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png",
     "orderIndex": 23,
-    "streamUrl": "https://twitter.com/i/broadcasts/1RDGlaNRdbOJL$$m3u8",
-    "directM3u8": "https://twitter.com/i/broadcasts/1RDGlaNRdbOJL$$m3u8",
+    "streamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030249&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030249&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-3-france.m3u8",
-    "referer": "https://yacine.website/channel/207119423123144615/live",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
-        "upstreamUrl": "https://twitter.com/i/broadcasts/1RDGlaNRdbOJL$$m3u8",
-        "url": "/live/bein-vip-bein-sports-3-france.m3u8?server=1",
-        "quality": "1080p",
-        "isDefault": true,
-        "status": "live"
-      },
-      {
-        "id": "server-2",
-        "name": "سيرفر 2 (احتياطي فضائي) (BEIN SPORTS RAW (BEIN SPORTS 3 FRANCE RAW))",
+        "name": "سيرفر 1 (BEIN SPORTS RAW (BEIN SPORTS 3 FRANCE RAW))",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030249&extension=ts",
-        "url": "/live/bein-vip-bein-sports-3-france.m3u8?server=2",
-        "resolution": "BEIN SPORTS RAW (BEIN SPORTS 3 FRANCE RAW)",
-        "isDefault": false
+        "url": "/live/bein-vip-bein-sports-3-france.m3u8?server=1",
+        "resolution": "BEIN SPORTS RAW (BEIN SPORTS 3 FRANCE RAW)"
       }
     ],
-    "source": "yacine.website",
+    "source": "private-vip",
     "status": "live",
-    "lastRenewed": 1792276935.0831058,
-    "yacineId": "207119423123144615",
-    "playUrl": "https://yacine.website/play.php?url=aHR0cHM6Ly90d2l0dGVyLmNvbS9pL2Jyb2FkY2FzdHMvMVJER2xhTlJkYk9KTCQkbTN1OA==&ua=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1MC4wLjAuMCBTYWZhcmkvNTM3LjM2",
-    "status_message": "بث مباشر فائق الثبات HLS 24/7"
+    "lastRenewed": 1792272155.7402954
   },
   {
     "id": "tlfaz-asharq-documentary",
