@@ -140,77 +140,109 @@ export async function vodRoutes(server: FastifyInstance) {
     reply.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
     reply.header('Access-Control-Allow-Headers', '*');
 
-    try {
-      const parsedUrl = new URL(rawUrl);
-      const client = parsedUrl.protocol === 'https:' ? https : http;
-      const isM3u8 = parsedUrl.pathname.endsWith('.m3u8') || rawUrl.includes('.m3u8');
+    return new Promise<void>((resolve) => {
+      try {
+        const parsedUrl = new URL(rawUrl);
+        const client = parsedUrl.protocol === 'https:' ? https : http;
+        const isM3u8 = parsedUrl.pathname.endsWith('.m3u8') || rawUrl.includes('.m3u8');
 
-      const origin = `${parsedUrl.protocol}//${parsedUrl.host}`;
-      const pathSegments = parsedUrl.pathname.split('/');
-      pathSegments.pop();
-      const currentDir = `${origin}${pathSegments.join('/')}/`;
+        const origin = `${parsedUrl.protocol}//${parsedUrl.host}`;
+        const pathSegments = parsedUrl.pathname.split('/');
+        pathSegments.pop();
+        const currentDir = `${origin}${pathSegments.join('/')}/`;
 
-      const proxyReq = client.request(rawUrl, {
-        method: request.method,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
-          'Referer': origin + '/',
-          'Origin': origin,
-        },
-        rejectUnauthorized: false,
-      }, (proxyRes) => {
-        if (!isM3u8) {
-          // Binary .ts chunk or mp4
-          reply.header('Content-Type', proxyRes.headers['content-type'] || 'video/mp2t');
-          if (proxyRes.headers['content-length']) {
-            reply.header('Content-Length', proxyRes.headers['content-length']);
+        let referer = 'https://miravd.com/';
+        if (rawUrl.includes('vidmoly')) {
+          referer = 'https://vidmoly.to/';
+        } else if (rawUrl.includes('ukrcdn') || rawUrl.includes('grzcdn') || rawUrl.includes('miravd')) {
+          referer = 'https://miravd.com/';
+        } else {
+          referer = origin + '/';
+        }
+
+        const proxyReq = client.request(rawUrl, {
+          method: request.method,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+            'Referer': referer,
+            'Origin': referer.replace(/\/$/, ''),
+          },
+          rejectUnauthorized: false,
+        }, (proxyRes) => {
+          // Follow HTTP redirect if any
+          if (proxyRes.statusCode && proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location) {
+            reply.redirect(proxyRes.headers.location);
+            resolve();
+            return;
           }
-          reply.status(proxyRes.statusCode || 200);
-          proxyRes.pipe(reply.raw);
-          return;
-        }
 
-        // HLS playlist text: rewrite relative or sub URLs through proxy
-        let playlistText = '';
-        proxyRes.setEncoding('utf-8');
-        proxyRes.on('data', chunk => playlistText += chunk);
-        proxyRes.on('end', () => {
-          const lines = playlistText.split('\n');
-          const rewrittenLines = lines.map(line => {
-            const trimmed = line.trim();
-            if (!trimmed || trimmed.startsWith('#')) {
-              return line;
-            }
+          if (proxyRes.statusCode && proxyRes.statusCode >= 400) {
+            reply.status(proxyRes.statusCode).send(`Upstream CDN error: ${proxyRes.statusCode}`);
+            resolve();
+            return;
+          }
 
-            let absoluteTarget = trimmed;
-            if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-              absoluteTarget = trimmed;
-            } else if (trimmed.startsWith('/')) {
-              absoluteTarget = `${origin}${trimmed}`;
-            } else {
-              absoluteTarget = `${currentDir}${trimmed}`;
-            }
+          if (!isM3u8) {
+            // Binary .ts chunk or mp4
+            reply.raw.writeHead(proxyRes.statusCode || 200, {
+              'Content-Type': proxyRes.headers['content-type'] || 'video/mp2t',
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+              'Access-Control-Allow-Headers': '*',
+              'Cache-Control': 'public, max-age=86400',
+              ...(proxyRes.headers['content-length'] ? { 'Content-Length': proxyRes.headers['content-length'] } : {})
+            });
+            proxyRes.pipe(reply.raw);
+            proxyRes.on('end', () => resolve());
+            return;
+          }
 
-            return `${baseUrl}/api/app/vod/stream?url=${encodeURIComponent(absoluteTarget)}`;
+          // HLS playlist text: rewrite relative or sub URLs through proxy
+          let playlistText = '';
+          proxyRes.setEncoding('utf-8');
+          proxyRes.on('data', chunk => playlistText += chunk);
+          proxyRes.on('end', () => {
+            const lines = playlistText.split('\n');
+            const rewrittenLines = lines.map(line => {
+              const trimmed = line.trim();
+              if (!trimmed || trimmed.startsWith('#')) {
+                return line;
+              }
+
+              let absoluteTarget = trimmed;
+              if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+                absoluteTarget = trimmed;
+              } else if (trimmed.startsWith('/')) {
+                absoluteTarget = `${origin}${trimmed}`;
+              } else {
+                absoluteTarget = `${currentDir}${trimmed}`;
+              }
+
+              return `${baseUrl}/api/app/vod/stream?url=${encodeURIComponent(absoluteTarget)}`;
+            });
+
+            reply.header('Content-Type', 'application/vnd.apple.mpegurl; charset=utf-8');
+            reply.header('Access-Control-Allow-Origin', '*');
+            reply.header('Cache-Control', 'no-cache, no-store');
+            reply.status(200);
+            reply.send(rewrittenLines.join('\n'));
+            resolve();
           });
-
-          reply.header('Content-Type', 'application/vnd.apple.mpegurl; charset=utf-8');
-          reply.header('Cache-Control', 'no-cache, no-store');
-          reply.status(proxyRes.statusCode || 200);
-          reply.send(rewrittenLines.join('\n'));
         });
-      });
 
-      proxyReq.on('error', (err) => {
-        if (!reply.raw.headersSent) {
-          reply.status(502).send(`Stream proxy error: ${err.message}`);
-        }
-      });
+        proxyReq.on('error', (err) => {
+          if (!reply.raw.headersSent) {
+            reply.status(502).send(`Stream proxy error: ${err.message}`);
+          }
+          resolve();
+        });
 
-      proxyReq.end();
-    } catch (e: any) {
-      return reply.status(500).send(`Proxy exception: ${e.message}`);
-    }
+        proxyReq.end();
+      } catch (e: any) {
+        reply.status(500).send(`Proxy exception: ${e.message}`);
+        resolve();
+      }
+    });
   });
 
   /**
