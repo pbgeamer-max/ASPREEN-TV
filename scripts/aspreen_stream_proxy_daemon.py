@@ -108,17 +108,91 @@ hot_cache_lock = threading.Lock()
 class OnDemandStreamManager:
     def __init__(self, base_dir):
         self.base_dir = base_dir
-        self.workers = {}  # stream_key -> {"proc": Popen, "hls_dir": str, "m3u8_path": str, "last_active": float, "upstream_url": str}
+        # stream_key -> {"thread": Thread, "proc": Popen, "stopped": Event, "hls_dir": str, "m3u8_path": str, "last_active": float, "upstream_url": str}
+        self.workers = {}
         self.lock = threading.Lock()
         os.makedirs(self.base_dir, exist_ok=True)
         self.cleaner_thread = threading.Thread(target=self._cleanup_loop, daemon=True)
         self.cleaner_thread.start()
 
+    def _supervisor_loop(self, stream_key):
+        """Supervises continuous FFmpeg HLS conversion with seamless append_list auto-restarts"""
+        with self.lock:
+            worker = self.workers.get(stream_key)
+        if not worker:
+            return
+
+        hls_dir = worker["hls_dir"]
+        m3u8_path = worker["m3u8_path"]
+        upstream_url = worker["upstream_url"]
+        stopped_evt = worker["stopped"]
+
+        cmd = [
+            "ffmpeg", "-y", "-hide_banner", "-loglevel", "warning",
+            "-user_agent", "VLC/3.0.18 LibVLC/3.0.18",
+            "-reconnect", "1",
+            "-reconnect_streamed", "1",
+            "-reconnect_delay_max", "2",
+            "-fflags", "+genpts+nobuffer+flush_packets+discardcorrupt",
+            "-i", upstream_url,
+            "-c", "copy",
+            "-f", "hls",
+            "-hls_time", "2",
+            "-hls_list_size", "25",
+            "-hls_delete_threshold", "15",
+            "-hls_flags", "append_list+omit_endlist+delete_segments+temp_file",
+            m3u8_path
+        ]
+
+        cycle = 0
+        while not stopped_evt.is_set():
+            now = time.time()
+            if (now - worker.get("last_active", now)) > 120:
+                print(f" [i] خمول أكثر من 120 ثانية للقناة {stream_key}، إنهاء جلسة البث.")
+                break
+
+            cycle += 1
+            try:
+                proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                worker["proc"] = proc
+                if cycle == 1:
+                    print(f" [✓] تشغيل موزع البث الحصري للقناة {stream_key} (اتصال فضائي مباشر 24/7)")
+            except Exception as e:
+                print(f" [!] خطأ في تشغيل FFmpeg للقناة {stream_key}: {e}")
+                time.sleep(2)
+                continue
+
+            # Wait for this chunk cycle to finish or stop signal
+            while not stopped_evt.is_set():
+                if proc.poll() is not None:
+                    # Upstream closed connection after burst; loop immediately to append next slice
+                    break
+                time.sleep(0.4)
+
+            if stopped_evt.is_set():
+                try:
+                    proc.terminate()
+                    proc.wait(timeout=1.5)
+                except Exception:
+                    try: proc.kill()
+                    except Exception: pass
+                break
+
+            time.sleep(0.2)
+
+        stopped_evt.set()
+        with self.lock:
+            self.workers.pop(stream_key, None)
+        try:
+            shutil.rmtree(hls_dir, ignore_errors=True)
+        except Exception:
+            pass
+
     def get_or_start_stream(self, cid, server_id, upstream_url):
         stream_key = f"{cid}_s{server_id}"
         with self.lock:
             worker = self.workers.get(stream_key)
-            if worker and worker["proc"].poll() is None:
+            if worker and not worker["stopped"].is_set():
                 worker["last_active"] = time.time()
                 m3u8_path = worker["m3u8_path"]
             else:
@@ -129,7 +203,7 @@ class OnDemandStreamManager:
                     alt_id = "1" if str(server_id) in ("2", "server-2") else "2"
                     alt_key = f"{cid}_s{alt_id}"
                     alt_worker = self.workers.get(alt_key)
-                    if alt_worker and alt_worker["proc"].poll() is None and os.path.exists(alt_worker["m3u8_path"]) and os.path.getsize(alt_worker["m3u8_path"]) > 20:
+                    if alt_worker and not alt_worker["stopped"].is_set() and os.path.exists(alt_worker["m3u8_path"]) and os.path.getsize(alt_worker["m3u8_path"]) > 20:
                         alt_worker["last_active"] = time.time()
                         try:
                             with open(alt_worker["m3u8_path"], "r", encoding="utf-8", errors="ignore") as f:
@@ -139,57 +213,42 @@ class OnDemandStreamManager:
                         except Exception:
                             pass
 
-                    # 2. Free up any previous channel on this same MAC line to protect account from multi-connection ban
+                    # 2. Free up any previous DIFFERENT channel on this same MAC line to protect account from multi-connection ban
                     for other_k, other_w in list(self.workers.items()):
-                        if other_k != stream_key:
+                        if other_k != stream_key and not other_k.startswith(f"{cid}_"):
                             other_up = other_w.get("upstream_url", "")
                             if "mac=" in other_up or "hey-ott.net" in other_up:
-                                try:
-                                    other_w["proc"].terminate()
-                                    other_w["proc"].wait(timeout=1.5)
-                                except Exception:
-                                    try: other_w["proc"].kill()
+                                other_w["stopped"].set()
+                                p = other_w.get("proc")
+                                if p:
+                                    try: p.terminate()
                                     except Exception: pass
                                 self.workers.pop(other_k, None)
                                 print(f" [i] تحرير خط الماك من القناة {other_k} لتمكين البث النقي بدون تعارض")
                                 time.sleep(0.3)
 
                 hls_dir = os.path.join(self.base_dir, stream_key)
+                # Only remove dir if inactive or stale
                 if os.path.exists(hls_dir):
-                    shutil.rmtree(hls_dir, ignore_errors=True)
+                    idx_file = os.path.join(hls_dir, "index.m3u8")
+                    if not os.path.exists(idx_file) or (time.time() - os.path.getmtime(idx_file) > 120):
+                        shutil.rmtree(hls_dir, ignore_errors=True)
                 os.makedirs(hls_dir, exist_ok=True)
                 m3u8_path = os.path.join(hls_dir, "index.m3u8")
 
-                cmd = [
-                    "ffmpeg", "-y", "-hide_banner", "-loglevel", "warning",
-                    "-user_agent", "VLC/3.0.18 LibVLC/3.0.18",
-                    "-reconnect", "1",
-                    "-reconnect_at_eof", "1",
-                    "-reconnect_streamed", "1",
-                    "-reconnect_delay_max", "2",
-                    "-fflags", "+genpts+nobuffer+flush_packets+discardcorrupt",
-                    "-i", upstream_url,
-                    "-c", "copy",
-                    "-f", "hls",
-                    "-hls_time", "2",
-                    "-hls_list_size", "25",
-                    "-hls_delete_threshold", "15",
-                    "-hls_flags", "delete_segments+temp_file",
-                    m3u8_path
-                ]
-                try:
-                    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    self.workers[stream_key] = {
-                        "proc": proc,
-                        "hls_dir": hls_dir,
-                        "m3u8_path": m3u8_path,
-                        "last_active": time.time(),
-                        "upstream_url": upstream_url
-                    }
-                    print(f" [✓] تشغيل موزع البث الحصري للقناة {stream_key} (اتصال فضائي مباشر HLS)")
-                except Exception as e:
-                    print(f" [!] خطأ في تشغيل محرك تحويل البث On-Demand: {e}")
-                    return None, None
+                stopped_evt = threading.Event()
+                worker_data = {
+                    "proc": None,
+                    "hls_dir": hls_dir,
+                    "m3u8_path": m3u8_path,
+                    "last_active": time.time(),
+                    "upstream_url": upstream_url,
+                    "stopped": stopped_evt
+                }
+                self.workers[stream_key] = worker_data
+                th = threading.Thread(target=self._supervisor_loop, args=(stream_key,), daemon=True)
+                worker_data["thread"] = th
+                th.start()
 
         # Wait up to 15.0 seconds for first manifest
         for _ in range(60):
@@ -224,27 +283,25 @@ class OnDemandStreamManager:
             to_stop = []
             with self.lock:
                 for sk, w in list(self.workers.items()):
-                    if w["proc"].poll() is not None:
-                        to_stop.append((sk, f"توقف FFmpeg (كود: {w['proc'].poll()})"))
-                    elif (now - w.get("last_active", now)) > 120:
-                        to_stop.append((sk, "120 ثانية خمول بدون مشاهدين"))
+                    if w["stopped"].is_set() or (now - w.get("last_active", now)) > 120:
+                        to_stop.append(sk)
 
-            for sk, reason in to_stop:
+            for sk in to_stop:
                 with self.lock:
-                    worker = self.workers.pop(sk, None)
-                if worker:
-                    try:
-                        worker["proc"].terminate()
-                        worker["proc"].wait(timeout=2)
-                    except Exception:
+                    w = self.workers.pop(sk, None)
+                if w:
+                    w["stopped"].set()
+                    p = w.get("proc")
+                    if p:
                         try:
-                            worker["proc"].kill()
+                            p.terminate()
+                            p.wait(timeout=1.5)
                         except Exception:
-                            pass
-                    # Only wipe files if inactive for 120s, preserve on crash so viewers don't 404
-                    if (now - worker.get("last_active", now)) >= 120:
-                        shutil.rmtree(worker["hls_dir"], ignore_errors=True)
-                    print(f" [i] إيقاف جلسة البث On-Demand للقناة {sk} ({reason}).")
+                            try: p.kill()
+                            except Exception: pass
+                    if (now - w.get("last_active", now)) >= 120:
+                        shutil.rmtree(w["hls_dir"], ignore_errors=True)
+                    print(f" [i] إيقاف جلسة البث On-Demand للقناة {sk} (خمول أكثر من دقيقتين).")
 
             # Prune hot in-memory segment cache
             with hot_cache_lock:
