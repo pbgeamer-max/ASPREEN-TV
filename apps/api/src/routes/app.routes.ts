@@ -275,14 +275,41 @@ export async function appRoutes(server: FastifyInstance) {
         playback_url: permStreamUrl,
         status: ch.inputStatus === 'OFFLINE' ? 'OFFLINE' : 'ONLINE',
         order,
-        servers: ch.servers && ch.servers.length > 0 ? ch.servers.map((s) => ({
-          id: s.id,
-          name: s.name,
-          url: s.url.startsWith('/') ? `${effectiveBaseUrl}${s.url}` : s.url,
-          quality: s.quality,
-          isDefault: s.isDefault,
-          status: s.status,
-        })) : undefined,
+        servers: ch.servers && ch.servers.length > 0 ? ch.servers.map((s, sIdx) => {
+          let sUrl = s.url || '';
+          if (sUrl.startsWith('/')) {
+            sUrl = `${effectiveBaseUrl}${sUrl}`;
+          } else if (!sUrl.startsWith('http://') && !sUrl.startsWith('https://')) {
+            sUrl = `${effectiveBaseUrl}/live/${ch.id}.m3u8?server=${sIdx + 1}`;
+          } else if (sUrl.includes('hey-ott.net') || sUrl.includes('mac=') || sUrl.includes('extension=ts')) {
+            // Always route private IPTV lines through our proxy so external sites never hit provider connection limits
+            sUrl = `${effectiveBaseUrl}/live/${ch.id}.m3u8?server=${sIdx + 1}`;
+          }
+          return {
+            id: s.id || `server-${sIdx + 1}`,
+            name: s.name,
+            url: sUrl,
+            quality: s.quality,
+            isDefault: s.isDefault,
+            status: s.status,
+          };
+        }) : [
+          {
+            id: 'server-1',
+            name: 'سيرفر 1 (البث المباشر)',
+            url: `${permStreamUrl}?server=1`,
+            quality: '1080p',
+            isDefault: true,
+            status: 'live',
+          },
+          {
+            id: 'server-2',
+            name: 'سيرفر 2 (احتياطي)',
+            url: `${permStreamUrl}?server=2`,
+            quality: 'HD',
+            status: 'live',
+          }
+        ],
       };
     });
 

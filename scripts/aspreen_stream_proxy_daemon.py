@@ -122,6 +122,38 @@ class OnDemandStreamManager:
                 worker["last_active"] = time.time()
                 m3u8_path = worker["m3u8_path"]
             else:
+                is_mac_line = "mac=" in upstream_url or "hey-ott.net" in upstream_url
+                if is_mac_line:
+                    # 1. If the alternate server for this EXACT channel is already streaming healthy HLS,
+                    # reuse the running stream so we don't start duplicate competing FFmpegs on the single-connection line!
+                    alt_id = "1" if str(server_id) in ("2", "server-2") else "2"
+                    alt_key = f"{cid}_s{alt_id}"
+                    alt_worker = self.workers.get(alt_key)
+                    if alt_worker and alt_worker["proc"].poll() is None and os.path.exists(alt_worker["m3u8_path"]) and os.path.getsize(alt_worker["m3u8_path"]) > 20:
+                        alt_worker["last_active"] = time.time()
+                        try:
+                            with open(alt_worker["m3u8_path"], "r", encoding="utf-8", errors="ignore") as f:
+                                c = f.read()
+                            if "#EXTINF" in c:
+                                return alt_key, c
+                        except Exception:
+                            pass
+
+                    # 2. Free up any previous channel on this same MAC line to protect account from multi-connection ban
+                    for other_k, other_w in list(self.workers.items()):
+                        if other_k != stream_key:
+                            other_up = other_w.get("upstream_url", "")
+                            if "mac=" in other_up or "hey-ott.net" in other_up:
+                                try:
+                                    other_w["proc"].terminate()
+                                    other_w["proc"].wait(timeout=1.5)
+                                except Exception:
+                                    try: other_w["proc"].kill()
+                                    except Exception: pass
+                                self.workers.pop(other_k, None)
+                                print(f" [i] تحرير خط الماك من القناة {other_k} لتمكين البث النقي بدون تعارض")
+                                time.sleep(0.3)
+
                 hls_dir = os.path.join(self.base_dir, stream_key)
                 if os.path.exists(hls_dir):
                     shutil.rmtree(hls_dir, ignore_errors=True)
@@ -438,6 +470,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS, HEAD")
         self.send_header("Access-Control-Allow-Headers", "*")
+        self.send_header("Access-Control-Expose-Headers", "*")
 
     def do_OPTIONS(self):
         self.send_response(200)
@@ -869,7 +902,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         match_seq = re.search(r"#EXT-X-MEDIA-SEQUENCE:(\d+)", m3u_text)
         if match_seq:
             curr_seq = int(match_seq.group(1))
-            prev_seq = channel_max_sequence.get(cid, 0)
+            seq_key = (cid, str(requested_server))
+            prev_seq = channel_max_sequence.get(seq_key, 0)
             if curr_seq < prev_seq and (prev_seq - curr_seq) < 30:
                 with m3u8_cache_lock:
                     cached_data = m3u8_cache.get(cache_key)
@@ -888,7 +922,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                             pass
                         return
             else:
-                channel_max_sequence[cid] = curr_seq
+                channel_max_sequence[seq_key] = curr_seq
 
         # Rewrite segment and key URLs while preserving 100% of upstream headers, timestamps, and sequence order
         rewritten = []
