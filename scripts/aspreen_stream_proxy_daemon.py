@@ -605,7 +605,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         match_live = re.match(r"^/(?:live|raw)/([^/]+)\.m3u8$", path)
         if match_live:
             cid = match_live.group(1)
-            force_proxy = query.get("proxy", ["0"])[0] in ("1", "true")
+            # Default force_proxy to True so external websites never encounter CORS or 403 Forbidden errors!
+            force_proxy = query.get("proxy", ["1"])[0] not in ("0", "false")
             self.handle_channel_playlist(cid, is_raw=False, force_proxy=force_proxy)
             return
 
@@ -993,40 +994,20 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     def replace_uri(m):
                         u = m.group(1)
                         full_u = urllib.parse.urljoin(target_fetch_url, u)
-                        if force_proxy:
-                            enc_u = urllib.parse.quote(full_u, safe="")
-                            enc_r = urllib.parse.quote(channel_referer, safe="")
-                            return f'URI="/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
-                        if "edgenextcdn.net" in full_u or "itworkscdn.net" in full_u or ch.get("source") != "yacine.website":
-                            return f'URI="{full_u}"'
-                        if "play.php?" in full_u:
-                            return f'URI="https://yacine.website/play.php?{full_u.split("?", 1)[1]}"'
-                        b64_k = base64.b64encode(full_u.encode()).decode()
-                        b64_u = base64.b64encode((req_ua or DEFAULT_UA).encode()).decode()
-                        return f'URI="https://yacine.website/play.php?url={b64_k}&ua={b64_u}"'
+                        enc_u = urllib.parse.quote(full_u, safe="")
+                        enc_r = urllib.parse.quote(channel_referer or "", safe="")
+                        return f'URI="{base_origin}/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
                     rewritten.append(re.sub(r'URI="([^"]+)"', replace_uri, l))
-                else:
+                elif not l.startswith("#EXT-X-ENDLIST"):
                     rewritten.append(l)
             else:
-                # Segment URL or Sub-playlist URL: Direct clean CDN URL so IDM never intercepts it
                 seg_full = urllib.parse.urljoin(target_fetch_url, l)
-                if "play.php?" in l:
-                    direct_seg = f"https://yacine.website/play.php?{l.split('?', 1)[1]}"
-                elif "new-redirect.online" in seg_full and "play.php" not in seg_full:
-                    b64_url = base64.b64encode(seg_full.encode()).decode()
-                    b64_ua = base64.b64encode((req_ua or DEFAULT_UA).encode()).decode()
-                    direct_seg = f"https://yacine.website/play.php?url={b64_url}&ua={b64_ua}"
-                elif "play.php?" in seg_full:
-                    direct_seg = seg_full
-                else:
-                    direct_seg = seg_full
-
                 if force_proxy:
-                    encoded_seg = urllib.parse.quote(direct_seg, safe="")
-                    encoded_ref = urllib.parse.quote(channel_referer, safe="")
+                    encoded_seg = urllib.parse.quote(seg_full, safe="")
+                    encoded_ref = urllib.parse.quote(channel_referer or "", safe="")
                     rewritten.append(f"{base_origin}/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
                 else:
-                    rewritten.append(direct_seg)
+                    rewritten.append(seg_full)
 
         # Strip any transient #EXT-X-ENDLIST to prevent players from treating live as finished VOD
         clean_rewritten = [l for l in rewritten if not l.startswith("#EXT-X-ENDLIST")]
@@ -1126,6 +1107,14 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
                     # Handle Nested / Variant M3U8 (Adaptive bitrates e.g. MBC, Rotana)
                     if first_chunk.startswith(b"#EXTM3U"):
+                        host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", "localhost"))
+                        if "127.0.0.1" in host or "localhost" in host:
+                            host = "aspreen-tv-production.up.railway.app"
+                        proto = self.headers.get("X-Forwarded-Proto", "https" if ("railway" in host or "443" in host) else "http")
+                        if "railway" in host:
+                            proto = "https"
+                        base_origin = f"{proto}://{host}"
+
                         rest = upstream.read()
                         full_m3u = (first_chunk + rest).decode("utf-8", errors="ignore")
                         lines = full_m3u.splitlines()
@@ -1140,16 +1129,16 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                                         u = m.group(1)
                                         full_u = urllib.parse.urljoin(target_url, u)
                                         enc_u = urllib.parse.quote(full_u, safe="")
-                                        enc_r = urllib.parse.quote(referer, safe="")
-                                        return f'URI="/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
+                                        enc_r = urllib.parse.quote(referer or "", safe="")
+                                        return f'URI="{base_origin}/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
                                     rewritten.append(re.sub(r'URI="([^"]+)"', replace_sub_uri, l))
                                 else:
                                     rewritten.append(l)
                             else:
                                 seg_full = urllib.parse.urljoin(target_url, l)
                                 encoded_seg = urllib.parse.quote(seg_full, safe="")
-                                encoded_ref = urllib.parse.quote(referer, safe="")
-                                rewritten.append(f"/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
+                                encoded_ref = urllib.parse.quote(referer or "", safe="")
+                                rewritten.append(f"{base_origin}/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
 
                         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
                         self.send_response(200)
