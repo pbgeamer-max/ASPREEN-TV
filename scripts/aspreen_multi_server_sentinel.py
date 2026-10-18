@@ -156,8 +156,10 @@ def build_multiserver_catalog():
         servers = []
 
         direct_hls = ch.get("directM3u8") or ch.get("streamUrl") or ch.get("playUrl")
-        has_stable_hls = direct_hls and ("re300" in str(direct_hls) or "yacine" in str(direct_hls) or ch.get("yacineId") or "edgenextcdn.net" in str(direct_hls) or "itworkscdn.net" in str(direct_hls))
-        if "674534" in str(direct_hls) or cid in ("bein-vip-bein-sports-news", "bein-vip-bein-sports-global"):
+        # Cloudflare blocks Yacine/re300 streams with TOS violation banner ("This video has been restricted").
+        # All beIN Sports VIP channels MUST use authentic VIP OTT satellite streams from line.hey-ott.net.
+        has_stable_hls = direct_hls and ("edgenextcdn.net" in str(direct_hls) or "itworkscdn.net" in str(direct_hls))
+        if cid.startswith("bein-vip-") or "674534" in str(direct_hls) or "new-redirect.online" in str(direct_hls) or "yacine" in str(direct_hls):
             has_stable_hls = False
 
         if has_stable_hls:

@@ -130,55 +130,31 @@ class OnDemandStreamManager:
 
                 cmd = [
                     "ffmpeg", "-y", "-hide_banner", "-loglevel", "warning",
-                    "-re",
-                    "-fflags", "+genpts+nobuffer+flush_packets",
-                    "-avoid_negative_ts", "make_zero",
-                    "-i", "pipe:0",
+                    "-user_agent", "VLC/3.0.18 LibVLC/3.0.18",
+                    "-reconnect", "1",
+                    "-reconnect_at_eof", "1",
+                    "-reconnect_streamed", "1",
+                    "-reconnect_delay_max", "2",
+                    "-fflags", "+genpts+nobuffer+flush_packets+discardcorrupt",
+                    "-i", upstream_url,
                     "-c", "copy",
                     "-f", "hls",
                     "-hls_time", "2",
-                    "-hls_list_size", "30",
-                    "-hls_delete_threshold", "20",
-                    "-hls_flags", "delete_segments+append_list",
+                    "-hls_list_size", "25",
+                    "-hls_delete_threshold", "15",
+                    "-hls_flags", "delete_segments+temp_file",
                     m3u8_path
                 ]
                 try:
-                    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    stop_event = threading.Event()
-
-                    def feeder_loop(p, u, stop_ev, sk):
-                        headers = {"User-Agent": "VLC/3.0.18 LibVLC/3.0.18", "Connection": "keep-alive"}
-                        while not stop_ev.is_set():
-                            try:
-                                req = urllib.request.Request(u, headers=headers)
-                                with PROXY_OPENER.open(req, timeout=12) as resp:
-                                    while not stop_ev.is_set():
-                                        chunk = resp.read(32 * 1024)
-                                        if not chunk:
-                                            # Upstream closed connection (~45s limit), loop immediately to reconnect seamlessly
-                                            break
-                                        try:
-                                            p.stdin.write(chunk)
-                                            p.stdin.flush()
-                                        except (BrokenPipeError, OSError):
-                                            return
-                                time.sleep(0.1)
-                            except Exception:
-                                time.sleep(0.3)
-
-                    t_feed = threading.Thread(target=feeder_loop, args=(proc, upstream_url, stop_event, stream_key), daemon=True)
-                    t_feed.start()
-
+                    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     self.workers[stream_key] = {
                         "proc": proc,
                         "hls_dir": hls_dir,
                         "m3u8_path": m3u8_path,
                         "last_active": time.time(),
-                        "upstream_url": upstream_url,
-                        "stop_event": stop_event,
-                        "feeder_thread": t_feed
+                        "upstream_url": upstream_url
                     }
-                    print(f" [✓] تشغيل موزع البث الحصري للقناة {stream_key} (اتصال واحد دائم ومشاركة لآلاف الزوار)")
+                    print(f" [✓] تشغيل موزع البث الحصري للقناة {stream_key} (اتصال فضائي مباشر HLS)")
                 except Exception as e:
                     print(f" [!] خطأ في تشغيل محرك تحويل البث On-Demand: {e}")
                     return None, None
@@ -225,11 +201,6 @@ class OnDemandStreamManager:
                 with self.lock:
                     worker = self.workers.pop(sk, None)
                 if worker:
-                    worker.get("stop_event", threading.Event()).set()
-                    try:
-                        worker["proc"].stdin.close()
-                    except Exception:
-                        pass
                     try:
                         worker["proc"].terminate()
                         worker["proc"].wait(timeout=2)
