@@ -213,6 +213,10 @@ def build_multiserver_catalog():
                 })
 
             ch["status"] = "live"
+            ch["source"] = "private-vip"
+            ch["directM3u8"] = vurl
+            ch.pop("yacineId", None)
+            ch["status_message"] = "بث مباشر نشط ومستقر"
             ch["streamUrl"] = f"/live/{cid}.m3u8?server=1"
             ch["playUrl"] = f"/live/{cid}.m3u8?server=1"
         else:

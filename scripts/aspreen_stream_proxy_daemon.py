@@ -183,8 +183,8 @@ class OnDemandStreamManager:
                     print(f" [!] خطأ في تشغيل محرك تحويل البث On-Demand: {e}")
                     return None, None
 
-        # Wait up to 8.0 seconds for first manifest
-        for _ in range(32):
+        # Wait up to 15.0 seconds for first manifest
+        for _ in range(60):
             if os.path.exists(m3u8_path) and os.path.getsize(m3u8_path) > 20:
                 try:
                     with open(m3u8_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -294,6 +294,15 @@ def renew_single_channel_stream(cid):
     """Fetches a fresh stream URL for a single channel from upstream API"""
     with cache_lock:
         ch = channels_cache.get(cid, {})
+        # Never overwrite private VIP OTT satellite channels with Yacine
+        if (
+            ch.get("source") == "private-vip"
+            or "mac=" in str(ch.get("directM3u8", ""))
+            or "hey-ott.net" in str(ch.get("directM3u8", ""))
+            or cid in ("bein-vip-bein-sports-news", "bein-vip-bein-sports-global")
+            or not ch.get("yacineId")
+        ):
+            return False
         name = ch.get("name", "live")
         target_id = ch.get("yacineId") or cid
     api_url = f"https://yacine.website/index.php?get_channel_stream={target_id}"
@@ -320,7 +329,7 @@ def renew_single_channel_stream(cid):
                             ch["directM3u8"] = raw_url
                         if ch.get("servers"):
                             for s in ch["servers"]:
-                                if s.get("id") == "server-1" and ("re300" in str(s.get("upstreamUrl", "")) or "yacine" in str(s.get("upstreamUrl", "")) or s.get("isDefault")):
+                                if s.get("id") == "server-1" and not ("mac=" in str(s.get("upstreamUrl", "")) or "hey-ott.net" in str(s.get("upstreamUrl", ""))) and ("re300" in str(s.get("upstreamUrl", "")) or "yacine" in str(s.get("upstreamUrl", ""))):
                                     s["upstreamUrl"] = raw_url
                         ch["userAgent"] = ua or DEFAULT_UA
                         ch["status"] = "live"
