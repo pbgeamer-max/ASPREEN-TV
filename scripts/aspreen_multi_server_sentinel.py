@@ -26,6 +26,7 @@ if sys.platform == "win32":
 
 WORKSPACE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CHANNELS_JSON_PATH = os.path.join(WORKSPACE_DIR, "channels.json")
+API_CHANNELS_JSON_PATH = os.path.join(WORKSPACE_DIR, "apps", "api", "channels.json")
 BACKUP_JSON_PATH = os.path.join(WORKSPACE_DIR, "data", "channels_multiserver.json")
 VIP_DIR = os.path.join(WORKSPACE_DIR, "روابطج بث")
 
@@ -65,6 +66,9 @@ def probe_stream_health(url, timeout=4, max_retries=1):
     """Probes if stream URL responds with HTTP 200 and data"""
     if not url:
         return False
+    # Protect VIP subscription from hitting connection limits during probing
+    if "mac=" in url or "hey-ott.net" in url:
+        return True
     for _ in range(max_retries):
         try:
             req = urllib.request.Request(
@@ -153,6 +157,8 @@ def build_multiserver_catalog():
 
         direct_hls = ch.get("directM3u8") or ch.get("streamUrl") or ch.get("playUrl")
         has_stable_hls = direct_hls and ("re300" in str(direct_hls) or "yacine" in str(direct_hls) or ch.get("yacineId") or "edgenextcdn.net" in str(direct_hls) or "itworkscdn.net" in str(direct_hls))
+        if "674534" in str(direct_hls) or cid in ("bein-vip-bein-sports-news", "bein-vip-bein-sports-global"):
+            has_stable_hls = False
 
         if has_stable_hls:
             # Server 1: Ultra-Stable HLS 24/7 Broadcast (No drops, seamless rolling HLS)
@@ -233,15 +239,52 @@ def build_multiserver_catalog():
 
         ch["servers"] = servers
 
-    # Save enriched catalog
+    save_all_catalogs(channels)
+    print(f" [✓] تم تزويد {enriched_count} قناة رياضية بسيرفرات متعددة (Multi-Server) وحفظ الملف بنجاح!")
+
+
+def save_all_catalogs(channels):
+    """Saves updated channels to all JSON paths and M3U playlists"""
+    # 1. Save root channels.json
     with open(CHANNELS_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(channels, f, ensure_ascii=False, indent=2)
 
+    # 2. Save apps/api/channels.json
+    try:
+        os.makedirs(os.path.dirname(API_CHANNELS_JSON_PATH), exist_ok=True)
+        with open(API_CHANNELS_JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump(channels, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+    # 3. Save backup
     os.makedirs(os.path.dirname(BACKUP_JSON_PATH), exist_ok=True)
     with open(BACKUP_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(channels, f, ensure_ascii=False, indent=2)
 
-    print(f" [✓] تم تزويد {enriched_count} قناة رياضية بسيرفرات متعددة (Multi-Server) وحفظ الملف بنجاح!")
+    # 4. Save M3U playlists for IPTV players and Android apps
+    m3u_lines = ["#EXTM3U"]
+    for ch in channels:
+        cid = ch.get("id") or ch.get("vid")
+        name = ch.get("name", "Channel").replace('"', "'")
+        group = ch.get("groupTitle", "Live TV").replace('"', "'")
+        logo = ch.get("logoUrl", "")
+        proxy_url = f"https://aspreen-tv-production.up.railway.app/live/{cid}.m3u8?server=1"
+        extinf = f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{name}" tvg-logo="{logo}" group-title="{group}",{name}'
+        m3u_lines.append(extinf)
+        m3u_lines.append(proxy_url)
+
+    m3u_content = "\n".join(m3u_lines) + "\n"
+    for m3u_path in [
+        os.path.join(WORKSPACE_DIR, "channels.m3u"),
+        os.path.join(WORKSPACE_DIR, "channels.m3u8"),
+        os.path.join(WORKSPACE_DIR, "channels_railway.m3u"),
+    ]:
+        try:
+            with open(m3u_path, "w", encoding="utf-8") as f:
+                f.write(m3u_content)
+        except Exception:
+            pass
 
 
 def autonomous_health_check_and_heal():
@@ -299,9 +342,8 @@ def autonomous_health_check_and_heal():
             except Exception:
                 pass
 
-    # Save results
-    with open(CHANNELS_JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(channels, f, ensure_ascii=False, indent=2)
+    # Save results across all locations
+    save_all_catalogs(channels)
 
     print(f" [✓] [3/3] اكتمل الفحص: {live_count} قناة شغالة نشطة | {offline_count} قناة مخصصة للمباريات (مراقبة تلقائياً).")
 
