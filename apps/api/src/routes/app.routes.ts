@@ -290,6 +290,7 @@ export async function appRoutes(server: FastifyInstance) {
             name: s.name,
             url: sUrl,
             quality: s.quality,
+            resolution: (s as any).resolution,
             isDefault: s.isDefault,
             status: s.status,
           };

@@ -143,6 +143,15 @@ def build_multiserver_catalog():
         norm_name = normalize_channel_title(ch_name)
         cid = str(ch.get("id", ""))
 
+        # If channel already has rich multi-quality servers (4K, UHD, RAW, HEVC, HD, SD), preserve them!
+        existing_srvs = ch.get("servers", [])
+        if len(existing_srvs) >= 3 or any(s.get("quality") in ("4K", "UHD", "RAW", "HEVC", "SD") for s in existing_srvs):
+            ch["status"] = "live"
+            ch["inputStatus"] = "ONLINE"
+            ch["enabled"] = True
+            enriched_count += 1
+            continue
+
         # Match VIP streams for beIN Sports, AFC, Xtra, News, France, English
         matched_vip_urls = []
         for vname, vurl in vip_channels.items():

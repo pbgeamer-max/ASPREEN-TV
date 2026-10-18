@@ -1155,6 +1155,11 @@ export default function ChannelsPage() {
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#1F2937] text-[#9CA3AF] border border-[#374151]">
                               {srv.quality || 'FHD'}
                             </span>
+                            {srv.resolution && (
+                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#111827] text-emerald-400 border border-emerald-900/50">
+                                {srv.resolution}
+                              </span>
+                            )}
                           </div>
                           <button
                             onClick={() => {

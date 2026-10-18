@@ -7,26 +7,59 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 1,
     "streamUrl": "/live/bein-vip-bein-sports-news.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985171&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242288&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-news.m3u8",
     "referer": "https://yacine.website/channel/207119423119893112/live",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - فائق الدقة (4K / 1080p 60fps)",
         "url": "/live/bein-vip-bein-sports-news.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985171&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242288&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - المصدر المباشر (RAW Satellite)",
         "url": "/live/bein-vip-bein-sports-news.m3u8?server=2",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985187&extension=ts",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030234&extension=ts",
+        "quality": "1080p",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - عالي الوضوح (HD 720p 60fps)",
+        "url": "/live/bein-vip-bein-sports-news.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985171&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-4",
+        "name": "سيرفر 4 - للإنترنت الضعيف (SD 576p)",
+        "url": "/live/bein-vip-bein-sports-news.m3u8?server=4",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985187&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-5",
+        "name": "سيرفر 5 - فائق الدقة احتياطي (4K S2)",
+        "url": "/live/bein-vip-bein-sports-news.m3u8?server=5",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985126&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -34,7 +67,7 @@
     "status": "live",
     "lastRenewed": 1792276924.2754433,
     "playUrl": "/live/bein-vip-bein-sports-news.m3u8?server=1",
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "بث مباشر فائق الدقة (5 سيرفرات وجودات حقيقية متاحة)",
     "inputStatus": "ONLINE",
     "enabled": true
   },
@@ -46,26 +79,59 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 2,
     "streamUrl": "/live/bein-vip-bein-sports-global.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985170&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242287&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-global.m3u8",
     "referer": "https://yacine.website/channel/207119423119893112/live",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - فائق الدقة (4K / 1080p 60fps)",
         "url": "/live/bein-vip-bein-sports-global.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985170&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242287&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - المصدر المباشر (RAW Satellite)",
         "url": "/live/bein-vip-bein-sports-global.m3u8?server=2",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985186&extension=ts",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030235&extension=ts",
+        "quality": "1080p",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - عالي الوضوح (HD 720p 60fps)",
+        "url": "/live/bein-vip-bein-sports-global.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985170&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-4",
+        "name": "سيرفر 4 - للإنترنت الضعيف (SD 576p)",
+        "url": "/live/bein-vip-bein-sports-global.m3u8?server=4",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985186&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-5",
+        "name": "سيرفر 5 - فائق الدقة احتياطي (4K S2)",
+        "url": "/live/bein-vip-bein-sports-global.m3u8?server=5",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985125&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -73,7 +139,7 @@
     "status": "live",
     "lastRenewed": 1792276925.3948278,
     "playUrl": "/live/bein-vip-bein-sports-global.m3u8?server=1",
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "بث مباشر فائق الدقة (5 سيرفرات وجودات حقيقية متاحة)",
     "inputStatus": "ONLINE",
     "enabled": true
   },
@@ -85,26 +151,89 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 3,
     "streamUrl": "/live/bein-vip-bein-sports-1.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242255&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242268&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-1.m3u8",
     "referer": "https://yacine.website/channel/207119423132628321/live",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - فائق الدقة (4K / 1080p 60fps)",
         "url": "/live/bein-vip-bein-sports-1.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242255&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242268&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - البث الفضائي (UHD / HEVC 50fps)",
         "url": "/live/bein-vip-bein-sports-1.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798772&extension=ts",
+        "quality": "UHD",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - المصدر المباشر (RAW Satellite)",
+        "url": "/live/bein-vip-bein-sports-1.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030236&extension=ts",
+        "quality": "1080p",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-4",
+        "name": "سيرفر 4 - موفر للبيانات (HEVC / FHD)",
+        "url": "/live/bein-vip-bein-sports-1.m3u8?server=4",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798795&extension=ts",
+        "quality": "HEVC",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-5",
+        "name": "سيرفر 5 - عالي الوضوح (HD 720p 60fps)",
+        "url": "/live/bein-vip-bein-sports-1.m3u8?server=5",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242255&extension=ts",
+        "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-6",
+        "name": "سيرفر 6 - للإنترنت الضعيف (SD 576p)",
+        "url": "/live/bein-vip-bein-sports-1.m3u8?server=6",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798828&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-7",
+        "name": "سيرفر 7 - فائق الدقة احتياطي (4K S2)",
+        "url": "/live/bein-vip-bein-sports-1.m3u8?server=7",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985127&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-8",
+        "name": "سيرفر 8 - عالي الوضوح احتياطي (HD S2)",
+        "url": "/live/bein-vip-bein-sports-1.m3u8?server=8",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985161&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -112,7 +241,7 @@
     "status": "live",
     "lastRenewed": 1792276926.2242007,
     "playUrl": "/live/bein-vip-bein-sports-1.m3u8?server=1",
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "بث مباشر فائق الدقة (8 سيرفرات وجودات حقيقية متاحة)",
     "inputStatus": "ONLINE",
     "enabled": true
   },
@@ -124,26 +253,89 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 4,
     "streamUrl": "/live/bein-vip-bein-sports-2.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242254&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242267&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-2.m3u8",
     "referer": "https://yacine.website/channel/207119423133708072/live",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - فائق الدقة (4K / 1080p 60fps)",
         "url": "/live/bein-vip-bein-sports-2.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242254&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242267&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - البث الفضائي (UHD / HEVC 50fps)",
         "url": "/live/bein-vip-bein-sports-2.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798773&extension=ts",
+        "quality": "UHD",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - المصدر المباشر (RAW Satellite)",
+        "url": "/live/bein-vip-bein-sports-2.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030237&extension=ts",
+        "quality": "1080p",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-4",
+        "name": "سيرفر 4 - موفر للبيانات (HEVC / FHD)",
+        "url": "/live/bein-vip-bein-sports-2.m3u8?server=4",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798796&extension=ts",
+        "quality": "HEVC",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-5",
+        "name": "سيرفر 5 - عالي الوضوح (HD 720p 60fps)",
+        "url": "/live/bein-vip-bein-sports-2.m3u8?server=5",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242254&extension=ts",
+        "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-6",
+        "name": "سيرفر 6 - للإنترنت الضعيف (SD 576p)",
+        "url": "/live/bein-vip-bein-sports-2.m3u8?server=6",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798829&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-7",
+        "name": "سيرفر 7 - فائق الدقة احتياطي (4K S2)",
+        "url": "/live/bein-vip-bein-sports-2.m3u8?server=7",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985128&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-8",
+        "name": "سيرفر 8 - عالي الوضوح احتياطي (HD S2)",
+        "url": "/live/bein-vip-bein-sports-2.m3u8?server=8",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985162&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -151,7 +343,7 @@
     "status": "live",
     "lastRenewed": 1792276927.0312612,
     "playUrl": "/live/bein-vip-bein-sports-2.m3u8?server=1",
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "بث مباشر فائق الدقة (8 سيرفرات وجودات حقيقية متاحة)",
     "inputStatus": "ONLINE",
     "enabled": true
   },
@@ -163,26 +355,89 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 5,
     "streamUrl": "/live/bein-vip-bein-sports-3.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242253&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242266&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-3.m3u8",
     "referer": "https://yacine.website/channel/207119423130423959/live",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - فائق الدقة (4K / 1080p 60fps)",
         "url": "/live/bein-vip-bein-sports-3.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242253&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242266&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - البث الفضائي (UHD / HEVC 50fps)",
         "url": "/live/bein-vip-bein-sports-3.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798788&extension=ts",
+        "quality": "UHD",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - المصدر المباشر (RAW Satellite)",
+        "url": "/live/bein-vip-bein-sports-3.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030238&extension=ts",
+        "quality": "1080p",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-4",
+        "name": "سيرفر 4 - موفر للبيانات (HEVC / FHD)",
+        "url": "/live/bein-vip-bein-sports-3.m3u8?server=4",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798797&extension=ts",
+        "quality": "HEVC",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-5",
+        "name": "سيرفر 5 - عالي الوضوح (HD 720p 60fps)",
+        "url": "/live/bein-vip-bein-sports-3.m3u8?server=5",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242253&extension=ts",
+        "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-6",
+        "name": "سيرفر 6 - للإنترنت الضعيف (SD 576p)",
+        "url": "/live/bein-vip-bein-sports-3.m3u8?server=6",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798830&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-7",
+        "name": "سيرفر 7 - فائق الدقة احتياطي (4K S2)",
+        "url": "/live/bein-vip-bein-sports-3.m3u8?server=7",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985129&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-8",
+        "name": "سيرفر 8 - عالي الوضوح احتياطي (HD S2)",
+        "url": "/live/bein-vip-bein-sports-3.m3u8?server=8",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985163&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -190,7 +445,7 @@
     "status": "live",
     "lastRenewed": 1792276927.830335,
     "playUrl": "/live/bein-vip-bein-sports-3.m3u8?server=1",
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "بث مباشر فائق الدقة (8 سيرفرات وجودات حقيقية متاحة)",
     "inputStatus": "ONLINE",
     "enabled": true
   },
@@ -202,26 +457,89 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 6,
     "streamUrl": "/live/bein-vip-bein-sports-4.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242252&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242265&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-4.m3u8",
     "referer": "https://yacine.website/channel/207119423131118230/live",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - فائق الدقة (4K / 1080p 60fps)",
         "url": "/live/bein-vip-bein-sports-4.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242252&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242265&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - البث الفضائي (UHD / HEVC 50fps)",
         "url": "/live/bein-vip-bein-sports-4.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798789&extension=ts",
+        "quality": "UHD",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - المصدر المباشر (RAW Satellite)",
+        "url": "/live/bein-vip-bein-sports-4.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030239&extension=ts",
+        "quality": "1080p",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-4",
+        "name": "سيرفر 4 - موفر للبيانات (HEVC / FHD)",
+        "url": "/live/bein-vip-bein-sports-4.m3u8?server=4",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798798&extension=ts",
+        "quality": "HEVC",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-5",
+        "name": "سيرفر 5 - عالي الوضوح (HD 720p 60fps)",
+        "url": "/live/bein-vip-bein-sports-4.m3u8?server=5",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242252&extension=ts",
+        "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-6",
+        "name": "سيرفر 6 - للإنترنت الضعيف (SD 576p)",
+        "url": "/live/bein-vip-bein-sports-4.m3u8?server=6",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798831&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-7",
+        "name": "سيرفر 7 - فائق الدقة احتياطي (4K S2)",
+        "url": "/live/bein-vip-bein-sports-4.m3u8?server=7",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985130&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-8",
+        "name": "سيرفر 8 - عالي الوضوح احتياطي (HD S2)",
+        "url": "/live/bein-vip-bein-sports-4.m3u8?server=8",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985164&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -229,7 +547,7 @@
     "status": "live",
     "lastRenewed": 1792276928.6367285,
     "playUrl": "/live/bein-vip-bein-sports-4.m3u8?server=1",
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "بث مباشر فائق الدقة (8 سيرفرات وجودات حقيقية متاحة)",
     "inputStatus": "ONLINE",
     "enabled": true
   },
@@ -241,26 +559,89 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 7,
     "streamUrl": "/live/bein-vip-bein-sports-5.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242251&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242264&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-5.m3u8",
     "referer": "https://yacine.website/channel/207119423128371685/live",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - فائق الدقة (4K / 1080p 60fps)",
         "url": "/live/bein-vip-bein-sports-5.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242251&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242264&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - البث الفضائي (UHD / HEVC 50fps)",
         "url": "/live/bein-vip-bein-sports-5.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798790&extension=ts",
+        "quality": "UHD",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - المصدر المباشر (RAW Satellite)",
+        "url": "/live/bein-vip-bein-sports-5.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030240&extension=ts",
+        "quality": "1080p",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-4",
+        "name": "سيرفر 4 - موفر للبيانات (HEVC / FHD)",
+        "url": "/live/bein-vip-bein-sports-5.m3u8?server=4",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798799&extension=ts",
+        "quality": "HEVC",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-5",
+        "name": "سيرفر 5 - عالي الوضوح (HD 720p 60fps)",
+        "url": "/live/bein-vip-bein-sports-5.m3u8?server=5",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242251&extension=ts",
+        "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-6",
+        "name": "سيرفر 6 - للإنترنت الضعيف (SD 576p)",
+        "url": "/live/bein-vip-bein-sports-5.m3u8?server=6",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798833&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-7",
+        "name": "سيرفر 7 - فائق الدقة احتياطي (4K S2)",
+        "url": "/live/bein-vip-bein-sports-5.m3u8?server=7",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985131&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-8",
+        "name": "سيرفر 8 - عالي الوضوح احتياطي (HD S2)",
+        "url": "/live/bein-vip-bein-sports-5.m3u8?server=8",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985165&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -268,7 +649,7 @@
     "status": "live",
     "lastRenewed": 1792276929.4367409,
     "playUrl": "/live/bein-vip-bein-sports-5.m3u8?server=1",
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "بث مباشر فائق الدقة (8 سيرفرات وجودات حقيقية متاحة)",
     "inputStatus": "ONLINE",
     "enabled": true
   },
@@ -280,26 +661,89 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 8,
     "streamUrl": "/live/bein-vip-bein-sports-6.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242250&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242263&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-6.m3u8",
     "referer": "https://yacine.website/channel/207119423129963420/live",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - فائق الدقة (4K / 1080p 60fps)",
         "url": "/live/bein-vip-bein-sports-6.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242250&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242263&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - البث الفضائي (UHD / HEVC 50fps)",
         "url": "/live/bein-vip-bein-sports-6.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798791&extension=ts",
+        "quality": "UHD",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - المصدر المباشر (RAW Satellite)",
+        "url": "/live/bein-vip-bein-sports-6.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030241&extension=ts",
+        "quality": "1080p",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-4",
+        "name": "سيرفر 4 - موفر للبيانات (HEVC / FHD)",
+        "url": "/live/bein-vip-bein-sports-6.m3u8?server=4",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798800&extension=ts",
+        "quality": "HEVC",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-5",
+        "name": "سيرفر 5 - عالي الوضوح (HD 720p 60fps)",
+        "url": "/live/bein-vip-bein-sports-6.m3u8?server=5",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242250&extension=ts",
+        "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-6",
+        "name": "سيرفر 6 - للإنترنت الضعيف (SD 576p)",
+        "url": "/live/bein-vip-bein-sports-6.m3u8?server=6",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798834&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-7",
+        "name": "سيرفر 7 - فائق الدقة احتياطي (4K S2)",
+        "url": "/live/bein-vip-bein-sports-6.m3u8?server=7",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985132&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-8",
+        "name": "سيرفر 8 - عالي الوضوح احتياطي (HD S2)",
+        "url": "/live/bein-vip-bein-sports-6.m3u8?server=8",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985166&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -307,7 +751,7 @@
     "status": "live",
     "lastRenewed": 1792276930.2809148,
     "playUrl": "/live/bein-vip-bein-sports-6.m3u8?server=1",
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "بث مباشر فائق الدقة (8 سيرفرات وجودات حقيقية متاحة)",
     "inputStatus": "ONLINE",
     "enabled": true
   },
@@ -319,26 +763,89 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 9,
     "streamUrl": "/live/bein-vip-bein-sports-7.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242249&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242262&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-7.m3u8",
     "referer": "https://yacine.website/channel/207119423126609442/live",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - فائق الدقة (4K / 1080p 60fps)",
         "url": "/live/bein-vip-bein-sports-7.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242249&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242262&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - البث الفضائي (UHD / HEVC 50fps)",
         "url": "/live/bein-vip-bein-sports-7.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798792&extension=ts",
+        "quality": "UHD",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - المصدر المباشر (RAW Satellite)",
+        "url": "/live/bein-vip-bein-sports-7.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030242&extension=ts",
+        "quality": "1080p",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-4",
+        "name": "سيرفر 4 - موفر للبيانات (HEVC / FHD)",
+        "url": "/live/bein-vip-bein-sports-7.m3u8?server=4",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798802&extension=ts",
+        "quality": "HEVC",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-5",
+        "name": "سيرفر 5 - عالي الوضوح (HD 720p 60fps)",
+        "url": "/live/bein-vip-bein-sports-7.m3u8?server=5",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242249&extension=ts",
+        "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-6",
+        "name": "سيرفر 6 - للإنترنت الضعيف (SD 576p)",
+        "url": "/live/bein-vip-bein-sports-7.m3u8?server=6",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798835&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-7",
+        "name": "سيرفر 7 - فائق الدقة احتياطي (4K S2)",
+        "url": "/live/bein-vip-bein-sports-7.m3u8?server=7",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985133&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-8",
+        "name": "سيرفر 8 - عالي الوضوح احتياطي (HD S2)",
+        "url": "/live/bein-vip-bein-sports-7.m3u8?server=8",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985167&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -346,7 +853,7 @@
     "status": "live",
     "lastRenewed": 1792276931.0945625,
     "playUrl": "/live/bein-vip-bein-sports-7.m3u8?server=1",
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "بث مباشر فائق الدقة (8 سيرفرات وجودات حقيقية متاحة)",
     "inputStatus": "ONLINE",
     "enabled": true
   },
@@ -358,26 +865,89 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 10,
     "streamUrl": "/live/bein-vip-bein-sports-8.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242248&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242261&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-8.m3u8",
     "referer": "https://yacine.website/channel/207119423126943987/live",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - فائق الدقة (4K / 1080p 60fps)",
         "url": "/live/bein-vip-bein-sports-8.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242248&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242261&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - البث الفضائي (UHD / HEVC 50fps)",
         "url": "/live/bein-vip-bein-sports-8.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798793&extension=ts",
+        "quality": "UHD",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - المصدر المباشر (RAW Satellite)",
+        "url": "/live/bein-vip-bein-sports-8.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030243&extension=ts",
+        "quality": "1080p",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-4",
+        "name": "سيرفر 4 - موفر للبيانات (HEVC / FHD)",
+        "url": "/live/bein-vip-bein-sports-8.m3u8?server=4",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798804&extension=ts",
+        "quality": "HEVC",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-5",
+        "name": "سيرفر 5 - عالي الوضوح (HD 720p 60fps)",
+        "url": "/live/bein-vip-bein-sports-8.m3u8?server=5",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242248&extension=ts",
+        "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-6",
+        "name": "سيرفر 6 - للإنترنت الضعيف (SD 576p)",
+        "url": "/live/bein-vip-bein-sports-8.m3u8?server=6",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798837&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-7",
+        "name": "سيرفر 7 - فائق الدقة احتياطي (4K S2)",
+        "url": "/live/bein-vip-bein-sports-8.m3u8?server=7",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985134&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-8",
+        "name": "سيرفر 8 - عالي الوضوح احتياطي (HD S2)",
+        "url": "/live/bein-vip-bein-sports-8.m3u8?server=8",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985168&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -385,7 +955,7 @@
     "status": "live",
     "lastRenewed": 1792276931.9017022,
     "playUrl": "/live/bein-vip-bein-sports-8.m3u8?server=1",
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "بث مباشر فائق الدقة (8 سيرفرات وجودات حقيقية متاحة)",
     "inputStatus": "ONLINE",
     "enabled": true
   },
@@ -397,26 +967,89 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 11,
     "streamUrl": "/live/bein-vip-bein-sports-9.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242247&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242260&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-9.m3u8",
     "referer": "https://yacine.website/channel/207119423124591988/live",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - فائق الدقة (4K / 1080p 60fps)",
         "url": "/live/bein-vip-bein-sports-9.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242247&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242260&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - البث الفضائي (UHD / HEVC 50fps)",
         "url": "/live/bein-vip-bein-sports-9.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798794&extension=ts",
+        "quality": "UHD",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - المصدر المباشر (RAW Satellite)",
+        "url": "/live/bein-vip-bein-sports-9.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030244&extension=ts",
+        "quality": "1080p",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-4",
+        "name": "سيرفر 4 - موفر للبيانات (HEVC / FHD)",
+        "url": "/live/bein-vip-bein-sports-9.m3u8?server=4",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798805&extension=ts",
+        "quality": "HEVC",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-5",
+        "name": "سيرفر 5 - عالي الوضوح (HD 720p 60fps)",
+        "url": "/live/bein-vip-bein-sports-9.m3u8?server=5",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242247&extension=ts",
+        "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-6",
+        "name": "سيرفر 6 - للإنترنت الضعيف (SD 576p)",
+        "url": "/live/bein-vip-bein-sports-9.m3u8?server=6",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=798838&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-7",
+        "name": "سيرفر 7 - فائق الدقة احتياطي (4K S2)",
+        "url": "/live/bein-vip-bein-sports-9.m3u8?server=7",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985135&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-8",
+        "name": "سيرفر 8 - عالي الوضوح احتياطي (HD S2)",
+        "url": "/live/bein-vip-bein-sports-9.m3u8?server=8",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985169&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -424,7 +1057,7 @@
     "status": "live",
     "lastRenewed": 1792276932.7107725,
     "playUrl": "/live/bein-vip-bein-sports-9.m3u8?server=1",
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "بث مباشر فائق الدقة (8 سيرفرات وجودات حقيقية متاحة)",
     "inputStatus": "ONLINE",
     "enabled": true
   },
@@ -436,26 +1069,39 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 12,
     "streamUrl": "/live/bein-vip-bein-sports-afc.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242285&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242286&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-afc.m3u8",
     "referer": "http://line.hey-ott.net/",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - BEIN SPORTS AFC 4K",
         "url": "/live/bein-vip-bein-sports-afc.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242285&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242286&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - BEIN SPORTS AFC HD",
         "url": "/live/bein-vip-bein-sports-afc.m3u8?server=2",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242286&extension=ts",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242285&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - BEIN SPORTS AFC",
+        "url": "/live/bein-vip-bein-sports-afc.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242284&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -465,7 +1111,7 @@
     "playUrl": "/live/bein-vip-bein-sports-afc.m3u8?server=1",
     "inputStatus": "ONLINE",
     "enabled": true,
-    "status_message": "بث مباشر نشط ومستقر"
+    "status_message": "بث مباشر فائق الدقة (3 سيرفرات وجودات حقيقية متاحة)"
   },
   {
     "id": "bein-vip-bein-sports-afc-1",
@@ -475,26 +1121,29 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 13,
     "streamUrl": "/live/bein-vip-bein-sports-afc-1.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242270&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242271&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-afc-1.m3u8",
     "referer": "http://line.hey-ott.net/",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - BEIN SPORTS AFC 1 4K",
         "url": "/live/bein-vip-bein-sports-afc-1.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242270&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242271&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - BEIN SPORTS AFC 1 HD",
         "url": "/live/bein-vip-bein-sports-afc-1.m3u8?server=2",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242271&extension=ts",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242270&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -504,7 +1153,7 @@
     "playUrl": "/live/bein-vip-bein-sports-afc-1.m3u8?server=1",
     "inputStatus": "ONLINE",
     "enabled": true,
-    "status_message": "بث مباشر نشط ومستقر"
+    "status_message": "بث مباشر فائق الدقة (2 سيرفرات وجودات حقيقية متاحة)"
   },
   {
     "id": "bein-vip-bein-sports-1-afc",
@@ -514,26 +1163,39 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 14,
     "streamUrl": "/live/bein-vip-bein-sports-1-afc.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242270&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242271&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-1-afc.m3u8",
     "referer": "http://line.hey-ott.net/",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - BEIN SPORTS AFC 1 4K",
         "url": "/live/bein-vip-bein-sports-1-afc.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242270&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242271&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - BEIN SPORTS AFC 1 HD",
         "url": "/live/bein-vip-bein-sports-1-afc.m3u8?server=2",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242271&extension=ts",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242270&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - BEIN SPORTS 1 AFC",
+        "url": "/live/bein-vip-bein-sports-1-afc.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242269&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -543,7 +1205,7 @@
     "playUrl": "/live/bein-vip-bein-sports-1-afc.m3u8?server=1",
     "inputStatus": "ONLINE",
     "enabled": true,
-    "status_message": "بث مباشر نشط ومستقر"
+    "status_message": "بث مباشر فائق الدقة (3 سيرفرات وجودات حقيقية متاحة)"
   },
   {
     "id": "bein-vip-bein-sports-2-afc",
@@ -553,26 +1215,39 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 15,
     "streamUrl": "/live/bein-vip-bein-sports-2-afc.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242257&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242258&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-2-afc.m3u8",
     "referer": "http://line.hey-ott.net/",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - BEIN SPORTS 2 AFC 4K",
         "url": "/live/bein-vip-bein-sports-2-afc.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242257&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242258&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - BEIN SPORTS 2 AFC HD",
         "url": "/live/bein-vip-bein-sports-2-afc.m3u8?server=2",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242258&extension=ts",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242257&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - BEIN SPORTS 2 AFC",
+        "url": "/live/bein-vip-bein-sports-2-afc.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242256&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -582,7 +1257,7 @@
     "playUrl": "/live/bein-vip-bein-sports-2-afc.m3u8?server=1",
     "inputStatus": "ONLINE",
     "enabled": true,
-    "status_message": "بث مباشر نشط ومستقر"
+    "status_message": "بث مباشر فائق الدقة (3 سيرفرات وجودات حقيقية متاحة)"
   },
   {
     "id": "bein-vip-bein-sports-3-afc",
@@ -592,26 +1267,39 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 16,
     "streamUrl": "/live/bein-vip-bein-sports-3-afc.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242244&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242245&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-3-afc.m3u8",
     "referer": "http://line.hey-ott.net/",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - BEIN SPORTS 3 AFC 4K",
         "url": "/live/bein-vip-bein-sports-3-afc.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242244&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242245&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - BEIN SPORTS 3 AFC HD",
         "url": "/live/bein-vip-bein-sports-3-afc.m3u8?server=2",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242245&extension=ts",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242244&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - BEIN SPORTS 3 AFC",
+        "url": "/live/bein-vip-bein-sports-3-afc.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242243&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -621,7 +1309,7 @@
     "playUrl": "/live/bein-vip-bein-sports-3-afc.m3u8?server=1",
     "inputStatus": "ONLINE",
     "enabled": true,
-    "status_message": "بث مباشر نشط ومستقر"
+    "status_message": "بث مباشر فائق الدقة (3 سيرفرات وجودات حقيقية متاحة)"
   },
   {
     "id": "bein-vip-bein-sports-afc-4",
@@ -631,26 +1319,39 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 17,
     "streamUrl": "/live/bein-vip-bein-sports-afc-4.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794423&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794422&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-afc-4.m3u8",
     "referer": "http://line.hey-ott.net/",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - BEIN SPORTS AFC 4 4K",
         "url": "/live/bein-vip-bein-sports-afc-4.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794423&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794422&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - BEIN SPORTS AFC 4 HD",
         "url": "/live/bein-vip-bein-sports-afc-4.m3u8?server=2",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794422&extension=ts",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794423&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - BEIN SPORTS AFC 4",
+        "url": "/live/bein-vip-bein-sports-afc-4.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794424&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -660,7 +1361,7 @@
     "playUrl": "/live/bein-vip-bein-sports-afc-4.m3u8?server=1",
     "inputStatus": "ONLINE",
     "enabled": true,
-    "status_message": "بث مباشر نشط ومستقر"
+    "status_message": "بث مباشر فائق الدقة (3 سيرفرات وجودات حقيقية متاحة)"
   },
   {
     "id": "bein-vip-bein-sports-afc-5",
@@ -670,26 +1371,39 @@
     "logoUrl": "/logos/bein-sports.png",
     "orderIndex": 18,
     "streamUrl": "/live/bein-vip-bein-sports-afc-5.m3u8?server=1",
-    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794426&extension=ts",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794425&extension=ts",
     "proxyUrl": "/live/bein-vip-bein-sports-afc-5.m3u8",
     "referer": "http://line.hey-ott.net/",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - BEIN SPORTS AFC 5 4K",
         "url": "/live/bein-vip-bein-sports-afc-5.m3u8?server=1",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794426&extension=ts",
-        "quality": "1080p",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794425&extension=ts",
+        "quality": "4K",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       },
       {
         "id": "server-2",
-        "name": "سيرفر 2 (VIP احتياطي - HD)",
+        "name": "سيرفر 2 - BEIN SPORTS AFC 5 HD",
         "url": "/live/bein-vip-bein-sports-afc-5.m3u8?server=2",
-        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794425&extension=ts",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794426&extension=ts",
         "quality": "HD",
+        "resolution": "1280x720",
+        "isDefault": false,
+        "status": "live"
+      },
+      {
+        "id": "server-3",
+        "name": "سيرفر 3 - BEIN SPORTS AFC 5",
+        "url": "/live/bein-vip-bein-sports-afc-5.m3u8?server=3",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794427&extension=ts",
+        "quality": "SD",
+        "resolution": "720x576",
+        "isDefault": false,
         "status": "live"
       }
     ],
@@ -699,7 +1413,7 @@
     "playUrl": "/live/bein-vip-bein-sports-afc-5.m3u8?server=1",
     "inputStatus": "ONLINE",
     "enabled": true,
-    "status_message": "بث مباشر نشط ومستقر"
+    "status_message": "بث مباشر فائق الدقة (3 سيرفرات وجودات حقيقية متاحة)"
   },
   {
     "id": "bein-vip-bein-sports-1-english",
@@ -716,10 +1430,11 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - المصدر المباشر بدون ضغط (RAW)",
         "url": "/live/bein-vip-bein-sports-1-english.m3u8?server=1",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030245&extension=ts",
         "quality": "1080p",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       }
@@ -730,7 +1445,7 @@
     "playUrl": "/live/bein-vip-bein-sports-1-english.m3u8?server=1",
     "inputStatus": "ONLINE",
     "enabled": true,
-    "status_message": "بث مباشر نشط ومستقر"
+    "status_message": "بث مباشر فائق الدقة (1 سيرفرات وجودات حقيقية متاحة)"
   },
   {
     "id": "bein-vip-bein-sports-2-english",
@@ -747,10 +1462,11 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - المصدر المباشر بدون ضغط (RAW)",
         "url": "/live/bein-vip-bein-sports-2-english.m3u8?server=1",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030246&extension=ts",
         "quality": "1080p",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       }
@@ -761,7 +1477,7 @@
     "playUrl": "/live/bein-vip-bein-sports-2-english.m3u8?server=1",
     "inputStatus": "ONLINE",
     "enabled": true,
-    "status_message": "بث مباشر نشط ومستقر"
+    "status_message": "بث مباشر فائق الدقة (1 سيرفرات وجودات حقيقية متاحة)"
   },
   {
     "id": "bein-vip-bein-sports-1-france",
@@ -778,10 +1494,11 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - المصدر المباشر بدون ضغط (RAW)",
         "url": "/live/bein-vip-bein-sports-1-france.m3u8?server=1",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030247&extension=ts",
         "quality": "1080p",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       }
@@ -792,7 +1509,7 @@
     "playUrl": "/live/bein-vip-bein-sports-1-france.m3u8?server=1",
     "inputStatus": "ONLINE",
     "enabled": true,
-    "status_message": "بث مباشر نشط ومستقر"
+    "status_message": "بث مباشر فائق الدقة (1 سيرفرات وجودات حقيقية متاحة)"
   },
   {
     "id": "bein-vip-bein-sports-2-france",
@@ -809,10 +1526,11 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - المصدر المباشر بدون ضغط (RAW)",
         "url": "/live/bein-vip-bein-sports-2-france.m3u8?server=1",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030248&extension=ts",
         "quality": "1080p",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       }
@@ -823,7 +1541,7 @@
     "playUrl": "/live/bein-vip-bein-sports-2-france.m3u8?server=1",
     "inputStatus": "ONLINE",
     "enabled": true,
-    "status_message": "بث مباشر نشط ومستقر"
+    "status_message": "بث مباشر فائق الدقة (1 سيرفرات وجودات حقيقية متاحة)"
   },
   {
     "id": "bein-vip-bein-sports-3-france",
@@ -840,10 +1558,11 @@
     "servers": [
       {
         "id": "server-1",
-        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "name": "سيرفر 1 - المصدر المباشر بدون ضغط (RAW)",
         "url": "/live/bein-vip-bein-sports-3-france.m3u8?server=1",
         "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030249&extension=ts",
         "quality": "1080p",
+        "resolution": "1920x1080",
         "isDefault": true,
         "status": "live"
       }
@@ -852,7 +1571,7 @@
     "status": "live",
     "lastRenewed": 1792276935.0831058,
     "playUrl": "/live/bein-vip-bein-sports-3-france.m3u8?server=1",
-    "status_message": "بث مباشر نشط ومستقر",
+    "status_message": "بث مباشر فائق الدقة (1 سيرفرات وجودات حقيقية متاحة)",
     "inputStatus": "ONLINE",
     "enabled": true
   },

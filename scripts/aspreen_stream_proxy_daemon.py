@@ -198,24 +198,25 @@ class OnDemandStreamManager:
             else:
                 is_mac_line = "mac=" in upstream_url or "hey-ott.net" in upstream_url
                 if is_mac_line:
-                    # 1. If the alternate server for this EXACT channel is already streaming healthy HLS,
-                    # reuse the running stream so we don't start duplicate competing FFmpegs on the single-connection line!
-                    alt_id = "1" if str(server_id) in ("2", "server-2") else "2"
-                    alt_key = f"{cid}_s{alt_id}"
-                    alt_worker = self.workers.get(alt_key)
-                    if alt_worker and not alt_worker["stopped"].is_set() and os.path.exists(alt_worker["m3u8_path"]) and os.path.getsize(alt_worker["m3u8_path"]) > 20:
-                        alt_worker["last_active"] = time.time()
-                        try:
-                            with open(alt_worker["m3u8_path"], "r", encoding="utf-8", errors="ignore") as f:
-                                c = f.read()
-                            if "#EXTINF" in c:
-                                return alt_key, c
-                        except Exception:
-                            pass
-
-                    # 2. Free up any previous DIFFERENT channel on this same MAC line to protect account from multi-connection ban
+                    # 1. If any running worker has the EXACT same upstream URL and has a healthy HLS manifest,
+                    # reuse the running stream directly so we don't start duplicate competing FFmpegs!
                     for other_k, other_w in list(self.workers.items()):
-                        if other_k != stream_key and not other_k.startswith(f"{cid}_"):
+                        if not other_w["stopped"].is_set() and other_w.get("upstream_url") == upstream_url:
+                            other_m3u8 = other_w.get("m3u8_path")
+                            if other_m3u8 and os.path.exists(other_m3u8) and os.path.getsize(other_m3u8) > 20:
+                                other_w["last_active"] = time.time()
+                                try:
+                                    with open(other_m3u8, "r", encoding="utf-8", errors="ignore") as f:
+                                        c = f.read()
+                                    if "#EXTINF" in c:
+                                        return other_k, c
+                                except Exception:
+                                    pass
+
+                    # 2. Free up any previous running worker on this same MAC line (if upstream_url is different),
+                    # so that we don't have competing connections on the single-MAC provider
+                    for other_k, other_w in list(self.workers.items()):
+                        if other_k != stream_key:
                             other_up = other_w.get("upstream_url", "")
                             if "mac=" in other_up or "hey-ott.net" in other_up:
                                 other_w["stopped"].set()
