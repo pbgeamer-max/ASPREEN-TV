@@ -27,6 +27,8 @@ import {
   Film,
   Video,
   PlaySquare,
+  Sparkles,
+  Layers,
 } from 'lucide-react';
 
 export default function ApiManagerPage() {
@@ -39,6 +41,7 @@ export default function ApiManagerPage() {
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedM3u, setCopiedM3u] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
+  const [copiedUnifiedVod, setCopiedUnifiedVod] = useState(false);
   const [copiedSeries, setCopiedSeries] = useState(false);
   const [copiedSeriesDetail, setCopiedSeriesDetail] = useState(false);
   const [copiedMovies, setCopiedMovies] = useState(false);
@@ -47,7 +50,7 @@ export default function ApiManagerPage() {
   const [customKey, setCustomKey] = useState('');
   const [testResult, setTestResult] = useState<any>(null);
   const [testing, setTesting] = useState(false);
-  const [codeTab, setCodeTab] = useState<'channels' | 'series' | 'movies' | 'player'>('channels');
+  const [codeTab, setCodeTab] = useState<'unified' | 'channels' | 'series' | 'movies' | 'player'>('unified');
 
   const fetchSettings = async () => {
     try {
@@ -80,6 +83,10 @@ export default function ApiManagerPage() {
     : `${baseUrl}/api/app/channels`;
 
   const playlistM3uUrl = `${baseUrl}/api/app/playlist.m3u`;
+
+  const unifiedVodApiUrl = currentKey
+    ? `${baseUrl}/api/app/vod/all?page=1&limit=24&api_key=${encodeURIComponent(currentKey)}`
+    : `${baseUrl}/api/app/vod/all?page=1&limit=24`;
 
   const seriesApiUrl = currentKey
     ? `${baseUrl}/api/app/vod/series?page=1&limit=24&api_key=${encodeURIComponent(currentKey)}`
@@ -432,6 +439,113 @@ export default function ApiManagerPage() {
             </div>
           </div>
 
+          {/* 1.5 ALL-IN-ONE UNIFIED VOD API (Movies + Series + Streams + Overviews) */}
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-[#141414] via-[#101815] to-[#141414] border-2 border-emerald-500/30 shadow-[0_0_25px_rgba(16,185,129,0.08)] space-y-6">
+            <div className="border-b border-emerald-500/20 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
+                    <Sparkles className="w-5 h-5" />
+                  </span>
+                  <h3 className="text-base font-bold text-white">
+                    الـ API الموحد الشامل للأفلام والمسلسلات (All-In-One Unified VOD API)
+                  </h3>
+                </div>
+                <p className="text-xs text-[#A1A1AA] mt-1.5">
+                  نقطة اتصال واحدة فائقة السرعة تجلب <b>كل شيء دفعة واحدة</b>: الأفلام والمسلسلات مع روابط التشغيل المباشرة (m3u8)، روابط المشغل السحابي، أكواد التضمين (iframe)، ووصف القصة الكامل المنقح <b>بدون أي حقوق أو علامات لقصة عشق</b>.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-950/60 text-emerald-300 border border-emerald-800/60">
+                  1,645 عمل فني متاح
+                </span>
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-950/60 text-blue-300 border border-blue-800/60">
+                  100% بدون حقوق قصة عشق
+                </span>
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-950/60 text-purple-300 border border-purple-800/60">
+                  روابط تشغيل + مشغل مخصص
+                </span>
+              </div>
+            </div>
+
+            {/* Unified API URL Input & Copy */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-white flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-emerald-400" />
+                  <span>الرابط الشامل الموحد (Unified Catalog Endpoint):</span>
+                </span>
+                <span className="text-[11px] font-mono text-emerald-400 font-medium">GET JSON</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={unifiedVodApiUrl}
+                  className="flex-1 bg-[#0A0A0A] border border-emerald-500/40 rounded-xl px-4 py-3 text-xs font-mono text-emerald-300 select-all focus:outline-none shadow-inner"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(unifiedVodApiUrl);
+                    setCopiedUnifiedVod(true);
+                    setTimeout(() => setCopiedUnifiedVod(false), 2000);
+                  }}
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs transition-colors shrink-0 shadow-lg shadow-emerald-500/20"
+                >
+                  {copiedUnifiedVod ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  <span>{copiedUnifiedVod ? 'تم النسخ بنجاح!' : 'نسخ الرابط الموحد'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Query Parameters Guide */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+              <div className="p-3 rounded-xl bg-[#0F0F0F] border border-[#222]">
+                <div className="text-[11px] font-mono text-emerald-400 font-bold">?type=all | series | movies</div>
+                <div className="text-xs text-[#E4E4E7] mt-1 font-semibold">تحديد نوع المحتوى</div>
+                <div className="text-[11px] text-[#71717A] mt-0.5">جلب الكل (افلام ومسلسلات)، أو المسلسلات فقط، أو الأفلام فقط.</div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#0F0F0F] border border-[#222]">
+                <div className="text-[11px] font-mono text-blue-400 font-bold">?filter=dubbed | subbed</div>
+                <div className="text-xs text-[#E4E4E7] mt-1 font-semibold">تصفية الترجمة والدبلجة</div>
+                <div className="text-[11px] text-[#71717A] mt-0.5">عرض الأعمال المدبلجة للعربية فقط أو المترجمة فقط.</div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#0F0F0F] border border-[#222]">
+                <div className="text-[11px] font-mono text-purple-400 font-bold">?page=1&limit=24</div>
+                <div className="text-xs text-[#E4E4E7] mt-1 font-semibold">الترقيم والتقسيم (Pagination)</div>
+                <div className="text-[11px] text-[#71717A] mt-0.5">التحكم بعدد العناصر في الصفحة وسرعة التصفح (limit حتى 200).</div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#0F0F0F] border border-[#222]">
+                <div className="text-[11px] font-mono text-amber-400 font-bold">?search=اسم_العمل</div>
+                <div className="text-xs text-[#E4E4E7] mt-1 font-semibold">محرك البحث الفوري</div>
+                <div className="text-[11px] text-[#71717A] mt-0.5">البحث المباشر باسم الفيلم أو المسلسل بالعربية أو التركية.</div>
+              </div>
+            </div>
+
+            {/* Quick feature summary pills */}
+            <div className="bg-[#0A0A0A] border border-[#222] rounded-xl p-3.5 text-xs text-[#A1A1AA] flex flex-wrap items-center justify-between gap-2">
+              <span className="text-white font-medium flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-emerald-400" />
+                بيانات كل عنصر تشمل:
+              </span>
+              <span className="font-mono text-[11px] text-emerald-300">title (نظيف)</span>
+              <span>•</span>
+              <span className="font-mono text-[11px] text-blue-300">overview (قصة ووصف كامل)</span>
+              <span>•</span>
+              <span className="font-mono text-[11px] text-purple-300">stream_url (.m3u8 مباشر)</span>
+              <span>•</span>
+              <span className="font-mono text-[11px] text-amber-300">player_url (مشغل)</span>
+              <span>•</span>
+              <span className="font-mono text-[11px] text-rose-300">embed_code (iframe)</span>
+              <span>•</span>
+              <span className="font-mono text-[11px] text-cyan-300">seasons & episodes (المواسم والحلقات)</span>
+            </div>
+          </div>
+
           {/* 2. Turkish Series VOD API Cards */}
           <div className="p-6 rounded-2xl bg-[#121212] border border-[#262626] space-y-6">
             <div className="border-b border-[#202020] pb-3">
@@ -714,6 +828,16 @@ export default function ApiManagerPage() {
 
             <div className="flex flex-wrap gap-2 border-b border-[#262626] pb-2">
               <button
+                onClick={() => setCodeTab('unified')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                  codeTab === 'unified' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'text-[#71717A] hover:text-white'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <span>الـ API الموحد الشامل (Unified VOD)</span>
+              </button>
+
+              <button
                 onClick={() => setCodeTab('channels')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                   codeTab === 'channels' ? 'bg-[#222] text-white border border-[#3A3A3A]' : 'text-[#71717A] hover:text-white'
@@ -755,6 +879,32 @@ export default function ApiManagerPage() {
             </div>
 
             <div className="bg-[#0A0A0A] border border-[#262626] rounded-xl p-4 font-mono text-xs text-[#E4E4E7] overflow-x-auto">
+              {codeTab === 'unified' && (
+                <pre>{`// جلب كل شيء (أفلام ومسلسلات ووصف وروابط تشغيل نظيفة بدون قصة عشق)
+fetch("${unifiedVodApiUrl}")
+  .then(res => res.json())
+  .then(response => {
+    console.log("إجمالي الأعمال الفنية:", response.total_items);
+    console.log("المسلسلات:", response.total_series, "الأفلام:", response.total_movies);
+
+    response.data.forEach(item => {
+      console.log("-----------------------------------------");
+      console.log("العنوان النظيف:", item.title);
+      console.log("النوع:", item.type); // 'series' أو 'movie'
+      console.log("الوصف والقصة الكاملة:", item.overview);
+      console.log("البوستر المباشر:", item.poster);
+      console.log("رابط البث المباشر (HLS / m3u8):", item.stream_url);
+      console.log("رابط المشغل السحابي:", item.player_url);
+      console.log("كود التضمين جاهز:", item.embed_code);
+
+      if (item.type === 'series') {
+        console.log("عدد المواسم:", item.seasons_count);
+        console.log("المواسم والحلقات وروابطها:", item.seasons);
+      }
+    });
+  });`}</pre>
+              )}
+
               {codeTab === 'channels' && (
                 <pre>{`// جلب قنوات البث المباشر في موقعك أو تطبيقك
 fetch("${channelsApiUrl}")

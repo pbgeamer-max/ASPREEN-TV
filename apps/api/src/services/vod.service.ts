@@ -12,6 +12,7 @@ export interface VodItem {
   title: string;
   url: string;
   posterUrl: string | null;
+  overview?: string;
   type: 'series' | 'movie';
   isDubbed: boolean;
   isSubbed: boolean;
@@ -70,11 +71,56 @@ export class VodService {
     this.loadCatalog();
   }
 
-  private loadCatalog() {
+  public cleanTitle(title: string): string {
+    if (!title) return '';
+    return title
+      .replace(/موقع\s+قصة\s+عشق\s+الأصلي/gi, '')
+      .replace(/موقع\s+قصة\s+عشق\s+الاصلي/gi, '')
+      .replace(/موقع\s+قصة\s+عشق/gi, '')
+      .replace(/قصة\s+عشق/gi, '')
+      .replace(/3iskk?\.xyz/gi, '')
+      .replace(/3isk/gi, '')
+      .replace(/3sk/gi, '')
+      .replace(/مشاهدة\s+وتحميل/gi, '')
+      .replace(/مشاهدة\s+فيلم/gi, 'فيلم')
+      .replace(/مشاهدة\s+مسلسل/gi, 'مسلسل')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  public cleanOverview(text: string): string {
+    if (!text) return '';
+    const lines = text.split('\n');
+    const cleaned: string[] = [];
+    for (let l of lines) {
+      if (/قصة\s+عشق|3isk|مشاهدة\s+وتحميل/i.test(l)) {
+        l = l.replace(/[^.!\n]*(?:قصة\s+عشق|3isk|مشاهدة\s+وتحميل)[^.!\n]*[.!\n]?/gi, '');
+      }
+      l = l
+        .replace(/موقع\s+قصة\s+عشق/gi, '')
+        .replace(/قصة\s+عشق/gi, '')
+        .replace(/3iskk?\.xyz/gi, '')
+        .replace(/3isk/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (l.length > 5) {
+        cleaned.push(l);
+      }
+    }
+    return cleaned.join(' ').trim();
+  }
+
+  public loadCatalog() {
     try {
       const seriesPath = path.resolve(this.dataDir, 'vod_series.json');
       if (fs.existsSync(seriesPath)) {
         this.seriesList = JSON.parse(fs.readFileSync(seriesPath, 'utf-8'));
+        for (const s of this.seriesList) {
+          s.title = this.cleanTitle(s.title);
+          if (s.overview) {
+            s.overview = this.cleanOverview(s.overview);
+          }
+        }
       }
     } catch (e: any) {
       console.error('[VodService] Error loading vod_series.json:', e.message);
@@ -84,12 +130,134 @@ export class VodService {
       const moviesPath = path.resolve(this.dataDir, 'vod_movies.json');
       if (fs.existsSync(moviesPath)) {
         this.moviesList = JSON.parse(fs.readFileSync(moviesPath, 'utf-8'));
+        for (const m of this.moviesList) {
+          m.title = this.cleanTitle(m.title);
+          if (m.overview) {
+            m.overview = this.cleanOverview(m.overview);
+          }
+        }
       }
     } catch (e: any) {
       console.error('[VodService] Error loading vod_movies.json:', e.message);
     }
 
     console.log(`[VodService] Catalog ready: ${this.seriesList.length} series, ${this.moviesList.length} movies`);
+  }
+
+  public async getUnifiedCatalog(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    filter?: string;
+    type?: string;
+    baseUrl: string;
+  }) {
+    const page = Math.max(1, params.page || 1);
+    const limit = Math.min(200, Math.max(1, params.limit || 24));
+    const targetType = params.type || 'all';
+
+    let pool: VodItem[] = [];
+
+    if (targetType === 'all' || targetType === 'series') {
+      pool.push(...this.seriesList);
+    }
+    if (targetType === 'all' || targetType === 'movies') {
+      pool.push(...this.moviesList);
+    }
+
+    if (params.filter === 'dubbed') {
+      pool = pool.filter(i => i.isDubbed);
+    } else if (params.filter === 'subbed') {
+      pool = pool.filter(i => i.isSubbed);
+    }
+
+    if (params.search && params.search.trim()) {
+      const q = params.search.trim().toLowerCase();
+      pool = pool.filter(i => i.title.toLowerCase().includes(q) || i.slug.toLowerCase().includes(q));
+    }
+
+    const total = pool.length;
+    const totalPages = Math.ceil(total / limit);
+    const offset = (page - 1) * limit;
+    const paginated = pool.slice(offset, offset + limit);
+
+    const items = await Promise.all(
+      paginated.map(async (rawItem) => {
+        const cleanTitle = this.cleanTitle(rawItem.title);
+        const posterUrl = rawItem.posterUrl
+          ? `${params.baseUrl}/api/app/image-proxy?url=${encodeURIComponent(rawItem.posterUrl)}`
+          : null;
+        const streamUrl = `${params.baseUrl}/api/app/vod/stream?id=${encodeURIComponent(rawItem.id)}`;
+        const playerUrl = `${params.baseUrl}/api/app/vod/player?id=${encodeURIComponent(rawItem.id)}`;
+        const embedCode = `<iframe src="${playerUrl}" width="100%" height="550" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+
+        if (rawItem.type === 'movie') {
+          return {
+            id: rawItem.id,
+            slug: rawItem.slug,
+            title: cleanTitle,
+            type: 'movie',
+            is_dubbed: rawItem.isDubbed,
+            is_subbed: rawItem.isSubbed,
+            poster: posterUrl,
+            overview: this.cleanOverview(rawItem.overview || ''),
+            stream_url: streamUrl,
+            player_url: playerUrl,
+            embed_code: embedCode,
+          };
+        } else {
+          const detail = await this.getSeriesDetail(rawItem.slug);
+          const seasons = (detail?.seasons || []).map(s => ({
+            season_number: s.seasonNumber,
+            episodes_count: s.episodesCount,
+            episodes: s.episodes.map(ep => ({
+              id: ep.id,
+              episode_number: ep.episodeNumber,
+              title: ep.title,
+              stream_url: `${params.baseUrl}/api/app/vod/stream?id=${encodeURIComponent(ep.id)}`,
+              player_url: `${params.baseUrl}/api/app/vod/player?id=${encodeURIComponent(ep.id)}`,
+              embed_code: `<iframe src="${params.baseUrl}/api/app/vod/player?id=${encodeURIComponent(ep.id)}" width="100%" height="550" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`,
+            }))
+          }));
+
+          const primaryStream = seasons.length > 0 && seasons[0].episodes.length > 0
+            ? seasons[0].episodes[0].stream_url
+            : streamUrl;
+          const primaryPlayer = seasons.length > 0 && seasons[0].episodes.length > 0
+            ? seasons[0].episodes[0].player_url
+            : playerUrl;
+
+          return {
+            id: rawItem.id,
+            slug: rawItem.slug,
+            title: cleanTitle,
+            type: 'series',
+            is_dubbed: rawItem.isDubbed,
+            is_subbed: rawItem.isSubbed,
+            poster: posterUrl,
+            overview: this.cleanOverview(detail?.overview || rawItem.overview || ''),
+            seasons_count: detail?.seasonsCount || seasons.length,
+            total_episodes: detail?.totalEpisodes || seasons.reduce((sum, s) => sum + s.episodes_count, 0),
+            stream_url: primaryStream,
+            player_url: primaryPlayer,
+            embed_code: `<iframe src="${primaryPlayer}" width="100%" height="550" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`,
+            seasons,
+          };
+        }
+      })
+    );
+
+    return {
+      success: true,
+      server: 'ASPREEN TV',
+      total_items: total,
+      total_series: this.seriesList.length,
+      total_movies: this.moviesList.length,
+      page,
+      limit,
+      total_pages: totalPages,
+      data: items,
+    };
   }
 
   public getSeries(params: { page?: number; limit?: number; search?: string; filter?: string }) {
@@ -162,6 +330,14 @@ export class VodService {
       try {
         const cached = JSON.parse(fs.readFileSync(cacheFile, 'utf-8'));
         if (cached && cached.seasons && cached.seasons.length > 0) {
+          cached.title = this.cleanTitle(cached.title);
+          if (!cached.overview) {
+            const found = this.seriesList.find(s => s.slug === slug);
+            if (found && found.overview) {
+              cached.overview = found.overview;
+            }
+          }
+          cached.overview = this.cleanOverview(cached.overview || '');
           return cached;
         }
       } catch {}
@@ -172,13 +348,16 @@ export class VodService {
     try {
       const html = await this.requestText(targetUrl);
       const titleM = html.match(/<h1[^>]*>(.*?)<\/h1>/s);
-      const title = titleM ? titleM[1].replace(/<[^>]+>/g, '').trim() : slug;
+      const rawTitle = titleM ? titleM[1].replace(/<[^>]+>/g, '').trim() : slug;
+      const title = this.cleanTitle(rawTitle);
 
       const posterM = html.match(/<div class="poster"[^>]*>.*?<img[^>]*src=["']([^"']+)["']/s);
       const posterUrl = posterM ? posterM[1] : null;
 
-      const storyM = html.match(/<div[^>]*class=["'](?:wp-content|story)["'][^>]*>(.*?)<\/div>/s);
-      const overview = storyM ? storyM[1].replace(/<[^>]+>/g, '').trim() : '';
+      // Extract synopsis from <p> tags
+      const paragraphs = html.match(/<p[^>]*>(.*?)<\/p>/gs) || [];
+      const fullText = paragraphs.map(p => p.replace(/<[^>]+>/g, '')).join(' ');
+      const overview = this.cleanOverview(fullText);
 
       const rawEpisodes = html.match(/href=["'](https:\/\/3iskk\.xyz\/watch\/episodes\/[^"']+)["']/g) || [];
       const seasonsMap: { [key: number]: VodEpisode[] } = {};
@@ -253,8 +432,16 @@ export class VodService {
     if (!targetUrl.startsWith('http')) {
       if (targetUrl.includes('movie-') || targetUrl.includes('film-')) {
         targetUrl = `https://3iskk.xyz/watch/movies/${targetUrl}/`;
-      } else {
+      } else if (targetUrl.includes('-episode-')) {
         targetUrl = `https://3iskk.xyz/watch/episodes/${targetUrl}/`;
+      } else {
+        // Passed series slug: resolve first episode
+        const detail = await this.getSeriesDetail(targetUrl);
+        if (detail && detail.seasons.length > 0 && detail.seasons[0].episodes.length > 0) {
+          targetUrl = detail.seasons[0].episodes[0].url;
+        } else {
+          targetUrl = `https://3iskk.xyz/watch/episodes/${targetUrl}-season-1-episode-1/`;
+        }
       }
     }
 
@@ -281,7 +468,7 @@ export class VodService {
       const epHtml = await this.requestText(targetUrl);
       const titleM = epHtml.match(/<h1[^>]*>(.*?)<\/h1>/s);
       if (titleM) {
-        result.title = titleM[1].replace(/<[^>]+>/g, '').trim();
+        result.title = this.cleanTitle(titleM[1].replace(/<[^>]+>/g, '').trim());
       }
 
       const form1Action = epHtml.match(/<form[^>]*action=["'](https:\/\/aa\.3isk\.icu\/[^"']+)["']/);

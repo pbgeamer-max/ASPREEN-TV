@@ -14,6 +14,36 @@ export async function vodRoutes(server: FastifyInstance) {
   }
 
   /**
+   * GET /api/app/vod/all (or /api/app/vod/catalog)
+   * The All-In-One Unified VOD API
+   * Returns movies, series, all seasons & episodes, overviews, and direct playback links
+   * completely stripped of all 3isk/قصة عشق branding!
+   */
+  const handleUnifiedCatalog = async (request: FastifyRequest<{
+    Querystring: { page?: string; limit?: string; search?: string; filter?: string; type?: string }
+  }>, reply: FastifyReply) => {
+    const page = parseInt(request.query.page || '1', 10);
+    const limit = parseInt(request.query.limit || '24', 10);
+    const { search, filter, type } = request.query;
+    const baseUrl = getBaseUrl(request);
+
+    const data = await vodService.getUnifiedCatalog({
+      page,
+      limit,
+      search,
+      filter,
+      type,
+      baseUrl
+    });
+
+    reply.header('Access-Control-Allow-Origin', '*');
+    return reply.send(data);
+  };
+
+  server.get('/all', handleUnifiedCatalog);
+  server.get('/catalog', handleUnifiedCatalog);
+
+  /**
    * GET /api/app/vod/series
    * List all Turkish series with pagination, search, and category filters
    */
@@ -67,15 +97,15 @@ export async function vodRoutes(server: FastifyInstance) {
    * Resolve any 3isk episode or movie URL to direct HLS m3u8 and clean embed URLs
    */
   server.get('/resolve', async (request: FastifyRequest<{
-    Querystring: { url: string }
+    Querystring: { url?: string; id?: string }
   }>, reply: FastifyReply) => {
-    const targetUrl = request.query.url;
-    if (!targetUrl) {
-      return reply.status(400).send({ success: false, error: 'Missing url parameter' });
+    const target = request.query.url || request.query.id;
+    if (!target) {
+      return reply.status(400).send({ success: false, error: 'Missing url or id parameter' });
     }
 
     const baseUrl = getBaseUrl(request);
-    const resolved = await vodService.resolveStream(targetUrl, baseUrl);
+    const resolved = await vodService.resolveStream(target, baseUrl);
 
     reply.header('Access-Control-Allow-Origin', '*');
     return reply.send(resolved);
@@ -84,13 +114,26 @@ export async function vodRoutes(server: FastifyInstance) {
   /**
    * GET /api/app/vod/stream
    * Universal CORS streaming proxy for HLS VOD (.m3u8 playlists & .ts chunks)
+   * Supports both direct ?url=... and on-demand ?id=... (resolving fresh streams on the fly)
    */
   server.get('/stream', async (request: FastifyRequest<{
-    Querystring: { url: string }
+    Querystring: { url?: string; id?: string }
   }>, reply: FastifyReply) => {
-    const rawUrl = request.query.url;
+    let rawUrl = request.query.url;
+    const baseUrl = getBaseUrl(request);
+
+    // If passed by id, resolve fresh stream on the fly!
+    if (!rawUrl && request.query.id) {
+      const resolved = await vodService.resolveStream(request.query.id, baseUrl);
+      if (resolved.hlsUrl) {
+        rawUrl = resolved.hlsUrl;
+      } else {
+        return reply.status(404).send('Stream could not be resolved');
+      }
+    }
+
     if (!rawUrl) {
-      return reply.status(400).send('Missing url parameter');
+      return reply.status(400).send('Missing url or id parameter');
     }
 
     reply.header('Access-Control-Allow-Origin', '*');
@@ -132,7 +175,6 @@ export async function vodRoutes(server: FastifyInstance) {
         proxyRes.setEncoding('utf-8');
         proxyRes.on('data', chunk => playlistText += chunk);
         proxyRes.on('end', () => {
-          const baseUrl = getBaseUrl(request);
           const lines = playlistText.split('\n');
           const rewrittenLines = lines.map(line => {
             const trimmed = line.trim();
@@ -176,15 +218,15 @@ export async function vodRoutes(server: FastifyInstance) {
    * Clean, ad-free, standalone responsive HTML5 video player for embedding in other websites
    */
   server.get('/player', async (request: FastifyRequest<{
-    Querystring: { url: string; title?: string }
+    Querystring: { url?: string; id?: string; title?: string }
   }>, reply: FastifyReply) => {
-    const targetUrl = request.query.url;
-    if (!targetUrl) {
-      return reply.status(400).send('Missing url parameter');
+    const target = request.query.url || request.query.id;
+    if (!target) {
+      return reply.status(400).send('Missing url or id parameter');
     }
 
     const baseUrl = getBaseUrl(request);
-    const resolved = await vodService.resolveStream(targetUrl, baseUrl);
+    const resolved = await vodService.resolveStream(target, baseUrl);
 
     const streamSrc = resolved.streamProxyUrl || resolved.hlsUrl || '';
     const embedFallback = resolved.embedUrl || '';
