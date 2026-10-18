@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { channelRepository } from '../repositories/channel.repository';
 import { tokenRepository } from '../repositories/token.repository';
@@ -5,15 +7,62 @@ import { settingsRepository } from '../repositories/settings.repository';
 import { generateStreamToken, hashStreamToken, buildPlaybackUrl, buildTsPlaybackUrl } from '../security/token';
 import { telegramService } from '../services/telegram.service';
 
+function serveLocalLogo(filename: string, reply: FastifyReply) {
+  const safeName = path.basename(filename);
+  const candidates = [
+    path.resolve(process.cwd(), 'apps/api/public/logos', safeName),
+    path.resolve(process.cwd(), 'apps/web/public/logos', safeName),
+    path.resolve(process.cwd(), 'apps/api/public', safeName),
+    path.resolve(process.cwd(), 'apps/web/public', safeName),
+    path.resolve(__dirname, '../../public/logos', safeName),
+    path.resolve(__dirname, '../../../web/public/logos', safeName),
+    path.resolve(__dirname, '../../../../apps/web/public/logos', safeName),
+    path.resolve(__dirname, '../../../../apps/api/public/logos', safeName),
+    path.resolve(process.cwd(), safeName),
+  ];
+
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      const ext = path.extname(c).toLowerCase();
+      const contentType = ext === '.svg' ? 'image/svg+xml' : ext === '.png' ? 'image/png' : 'image/jpeg';
+      reply.header('Content-Type', contentType);
+      reply.header('Cache-Control', 'public, max-age=86400, s-maxage=86400');
+      reply.header('Access-Control-Allow-Origin', '*');
+      return reply.send(fs.createReadStream(c));
+    }
+  }
+
+  return reply.status(404).send({ error: 'Logo not found' });
+}
+
 export async function appRoutes(server: FastifyInstance) {
+  /**
+   * GET /logos/:name or /api/app/logos/:name
+   * Direct high-speed local serving for channel logos
+   */
+  server.get('/logos/:name', async (request: FastifyRequest<{ Params: { name: string } }>, reply: FastifyReply) => {
+    return serveLocalLogo(request.params.name, reply);
+  });
+
   /**
    * GET /api/app/image-proxy
    * High-speed proxy for channel logos to bypass third-party hotlinking & 403 Forbidden checks
    */
   server.get('/image-proxy', async (request: FastifyRequest<{ Querystring: { url: string } }>, reply: FastifyReply) => {
     const rawUrl = request.query.url;
-    if (!rawUrl || !/^https?:\/\//i.test(rawUrl)) {
+    if (!rawUrl) {
       return reply.status(400).send({ error: 'Missing or invalid url query parameter' });
+    }
+
+    // Direct local logo serving for relative paths
+    if (rawUrl.startsWith('/') || !/^https?:\/\//i.test(rawUrl)) {
+      const clean = rawUrl.replace(/^\/+(logos\/+)?/, '');
+      return serveLocalLogo(clean, reply);
+    }
+
+    // Direct resilient bypass for beIN Sports logos (Wikipedia frequently breaks/blocks thumbnail URLs)
+    if (/bein.*logo|BeIN_Sports_logo/i.test(rawUrl)) {
+      return serveLocalLogo('bein-sports.png', reply);
     }
 
     try {
@@ -30,7 +79,7 @@ export async function appRoutes(server: FastifyInstance) {
             method: 'GET',
             rejectUnauthorized: false,
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
               Referer: parsed.origin + '/',
               Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
             },
@@ -43,6 +92,15 @@ export async function appRoutes(server: FastifyInstance) {
               return;
             }
 
+            if (res.statusCode && res.statusCode >= 400) {
+              // Resilient fallback for broken upstream logos
+              if (/bein/i.test(rawUrl)) {
+                serveLocalLogo('bein-sports.png', reply);
+                resolve();
+                return;
+              }
+            }
+
             reply.header('Content-Type', res.headers['content-type'] || 'image/jpeg');
             reply.header('Cache-Control', 'public, max-age=86400, s-maxage=86400');
             reply.header('Access-Control-Allow-Origin', '*');
@@ -50,7 +108,11 @@ export async function appRoutes(server: FastifyInstance) {
             res.pipe(reply.raw);
             res.on('end', () => resolve());
             res.on('error', () => {
-              if (!reply.raw.writableEnded) reply.status(502).send({ error: 'Proxy error' });
+              if (/bein/i.test(rawUrl)) {
+                serveLocalLogo('bein-sports.png', reply);
+              } else if (!reply.raw.writableEnded) {
+                reply.status(502).send({ error: 'Proxy error' });
+              }
               resolve();
             });
           }
@@ -58,16 +120,27 @@ export async function appRoutes(server: FastifyInstance) {
 
         req.on('timeout', () => {
           req.destroy();
-          if (!reply.raw.writableEnded) reply.status(504).send({ error: 'Image fetch timeout' });
+          if (/bein/i.test(rawUrl)) {
+            serveLocalLogo('bein-sports.png', reply);
+          } else if (!reply.raw.writableEnded) {
+            reply.status(504).send({ error: 'Image fetch timeout' });
+          }
           resolve();
         });
         req.on('error', () => {
-          if (!reply.raw.writableEnded) reply.status(502).send({ error: 'Upstream connection failed' });
+          if (/bein/i.test(rawUrl)) {
+            serveLocalLogo('bein-sports.png', reply);
+          } else if (!reply.raw.writableEnded) {
+            reply.status(502).send({ error: 'Upstream connection failed' });
+          }
           resolve();
         });
         req.end();
       });
     } catch (err: any) {
+      if (/bein/i.test(rawUrl)) {
+        return serveLocalLogo('bein-sports.png', reply);
+      }
       return reply.status(500).send({ error: 'Image proxy exception: ' + err.message });
     }
   });
@@ -181,7 +254,14 @@ export async function appRoutes(server: FastifyInstance) {
 
     const appChannels = enabled.map((ch, idx) => {
       const permStreamUrl = `${effectiveBaseUrl}/live/${ch.id}.m3u8`;
-      const proxiedLogo = ch.logoUrl ? `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}` : null;
+      let proxiedLogo: string | null = null;
+      if (ch.logoUrl) {
+        if (ch.logoUrl.startsWith('http://') || ch.logoUrl.startsWith('https://')) {
+          proxiedLogo = `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}`;
+        } else {
+          proxiedLogo = `${effectiveBaseUrl}${ch.logoUrl.startsWith('/') ? '' : '/'}${ch.logoUrl}`;
+        }
+      }
       const order = ch.orderIndex || (idx + 1);
 
       return {
@@ -244,7 +324,14 @@ export async function appRoutes(server: FastifyInstance) {
 
     for (const ch of enabled) {
       const liveStreamUrl = `${effectiveBaseUrl}/live/${ch.id}.m3u8`;
-      const proxiedLogo = ch.logoUrl ? `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}` : '';
+      let proxiedLogo = '';
+      if (ch.logoUrl) {
+        if (ch.logoUrl.startsWith('http://') || ch.logoUrl.startsWith('https://')) {
+          proxiedLogo = `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}`;
+        } else {
+          proxiedLogo = `${effectiveBaseUrl}${ch.logoUrl.startsWith('/') ? '' : '/'}${ch.logoUrl}`;
+        }
+      }
       const tvgLogo = proxiedLogo ? ` tvg-logo="${proxiedLogo}"` : '';
       const groupTitle = ch.groupTitle ? ` group-title="${ch.groupTitle.replace(/"/g, "'")}"` : '';
 

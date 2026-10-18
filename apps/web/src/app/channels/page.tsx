@@ -112,7 +112,7 @@ export default function ChannelsPage() {
             name: c.name,
             normalizedName: (c.name || '').toLowerCase(),
             groupTitle: c.group || c.category || 'عام',
-            logoUrl: c.logo || c.raw_logo || '',
+            logoUrl: c.raw_logo || (c.logo && !c.logo.includes('/image-proxy') ? c.logo : (c.raw_logo || c.logo || '')),
             inputType: 'HLS',
             inputStatus: 'ONLINE',
             preset: 'COPY',
@@ -548,17 +548,32 @@ export default function ChannelsPage() {
                         <td className="py-3 px-4 font-medium text-[#F5F5F5]">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-md bg-neutral-900 border border-neutral-800 flex items-center justify-center overflow-hidden shrink-0">
-                              {ch.logoUrl ? (
+                              {ch.logoUrl || ch.name?.toLowerCase().includes('bein') ? (
                                 <img
-                                  src={`/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}`}
+                                  src={
+                                    ch.logoUrl?.startsWith('/') || ch.logoUrl?.startsWith('data:')
+                                      ? ch.logoUrl
+                                      : ch.logoUrl
+                                      ? `/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}`
+                                      : '/logos/bein-sports.png'
+                                  }
                                   alt=""
                                   referrerPolicy="no-referrer"
                                   className="w-full h-full object-contain p-0.5"
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
+                                    const isBein = ch.name?.toLowerCase().includes('bein') || ch.groupTitle?.toLowerCase().includes('bein');
                                     if (!target.dataset.triedFallback) {
                                       target.dataset.triedFallback = 'true';
-                                      target.src = ch.logoUrl!;
+                                      if (isBein) {
+                                        target.src = '/logos/bein-sports.png';
+                                      } else if (ch.logoUrl && ch.logoUrl.startsWith('http')) {
+                                        target.src = ch.logoUrl;
+                                      } else {
+                                        target.style.display = 'none';
+                                      }
+                                    } else if (isBein && !target.src.includes('/logos/bein-sports.png')) {
+                                      target.src = '/logos/bein-sports.png';
                                     } else {
                                       target.style.display = 'none';
                                     }
@@ -1065,11 +1080,21 @@ export default function ChannelsPage() {
               {/* Header */}
               <div className="px-6 py-4 border-b border-[#262626] flex items-center justify-between bg-[#141414]">
                 <div className="flex items-center gap-3">
-                  {selectedChannelForLinks.logoUrl ? (
+                  {selectedChannelForLinks.logoUrl || selectedChannelForLinks.name?.toLowerCase().includes('bein') ? (
                     <img
-                      src={selectedChannelForLinks.logoUrl}
+                      src={
+                        selectedChannelForLinks.logoUrl?.startsWith('/')
+                          ? selectedChannelForLinks.logoUrl
+                          : selectedChannelForLinks.logoUrl || '/logos/bein-sports.png'
+                      }
                       alt={selectedChannelForLinks.name}
                       className="w-10 h-10 object-contain rounded bg-[#0A0A0A] p-1 border border-[#262626]"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (selectedChannelForLinks.name?.toLowerCase().includes('bein') && !target.src.includes('/logos/bein-sports.png')) {
+                          target.src = '/logos/bein-sports.png';
+                        }
+                      }}
                     />
                   ) : (
                     <div className="w-10 h-10 rounded bg-[#1E293B] flex items-center justify-center border border-[#334155]">

@@ -115,6 +115,32 @@ export async function createServer() {
   await server.register(appRoutes, { prefix: '/api/app' });
   await server.register(appRoutes, { prefix: '/api/v1' });
 
+  // Direct root logo serving (e.g. /logos/bein-sports.png)
+  server.get('/logos/:name', async (request, reply) => {
+    const safeName = path.basename((request.params as any).name);
+    const candidates = [
+      path.resolve(process.cwd(), 'apps/api/public/logos', safeName),
+      path.resolve(process.cwd(), 'apps/web/public/logos', safeName),
+      path.resolve(process.cwd(), 'apps/api/public', safeName),
+      path.resolve(process.cwd(), 'apps/web/public', safeName),
+      path.resolve(__dirname, '../public/logos', safeName),
+      path.resolve(__dirname, '../../web/public/logos', safeName),
+      path.resolve(__dirname, '../../apps/web/public/logos', safeName),
+      path.resolve(process.cwd(), safeName),
+    ];
+    for (const c of candidates) {
+      if (fs.existsSync(c)) {
+        const ext = path.extname(c).toLowerCase();
+        const contentType = ext === '.svg' ? 'image/svg+xml' : ext === '.png' ? 'image/png' : 'image/jpeg';
+        reply.header('Content-Type', contentType);
+        reply.header('Cache-Control', 'public, max-age=86400, s-maxage=86400');
+        reply.header('Access-Control-Allow-Origin', '*');
+        return reply.send(fs.createReadStream(c));
+      }
+    }
+    return reply.status(404).send('Logo not found');
+  });
+
   // Helper function to stream live MPEG-TS relay using FFmpeg
   async function streamLiveMpegTs(
     outputId: string,

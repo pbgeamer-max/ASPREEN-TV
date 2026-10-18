@@ -1,49 +1,49 @@
 #EXTM3U
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-news" tvg-name="BEIN SPORTS NEWS" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS NEWS
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-news" tvg-name="BEIN SPORTS NEWS" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS NEWS
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-news.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-global" tvg-name="BEIN SPORTS GLOBAL" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS GLOBAL
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-global" tvg-name="BEIN SPORTS GLOBAL" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS GLOBAL
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-global.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-1" tvg-name="BEIN SPORTS 1" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-1" tvg-name="BEIN SPORTS 1" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-1.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-2" tvg-name="BEIN SPORTS 2" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-2" tvg-name="BEIN SPORTS 2" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-2.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-3" tvg-name="BEIN SPORTS 3" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 3
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-3" tvg-name="BEIN SPORTS 3" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 3
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-3.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-4" tvg-name="BEIN SPORTS 4" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 4
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-4" tvg-name="BEIN SPORTS 4" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 4
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-4.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-5" tvg-name="BEIN SPORTS 5" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 5
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-5" tvg-name="BEIN SPORTS 5" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 5
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-5.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-6" tvg-name="BEIN SPORTS 6" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 6
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-6" tvg-name="BEIN SPORTS 6" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 6
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-6.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-7" tvg-name="BEIN SPORTS 7" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 7
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-7" tvg-name="BEIN SPORTS 7" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 7
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-7.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-8" tvg-name="BEIN SPORTS 8" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 8
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-8" tvg-name="BEIN SPORTS 8" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 8
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-8.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-9" tvg-name="BEIN SPORTS 9" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 9
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-9" tvg-name="BEIN SPORTS 9" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 9
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-9.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-afc" tvg-name="BEIN SPORTS AFC" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-afc" tvg-name="BEIN SPORTS AFC" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-afc.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-afc-1" tvg-name="BEIN SPORTS AFC 1" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC 1
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-afc-1" tvg-name="BEIN SPORTS AFC 1" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC 1
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-afc-1.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-1-afc" tvg-name="BEIN SPORTS 1 AFC" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1 AFC
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-1-afc" tvg-name="BEIN SPORTS 1 AFC" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1 AFC
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-1-afc.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-2-afc" tvg-name="BEIN SPORTS 2 AFC" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2 AFC
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-2-afc" tvg-name="BEIN SPORTS 2 AFC" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2 AFC
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-2-afc.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-3-afc" tvg-name="BEIN SPORTS 3 AFC" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 3 AFC
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-3-afc" tvg-name="BEIN SPORTS 3 AFC" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 3 AFC
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-3-afc.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-afc-4" tvg-name="BEIN SPORTS AFC 4" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC 4
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-afc-4" tvg-name="BEIN SPORTS AFC 4" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC 4
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-afc-4.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-afc-5" tvg-name="BEIN SPORTS AFC 5" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC 5
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-afc-5" tvg-name="BEIN SPORTS AFC 5" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC 5
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-afc-5.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-1-english" tvg-name="BEIN SPORTS 1 ENGLISH" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1 ENGLISH
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-1-english" tvg-name="BEIN SPORTS 1 ENGLISH" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1 ENGLISH
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-1-english.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-2-english" tvg-name="BEIN SPORTS 2 ENGLISH" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2 ENGLISH
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-2-english" tvg-name="BEIN SPORTS 2 ENGLISH" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2 ENGLISH
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-2-english.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-1-france" tvg-name="BEIN SPORTS 1 FRANCE" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1 FRANCE
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-1-france" tvg-name="BEIN SPORTS 1 FRANCE" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1 FRANCE
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-1-france.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-2-france" tvg-name="BEIN SPORTS 2 FRANCE" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2 FRANCE
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-2-france" tvg-name="BEIN SPORTS 2 FRANCE" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2 FRANCE
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-2-france.m3u8?server=1
-#EXTINF:-1 tvg-id="bein-vip-bein-sports-3-france" tvg-name="BEIN SPORTS 3 FRANCE" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 3 FRANCE
+#EXTINF:-1 tvg-id="bein-vip-bein-sports-3-france" tvg-name="BEIN SPORTS 3 FRANCE" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 3 FRANCE
 https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-3-france.m3u8?server=1
 #EXTINF:-1 tvg-id="tlfaz-asharq-documentary" tvg-name="قناة الشرق الوثائقية" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/Asharq-Documentary.png" group-title="قنوات وثائقية",قناة الشرق الوثائقية
 https://aspreen-tv-production.up.railway.app/live/tlfaz-asharq-documentary.m3u8?server=1

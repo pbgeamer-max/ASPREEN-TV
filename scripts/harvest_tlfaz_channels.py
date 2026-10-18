@@ -312,7 +312,7 @@ def load_user_vip_channels():
             "vid": cid,
             "name": name,
             "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
-            "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/BeIN_Sports_logo.svg/1200px-BeIN_Sports_logo.svg.png",
+            "logoUrl": "/logos/bein-sports.png",
             "orderIndex": idx,
             "streamUrl": primary_url,
             "directM3u8": primary_url,
