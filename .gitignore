@@ -9,6 +9,8 @@ data/*
 !data/kisskh_dramas.json
 !data/kisskh_streams.json
 !data/kisskh_subtitles.json
+!data/vod_series.json
+!data/vod_movies.json
 scripts/*.html
 scripts/inspect_*.js
 scripts/test_*.js
