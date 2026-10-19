@@ -621,32 +621,68 @@ export class VodService {
         const anyIframe = playerHtml.match(/<iframe[^>]*src=["']([^"']+)["']/);
         if (anyIframe) {
           result.embedUrl = anyIframe[1];
+          await this.extractHlsFromCdnUrl(anyIframe[1], result);
           result.success = true;
           result.durationMs = Date.now() - t0;
           this.attachUrls(result, baseUrl);
-          this.streamCache.set(targetUrl, { data: result, expiresAt: Date.now() + 1800000 });
+          if (result.hlsUrl) {
+            this.streamCache.set(targetUrl, { data: result, expiresAt: Date.now() + 1800000 });
+          }
           return result;
         }
         throw new Error('Embed player iframe not found');
       }
 
-      const embedHtml = await this.requestText(embedM[1], {
-        headers: { Referer: 'https://aa.3isk.icu/' },
-      });
+      const baseEmbedUrl = embedM[1];
+      result.embedUrl = baseEmbedUrl;
 
-      const cdnIframes = embedHtml.match(/<iframe[^>]*src=["']([^"']+)["']/);
-      if (!cdnIframes) {
-        result.embedUrl = embedM[1];
-        result.success = true;
-        result.durationMs = Date.now() - t0;
-        this.attachUrls(result, baseUrl);
-        this.streamCache.set(targetUrl, { data: result, expiresAt: Date.now() + 1800000 });
-        return result;
+      // Rotate through servers 1 to 6 to find a working HLS stream (series often use Server 2 or 3)
+      for (let s = 1; s <= 6; s++) {
+        try {
+          const currentEmbedUrl = baseEmbedUrl.replace(/\/embed\/\d+\//, `/embed/${s}/`);
+          const embedHtml = await this.requestText(currentEmbedUrl, {
+            headers: { Referer: 'https://aa.3isk.icu/' },
+          });
+          if (!embedHtml) continue;
+
+          const cdnIframes = embedHtml.match(/<iframe[^>]*src=["']([^"']+)["']/);
+          if (!cdnIframes) continue;
+
+          const cdnUrl = cdnIframes[1];
+          result.embedUrl = cdnUrl;
+
+          await this.extractHlsFromCdnUrl(cdnUrl, result);
+          if (result.hlsUrl) {
+            break; // Successfully extracted direct HLS!
+          }
+        } catch {
+          // Continue to next server mirror
+        }
       }
 
-      const cdnUrl = cdnIframes[1];
-      result.embedUrl = cdnUrl;
+      result.success = true;
+      result.durationMs = Date.now() - t0;
+      this.attachUrls(result, baseUrl);
+      if (result.hlsUrl) {
+        this.streamCache.set(targetUrl, { data: result, expiresAt: Date.now() + 1800000 });
+      }
+      return result;
+    } catch (err: any) {
+      result.error = err.message;
+      result.durationMs = Date.now() - t0;
+      return result;
+    }
+  }
 
+  private attachUrls(result: ResolvedVodStream, baseUrl: string) {
+    if (result.hlsUrl) {
+      result.streamProxyUrl = `${baseUrl}/api/app/vod/stream?url=${encodeURIComponent(result.hlsUrl)}`;
+    }
+    result.playerUrl = `${baseUrl}/api/app/vod/player?url=${encodeURIComponent(result.targetUrl)}`;
+  }
+
+  private async extractHlsFromCdnUrl(cdnUrl: string, result: ResolvedVodStream): Promise<void> {
+    try {
       if (cdnUrl.includes('ukrcdn')) {
         result.cdnType = 'ukrcdn';
         const cdnHtml = await this.requestText(cdnUrl, {
@@ -670,6 +706,8 @@ export class VodService {
         const cdnHtml = await this.requestText(cdnUrl, {
           headers: { Referer: 'https://3iskk.xyz/' },
         });
+
+        // 1. Check for Dean Edwards packed script
         const packedM = cdnHtml.match(/eval\(function\(p,a,c,k,e,d\)\{.*?\}\('(.*?)',(\d+),(\d+),'(.*?)'\.split\('\|'\)/s);
         if (packedM) {
           const unpacked = this.unpackDeanEdwards(packedM[1], parseInt(packedM[2], 10), parseInt(packedM[3], 10), packedM[4]);
@@ -677,27 +715,19 @@ export class VodService {
           if (m3u8M) {
             result.hlsUrl = m3u8M[0];
             result.cdnType = 'packed_hls';
+            return;
           }
         }
+
+        // 2. Direct .m3u8 in CDN page source
+        const directM3u8M = cdnHtml.match(/https?:\/\/[^\s"'<>]+\.m3u8[^\s"'<>]*/);
+        if (directM3u8M) {
+          result.hlsUrl = directM3u8M[0];
+          result.cdnType = 'direct_hls';
+          return;
+        }
       }
-
-      result.success = true;
-      result.durationMs = Date.now() - t0;
-      this.attachUrls(result, baseUrl);
-      this.streamCache.set(targetUrl, { data: result, expiresAt: Date.now() + 1800000 });
-      return result;
-    } catch (err: any) {
-      result.error = err.message;
-      result.durationMs = Date.now() - t0;
-      return result;
-    }
-  }
-
-  private attachUrls(result: ResolvedVodStream, baseUrl: string) {
-    if (result.hlsUrl) {
-      result.streamProxyUrl = `${baseUrl}/api/app/vod/stream?url=${encodeURIComponent(result.hlsUrl)}`;
-    }
-    result.playerUrl = `${baseUrl}/api/app/vod/player?url=${encodeURIComponent(result.targetUrl)}`;
+    } catch {}
   }
 
   private unpackDeanEdwards(p: string, a: number, c: number, k: string): string {

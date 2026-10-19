@@ -156,6 +156,10 @@ export async function vodRoutes(server: FastifyInstance) {
           referer = 'https://vidmoly.to/';
         } else if (rawUrl.includes('ukrcdn') || rawUrl.includes('grzcdn') || rawUrl.includes('miravd')) {
           referer = 'https://miravd.com/';
+        } else if (rawUrl.includes('mwdy')) {
+          referer = 'https://mwdy.cc/';
+        } else if (rawUrl.includes('upstream')) {
+          referer = 'https://upstream.to/';
         } else {
           referer = origin + '/';
         }
