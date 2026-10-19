@@ -28,3 +28,6 @@ resources.arsc
 assets/
 __pycache__/
 *.pyc
+
+# Local project folders
+موقع كرة قدم وافلام/
