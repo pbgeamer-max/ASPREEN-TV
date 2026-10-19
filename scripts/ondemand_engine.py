@@ -200,7 +200,12 @@ class OnDemandStreamManager:
                 self._signal_stop(w)
             # wait for the provider connection to be really closed (single-connection line)
             for w in to_stop:
-                w["thread"].join(timeout=3)
+                t = w.get("thread")
+                if t and t.is_alive():
+                    try:
+                        t.join(timeout=3)
+                    except Exception:
+                        pass
 
         if starting:
             worker["thread"].start()
