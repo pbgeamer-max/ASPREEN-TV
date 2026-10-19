@@ -23,6 +23,8 @@ import threading
 import subprocess
 import shutil
 import ssl
+import hmac
+import hashlib
 import urllib.request
 import urllib.parse
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
@@ -89,6 +91,34 @@ cache_lock = threading.Lock()
 server_start_time = time.time()
 last_renew_time = 0
 total_refreshes = 0
+
+# -----------------------------------------------------------------------------
+# Anti-Theft & Link Protection Engine (Level 1: Origin/Referer Lock, Level 2: HMAC Signed Tokens)
+# -----------------------------------------------------------------------------
+STREAM_SECURITY_SECRET = os.environ.get("STREAM_SECURITY_SECRET", "aspreen_vault_sec_77a9b0c2").encode("utf-8")
+SEGMENT_TOKEN_TTL = int(os.environ.get("SEGMENT_TOKEN_TTL", "360"))  # 6 minutes
+SECURITY_STRICT_TOKENS = os.environ.get("SECURITY_STRICT_TOKENS", "1") == "1"
+
+def make_segment_token(clean_key, session_id, seg_file, client_ip, expires):
+    ip_prefix = ".".join(client_ip.split(".")[:3]) if "." in client_ip else client_ip
+    payload = f"{clean_key}:{session_id}:{seg_file}:{ip_prefix}:{expires}".encode("utf-8")
+    return hmac.new(STREAM_SECURITY_SECRET, payload, hashlib.sha256).hexdigest()[:16]
+
+def verify_segment_token(clean_key, session_id, seg_file, client_ip, token, expires_str):
+    try:
+        expires = int(expires_str)
+        if time.time() > expires:
+            return False, "Token Expired"
+        expected = make_segment_token(clean_key, session_id, seg_file, client_ip, expires)
+        if hmac.compare_digest(token, expected):
+            return True, "Valid"
+        payload_exact = f"{clean_key}:{session_id}:{seg_file}:{client_ip}:{expires}".encode("utf-8")
+        if hmac.compare_digest(token, hmac.new(STREAM_SECURITY_SECRET, payload_exact, hashlib.sha256).hexdigest()[:16]):
+            return True, "Valid"
+        return False, "Invalid Signature"
+    except Exception:
+        return False, "Verification Error"
+
 
 # Direct 24/7 Pure Stream Configuration (Zero transcoding / Zero CPU / 100% stable)
 
@@ -329,8 +359,40 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         # Silent logging to avoid console spamming on every TS segment
         return
 
+    def get_client_ip(self):
+        xff = self.headers.get("X-Forwarded-For", "")
+        if xff:
+            return xff.split(",")[0].strip()
+        return self.client_address[0]
+
+    def is_allowed_origin(self):
+        origin = self.headers.get("Origin", "").strip().lower()
+        referer = self.headers.get("Referer", "").strip().lower()
+        # Direct non-browser client (VLC, smart TV, curl, mobile app)
+        if not origin and not referer:
+            return True, "*"
+
+        allowed_keywords = [
+            "railway.app", "localhost", "127.0.0.1", "tvora", "aspreen",
+            "yacine.website"
+        ]
+        env_allowed = os.getenv("ALLOWED_ORIGINS", "")
+        if env_allowed:
+            for d in env_allowed.split(","):
+                d = d.strip().lower()
+                if d:
+                    allowed_keywords.append(d)
+
+        for kw in allowed_keywords:
+            if (origin and kw in origin) or (referer and kw in referer):
+                return True, origin or "*"
+
+        return False, None
+
     def send_cors_headers(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
+        allowed, matched_origin = self.is_allowed_origin()
+        allow_val = matched_origin if (allowed and matched_origin) else (self.headers.get("Origin") or "*")
+        self.send_header("Access-Control-Allow-Origin", allow_val)
         self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS, HEAD")
         self.send_header("Access-Control-Allow-Headers", "*")
         self.send_header("Access-Control-Expose-Headers", "*")
@@ -344,6 +406,17 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
+
+        # Level 1 Anti-Hotlinking / Unauthorized Origin Protection
+        if path != "/" and path != "/status":
+            allowed, _ = self.is_allowed_origin()
+            if not allowed:
+                self.send_response(403)
+                self.send_header("Access-Control-Allow-Origin", "null")
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.end_headers()
+                self.wfile.write(b"403 Forbidden: Hotlinking from this domain is prohibited.")
+                return
 
         # 1. Health & Status endpoint
         if path == "/status" or path == "/":
@@ -598,8 +671,9 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         parsed_url = urllib.parse.urlparse(self.path)
         qs = urllib.parse.parse_qs(parsed_url.query)
         requested_server = qs.get("server", ["1"])[0]
+        client_ip = self.get_client_ip()
 
-        cache_key = f"{cid}_{requested_server}_proxy" if force_proxy else (f"{cid}_{requested_server}_raw" if is_raw else f"{cid}_{requested_server}")
+        cache_key = f"{cid}_{requested_server}_{client_ip}_proxy" if force_proxy else (f"{cid}_{requested_server}_{client_ip}_raw" if is_raw else f"{cid}_{requested_server}_{client_ip}")
         with m3u8_cache_lock:
             cached_data = m3u8_cache.get(cache_key)
             if cached_data and now_ts < cached_data[1]:
@@ -690,6 +764,9 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             # Strip any transient #EXT-X-ENDLIST so the player never stops polling or treats live stream as VOD
             m3u_text = re.sub(r"#EXT-X-ENDLIST\r?\n?", "", m3u_text)
 
+            now_t = int(time.time())
+            expires = now_t + SEGMENT_TOKEN_TTL
+
             rewritten = []
             for line in m3u_text.splitlines():
                 l = line.strip()
@@ -699,10 +776,11 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     rewritten.append(l)
                 else:
                     seg_name = os.path.basename(l)
+                    token = make_segment_token(stream_key, session_id, seg_name, client_ip, expires)
                     if session_id:
-                        rewritten.append(f"{base_origin}/live/segment/{stream_key}/{session_id}/{seg_name}")
+                        rewritten.append(f"{base_origin}/live/segment/{stream_key}/{session_id}/{seg_name}?h={token}&exp={expires}")
                     else:
-                        rewritten.append(f"{base_origin}/live/segment/{stream_key}/{seg_name}")
+                        rewritten.append(f"{base_origin}/live/segment/{stream_key}/{seg_name}?h={token}&exp={expires}")
 
             out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
             with m3u8_cache_lock:
@@ -1018,11 +1096,35 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 except (BrokenPipeError, ConnectionResetError):
                     pass
     def handle_ondemand_segment(self, stream_key, seg_file, session_id=""):
-        """Serves on-demand HLS sliced TS segment directly with zero upstream overhead and RAM cache"""
-        ON_DEMAND_STREAM_MANAGER.touch(stream_key)
+        """Serves on-demand HLS sliced TS segment directly with Level 2 HMAC verification and RAM cache"""
         clean_key = re.sub(r"[^a-zA-Z0-9_\-]", "", stream_key)
         clean_file = re.sub(r"[^a-zA-Z0-9_\-\.]", "", seg_file)
         clean_session = re.sub(r"[^a-zA-Z0-9_\-]", "", session_id) if session_id else ""
+
+        # Level 2 Security Check: Verify HMAC signature and expiration
+        parsed_q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        token = parsed_q.get("h", [""])[0]
+        exp_str = parsed_q.get("exp", [""])[0]
+
+        if token and exp_str:
+            client_ip = self.get_client_ip()
+            valid, reason = verify_segment_token(clean_key, clean_session, clean_file, client_ip, token, exp_str)
+            if not valid:
+                self.send_response(403)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.end_headers()
+                self.wfile.write(f"403 Forbidden: {reason}".encode("utf-8"))
+                return
+        elif SECURITY_STRICT_TOKENS:
+            self.send_response(403)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(b"403 Forbidden: Missing security signature.")
+            return
+
+        ON_DEMAND_STREAM_MANAGER.touch(stream_key)
         cache_key = f"{clean_key}_{clean_session}_{clean_file}" if clean_session else f"{clean_key}_{clean_file}"
 
         now = time.time()
