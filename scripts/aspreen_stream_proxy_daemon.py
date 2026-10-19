@@ -121,6 +121,36 @@ def verify_segment_token(clean_key, session_id, seg_file, token, expires_str):
         return False, "Verification Error"
 
 
+def encode_stream_slug(cid, server="1", expires=None):
+    raw = f"{cid}|{server}|{expires}" if expires else f"{cid}|{server}"
+    b64 = base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")
+    sig = hmac.new(STREAM_SECURITY_SECRET, b64.encode(), hashlib.sha256).hexdigest()[:8]
+    return f"{b64}.{sig}"
+
+def decode_stream_slug(slug):
+    try:
+        if "." not in slug:
+            return None, None
+        b64, sig = slug.rsplit(".", 1)
+        expected_sig = hmac.new(STREAM_SECURITY_SECRET, b64.encode(), hashlib.sha256).hexdigest()[:8]
+        if not hmac.compare_digest(sig, expected_sig):
+            return None, None
+        pad = len(b64) % 4
+        if pad:
+            b64 += "=" * (4 - pad)
+        decoded = base64.urlsafe_b64decode(b64).decode()
+        parts = decoded.split("|")
+        cid = parts[0]
+        srv = parts[1] if len(parts) > 1 else "1"
+        if len(parts) > 2 and parts[2]:
+            exp = int(parts[2])
+            if time.time() > exp:
+                return None, None  # Expired
+        return cid, srv
+    except Exception:
+        return None, None
+
+
 # Direct 24/7 Pure Stream Configuration (Zero transcoding / Zero CPU / 100% stable)
 
 # -----------------------------------------------------------------------------
@@ -493,6 +523,44 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.handle_ondemand_segment(stream_key, seg_file)
             return
 
+        # 3.5 Token Generator API: /live/token?id=<channel_id>&server=<server_id>
+        if path == "/live/token" or path == "/api/stream/token":
+            cid = query.get("id", [""])[0] or query.get("cid", [""])[0]
+            srv = query.get("server", ["1"])[0]
+            if cid:
+                slug = encode_stream_slug(cid, srv)
+                host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", f"127.0.0.1:{PORT}"))
+                proto = self.headers.get("X-Forwarded-Proto", "https" if ("railway" in host or "443" in host) else "http")
+                if "railway" in host:
+                    proto = "https"
+                base_origin = f"{proto}://{host}"
+                masked_url = f"{base_origin}/live/s/{slug}.m3u8"
+                resp_data = json.dumps({"status": "success", "channelId": cid, "server": srv, "url": masked_url, "slug": slug}).encode("utf-8")
+                self.send_response(200)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Content-Length", str(len(resp_data)))
+                self.end_headers()
+                self.wfile.write(resp_data)
+                return
+
+        # 3.6 Masked / Disguised Stream Playlist: /live/s/<slug>.m3u8 or /live/stream/<slug>.m3u8
+        match_masked = re.match(r"^/live/(?:s|stream)/([^/]+)\.m3u8$", path)
+        if match_masked:
+            slug = match_masked.group(1)
+            cid, srv = decode_stream_slug(slug)
+            if cid:
+                force_proxy = query.get("proxy", ["1"])[0] not in ("0", "false")
+                self.handle_channel_playlist(cid, is_raw=False, force_proxy=force_proxy, server_override=srv)
+                return
+            else:
+                self.send_response(403)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.end_headers()
+                self.wfile.write(b"403 Forbidden: Invalid or Expired Stream Token")
+                return
+
         # 4. Stream M3U8 Playlist: /live/<channel_id>.m3u8 or /raw/<channel_id>.m3u8 (Direct 100% Pure Stable Stream)
         match_live = re.match(r"^/(?:live|raw)/([^/]+)\.m3u8$", path)
         if match_live:
@@ -663,7 +731,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             except Exception:
                 pass
 
-    def handle_channel_playlist(self, cid, is_raw=False, force_proxy=False):
+    def handle_channel_playlist(self, cid, is_raw=False, force_proxy=False, server_override=None):
         """Fetches upstream M3U8, rewrites segment URLs, and returns pure M3U8 to client"""
         host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", f"127.0.0.1:{PORT}"))
         proto = self.headers.get("X-Forwarded-Proto", "https" if ("railway" in host or "443" in host) else "http")
@@ -676,7 +744,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         now_ts = time.time()
         parsed_url = urllib.parse.urlparse(self.path)
         qs = urllib.parse.parse_qs(parsed_url.query)
-        requested_server = qs.get("server", ["1"])[0]
+        requested_server = str(server_override) if server_override else qs.get("server", ["1"])[0]
         client_ip = self.get_client_ip()
 
         cache_key = f"{cid}_{requested_server}_proxy" if force_proxy else (f"{cid}_{requested_server}_raw" if is_raw else f"{cid}_{requested_server}")
