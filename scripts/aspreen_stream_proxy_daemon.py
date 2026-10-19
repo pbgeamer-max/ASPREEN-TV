@@ -397,15 +397,21 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         return self.client_address[0]
 
     def is_allowed_origin(self):
+        path = urllib.parse.urlparse(self.path).path
+
+        # 1. Internal health check & status endpoints (always public for Railway / Docker)
+        if path in ("/status", "/", "/health"):
+            return True, "*"
+
         origin = self.headers.get("Origin", "").strip()
         referer = self.headers.get("Referer", "").strip()
         ua = self.headers.get("User-Agent", "").strip().lower()
 
-        # 1. Authorized Android Mobile App check (User-Agent or App Header)
+        # 2. Authorized Android Mobile App check (User-Agent or App Header)
         if "tvora" in ua or "aspreen" in ua or self.headers.get("X-App-Key") == "tvora" or self.headers.get("X-Tvora-App"):
             return True, "*"
 
-        # 2. Authorized Web Browser Domains (tvora.site, etc.)
+        # 3. Authorized Web Browser Domains (tvora.site, etc.)
         if origin or referer:
             origin_lower = origin.lower()
             referer_lower = referer.lower()
@@ -426,8 +432,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             # Unauthorized external website / hotlinking thief!
             return False, None
 
-        # 3. Direct mobile client without origin/referer
-        return True, "*"
+        # 4. Direct external player (VLC, Curl, Python scraper, ffmpeg) without authorized App UA or Domain -> BLOCK!
+        return False, None
 
     def send_cors_headers(self):
         allowed, matched_origin = self.is_allowed_origin()
