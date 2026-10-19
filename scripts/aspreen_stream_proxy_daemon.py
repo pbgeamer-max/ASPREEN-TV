@@ -397,22 +397,41 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         return self.client_address[0]
 
     def is_allowed_origin(self):
-        # Allow all origins by default so user's players, external sites, and mobile apps can stream
         origin = self.headers.get("Origin", "").strip()
         referer = self.headers.get("Referer", "").strip()
+        ua = self.headers.get("User-Agent", "").strip().lower()
 
-        # If a blocked domain list is specified in environment, block those
-        blocked_domains = [d.strip().lower() for d in os.getenv("BLOCKED_ORIGINS", "").split(",") if d.strip()]
-        for bd in blocked_domains:
-            if (origin and bd in origin.lower()) or (referer and bd in referer.lower()):
-                return False, None
+        # 1. Authorized Android Mobile App check (User-Agent or App Header)
+        if "tvora" in ua or "aspreen" in ua or self.headers.get("X-App-Key") == "tvora" or self.headers.get("X-Tvora-App"):
+            return True, "*"
 
-        allow_val = origin if origin else "*"
-        return True, allow_val
+        # 2. Authorized Web Browser Domains (tvora.site, etc.)
+        if origin or referer:
+            origin_lower = origin.lower()
+            referer_lower = referer.lower()
+            allowed_patterns = [
+                "tvora.site", "tvora", "aspreen", "railway.app", "localhost", "127.0.0.1"
+            ]
+            env_allowed = os.getenv("ALLOWED_ORIGINS", "")
+            if env_allowed:
+                for d in env_allowed.split(","):
+                    d = d.strip().lower()
+                    if d:
+                        allowed_patterns.append(d)
+
+            for pattern in allowed_patterns:
+                if (origin_lower and pattern in origin_lower) or (referer_lower and pattern in referer_lower):
+                    return True, origin or "*"
+
+            # Unauthorized external website / hotlinking thief!
+            return False, None
+
+        # 3. Direct mobile client without origin/referer
+        return True, "*"
 
     def send_cors_headers(self):
-        origin = self.headers.get("Origin", "").strip()
-        allow_val = origin if origin else "*"
+        allowed, matched_origin = self.is_allowed_origin()
+        allow_val = matched_origin if (allowed and matched_origin) else (self.headers.get("Origin") or "*")
         self.send_header("Access-Control-Allow-Origin", allow_val)
         self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS, HEAD")
         self.send_header("Access-Control-Allow-Headers", "*")
