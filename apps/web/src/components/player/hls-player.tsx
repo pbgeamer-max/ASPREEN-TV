@@ -323,21 +323,12 @@ export function HlsPlayerModal({
     const handleWaiting = () => {
       setIsLoading(true);
       if (stallTimeout) clearTimeout(stallTimeout);
+      // Wait patiently for buffer to fill without rewinding or jumping servers
       stallTimeout = setTimeout(() => {
-        console.warn('[HlsPlayer] Stream stalled for > 3.5s, triggering instant recovery...');
-        if (hls) {
-          hls.recoverMediaError();
+        if (video && video.paused && video.readyState >= 3) {
+          video.play().catch(() => {});
         }
-        // If still stalled after 2s, auto-advance to next ultra-fast server
-        setTimeout(() => {
-          if (video && (video.paused || video.readyState < 3)) {
-            if (effectiveServers.length > activeServerIndex + 1) {
-              console.log('[HlsPlayer] Auto-switching to next server to ensure uninterrupted stream...');
-              setActiveServerIndex((prev) => prev + 1);
-            }
-          }
-        }, 2000);
-      }, 3500);
+      }, 5000);
     };
 
     video.addEventListener('waiting', handleWaiting);
@@ -345,12 +336,6 @@ export function HlsPlayerModal({
       setIsPlaying(false);
     });
     video.addEventListener('error', () => {
-      // Auto-fallback to next server if available
-      if (effectiveServers.length > activeServerIndex + 1) {
-        console.log('[HlsPlayer] Video error on server, auto-advancing to next server...');
-        setActiveServerIndex((prev) => prev + 1);
-        return;
-      }
       if (video.currentTime === 0) {
         const mediaError = video.error;
         console.error('[HlsPlayer] Video element error:', mediaError);
@@ -368,27 +353,27 @@ export function HlsPlayerModal({
     if (!isDirectVideo && Hls.isSupported()) {
       hls = new Hls({
         enableWorker: true,
-        lowLatencyMode: true,
-        backBufferLength: 20,
-        maxBufferLength: 15,
-        maxMaxBufferLength: 30,
-        liveSyncDurationCount: 1, // Ultra-fast start on first segment (0.3s)
-        liveMaxLatencyDurationCount: 6,
+        lowLatencyMode: false, // Smooth, stable IPTV playback without buffer drain
+        backBufferLength: 30,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60,
+        liveSyncDurationCount: 3, // Keep a healthy 3-segment buffer (10-12s) to absorb network jitters
+        liveMaxLatencyDurationCount: 10,
         liveDurationInfinity: true,
-        highBufferWatchdogPeriod: 1,
+        highBufferWatchdogPeriod: 2,
         nudgeOffset: 0.2, // Skip over dropped frames/stutters in source
         nudgeMaxRetry: 10,
-        maxBufferHole: 0.6, // Auto-skip micro-holes without buffering spinner
+        maxBufferHole: 0.8, // Auto-skip micro-holes without buffering spinner
         maxFragLookUpTolerance: 0.5,
-        manifestLoadingTimeOut: 6000,
-        manifestLoadingMaxRetry: 5,
-        manifestLoadingRetryDelay: 400,
-        levelLoadingTimeOut: 6000,
-        levelLoadingMaxRetry: 5,
-        fragLoadingTimeOut: 8000,
-        fragLoadingMaxRetry: 6,
-        fragLoadingRetryDelay: 400,
-        progressive: true, // Progressive chunk streaming
+        manifestLoadingTimeOut: 10000,
+        manifestLoadingMaxRetry: 6,
+        manifestLoadingRetryDelay: 500,
+        levelLoadingTimeOut: 10000,
+        levelLoadingMaxRetry: 6,
+        fragLoadingTimeOut: 12000,
+        fragLoadingMaxRetry: 8,
+        fragLoadingRetryDelay: 500,
+        progressive: true,
       });
 
       hls.loadSource(activeUrl);
@@ -483,16 +468,11 @@ export function HlsPlayerModal({
       initialLoadTimer = setTimeout(() => {
         if (video.currentTime === 0 && !video.paused) {
           if (video.readyState < 2) {
-            if (effectiveServers.length > activeServerIndex + 1) {
-              console.log('[HlsPlayer] Initial load took > 5s, auto-advancing to next ultra-fast server...');
-              setActiveServerIndex((prev) => prev + 1);
-            } else {
-              setError('تعذر استقبال مقاطع البث من السيرفر. اضغط على إعادة المحاولة أو اختر سيرفر آخر.');
-              setIsLoading(false);
-            }
+            setError('تعذر استقبال مقاطع البث من السيرفر. اضغط على زر إعادة المحاولة أو اختر سيرفر آخر.');
+            setIsLoading(false);
           }
         }
-      }, 5000);
+      }, 18000);
     } else {
       video.src = activeUrl;
       video.load();
@@ -516,29 +496,19 @@ export function HlsPlayerModal({
         frames = (video as any).webkitDecodedFrameCount || 0;
       }
 
-      // If time has elapsed > 3.0s but 0 frames have ever decoded
-      if (curTime > 3.0 && frames === 0) {
-        console.warn('[HlsPlayer] Audio playing but 0 video frames decoded! Frozen picture detected. Switching server...');
-        if (effectiveServers.length > activeServerIndex + 1) {
-          setActiveServerIndex((prev) => prev + 1);
-        } else if (hls) {
-          hls.recoverMediaError();
-        }
+      // If time has elapsed > 8.0s but 0 frames have decoded
+      if (curTime > 8.0 && frames === 0) {
+        console.warn('[HlsPlayer] Audio playing but 0 video frames decoded after 8s.');
         return;
       }
 
-      // If clock is ticking but frames have completely halted
-      if (curTime > lastCheckedTime + 2.5) {
+      // If clock is ticking but frames have completely halted for > 10s
+      if (curTime > lastCheckedTime + 3.0) {
         if (lastCheckedFrames !== -1 && frames === lastCheckedFrames && frames > 0) {
           frozenFrameCount++;
-          if (frozenFrameCount >= 2) {
-            console.warn('[HlsPlayer] Video picture frozen for > 5s while clock ticks! Auto-recovering...');
+          if (frozenFrameCount >= 3) {
+            console.warn('[HlsPlayer] Video picture frozen for > 10s.');
             frozenFrameCount = 0;
-            if (effectiveServers.length > activeServerIndex + 1) {
-              setActiveServerIndex((prev) => prev + 1);
-            } else if (hls) {
-              hls.recoverMediaError();
-            }
           }
         } else {
           frozenFrameCount = 0;

@@ -105,212 +105,17 @@ os.makedirs(HLS_ONDEMAND_DIR, exist_ok=True)
 HOT_SEGMENT_CACHE = {}  # key -> (bytes_data, expires_at)
 hot_cache_lock = threading.Lock()
 
-class OnDemandStreamManager:
-    def __init__(self, base_dir):
-        self.base_dir = base_dir
-        # stream_key -> {"thread": Thread, "proc": Popen, "stopped": Event, "hls_dir": str, "m3u8_path": str, "last_active": float, "upstream_url": str}
-        self.workers = {}
-        self.lock = threading.Lock()
-        os.makedirs(self.base_dir, exist_ok=True)
-        self.cleaner_thread = threading.Thread(target=self._cleanup_loop, daemon=True)
-        self.cleaner_thread.start()
+def _prune_hot_segment_cache():
+    now = time.time()
+    with hot_cache_lock:
+        for k in [k for k, v in HOT_SEGMENT_CACHE.items() if now > v[1]]:
+            HOT_SEGMENT_CACHE.pop(k, None)
 
-    def _supervisor_loop(self, stream_key):
-        """Supervises continuous FFmpeg HLS conversion with seamless append_list auto-restarts"""
-        with self.lock:
-            worker = self.workers.get(stream_key)
-        if not worker:
-            return
 
-        hls_dir = worker["hls_dir"]
-        m3u8_path = worker["m3u8_path"]
-        upstream_url = worker["upstream_url"]
-        stopped_evt = worker["stopped"]
+# Seamless TS->HLS engine (upstream reconnects never restart FFmpeg, no replayed seconds, unique segment names)
+from ondemand_engine import OnDemandStreamManager
 
-        cmd = [
-            "ffmpeg", "-y", "-hide_banner", "-loglevel", "warning",
-            "-user_agent", "VLC/3.0.18 LibVLC/3.0.18",
-            "-reconnect", "1",
-            "-reconnect_streamed", "1",
-            "-reconnect_delay_max", "2",
-            "-fflags", "+genpts+nobuffer+flush_packets+discardcorrupt",
-            "-i", upstream_url,
-            "-c", "copy",
-            "-f", "hls",
-            "-hls_time", "2",
-            "-hls_list_size", "25",
-            "-hls_delete_threshold", "15",
-            "-hls_flags", "append_list+omit_endlist+delete_segments+temp_file",
-            m3u8_path
-        ]
-
-        cycle = 0
-        while not stopped_evt.is_set():
-            now = time.time()
-            if (now - worker.get("last_active", now)) > 120:
-                print(f" [i] خمول أكثر من 120 ثانية للقناة {stream_key}، إنهاء جلسة البث.")
-                break
-
-            cycle += 1
-            try:
-                proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                worker["proc"] = proc
-                if cycle == 1:
-                    print(f" [✓] تشغيل موزع البث الحصري للقناة {stream_key} (اتصال فضائي مباشر 24/7)")
-            except Exception as e:
-                print(f" [!] خطأ في تشغيل FFmpeg للقناة {stream_key}: {e}")
-                time.sleep(2)
-                continue
-
-            # Wait for this chunk cycle to finish or stop signal
-            while not stopped_evt.is_set():
-                if proc.poll() is not None:
-                    # Upstream closed connection after burst; loop immediately to append next slice
-                    break
-                time.sleep(0.4)
-
-            if stopped_evt.is_set():
-                try:
-                    proc.terminate()
-                    proc.wait(timeout=1.5)
-                except Exception:
-                    try: proc.kill()
-                    except Exception: pass
-                break
-
-            time.sleep(0.2)
-
-        stopped_evt.set()
-        with self.lock:
-            self.workers.pop(stream_key, None)
-        try:
-            shutil.rmtree(hls_dir, ignore_errors=True)
-        except Exception:
-            pass
-
-    def get_or_start_stream(self, cid, server_id, upstream_url):
-        stream_key = f"{cid}_s{server_id}"
-        with self.lock:
-            worker = self.workers.get(stream_key)
-            if worker and not worker["stopped"].is_set():
-                worker["last_active"] = time.time()
-                m3u8_path = worker["m3u8_path"]
-            else:
-                is_mac_line = "mac=" in upstream_url or "hey-ott.net" in upstream_url
-                if is_mac_line:
-                    # 1. If any running worker has the EXACT same upstream URL and has a healthy HLS manifest,
-                    # reuse the running stream directly so we don't start duplicate competing FFmpegs!
-                    for other_k, other_w in list(self.workers.items()):
-                        if not other_w["stopped"].is_set() and other_w.get("upstream_url") == upstream_url:
-                            other_m3u8 = other_w.get("m3u8_path")
-                            if other_m3u8 and os.path.exists(other_m3u8) and os.path.getsize(other_m3u8) > 20:
-                                other_w["last_active"] = time.time()
-                                try:
-                                    with open(other_m3u8, "r", encoding="utf-8", errors="ignore") as f:
-                                        c = f.read()
-                                    if "#EXTINF" in c:
-                                        return other_k, c
-                                except Exception:
-                                    pass
-
-                    # 2. Free up any previous running worker on this same MAC line (if upstream_url is different),
-                    # so that we don't have competing connections on the single-MAC provider
-                    for other_k, other_w in list(self.workers.items()):
-                        if other_k != stream_key:
-                            other_up = other_w.get("upstream_url", "")
-                            if "mac=" in other_up or "hey-ott.net" in other_up:
-                                other_w["stopped"].set()
-                                p = other_w.get("proc")
-                                if p:
-                                    try: p.terminate()
-                                    except Exception: pass
-                                self.workers.pop(other_k, None)
-                                print(f" [i] تحرير خط الماك من القناة {other_k} لتمكين البث النقي بدون تعارض")
-                                time.sleep(0.3)
-
-                hls_dir = os.path.join(self.base_dir, stream_key)
-                # Only remove dir if inactive or stale
-                if os.path.exists(hls_dir):
-                    idx_file = os.path.join(hls_dir, "index.m3u8")
-                    if not os.path.exists(idx_file) or (time.time() - os.path.getmtime(idx_file) > 120):
-                        shutil.rmtree(hls_dir, ignore_errors=True)
-                os.makedirs(hls_dir, exist_ok=True)
-                m3u8_path = os.path.join(hls_dir, "index.m3u8")
-
-                stopped_evt = threading.Event()
-                worker_data = {
-                    "proc": None,
-                    "hls_dir": hls_dir,
-                    "m3u8_path": m3u8_path,
-                    "last_active": time.time(),
-                    "upstream_url": upstream_url,
-                    "stopped": stopped_evt
-                }
-                self.workers[stream_key] = worker_data
-                th = threading.Thread(target=self._supervisor_loop, args=(stream_key,), daemon=True)
-                worker_data["thread"] = th
-                th.start()
-
-        # Wait up to 15.0 seconds for first manifest
-        for _ in range(60):
-            if os.path.exists(m3u8_path) and os.path.getsize(m3u8_path) > 20:
-                try:
-                    with open(m3u8_path, "r", encoding="utf-8", errors="ignore") as f:
-                        content = f.read()
-                    if "#EXTINF" in content:
-                        return stream_key, content
-                except Exception:
-                    pass
-            time.sleep(0.25)
-
-        if os.path.exists(m3u8_path):
-            try:
-                with open(m3u8_path, "r", encoding="utf-8", errors="ignore") as f:
-                    content = f.read()
-                return stream_key, content
-            except Exception:
-                pass
-        return stream_key, None
-
-    def touch(self, stream_key):
-        with self.lock:
-            if stream_key in self.workers:
-                self.workers[stream_key]["last_active"] = time.time()
-
-    def _cleanup_loop(self):
-        while True:
-            time.sleep(15)
-            now = time.time()
-            to_stop = []
-            with self.lock:
-                for sk, w in list(self.workers.items()):
-                    if w["stopped"].is_set() or (now - w.get("last_active", now)) > 120:
-                        to_stop.append(sk)
-
-            for sk in to_stop:
-                with self.lock:
-                    w = self.workers.pop(sk, None)
-                if w:
-                    w["stopped"].set()
-                    p = w.get("proc")
-                    if p:
-                        try:
-                            p.terminate()
-                            p.wait(timeout=1.5)
-                        except Exception:
-                            try: p.kill()
-                            except Exception: pass
-                    if (now - w.get("last_active", now)) >= 120:
-                        shutil.rmtree(w["hls_dir"], ignore_errors=True)
-                    print(f" [i] إيقاف جلسة البث On-Demand للقناة {sk} (خمول أكثر من دقيقتين).")
-
-            # Prune hot in-memory segment cache
-            with hot_cache_lock:
-                expired = [k for k, v in HOT_SEGMENT_CACHE.items() if now > v[1]]
-                for k in expired:
-                    HOT_SEGMENT_CACHE.pop(k, None)
-
-ON_DEMAND_STREAM_MANAGER = OnDemandStreamManager(HLS_ONDEMAND_DIR)
+ON_DEMAND_STREAM_MANAGER = OnDemandStreamManager(HLS_ONDEMAND_DIR, maintenance_callback=_prune_hot_segment_cache)
 
 
 def send_telegram_message(text: str):
@@ -593,7 +398,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(content)
             return
 
-        # 3. On-Demand HLS Sliced Segments: /live/segment/<stream_key>/<segment_file>
+        # 3. On-Demand HLS Sliced Segments: /live/segment/<stream_key>/<session>/<segment_file> or legacy /live/segment/<stream_key>/<segment_file>
+        match_seg_session = re.match(r"^/live/segment/([^/]+)/([^/]+)/([^/]+)$", path)
+        if match_seg_session:
+            stream_key = match_seg_session.group(1)
+            session_id = match_seg_session.group(2)
+            seg_file = match_seg_session.group(3)
+            self.handle_ondemand_segment(stream_key, seg_file, session_id=session_id)
+            return
+
         match_seg = re.match(r"^/live/segment/([^/]+)/([^/]+)$", path)
         if match_seg:
             stream_key = match_seg.group(1)
@@ -773,10 +586,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
     def handle_channel_playlist(self, cid, is_raw=False, force_proxy=False):
         """Fetches upstream M3U8, rewrites segment URLs, and returns pure M3U8 to client"""
-        ua_hdr = self.headers.get("User-Agent", "").lower()
-        host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", "localhost"))
-        if "127.0.0.1" in host or "localhost" in host:
-            host = "aspreen-tv-production.up.railway.app"
+        host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", f"127.0.0.1:{PORT}"))
         proto = self.headers.get("X-Forwarded-Proto", "https" if ("railway" in host or "443" in host) else "http")
         if "railway" in host:
             proto = "https"
@@ -855,7 +665,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         # If alternative server is a direct continuous TS stream (e.g. VIP OTT), slice on-demand to HLS
         if target_fetch_url and ("extension=ts" in target_fetch_url or target_fetch_url.endswith(".ts")):
-            stream_key, m3u_text = ON_DEMAND_STREAM_MANAGER.get_or_start_stream(cid, requested_server, target_fetch_url)
+            res = ON_DEMAND_STREAM_MANAGER.get_or_start_stream(cid, requested_server, target_fetch_url)
+            if isinstance(res, tuple) and len(res) == 3:
+                stream_key, session_id, m3u_text = res
+            elif isinstance(res, tuple) and len(res) == 2:
+                stream_key, m3u_text = res
+                session_id = ""
+            else:
+                stream_key, session_id, m3u_text = f"{cid}_s{requested_server}", "", None
+
             if stream_key:
                 ON_DEMAND_STREAM_MANAGER.touch(stream_key)
             if not m3u_text:
@@ -881,7 +699,10 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     rewritten.append(l)
                 else:
                     seg_name = os.path.basename(l)
-                    rewritten.append(f"{base_origin}/live/segment/{stream_key}/{seg_name}")
+                    if session_id:
+                        rewritten.append(f"{base_origin}/live/segment/{stream_key}/{session_id}/{seg_name}")
+                    else:
+                        rewritten.append(f"{base_origin}/live/segment/{stream_key}/{seg_name}")
 
             out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
             with m3u8_cache_lock:
@@ -1107,9 +928,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
                     # Handle Nested / Variant M3U8 (Adaptive bitrates e.g. MBC, Rotana)
                     if first_chunk.startswith(b"#EXTM3U"):
-                        host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", "localhost"))
-                        if "127.0.0.1" in host or "localhost" in host:
-                            host = "aspreen-tv-production.up.railway.app"
+                        host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", f"127.0.0.1:{PORT}"))
                         proto = self.headers.get("X-Forwarded-Proto", "https" if ("railway" in host or "443" in host) else "http")
                         if "railway" in host:
                             proto = "https"
@@ -1198,12 +1017,13 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                 except (BrokenPipeError, ConnectionResetError):
                     pass
-    def handle_ondemand_segment(self, stream_key, seg_file):
+    def handle_ondemand_segment(self, stream_key, seg_file, session_id=""):
         """Serves on-demand HLS sliced TS segment directly with zero upstream overhead and RAM cache"""
         ON_DEMAND_STREAM_MANAGER.touch(stream_key)
         clean_key = re.sub(r"[^a-zA-Z0-9_\-]", "", stream_key)
         clean_file = re.sub(r"[^a-zA-Z0-9_\-\.]", "", seg_file)
-        cache_key = f"{clean_key}_{clean_file}"
+        clean_session = re.sub(r"[^a-zA-Z0-9_\-]", "", session_id) if session_id else ""
+        cache_key = f"{clean_key}_{clean_session}_{clean_file}" if clean_session else f"{clean_key}_{clean_file}"
 
         now = time.time()
         with hot_cache_lock:
@@ -1222,7 +1042,10 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     pass
                 return
 
-        seg_path = os.path.join(ON_DEMAND_STREAM_MANAGER.base_dir, clean_key, clean_file)
+        if clean_session and hasattr(ON_DEMAND_STREAM_MANAGER, "segment_path"):
+            seg_path = ON_DEMAND_STREAM_MANAGER.segment_path(clean_key, clean_session, clean_file)
+        else:
+            seg_path = os.path.join(ON_DEMAND_STREAM_MANAGER.base_dir, clean_key, clean_file)
 
         # Wait briefly up to 2.5s if segment is still finishing write
         for _ in range(25):
