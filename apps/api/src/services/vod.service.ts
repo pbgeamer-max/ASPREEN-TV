@@ -191,33 +191,108 @@ export class VodService {
         const playerUrl = `${params.baseUrl}/api/app/vod/player?id=${encodeURIComponent(rawItem.id)}`;
         const embedCode = `<iframe src="${playerUrl}" width="100%" height="550" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
 
+        const cleanOverview = this.cleanOverview(rawItem.overview || '');
+
+        const movieServers = [
+          {
+            id: 'server-1',
+            name: 'سيرفر البث الرئيسي (HLS HD)',
+            url: streamUrl,
+            stream_url: streamUrl,
+            type: 'hls',
+            format: 'm3u8',
+            default: true,
+          },
+          {
+            id: 'server-2',
+            name: 'المشغل السحابي المباشر',
+            url: playerUrl,
+            player_url: playerUrl,
+            type: 'embed',
+            format: 'iframe',
+          }
+        ];
+
+        const movieSources = [
+          {
+            src: streamUrl,
+            file: streamUrl,
+            type: 'application/x-mpegURL',
+            label: 'Auto HD',
+          }
+        ];
+
         if (rawItem.type === 'movie') {
           return {
             id: rawItem.id,
             slug: rawItem.slug,
             title: cleanTitle,
+            name: cleanTitle,
             type: 'movie',
             is_dubbed: rawItem.isDubbed,
             is_subbed: rawItem.isSubbed,
             poster: posterUrl,
-            overview: this.cleanOverview(rawItem.overview || ''),
+            poster_url: posterUrl,
+            thumbnail: posterUrl,
+            image: posterUrl,
+            overview: cleanOverview,
+            description: cleanOverview,
             stream_url: streamUrl,
+            video_url: streamUrl,
+            file: streamUrl,
+            url: streamUrl,
             player_url: playerUrl,
             embed_code: embedCode,
+            servers: movieServers,
+            sources: movieSources,
           };
         } else {
           const detail = await this.getSeriesDetail(rawItem.slug);
           const seasons = (detail?.seasons || []).map(s => ({
             season_number: s.seasonNumber,
             episodes_count: s.episodesCount,
-            episodes: s.episodes.map(ep => ({
-              id: ep.id,
-              episode_number: ep.episodeNumber,
-              title: ep.title,
-              stream_url: `${params.baseUrl}/api/app/vod/stream?id=${encodeURIComponent(ep.id)}`,
-              player_url: `${params.baseUrl}/api/app/vod/player?id=${encodeURIComponent(ep.id)}`,
-              embed_code: `<iframe src="${params.baseUrl}/api/app/vod/player?id=${encodeURIComponent(ep.id)}" width="100%" height="550" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`,
-            }))
+            episodes: s.episodes.map(ep => {
+              const epStream = `${params.baseUrl}/api/app/vod/stream?id=${encodeURIComponent(ep.id)}`;
+              const epPlayer = `${params.baseUrl}/api/app/vod/player?id=${encodeURIComponent(ep.id)}`;
+              return {
+                id: ep.id,
+                episode_number: ep.episodeNumber,
+                title: ep.title,
+                stream_url: epStream,
+                video_url: epStream,
+                file: epStream,
+                url: epStream,
+                player_url: epPlayer,
+                embed_code: `<iframe src="${epPlayer}" width="100%" height="550" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`,
+                servers: [
+                  {
+                    id: 'server-1',
+                    name: 'سيرفر البث الرئيسي (HLS HD)',
+                    url: epStream,
+                    stream_url: epStream,
+                    type: 'hls',
+                    format: 'm3u8',
+                    default: true,
+                  },
+                  {
+                    id: 'server-2',
+                    name: 'المشغل السحابي المباشر',
+                    url: epPlayer,
+                    player_url: epPlayer,
+                    type: 'embed',
+                    format: 'iframe',
+                  }
+                ],
+                sources: [
+                  {
+                    src: epStream,
+                    file: epStream,
+                    type: 'application/x-mpegURL',
+                    label: 'Auto HD',
+                  }
+                ]
+              };
+            })
           }));
 
           const primaryStream = seasons.length > 0 && seasons[0].episodes.length > 0
@@ -226,21 +301,57 @@ export class VodService {
           const primaryPlayer = seasons.length > 0 && seasons[0].episodes.length > 0
             ? seasons[0].episodes[0].player_url
             : playerUrl;
+          const seriesOverview = this.cleanOverview(detail?.overview || rawItem.overview || '');
 
           return {
             id: rawItem.id,
             slug: rawItem.slug,
             title: cleanTitle,
+            name: cleanTitle,
             type: 'series',
             is_dubbed: rawItem.isDubbed,
             is_subbed: rawItem.isSubbed,
             poster: posterUrl,
-            overview: this.cleanOverview(detail?.overview || rawItem.overview || ''),
+            poster_url: posterUrl,
+            thumbnail: posterUrl,
+            image: posterUrl,
+            overview: seriesOverview,
+            description: seriesOverview,
             seasons_count: detail?.seasonsCount || seasons.length,
             total_episodes: detail?.totalEpisodes || seasons.reduce((sum, s) => sum + s.episodes_count, 0),
             stream_url: primaryStream,
+            video_url: primaryStream,
+            file: primaryStream,
+            url: primaryStream,
             player_url: primaryPlayer,
             embed_code: `<iframe src="${primaryPlayer}" width="100%" height="550" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`,
+            servers: [
+              {
+                id: 'server-1',
+                name: 'سيرفر البث الرئيسي (HLS HD)',
+                url: primaryStream,
+                stream_url: primaryStream,
+                type: 'hls',
+                format: 'm3u8',
+                default: true,
+              },
+              {
+                id: 'server-2',
+                name: 'المشغل السحابي المباشر',
+                url: primaryPlayer,
+                player_url: primaryPlayer,
+                type: 'embed',
+                format: 'iframe',
+              }
+            ],
+            sources: [
+              {
+                src: primaryStream,
+                file: primaryStream,
+                type: 'application/x-mpegURL',
+                label: 'Auto HD',
+              }
+            ],
             seasons,
           };
         }

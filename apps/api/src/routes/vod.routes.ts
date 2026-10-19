@@ -183,15 +183,17 @@ export async function vodRoutes(server: FastifyInstance) {
           }
 
           if (!isM3u8) {
-            // Binary .ts chunk or mp4
-            reply.raw.writeHead(proxyRes.statusCode || 200, {
-              'Content-Type': proxyRes.headers['content-type'] || 'video/mp2t',
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-              'Access-Control-Allow-Headers': '*',
-              'Cache-Control': 'public, max-age=86400',
-              ...(proxyRes.headers['content-length'] ? { 'Content-Length': proxyRes.headers['content-length'] } : {})
-            });
+            // Binary .ts chunk, mp4, or encryption.key
+            if (!reply.raw.headersSent) {
+              reply.raw.writeHead(proxyRes.statusCode || 200, {
+                'Content-Type': proxyRes.headers['content-type'] || 'application/octet-stream',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+                'Access-Control-Allow-Headers': '*',
+                'Cache-Control': 'public, max-age=86400',
+                ...(proxyRes.headers['content-length'] ? { 'Content-Length': proxyRes.headers['content-length'] } : {})
+              });
+            }
             proxyRes.pipe(reply.raw);
             proxyRes.on('end', () => resolve());
             return;
@@ -202,23 +204,45 @@ export async function vodRoutes(server: FastifyInstance) {
           proxyRes.setEncoding('utf-8');
           proxyRes.on('data', chunk => playlistText += chunk);
           proxyRes.on('end', () => {
+            const toProxyUrl = (target: string): string => {
+              const trimmedTarget = target.trim();
+              let absoluteTarget = trimmedTarget;
+              if (trimmedTarget.startsWith('http://') || trimmedTarget.startsWith('https://')) {
+                absoluteTarget = trimmedTarget;
+              } else if (trimmedTarget.startsWith('/')) {
+                absoluteTarget = `${origin}${trimmedTarget}`;
+              } else {
+                absoluteTarget = `${currentDir}${trimmedTarget}`;
+              }
+              return `${baseUrl}/api/app/vod/stream?url=${encodeURIComponent(absoluteTarget)}`;
+            };
+
             const lines = playlistText.split('\n');
             const rewrittenLines = lines.map(line => {
               const trimmed = line.trim();
-              if (!trimmed || trimmed.startsWith('#')) {
+              if (!trimmed) {
                 return line;
               }
 
-              let absoluteTarget = trimmed;
-              if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-                absoluteTarget = trimmed;
-              } else if (trimmed.startsWith('/')) {
-                absoluteTarget = `${origin}${trimmed}`;
-              } else {
-                absoluteTarget = `${currentDir}${trimmed}`;
+              // 1. Rewrite encryption keys, init maps, alternate media URIs
+              if (
+                trimmed.startsWith('#EXT-X-KEY:') ||
+                trimmed.startsWith('#EXT-X-MAP:') ||
+                trimmed.startsWith('#EXT-X-MEDIA:') ||
+                trimmed.startsWith('#EXT-X-I-FRAME-STREAM-INF:')
+              ) {
+                return line.replace(/URI=["']([^"']+)["']/g, (_m, uri) => {
+                  return `URI="${toProxyUrl(uri)}"`;
+                });
               }
 
-              return `${baseUrl}/api/app/vod/stream?url=${encodeURIComponent(absoluteTarget)}`;
+              // 2. Ignore other HLS directives/comments
+              if (trimmed.startsWith('#')) {
+                return line;
+              }
+
+              // 3. Normal segment or sub-playlist URL
+              return toProxyUrl(trimmed);
             });
 
             reply.header('Content-Type', 'application/vnd.apple.mpegurl; charset=utf-8');
