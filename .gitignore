@@ -3,14 +3,9 @@ node_modules/
 dist/
 data/*
 !data/.gitkeep
-!data/3isk_catalog.json
 !data/channels.json
-!data/kisskh_catalog.json
-!data/kisskh_dramas.json
-!data/kisskh_streams.json
-!data/kisskh_subtitles.json
-!data/vod_series.json
-!data/vod_movies.json
+!data/channels_multiserver.json
+!data/yacine_channels.json
 scripts/*.html
 scripts/inspect_*.js
 scripts/test_*.js
@@ -28,6 +23,3 @@ resources.arsc
 assets/
 __pycache__/
 *.pyc
-
-# Local project folders
-موقع كرة قدم وافلام/

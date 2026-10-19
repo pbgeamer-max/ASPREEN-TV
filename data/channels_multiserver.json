@@ -1,0 +1,1966 @@
+[
+  {
+    "id": "bein-vip-bein-sports-news",
+    "vid": "bein-vip-bein-sports-news",
+    "name": "BEIN SPORTS NEWS",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 1,
+    "streamUrl": "/live/bein-vip-bein-sports-news.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985187&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-news.m3u8",
+    "referer": "https://yacine.website/channel/207119423119893112/live",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-news.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985187&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-news.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985171&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792276924.2754433,
+    "playUrl": "/live/bein-vip-bein-sports-news.m3u8?server=1",
+    "status_message": "بث مباشر نشط ومستقر",
+    "inputStatus": "ONLINE",
+    "enabled": true
+  },
+  {
+    "id": "bein-vip-bein-sports-global",
+    "vid": "bein-vip-bein-sports-global",
+    "name": "BEIN SPORTS GLOBAL",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 2,
+    "streamUrl": "/live/bein-vip-bein-sports-global.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985186&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-global.m3u8",
+    "referer": "https://yacine.website/channel/207119423119893112/live",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-global.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985186&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-global.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985170&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792276925.3948278,
+    "playUrl": "/live/bein-vip-bein-sports-global.m3u8?server=1",
+    "status_message": "بث مباشر نشط ومستقر",
+    "inputStatus": "ONLINE",
+    "enabled": true
+  },
+  {
+    "id": "bein-vip-bein-sports-1",
+    "vid": "bein-vip-bein-sports-1",
+    "name": "BEIN SPORTS 1",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 3,
+    "streamUrl": "/live/bein-vip-bein-sports-1.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985161&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-1.m3u8",
+    "referer": "https://yacine.website/channel/207119423132628321/live",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-1.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985161&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-1.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242255&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792276926.2242007,
+    "playUrl": "/live/bein-vip-bein-sports-1.m3u8?server=1",
+    "status_message": "بث مباشر نشط ومستقر",
+    "inputStatus": "ONLINE",
+    "enabled": true
+  },
+  {
+    "id": "bein-vip-bein-sports-2",
+    "vid": "bein-vip-bein-sports-2",
+    "name": "BEIN SPORTS 2",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 4,
+    "streamUrl": "/live/bein-vip-bein-sports-2.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985162&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-2.m3u8",
+    "referer": "https://yacine.website/channel/207119423133708072/live",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-2.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985162&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-2.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242254&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792276927.0312612,
+    "playUrl": "/live/bein-vip-bein-sports-2.m3u8?server=1",
+    "status_message": "بث مباشر نشط ومستقر",
+    "inputStatus": "ONLINE",
+    "enabled": true
+  },
+  {
+    "id": "bein-vip-bein-sports-3",
+    "vid": "bein-vip-bein-sports-3",
+    "name": "BEIN SPORTS 3",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 5,
+    "streamUrl": "/live/bein-vip-bein-sports-3.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985163&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-3.m3u8",
+    "referer": "https://yacine.website/channel/207119423130423959/live",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-3.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985163&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-3.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242253&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792276927.830335,
+    "playUrl": "/live/bein-vip-bein-sports-3.m3u8?server=1",
+    "status_message": "بث مباشر نشط ومستقر",
+    "inputStatus": "ONLINE",
+    "enabled": true
+  },
+  {
+    "id": "bein-vip-bein-sports-4",
+    "vid": "bein-vip-bein-sports-4",
+    "name": "BEIN SPORTS 4",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 6,
+    "streamUrl": "/live/bein-vip-bein-sports-4.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985164&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-4.m3u8",
+    "referer": "https://yacine.website/channel/207119423131118230/live",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-4.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985164&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-4.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242252&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792276928.6367285,
+    "playUrl": "/live/bein-vip-bein-sports-4.m3u8?server=1",
+    "status_message": "بث مباشر نشط ومستقر",
+    "inputStatus": "ONLINE",
+    "enabled": true
+  },
+  {
+    "id": "bein-vip-bein-sports-5",
+    "vid": "bein-vip-bein-sports-5",
+    "name": "BEIN SPORTS 5",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 7,
+    "streamUrl": "/live/bein-vip-bein-sports-5.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985165&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-5.m3u8",
+    "referer": "https://yacine.website/channel/207119423128371685/live",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-5.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985165&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-5.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242251&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792276929.4367409,
+    "playUrl": "/live/bein-vip-bein-sports-5.m3u8?server=1",
+    "status_message": "بث مباشر نشط ومستقر",
+    "inputStatus": "ONLINE",
+    "enabled": true
+  },
+  {
+    "id": "bein-vip-bein-sports-6",
+    "vid": "bein-vip-bein-sports-6",
+    "name": "BEIN SPORTS 6",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 8,
+    "streamUrl": "/live/bein-vip-bein-sports-6.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985166&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-6.m3u8",
+    "referer": "https://yacine.website/channel/207119423129963420/live",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-6.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985166&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-6.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242250&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792276930.2809148,
+    "playUrl": "/live/bein-vip-bein-sports-6.m3u8?server=1",
+    "status_message": "بث مباشر نشط ومستقر",
+    "inputStatus": "ONLINE",
+    "enabled": true
+  },
+  {
+    "id": "bein-vip-bein-sports-7",
+    "vid": "bein-vip-bein-sports-7",
+    "name": "BEIN SPORTS 7",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 9,
+    "streamUrl": "/live/bein-vip-bein-sports-7.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985167&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-7.m3u8",
+    "referer": "https://yacine.website/channel/207119423126609442/live",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-7.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985167&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-7.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242249&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792276931.0945625,
+    "playUrl": "/live/bein-vip-bein-sports-7.m3u8?server=1",
+    "status_message": "بث مباشر نشط ومستقر",
+    "inputStatus": "ONLINE",
+    "enabled": true
+  },
+  {
+    "id": "bein-vip-bein-sports-8",
+    "vid": "bein-vip-bein-sports-8",
+    "name": "BEIN SPORTS 8",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 10,
+    "streamUrl": "/live/bein-vip-bein-sports-8.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985168&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-8.m3u8",
+    "referer": "https://yacine.website/channel/207119423126943987/live",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-8.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985168&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-8.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242248&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792276931.9017022,
+    "playUrl": "/live/bein-vip-bein-sports-8.m3u8?server=1",
+    "status_message": "بث مباشر نشط ومستقر",
+    "inputStatus": "ONLINE",
+    "enabled": true
+  },
+  {
+    "id": "bein-vip-bein-sports-9",
+    "vid": "bein-vip-bein-sports-9",
+    "name": "BEIN SPORTS 9",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 11,
+    "streamUrl": "/live/bein-vip-bein-sports-9.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985169&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-9.m3u8",
+    "referer": "https://yacine.website/channel/207119423124591988/live",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-9.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=985169&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-9.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242247&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792276932.7107725,
+    "playUrl": "/live/bein-vip-bein-sports-9.m3u8?server=1",
+    "status_message": "بث مباشر نشط ومستقر",
+    "inputStatus": "ONLINE",
+    "enabled": true
+  },
+  {
+    "id": "bein-vip-bein-sports-afc",
+    "vid": "bein-vip-bein-sports-afc",
+    "name": "BEIN SPORTS AFC",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 12,
+    "streamUrl": "/live/bein-vip-bein-sports-afc.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242286&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-afc.m3u8",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-afc.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242286&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-afc.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242285&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792272155.740247,
+    "playUrl": "/live/bein-vip-bein-sports-afc.m3u8?server=1",
+    "inputStatus": "ONLINE",
+    "enabled": true,
+    "status_message": "بث مباشر نشط ومستقر"
+  },
+  {
+    "id": "bein-vip-bein-sports-afc-1",
+    "vid": "bein-vip-bein-sports-afc-1",
+    "name": "BEIN SPORTS AFC 1",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 13,
+    "streamUrl": "/live/bein-vip-bein-sports-afc-1.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242271&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-afc-1.m3u8",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-afc-1.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242271&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-afc-1.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242270&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792272155.7402513,
+    "playUrl": "/live/bein-vip-bein-sports-afc-1.m3u8?server=1",
+    "inputStatus": "ONLINE",
+    "enabled": true,
+    "status_message": "بث مباشر نشط ومستقر"
+  },
+  {
+    "id": "bein-vip-bein-sports-1-afc",
+    "vid": "bein-vip-bein-sports-1-afc",
+    "name": "BEIN SPORTS 1 AFC",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 14,
+    "streamUrl": "/live/bein-vip-bein-sports-1-afc.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242271&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-1-afc.m3u8",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-1-afc.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242271&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-1-afc.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242270&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792272155.7402556,
+    "playUrl": "/live/bein-vip-bein-sports-1-afc.m3u8?server=1",
+    "inputStatus": "ONLINE",
+    "enabled": true,
+    "status_message": "بث مباشر نشط ومستقر"
+  },
+  {
+    "id": "bein-vip-bein-sports-2-afc",
+    "vid": "bein-vip-bein-sports-2-afc",
+    "name": "BEIN SPORTS 2 AFC",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 15,
+    "streamUrl": "/live/bein-vip-bein-sports-2-afc.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242258&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-2-afc.m3u8",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-2-afc.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242258&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-2-afc.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242257&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792272155.7402604,
+    "playUrl": "/live/bein-vip-bein-sports-2-afc.m3u8?server=1",
+    "inputStatus": "ONLINE",
+    "enabled": true,
+    "status_message": "بث مباشر نشط ومستقر"
+  },
+  {
+    "id": "bein-vip-bein-sports-3-afc",
+    "vid": "bein-vip-bein-sports-3-afc",
+    "name": "BEIN SPORTS 3 AFC",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 16,
+    "streamUrl": "/live/bein-vip-bein-sports-3-afc.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242245&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-3-afc.m3u8",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-3-afc.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242245&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-3-afc.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=242244&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792272155.740265,
+    "playUrl": "/live/bein-vip-bein-sports-3-afc.m3u8?server=1",
+    "inputStatus": "ONLINE",
+    "enabled": true,
+    "status_message": "بث مباشر نشط ومستقر"
+  },
+  {
+    "id": "bein-vip-bein-sports-afc-4",
+    "vid": "bein-vip-bein-sports-afc-4",
+    "name": "BEIN SPORTS AFC 4",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 17,
+    "streamUrl": "/live/bein-vip-bein-sports-afc-4.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794422&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-afc-4.m3u8",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-afc-4.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794422&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-afc-4.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794423&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792272155.7402723,
+    "playUrl": "/live/bein-vip-bein-sports-afc-4.m3u8?server=1",
+    "inputStatus": "ONLINE",
+    "enabled": true,
+    "status_message": "بث مباشر نشط ومستقر"
+  },
+  {
+    "id": "bein-vip-bein-sports-afc-5",
+    "vid": "bein-vip-bein-sports-afc-5",
+    "name": "BEIN SPORTS AFC 5",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 18,
+    "streamUrl": "/live/bein-vip-bein-sports-afc-5.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794425&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-afc-5.m3u8",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 - فائق الثبات وسلس ((VIP احتياطي - HD))",
+        "url": "/live/bein-vip-bein-sports-afc-5.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794425&extension=ts",
+        "quality": "HD",
+        "status": "live",
+        "isDefault": true
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 - (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-afc-5.m3u8?server=2",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=794426&extension=ts",
+        "quality": "1080p",
+        "isDefault": false,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792272155.7402775,
+    "playUrl": "/live/bein-vip-bein-sports-afc-5.m3u8?server=1",
+    "inputStatus": "ONLINE",
+    "enabled": true,
+    "status_message": "بث مباشر نشط ومستقر"
+  },
+  {
+    "id": "bein-vip-bein-sports-1-english",
+    "vid": "bein-vip-bein-sports-1-english",
+    "name": "BEIN SPORTS 1 ENGLISH",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 19,
+    "streamUrl": "/live/bein-vip-bein-sports-1-english.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030245&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-1-english.m3u8",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-1-english.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030245&extension=ts",
+        "quality": "1080p",
+        "isDefault": true,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792272155.7402813,
+    "playUrl": "/live/bein-vip-bein-sports-1-english.m3u8?server=1",
+    "inputStatus": "ONLINE",
+    "enabled": true,
+    "status_message": "بث مباشر نشط ومستقر"
+  },
+  {
+    "id": "bein-vip-bein-sports-2-english",
+    "vid": "bein-vip-bein-sports-2-english",
+    "name": "BEIN SPORTS 2 ENGLISH",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 20,
+    "streamUrl": "/live/bein-vip-bein-sports-2-english.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030246&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-2-english.m3u8",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-2-english.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030246&extension=ts",
+        "quality": "1080p",
+        "isDefault": true,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792272155.740285,
+    "playUrl": "/live/bein-vip-bein-sports-2-english.m3u8?server=1",
+    "inputStatus": "ONLINE",
+    "enabled": true,
+    "status_message": "بث مباشر نشط ومستقر"
+  },
+  {
+    "id": "bein-vip-bein-sports-1-france",
+    "vid": "bein-vip-bein-sports-1-france",
+    "name": "BEIN SPORTS 1 FRANCE",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 21,
+    "streamUrl": "/live/bein-vip-bein-sports-1-france.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030247&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-1-france.m3u8",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-1-france.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030247&extension=ts",
+        "quality": "1080p",
+        "isDefault": true,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792272155.7402883,
+    "playUrl": "/live/bein-vip-bein-sports-1-france.m3u8?server=1",
+    "inputStatus": "ONLINE",
+    "enabled": true,
+    "status_message": "بث مباشر نشط ومستقر"
+  },
+  {
+    "id": "bein-vip-bein-sports-2-france",
+    "vid": "bein-vip-bein-sports-2-france",
+    "name": "BEIN SPORTS 2 FRANCE",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 22,
+    "streamUrl": "/live/bein-vip-bein-sports-2-france.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030248&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-2-france.m3u8",
+    "referer": "http://line.hey-ott.net/",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-2-france.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030248&extension=ts",
+        "quality": "1080p",
+        "isDefault": true,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792272155.7402918,
+    "playUrl": "/live/bein-vip-bein-sports-2-france.m3u8?server=1",
+    "inputStatus": "ONLINE",
+    "enabled": true,
+    "status_message": "بث مباشر نشط ومستقر"
+  },
+  {
+    "id": "bein-vip-bein-sports-3-france",
+    "vid": "bein-vip-bein-sports-3-france",
+    "name": "BEIN SPORTS 3 FRANCE",
+    "groupTitle": "beIN SPORTS VIP (ملفاتك الخاصة)",
+    "logoUrl": "/logos/bein-sports.png",
+    "orderIndex": 23,
+    "streamUrl": "/live/bein-vip-bein-sports-3-france.m3u8?server=1",
+    "directM3u8": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030249&extension=ts",
+    "proxyUrl": "/live/bein-vip-bein-sports-3-france.m3u8",
+    "referer": "https://yacine.website/channel/207119423123144615/live",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (VIP فضائي 24/7 - FHD)",
+        "url": "/live/bein-vip-bein-sports-3-france.m3u8?server=1",
+        "upstreamUrl": "http://line.hey-ott.net:80/play/live.php?mac=A0:BB:3E:04:BF:83&stream=1030249&extension=ts",
+        "quality": "1080p",
+        "isDefault": true,
+        "status": "live"
+      }
+    ],
+    "source": "private-vip",
+    "status": "live",
+    "lastRenewed": 1792276935.0831058,
+    "playUrl": "/live/bein-vip-bein-sports-3-france.m3u8?server=1",
+    "status_message": "بث مباشر نشط ومستقر",
+    "inputStatus": "ONLINE",
+    "enabled": true
+  },
+  {
+    "id": "tlfaz-asharq-documentary",
+    "vid": "tlfaz-asharq-documentary",
+    "name": "قناة الشرق الوثائقية",
+    "groupTitle": "قنوات وثائقية",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/03/Asharq-Documentary.png",
+    "orderIndex": 1001,
+    "streamUrl": "/live/tlfaz-asharq-documentary.m3u8?server=1",
+    "directM3u8": "https://svs.itworkscdn.net/asharqdocumentarylive/asharqdocumentary.smil/playlist_dvr.m3u8",
+    "proxyUrl": "/live/tlfaz-asharq-documentary.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
+        "url": "/live/tlfaz-asharq-documentary.m3u8?server=1",
+        "upstreamUrl": "https://svs.itworkscdn.net/asharqdocumentarylive/asharqdocumentary.smil/playlist_dvr.m3u8",
+        "quality": "1080p",
+        "isDefault": true,
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272176.6294596,
+    "playUrl": "/live/tlfaz-asharq-documentary.m3u8?server=1"
+  },
+  {
+    "id": "tlfaz-asharq-discovery",
+    "vid": "tlfaz-asharq-discovery",
+    "name": "قناة الشرق ديسكفري",
+    "groupTitle": "قنوات وثائقية",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2024/03/Asharq-Discovery.png",
+    "orderIndex": 1002,
+    "streamUrl": "/live/tlfaz-asharq-discovery.m3u8?server=1",
+    "directM3u8": "https://svs.itworkscdn.net/asharqdiscoverylive/asharqd.smil/playlist_dvr.m3u8",
+    "proxyUrl": "/live/tlfaz-asharq-discovery.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
+        "url": "/live/tlfaz-asharq-discovery.m3u8?server=1",
+        "upstreamUrl": "https://svs.itworkscdn.net/asharqdiscoverylive/asharqd.smil/playlist_dvr.m3u8",
+        "quality": "1080p",
+        "isDefault": true,
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272180.2881153,
+    "playUrl": "/live/tlfaz-asharq-discovery.m3u8?server=1"
+  },
+  {
+    "id": "tlfaz-huda-tv",
+    "vid": "tlfaz-huda-tv",
+    "name": "قناة الهدى",
+    "groupTitle": "قنوات إسلامية ودينية",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/10/icon_channel.png",
+    "orderIndex": 1003,
+    "streamUrl": "https://cdn.bestream.io:19360/elfaro1/elfaro1.m3u8",
+    "directM3u8": "https://cdn.bestream.io:19360/elfaro1/elfaro1.m3u8",
+    "proxyUrl": "/live/tlfaz-huda-tv.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-huda-tv.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-huda-tv.m3u8?server=2",
+        "upstreamUrl": "https://cdn.bestream.io:19360/elfaro1/elfaro1.m3u8",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272175.890111
+  },
+  {
+    "id": "tlfaz-mbc-masr-2",
+    "vid": "tlfaz-mbc-masr-2",
+    "name": "قناة ام بي سي مصر 2",
+    "groupTitle": "باقة قنوات MBC",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2024/02/mbc-masr-2.png",
+    "orderIndex": 1006,
+    "streamUrl": "/live/tlfaz-mbc-masr-2.m3u8?server=1",
+    "directM3u8": "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-masr-2/754931856515075b0aabf0e583495c68/index.m3u8",
+    "proxyUrl": "/live/tlfaz-mbc-masr-2.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
+        "url": "/live/tlfaz-mbc-masr-2.m3u8?server=1",
+        "upstreamUrl": "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-masr-2/754931856515075b0aabf0e583495c68/index.m3u8",
+        "quality": "1080p",
+        "isDefault": true,
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272176.4630115,
+    "playUrl": "/live/tlfaz-mbc-masr-2.m3u8?server=1"
+  },
+  {
+    "id": "tlfaz-mbc-iraq",
+    "vid": "tlfaz-mbc-iraq",
+    "name": "قناة ام بي سي العراق",
+    "groupTitle": "باقة قنوات MBC",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/03/Mbc-IraQ.png",
+    "orderIndex": 1007,
+    "streamUrl": "/live/tlfaz-mbc-iraq.m3u8?server=1",
+    "directM3u8": "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-iraq/e38c44b1b43474e1c39cb5b90203691e/index.m3u8",
+    "proxyUrl": "/live/tlfaz-mbc-iraq.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
+        "url": "/live/tlfaz-mbc-iraq.m3u8?server=1",
+        "upstreamUrl": "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-iraq/e38c44b1b43474e1c39cb5b90203691e/index.m3u8",
+        "quality": "1080p",
+        "isDefault": true,
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272184.2369568,
+    "playUrl": "/live/tlfaz-mbc-iraq.m3u8?server=1"
+  },
+  {
+    "id": "tlfaz-mbc-masr",
+    "vid": "tlfaz-mbc-masr",
+    "name": "قناة ام بي سي مصر",
+    "groupTitle": "باقة قنوات MBC",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2024/02/mbc-masr.png",
+    "orderIndex": 1009,
+    "streamUrl": "https://shd-gcp-live.lg.mncdn.com/live/bitmovin-mbc-masr/956eac069c78a35d47245db6cdbb1575/index.m3u8",
+    "directM3u8": "https://shd-gcp-live.lg.mncdn.com/live/bitmovin-mbc-masr/956eac069c78a35d47245db6cdbb1575/index.m3u8",
+    "proxyUrl": "/live/tlfaz-mbc-masr.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-mbc-masr.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-mbc-masr.m3u8?server=2",
+        "upstreamUrl": "https://shd-gcp-live.lg.mncdn.com/live/bitmovin-mbc-masr/956eac069c78a35d47245db6cdbb1575/index.m3u8",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272187.8081508
+  },
+  {
+    "id": "tlfaz-mbc5",
+    "vid": "tlfaz-mbc5",
+    "name": "قناة إم بي سي 5 (Mbc5)",
+    "groupTitle": "باقة قنوات MBC",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2022/02/mbc5-tv.png",
+    "orderIndex": 1012,
+    "streamUrl": "/live/tlfaz-mbc5.m3u8?server=1",
+    "directM3u8": "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-5/ee6b000cee0629411b666ab26cb13e9b/index.m3u8",
+    "proxyUrl": "/live/tlfaz-mbc5.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
+        "url": "/live/tlfaz-mbc5.m3u8?server=1",
+        "upstreamUrl": "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-5/ee6b000cee0629411b666ab26cb13e9b/index.m3u8",
+        "quality": "1080p",
+        "isDefault": true,
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272190.5343838,
+    "playUrl": "/live/tlfaz-mbc5.m3u8?server=1"
+  },
+  {
+    "id": "tlfaz-spacetoon",
+    "vid": "tlfaz-spacetoon",
+    "name": "قناة سبيستون",
+    "groupTitle": "قنوات أطفال",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/02/space-toon.png",
+    "orderIndex": 1013,
+    "streamUrl": "/live/tlfaz-spacetoon.m3u8?server=1",
+    "directM3u8": "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-spacetoon/d8382fb9ab4b2307058f12c7ea90db54/index.m3u8",
+    "proxyUrl": "/live/tlfaz-spacetoon.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (HLS فائق الثبات 24/7)",
+        "url": "/live/tlfaz-spacetoon.m3u8?server=1",
+        "upstreamUrl": "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-spacetoon/d8382fb9ab4b2307058f12c7ea90db54/index.m3u8",
+        "quality": "1080p",
+        "isDefault": true,
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272192.1792018,
+    "playUrl": "/live/tlfaz-spacetoon.m3u8?server=1"
+  },
+  {
+    "id": "tlfaz-al-aoula",
+    "vid": "tlfaz-al-aoula",
+    "name": "القناة الأولى المغربية",
+    "groupTitle": "قنوات عربية منوعة",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2022/02/al-aoula-tv.png",
+    "orderIndex": 1021,
+    "streamUrl": "https://youtube.com/watch?v=hPYn_ziP1-Q",
+    "directM3u8": "https://youtube.com/watch?v=hPYn_ziP1-Q",
+    "proxyUrl": "/live/tlfaz-al-aoula.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-al-aoula.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-al-aoula.m3u8?server=2",
+        "upstreamUrl": "https://youtube.com/watch?v=hPYn_ziP1-Q",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272200.2604306
+  },
+  {
+    "id": "tlfaz-bahia-tv",
+    "vid": "tlfaz-bahia-tv",
+    "name": "قناة الباهية تيفي",
+    "groupTitle": "قنوات عربية منوعة",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2022/03/bahia_tv.png",
+    "orderIndex": 1032,
+    "streamUrl": "https://live.kwikmotion.com/syriatv02live/syriatv02.smil/playlist.m3u8",
+    "directM3u8": "https://live.kwikmotion.com/syriatv02live/syriatv02.smil/playlist.m3u8",
+    "proxyUrl": "/live/tlfaz-bahia-tv.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-bahia-tv.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-bahia-tv.m3u8?server=2",
+        "upstreamUrl": "https://live.kwikmotion.com/syriatv02live/syriatv02.smil/playlist.m3u8",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272213.3080947
+  },
+  {
+    "id": "tlfaz-oman-tv",
+    "vid": "tlfaz-oman-tv",
+    "name": "قناة عمان تي في",
+    "groupTitle": "قنوات عربية منوعة",
+    "logoUrl": "",
+    "orderIndex": 1035,
+    "streamUrl": "https://partneta.cdn.mgmlcdn.com/omantv/smil:omantv.stream.smil/chunklist.m3u8",
+    "directM3u8": "https://partneta.cdn.mgmlcdn.com/omantv/smil:omantv.stream.smil/chunklist.m3u8",
+    "proxyUrl": "/live/tlfaz-oman-tv.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-oman-tv.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-oman-tv.m3u8?server=2",
+        "upstreamUrl": "https://partneta.cdn.mgmlcdn.com/omantv/smil:omantv.stream.smil/chunklist.m3u8",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272219.117325
+  },
+  {
+    "id": "tlfaz-el-medina-mr-tv",
+    "vid": "tlfaz-el-medina-mr-tv",
+    "name": "قناة المدينة الموريتانية",
+    "groupTitle": "قنوات عربية منوعة",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/03/El-Medina-Tv.png",
+    "orderIndex": 1063,
+    "streamUrl": "https://www.twitch.tv/elmedina_network?tlfaz.com",
+    "directM3u8": "https://www.twitch.tv/elmedina_network?tlfaz.com",
+    "proxyUrl": "/live/tlfaz-el-medina-mr-tv.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-el-medina-mr-tv.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-el-medina-mr-tv.m3u8?server=2",
+        "upstreamUrl": "https://www.twitch.tv/elmedina_network?tlfaz.com",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272257.514763
+  },
+  {
+    "id": "tlfaz-zad-tv",
+    "vid": "tlfaz-zad-tv",
+    "name": "قناة زاد الفضائية",
+    "groupTitle": "قنوات إسلامية ودينية",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/03/zad-tv.png",
+    "orderIndex": 1073,
+    "streamUrl": "https://m.youtube.com/watch?v=1ghxHeIjaTw",
+    "directM3u8": "https://m.youtube.com/watch?v=1ghxHeIjaTw",
+    "proxyUrl": "/live/tlfaz-zad-tv.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-zad-tv.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-zad-tv.m3u8?server=2",
+        "upstreamUrl": "https://m.youtube.com/watch?v=1ghxHeIjaTw",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272267.1843605
+  },
+  {
+    "id": "tlfaz-ktv-arabe",
+    "vid": "tlfaz-ktv-arabe",
+    "name": "قناة العربي الكويتية الوثائقية",
+    "groupTitle": "قنوات وثائقية",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2024/06/KTV-Arabe.png",
+    "orderIndex": 1083,
+    "streamUrl": "https://kwtktvata.cdn.mangomolo.com/ktva/smil:tktva.stream.smil/chunklist.m3u8",
+    "directM3u8": "https://kwtktvata.cdn.mangomolo.com/ktva/smil:tktva.stream.smil/chunklist.m3u8",
+    "proxyUrl": "/live/tlfaz-ktv-arabe.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-ktv-arabe.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-ktv-arabe.m3u8?server=2",
+        "upstreamUrl": "https://kwtktvata.cdn.mangomolo.com/ktva/smil:tktva.stream.smil/chunklist.m3u8",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272276.1574857,
+    "inputStatus": "ONLINE",
+    "enabled": true,
+    "status_message": "بث مباشر نشط ومستقر"
+  },
+  {
+    "id": "tlfaz-al-jazeera",
+    "vid": "tlfaz-al-jazeera",
+    "name": "قناة الجزيرة الاخبارية",
+    "groupTitle": "قنوات إخبارية وسياسية",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2024/05/aljazeera.png",
+    "orderIndex": 1089,
+    "streamUrl": "https://live-hls-apps-aja-fa.getaj.net/AJA/index.m3u8",
+    "directM3u8": "https://live-hls-apps-aja-fa.getaj.net/AJA/index.m3u8",
+    "proxyUrl": "/live/tlfaz-al-jazeera.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-al-jazeera.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-al-jazeera.m3u8?server=2",
+        "upstreamUrl": "https://live-hls-apps-aja-fa.getaj.net/AJA/index.m3u8",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272286.0982518
+  },
+  {
+    "id": "tlfaz-yemen-tv",
+    "vid": "tlfaz-yemen-tv",
+    "name": "قناة اليمن الفضائية البث المباشر",
+    "groupTitle": "قنوات إخبارية وسياسية",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/03/Yemen-Tv.png",
+    "orderIndex": 1099,
+    "streamUrl": "https://m.twitch.tv/yementv?desktop-redirect=true",
+    "directM3u8": "https://m.twitch.tv/yementv?desktop-redirect=true",
+    "proxyUrl": "/live/tlfaz-yemen-tv.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-yemen-tv.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-yemen-tv.m3u8?server=2",
+        "upstreamUrl": "https://m.twitch.tv/yementv?desktop-redirect=true",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272299.465252
+  },
+  {
+    "id": "tlfaz-alwasat-wtv",
+    "vid": "tlfaz-alwasat-wtv",
+    "name": "قناة الوسط الليبية wtv",
+    "groupTitle": "قنوات إخبارية وسياسية",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/03/Alwasat-TV.png",
+    "orderIndex": 1100,
+    "streamUrl": "https://alwasattv.hibridcdn.net/alwasattv/alwasat_abr/alwasattv/alwasat_720p/chunks.m3u8",
+    "directM3u8": "https://alwasattv.hibridcdn.net/alwasattv/alwasat_abr/alwasattv/alwasat_720p/chunks.m3u8",
+    "proxyUrl": "/live/tlfaz-alwasat-wtv.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-alwasat-wtv.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-alwasat-wtv.m3u8?server=2",
+        "upstreamUrl": "https://alwasattv.hibridcdn.net/alwasattv/alwasat_abr/alwasattv/alwasat_720p/chunks.m3u8",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272296.5822227
+  },
+  {
+    "id": "tlfaz-elmourabiton-tv",
+    "vid": "tlfaz-elmourabiton-tv",
+    "name": "قناة المرابطون الموريتانية",
+    "groupTitle": "قنوات عربية منوعة",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/03/elmourabitonTv.png",
+    "orderIndex": 1124,
+    "streamUrl": "https://glturkhstb180.glwiz.com/AlMourabitoune_HD.m3u8?user=sgls19283746&session=782d1914523fc19aa0ea2959b44ac75bb6ad1a37ae0ae24129406eea0e9e0dad795ad01db87b7b60131eb2be4761225b",
+    "directM3u8": "https://glturkhstb180.glwiz.com/AlMourabitoune_HD.m3u8?user=sgls19283746&session=782d1914523fc19aa0ea2959b44ac75bb6ad1a37ae0ae24129406eea0e9e0dad795ad01db87b7b60131eb2be4761225b",
+    "proxyUrl": "/live/tlfaz-elmourabiton-tv.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-elmourabiton-tv.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-elmourabiton-tv.m3u8?server=2",
+        "upstreamUrl": "https://glturkhstb180.glwiz.com/AlMourabitoune_HD.m3u8?user=sgls19283746&session=782d1914523fc19aa0ea2959b44ac75bb6ad1a37ae0ae24129406eea0e9e0dad795ad01db87b7b60131eb2be4761225b",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272340.111745
+  },
+  {
+    "id": "tlfaz-al-fallujah",
+    "vid": "tlfaz-al-fallujah",
+    "name": "قناة الفلوجة",
+    "groupTitle": "قنوات إخبارية وسياسية",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/03/fallujah-tv.png",
+    "orderIndex": 1139,
+    "streamUrl": "https://vimeo.com/911899087",
+    "directM3u8": "https://vimeo.com/911899087",
+    "proxyUrl": "/live/tlfaz-al-fallujah.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-al-fallujah.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-al-fallujah.m3u8?server=2",
+        "upstreamUrl": "https://vimeo.com/911899087",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272359.4776478
+  },
+  {
+    "id": "tlfaz-al-rassoul",
+    "vid": "tlfaz-al-rassoul",
+    "name": "قناة الرسول",
+    "groupTitle": "قنوات إسلامية ودينية",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2024/05/Al-Rassoul-TV.png",
+    "orderIndex": 1146,
+    "streamUrl": "https://www.twitch.tv/alrassoulchannel",
+    "directM3u8": "https://www.twitch.tv/alrassoulchannel",
+    "proxyUrl": "/live/tlfaz-al-rassoul.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-al-rassoul.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-al-rassoul.m3u8?server=2",
+        "upstreamUrl": "https://www.twitch.tv/alrassoulchannel",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272371.5647793
+  },
+  {
+    "id": "tlfaz-bin-othaimeen",
+    "vid": "tlfaz-bin-othaimeen",
+    "name": "قناة ابن عثيمين",
+    "groupTitle": "قنوات إسلامية ودينية",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2024/03/Bin-Othaimeen.png",
+    "orderIndex": 1152,
+    "streamUrl": "https://www.youtube.com/watch?v=xivmKzW7Arc",
+    "directM3u8": "https://www.youtube.com/watch?v=xivmKzW7Arc",
+    "proxyUrl": "/live/tlfaz-bin-othaimeen.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-bin-othaimeen.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-bin-othaimeen.m3u8?server=2",
+        "upstreamUrl": "https://www.youtube.com/watch?v=xivmKzW7Arc",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272380.4172897
+  },
+  {
+    "id": "tlfaz-saudi24",
+    "vid": "tlfaz-saudi24",
+    "name": "قناة سعودي 24",
+    "groupTitle": "قنوات عربية منوعة",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2024/03/s24-sport.png",
+    "orderIndex": 1161,
+    "streamUrl": "https://www.youtube.com/watch?v=IW9A_gfd-EQ",
+    "directM3u8": "https://www.youtube.com/watch?v=IW9A_gfd-EQ",
+    "proxyUrl": "/live/tlfaz-saudi24.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-saudi24.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-saudi24.m3u8?server=2",
+        "upstreamUrl": "https://www.youtube.com/watch?v=IW9A_gfd-EQ",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272392.1997497
+  },
+  {
+    "id": "tlfaz-mauritanie-2-tv",
+    "vid": "tlfaz-mauritanie-2-tv",
+    "name": "القناة الموريتانية الثانية",
+    "groupTitle": "قنوات عربية منوعة",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/03/Mauritanie-2-Tv.png",
+    "orderIndex": 1169,
+    "streamUrl": "https://glturkhstb180.glwiz.com/ElMouritania2.m3u8?user=sglsjcx24l4dgkthkyyzvj5qbxkn&session=0b2a7cfde0c6bfed42bb65040c3767cc21501c53b9da14f1fbd74a4c58a76abac29c8faa83360392442a599bbf2208cc0341097201518b81c7ad11cb4536875d",
+    "directM3u8": "https://glturkhstb180.glwiz.com/ElMouritania2.m3u8?user=sglsjcx24l4dgkthkyyzvj5qbxkn&session=0b2a7cfde0c6bfed42bb65040c3767cc21501c53b9da14f1fbd74a4c58a76abac29c8faa83360392442a599bbf2208cc0341097201518b81c7ad11cb4536875d",
+    "proxyUrl": "/live/tlfaz-mauritanie-2-tv.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-mauritanie-2-tv.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-mauritanie-2-tv.m3u8?server=2",
+        "upstreamUrl": "https://glturkhstb180.glwiz.com/ElMouritania2.m3u8?user=sglsjcx24l4dgkthkyyzvj5qbxkn&session=0b2a7cfde0c6bfed42bb65040c3767cc21501c53b9da14f1fbd74a4c58a76abac29c8faa83360392442a599bbf2208cc0341097201518b81c7ad11cb4536875d",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272410.4034457
+  },
+  {
+    "id": "tlfaz-aden-tv",
+    "vid": "tlfaz-aden-tv",
+    "name": "قناة عدن",
+    "groupTitle": "قنوات إخبارية وسياسية",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/03/Aden-TV.png",
+    "orderIndex": 1170,
+    "streamUrl": "https://m.twitch.tv/adentvriyadh",
+    "directM3u8": "https://m.twitch.tv/adentvriyadh",
+    "proxyUrl": "/live/tlfaz-aden-tv.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-aden-tv.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-aden-tv.m3u8?server=2",
+        "upstreamUrl": "https://m.twitch.tv/adentvriyadh",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272410.438091
+  },
+  {
+    "id": "tlfaz-al-magharibia-2",
+    "vid": "tlfaz-al-magharibia-2",
+    "name": "قناة المغاربية 2",
+    "groupTitle": "قنوات عربية منوعة",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2022/03/al-magharibia-2-tv.png",
+    "orderIndex": 1177,
+    "streamUrl": "https://www.youtube.com/watch?v=xnUq9jP3Lmo",
+    "directM3u8": "https://www.youtube.com/watch?v=xnUq9jP3Lmo",
+    "proxyUrl": "/live/tlfaz-al-magharibia-2.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-al-magharibia-2.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-al-magharibia-2.m3u8?server=2",
+        "upstreamUrl": "https://www.youtube.com/watch?v=xnUq9jP3Lmo",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272417.7724094
+  },
+  {
+    "id": "tlfaz-halab-today-tv",
+    "vid": "tlfaz-halab-today-tv",
+    "name": "قناة حلب اليوم",
+    "groupTitle": "قنوات إخبارية وسياسية",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/03/halab-today-tv.png",
+    "orderIndex": 1199,
+    "streamUrl": "https://www.twitch.tv/halabtodaytvlive?tlfaz",
+    "directM3u8": "https://www.twitch.tv/halabtodaytvlive?tlfaz",
+    "proxyUrl": "/live/tlfaz-halab-today-tv.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-halab-today-tv.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-halab-today-tv.m3u8?server=2",
+        "upstreamUrl": "https://www.twitch.tv/halabtodaytvlive?tlfaz",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272448.4105754
+  },
+  {
+    "id": "tlfaz-pnc-yom",
+    "vid": "tlfaz-pnc-yom",
+    "name": "قناة بانوراما يوم",
+    "groupTitle": "قنوات أفلام ومسلسلات",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png",
+    "orderIndex": 1207,
+    "streamUrl": "https://www.twitch.tv/elbaladtv",
+    "directM3u8": "https://www.twitch.tv/elbaladtv",
+    "proxyUrl": "/live/tlfaz-pnc-yom.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-pnc-yom.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-pnc-yom.m3u8?server=2",
+        "upstreamUrl": "https://www.twitch.tv/elbaladtv",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272459.8931003
+  },
+  {
+    "id": "tlfaz-hadhramaut-tv",
+    "vid": "tlfaz-hadhramaut-tv",
+    "name": "قناة حضرموت",
+    "groupTitle": "قنوات عربية منوعة",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/03/hadhramaut-tv.png",
+    "orderIndex": 1218,
+    "streamUrl": "https://www.twitch.tv/hadramout1",
+    "directM3u8": "https://www.twitch.tv/hadramout1",
+    "proxyUrl": "/live/tlfaz-hadhramaut-tv.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-hadhramaut-tv.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-hadhramaut-tv.m3u8?server=2",
+        "upstreamUrl": "https://www.twitch.tv/hadramout1",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272471.4478354
+  },
+  {
+    "id": "tlfaz-pnc-drama",
+    "vid": "tlfaz-pnc-drama",
+    "name": "قناة بانوراما دراما",
+    "groupTitle": "قنوات أفلام ومسلسلات",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/09/PNC-Drama.png",
+    "orderIndex": 1222,
+    "streamUrl": "https://www.twitch.tv/elbaladtv",
+    "directM3u8": "https://www.twitch.tv/elbaladtv",
+    "proxyUrl": "/live/tlfaz-pnc-drama.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-pnc-drama.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-pnc-drama.m3u8?server=2",
+        "upstreamUrl": "https://www.twitch.tv/elbaladtv",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272475.142687
+  },
+  {
+    "id": "tlfaz-pnc-film",
+    "vid": "tlfaz-pnc-film",
+    "name": "قناة بانوراما فيلم",
+    "groupTitle": "قنوات أفلام ومسلسلات",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png",
+    "orderIndex": 1236,
+    "streamUrl": "https://www.twitch.tv/elbaladtv",
+    "directM3u8": "https://www.twitch.tv/elbaladtv",
+    "proxyUrl": "/live/tlfaz-pnc-film.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-pnc-film.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-pnc-film.m3u8?server=2",
+        "upstreamUrl": "https://www.twitch.tv/elbaladtv",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272491.0174623
+  },
+  {
+    "id": "tlfaz-sada-elbalad-drama",
+    "vid": "tlfaz-sada-elbalad-drama",
+    "name": "قناة صدى البلد دراما",
+    "groupTitle": "قنوات أفلام ومسلسلات",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png",
+    "orderIndex": 1237,
+    "streamUrl": "https://www.twitch.tv/elbaladtv",
+    "directM3u8": "https://www.twitch.tv/elbaladtv",
+    "proxyUrl": "/live/tlfaz-sada-elbalad-drama.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-sada-elbalad-drama.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-sada-elbalad-drama.m3u8?server=2",
+        "upstreamUrl": "https://www.twitch.tv/elbaladtv",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272492.1594765
+  },
+  {
+    "id": "tlfaz-sada-elbalad-2",
+    "vid": "tlfaz-sada-elbalad-2",
+    "name": "قناة صدى 2 البلد",
+    "groupTitle": "قنوات عربية منوعة",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png",
+    "orderIndex": 1238,
+    "streamUrl": "https://www.twitch.tv/elbaladtv",
+    "directM3u8": "https://www.twitch.tv/elbaladtv",
+    "proxyUrl": "/live/tlfaz-sada-elbalad-2.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-sada-elbalad-2.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-sada-elbalad-2.m3u8?server=2",
+        "upstreamUrl": "https://www.twitch.tv/elbaladtv",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272491.516742
+  },
+  {
+    "id": "tlfaz-sada-elbalad",
+    "vid": "tlfaz-sada-elbalad",
+    "name": "قناة صدى البلد",
+    "groupTitle": "قنوات أفلام ومسلسلات",
+    "logoUrl": "https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png",
+    "orderIndex": 1239,
+    "streamUrl": "https://www.twitch.tv/elbaladtv",
+    "directM3u8": "https://www.twitch.tv/elbaladtv",
+    "proxyUrl": "/live/tlfaz-sada-elbalad.m3u8",
+    "referer": "",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر 1 (البث المباشر)",
+        "url": "/live/tlfaz-sada-elbalad.m3u8?server=1",
+        "quality": "HD",
+        "isDefault": true,
+        "status": "live"
+      },
+      {
+        "id": "server-2",
+        "name": "سيرفر 2 (مباشر CDN)",
+        "url": "/live/tlfaz-sada-elbalad.m3u8?server=2",
+        "upstreamUrl": "https://www.twitch.tv/elbaladtv",
+        "quality": "HD",
+        "status": "live"
+      }
+    ],
+    "source": "tlfaz.com",
+    "status": "live",
+    "lastRenewed": 1792272493.9715679
+  }
+]

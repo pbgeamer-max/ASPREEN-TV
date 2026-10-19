@@ -16,19 +16,17 @@ import {
   RefreshCw,
   Power,
   Tv,
-  FolderTree,
   ExternalLink,
   Code2,
   Terminal,
   Smartphone,
   Globe,
-  AlertTriangle,
-  ListOrdered,
-  Film,
-  Video,
-  PlaySquare,
-  Sparkles,
+  Radio,
+  Server,
   Layers,
+  Sparkles,
+  Play,
+  Lock,
 } from 'lucide-react';
 
 export default function ApiManagerPage() {
@@ -40,17 +38,12 @@ export default function ApiManagerPage() {
   const [saving, setSaving] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedM3u, setCopiedM3u] = useState(false);
+  const [copiedMasked, setCopiedMasked] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
-  const [copiedUnifiedVod, setCopiedUnifiedVod] = useState(false);
-  const [copiedSeries, setCopiedSeries] = useState(false);
-  const [copiedSeriesDetail, setCopiedSeriesDetail] = useState(false);
-  const [copiedMovies, setCopiedMovies] = useState(false);
-  const [copiedResolve, setCopiedResolve] = useState(false);
-  const [copiedPlayerEmbed, setCopiedPlayerEmbed] = useState(false);
   const [customKey, setCustomKey] = useState('');
   const [testResult, setTestResult] = useState<any>(null);
   const [testing, setTesting] = useState(false);
-  const [codeTab, setCodeTab] = useState<'unified' | 'channels' | 'series' | 'movies' | 'player'>('unified');
+  const [codeTab, setCodeTab] = useState<'fetch' | 'android' | 'flutter' | 'm3u'>('fetch');
 
   const fetchSettings = async () => {
     try {
@@ -83,297 +76,235 @@ export default function ApiManagerPage() {
     : `${baseUrl}/api/app/channels`;
 
   const playlistM3uUrl = `${baseUrl}/api/app/playlist.m3u`;
-
-  const unifiedVodApiUrl = currentKey
-    ? `${baseUrl}/api/app/vod/all?page=1&limit=24&api_key=${encodeURIComponent(currentKey)}`
-    : `${baseUrl}/api/app/vod/all?page=1&limit=24`;
-
-  const seriesApiUrl = currentKey
-    ? `${baseUrl}/api/app/vod/series?page=1&limit=24&api_key=${encodeURIComponent(currentKey)}`
-    : `${baseUrl}/api/app/vod/series?page=1&limit=24`;
-
-  const seriesDetailPattern = currentKey
-    ? `${baseUrl}/api/app/vod/series/{series_id}?api_key=${encodeURIComponent(currentKey)}`
-    : `${baseUrl}/api/app/vod/series/{series_id}`;
-
-  const moviesApiUrl = currentKey
-    ? `${baseUrl}/api/app/vod/movies?page=1&limit=24&api_key=${encodeURIComponent(currentKey)}`
-    : `${baseUrl}/api/app/vod/movies?page=1&limit=24`;
-
-  const resolveApiPattern = `${baseUrl}/api/app/vod/resolve?url={episode_or_movie_url}`;
-
-  const playerEmbedCode = `<iframe src="${baseUrl}/api/app/vod/player?url={episode_or_movie_url}" width="100%" height="550" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
-
-  const fullApiUrl = channelsApiUrl;
+  const sampleMaskedStream = `${baseUrl}/live/s/YmVpbi12aXAtYmVpbi1zcG9ydHMtMXwx.922128df.m3u8`;
 
   // Toggle API On/Off
   const handleToggleApi = async () => {
-    if (!settings) return;
-    const newState = !isEnabled;
-    const actionName = newState ? 'تشغيل' : 'إيقاف';
-    if (!confirm(`هل أنت متأكد من ${actionName} الـ API؟ ${!newState ? 'سيتوقف البث فوراً عن التطبيقات والمواقع المرتبطة.' : ''}`)) {
-      return;
-    }
-
-    setSaving(true);
     try {
-      const updated = await api.updateSettings({
-        masterApiEnabled: newState,
-      });
-      setSettings(updated);
-    } catch (err: any) {
-      alert(`فشل التحديث: ${err.message}`);
+      setSaving(true);
+      const newStatus = !isEnabled;
+      await api.updateSettings({ masterApiEnabled: newStatus });
+      setSettings((prev) => (prev ? { ...prev, masterApiEnabled: newStatus } : null));
+    } catch (err) {
+      console.error('Failed to toggle API:', err);
     } finally {
       setSaving(false);
     }
   };
 
-  // Generate New Random Key
+  // Generate new random API Key
   const handleGenerateKey = async () => {
-    if (!confirm('هل أنت متأكد من رغبتك في تغيير مفتاح الـ API؟ سيتم حظر أي تطبيق يستخدم المفتاح القديم حتى يتم تحديثه.')) {
-      return;
-    }
-
-    const randomSecret = 'aspr_sec_' + Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
-    setSaving(true);
     try {
-      const updated = await api.updateSettings({
-        masterApiKey: randomSecret,
-      });
-      setSettings(updated);
-      setCustomKey(randomSecret);
-    } catch (err: any) {
-      alert(`فشل التحديث: ${err.message}`);
+      setSaving(true);
+      const randomKey = 'aspreen_live_' + Math.random().toString(36).substring(2, 12) + Math.random().toString(36).substring(2, 12);
+      await api.updateSettings({ masterApiKey: randomKey });
+      setSettings((prev) => (prev ? { ...prev, masterApiKey: randomKey } : null));
+      setCustomKey(randomKey);
+    } catch (err) {
+      console.error('Failed to generate key:', err);
     } finally {
       setSaving(false);
     }
   };
 
-  // Save Custom Key
+  // Save custom key
   const handleSaveCustomKey = async () => {
-    setSaving(true);
     try {
-      const updated = await api.updateSettings({
-        masterApiKey: customKey.trim(),
-      });
-      setSettings(updated);
-      alert('تم حفظ مفتاح الـ API بنجاح!');
-    } catch (err: any) {
-      alert(`فشل الحفظ: ${err.message}`);
+      setSaving(true);
+      const trimmed = customKey.trim();
+      await api.updateSettings({ masterApiKey: trimmed });
+      setSettings((prev) => (prev ? { ...prev, masterApiKey: trimmed } : null));
+    } catch (err) {
+      console.error('Failed to save key:', err);
     } finally {
       setSaving(false);
     }
   };
 
-  // Remove Key (Public Access)
+  // Remove key (make public)
   const handleRemoveKey = async () => {
-    if (!confirm('هل تريد إلغاء حماية المفتاح وجعل الـ API متاحاً بشكل عام (بدون api_key)؟')) {
-      return;
-    }
-    setSaving(true);
     try {
-      const updated = await api.updateSettings({
-        masterApiKey: '',
-      });
-      setSettings(updated);
+      setSaving(true);
+      await api.updateSettings({ masterApiKey: '' });
+      setSettings((prev) => (prev ? { ...prev, masterApiKey: '' } : null));
       setCustomKey('');
-    } catch (err: any) {
-      alert(`فشل الحفظ: ${err.message}`);
+    } catch (err) {
+      console.error('Failed to remove key:', err);
     } finally {
       setSaving(false);
     }
   };
 
-  // Test API Live
+  // Live Test of API
   const handleTestApi = async () => {
-    setTesting(true);
-    setTestResult(null);
     try {
-      const start = performance.now();
-      const res = await fetch(fullApiUrl);
-      const data = await res.json();
-      const duration = Math.round(performance.now() - start);
+      setTesting(true);
+      setTestResult(null);
+      const t0 = performance.now();
+      const res = await fetch(channelsApiUrl);
+      const durationMs = Math.round(performance.now() - t0);
+      const json = await res.json();
       setTestResult({
         status: res.status,
-        durationMs: duration,
-        data,
+        durationMs,
+        data: json,
       });
     } catch (err: any) {
       setTestResult({
         status: 500,
-        error: err.message,
+        durationMs: 0,
+        error: err.message || 'Connection failed',
       });
     } finally {
       setTesting(false);
     }
   };
 
-  const copyToClipboard = (text: string, type: 'url' | 'key') => {
-    navigator.clipboard.writeText(text);
-    if (type === 'url') {
-      setCopiedUrl(true);
-      setTimeout(() => setCopiedUrl(false), 2000);
-    } else {
-      setCopiedKey(true);
-      setTimeout(() => setCopiedKey(false), 2000);
-    }
-  };
-
   return (
-    <div className="flex h-screen bg-[#0A0A0A] text-[#F5F5F5] font-sans">
+    <div className="flex h-screen bg-[#0A0A0A] text-[#EDEDED] font-sans antialiased selection:bg-white selection:text-black">
       <Sidebar />
 
       <div className="flex-1 flex flex-col pl-64 overflow-hidden">
-        <Header
-          title="Master API Manager"
-          subtitle="إدارة الرابط الموحد لتطبيقات الأندرويد والمواقع والتحكم في مفاتيح التشغيل"
-        />
+        <Header title="إدارة واجهة القنوات والبث المباشر (Master Live TV API)" subtitle="توزيع وتأمين قنوات البث المباشر بدقة عالية وحماية الروابط" />
 
-        <main className="flex-1 overflow-y-auto p-8 space-y-8 max-w-7xl mx-auto w-full">
-          {/* Header section */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#262626] pb-6">
-            <div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                    إدارة الـ API الموحد (Master API Manager)
-                  </h1>
-                  <p className="text-xs text-[#71717A] mt-0.5">
-                    الرابط المركزي الشامل لتطبيقات الأندرويد ومواقع الويب مع التحكم الكامل في التشغيل والإيقاف وتغيير المفاتيح
-                  </p>
-                </div>
+        <main className="flex-1 overflow-y-auto p-8 space-y-6">
+          {/* Top Banner: VOD Migration Notice */}
+          <div className="p-4 rounded-xl bg-gradient-to-r from-purple-950/40 via-[#181226] to-[#0D0D0D] border border-purple-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-lg">
+            <div className="flex items-center gap-3">
+              <span className="p-2 rounded-lg bg-purple-500/20 text-purple-400">
+                <Sparkles className="w-5 h-5" />
+              </span>
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  مشروع قنوات التلفاز المستقل بالكامل (100% Live TV Channels)
+                </h4>
+                <p className="text-xs text-[#A1A1AA] mt-0.5">
+                  هذا المشروع (ASPREEN TV) مخصص حصرياً لقنوات التلفاز والبث المباشر. تم نقل مكتبة الأفلام والمسلسلات بالكامل إلى منصة <b>TVORA</b> المستقلة (<a href="https://tvora.site" target="_blank" rel="noreferrer" className="text-purple-400 hover:underline">tvora.site</a>).
+                </p>
               </div>
             </div>
+            <a
+              href="https://tvora.site"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shrink-0 transition-colors"
+            >
+              <span>فتح منصة TVORA</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
 
-            {/* Global Status & Power Button */}
+          {/* Page Title & Status Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#262626] pb-6">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-3">
+                <Tv className="w-7 h-7 text-emerald-400" />
+                إدارة واجهة القنوات والبث المباشر (Master Live TV API)
+              </h1>
+              <p className="text-sm text-[#71717A] mt-1">
+                توزيع وتأمين قنوات البث المباشر بدقة عالية وبسيرفرات متعددة مع حماية الروابط وتشفير الـ Segments.
+              </p>
+            </div>
+
             <div className="flex items-center gap-3">
-              <div className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 border ${
-                isEnabled
-                  ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/50'
-                  : 'bg-red-950/40 text-red-400 border-red-800/50'
-              }`}>
-                <span className={`w-2 h-2 rounded-full ${isEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
-                <span>{isEnabled ? 'الـ API يعمل (ONLINE)' : 'الـ API متوقف (DISABLED)'}</span>
-              </div>
-
               <button
                 onClick={handleToggleApi}
                 disabled={saving || loading}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all border ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
                   isEnabled
-                    ? 'bg-red-950/30 hover:bg-red-900/40 text-red-300 border-red-800/40'
-                    : 'bg-emerald-600 hover:bg-emerald-500 text-white border-transparent'
+                    ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-800/60 hover:bg-emerald-900/40'
+                    : 'bg-red-950/40 text-red-300 border border-red-800/60 hover:bg-red-900/40'
                 }`}
               >
                 <Power className="w-4 h-4" />
-                <span>{isEnabled ? 'إيقاف الـ API مؤقتاً' : 'تفعيل الـ API الآن'}</span>
+                <span>{isEnabled ? 'الـ API نشط ومتاح (Active)' : 'الـ API معطل (Disabled)'}</span>
+              </button>
+
+              <button
+                onClick={handleTestApi}
+                disabled={testing || !isEnabled}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-[#E4E4E7] text-black font-semibold text-xs transition-colors disabled:opacity-50"
+              >
+                {testing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                <span>فحص استجابة الـ API الآن</span>
               </button>
             </div>
           </div>
 
-          {/* Alert if Disabled */}
-          {!isEnabled && (
-            <div className="p-4 rounded-xl bg-red-950/30 border border-red-800/40 flex items-center gap-3 text-red-200">
-              <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
-              <div className="text-xs">
-                <b>تنبيه هام:</b> الـ API متوقف حالياً. أي طلبات قادمة من تطبيق الأندرويد أو المواقع الخارجية ستتلقى خطأ <code className="bg-red-900/50 px-1 py-0.5 rounded">403 Forbidden</code> حتى تقوم بإعادة تفعيله.
-              </div>
-            </div>
-          )}
-
-          {/* Quick Metrics */}
+          {/* Quick Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-4 rounded-xl bg-[#121212] border border-[#262626] flex items-center justify-between">
               <div>
                 <p className="text-[11px] text-[#71717A] uppercase font-mono tracking-wider">قنوات البث المباشر</p>
-                <p className="text-2xl font-bold text-white mt-1">56 <span className="text-xs font-normal text-[#A1A1AA]">قناة تعمل 24/7</span></p>
+                <p className="text-2xl font-bold text-white mt-1">160+ <span className="text-xs font-normal text-[#A1A1AA]">قناة حية</span></p>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                 <Tv className="w-5 h-5" />
               </div>
             </div>
 
             <div className="p-4 rounded-xl bg-[#121212] border border-[#262626] flex items-center justify-between">
               <div>
-                <p className="text-[11px] text-[#71717A] uppercase font-mono tracking-wider">المسلسلات التركية (VOD)</p>
-                <p className="text-2xl font-bold text-white mt-1">1,222 <span className="text-xs font-normal text-[#A1A1AA]">مسلسل بكامل المواسم</span></p>
+                <p className="text-[11px] text-[#71717A] uppercase font-mono tracking-wider">السيرفرات البديلة (Failover)</p>
+                <p className="text-2xl font-bold text-white mt-1">4 سيرفرات <span className="text-xs font-normal text-[#A1A1AA]">لكل قناة</span></p>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                <Server className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#121212] border border-[#262626] flex items-center justify-between">
+              <div>
+                <p className="text-[11px] text-[#71717A] uppercase font-mono tracking-wider">تشفير الروابط (HMAC Tokens)</p>
+                <p className="text-2xl font-bold text-emerald-400 mt-1">مفعل 100%</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                <Video className="w-5 h-5" />
+                <Lock className="w-5 h-5" />
               </div>
             </div>
 
             <div className="p-4 rounded-xl bg-[#121212] border border-[#262626] flex items-center justify-between">
               <div>
-                <p className="text-[11px] text-[#71717A] uppercase font-mono tracking-wider">الأفلام التركية (VOD)</p>
-                <p className="text-2xl font-bold text-white mt-1">423 <span className="text-xs font-normal text-[#A1A1AA]">فيلم مترجم ومدبلج</span></p>
-              </div>
-              <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-                <Film className="w-5 h-5" />
-              </div>
-            </div>
-
-            <div className="p-4 rounded-xl bg-[#121212] border border-[#262626] flex items-center justify-between">
-              <div>
-                <p className="text-[11px] text-[#71717A] uppercase font-mono tracking-wider">مستوى الحماية</p>
-                <p className="text-sm font-bold text-white mt-2">
-                  {currentKey ? (
-                    <span className="text-emerald-400 flex items-center gap-1 text-xs">
-                      <KeyRound className="w-3.5 h-3.5" /> محمي بمفتاح سري
-                    </span>
-                  ) : (
-                    <span className="text-amber-400 flex items-center gap-1 text-xs">
-                      <Globe className="w-3.5 h-3.5" /> متاح عام (Public)
-                    </span>
-                  )}
+                <p className="text-[11px] text-[#71717A] uppercase font-mono tracking-wider">حماية المنصات المعتمدة</p>
+                <p className="text-xs font-bold text-white mt-2">
+                  <span className="text-emerald-400 flex items-center gap-1 text-xs">
+                    <Globe className="w-3.5 h-3.5" /> tvora.site & التطبيق
+                  </span>
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
                 <ShieldCheck className="w-5 h-5" />
               </div>
             </div>
           </div>
 
-          {/* 1. Live TV Channels API Cards */}
+          {/* 1. Live TV Channels Endpoints */}
           <div className="p-6 rounded-2xl bg-[#121212] border border-[#262626] space-y-6">
-            <div className="flex items-center justify-between border-b border-[#202020] pb-3">
-              <div>
-                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                  <Tv className="w-4 h-4 text-emerald-400" />
-                  روابط قنوات البث المباشر (Live TV Channels API)
-                </h3>
-                <p className="text-xs text-[#71717A] mt-0.5">
-                  خاصة بالبث التلفزيوني الحي (56 قناة مع سيرفرات 4K, 1080p, HD, SD مع تجديد الروابط التلقائي كل 15 دقيقة).
-                </p>
-              </div>
-              <button
-                onClick={handleTestApi}
-                disabled={testing}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1E1E1E] hover:bg-[#282828] text-xs font-medium text-white border border-[#333] transition-colors"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${testing ? 'animate-spin' : ''}`} />
-                <span>اختبار القنوات فحص مباشر</span>
-              </button>
+            <div className="border-b border-[#202020] pb-3">
+              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                <Tv className="w-4 h-4 text-emerald-400" />
+                روابط واجهة قنوات البث المباشر (Live TV Endpoints)
+              </h3>
+              <p className="text-xs text-[#71717A] mt-0.5">
+                جلب جميع القنوات مع البوسترات وروابط البث والسيرفرات البديلة والتصنيفات (رياضة، أخبار، ترفيه، أطفال).
+              </p>
             </div>
 
-            {/* 1. Channels API (JSON) */}
+            {/* Channels JSON API */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
                   <Tv className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>1. رابط قنوات البث المباشر (Live TV Channels API - JSON)</span>
+                  <span>1. رابط استدعاء القنوات بصيغة JSON (Channels API)</span>
                 </span>
-                <span className="text-[10px] text-[#71717A]">56 قناة رياضية وعامة مجهزة للتطبيقات</span>
+                <span className="text-[10px] text-[#71717A]">استجابة سريعة مع السيرفرات المتعددة</span>
               </div>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   readOnly
                   value={channelsApiUrl}
-                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-emerald-400 select-all focus:outline-none"
+                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-emerald-300 select-all focus:outline-none"
                 />
                 <button
                   onClick={() => {
@@ -389,14 +320,14 @@ export default function ApiManagerPage() {
               </div>
             </div>
 
-            {/* 2. M3U Playlist */}
+            {/* M3U Playlist URL */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
-                  <ListOrdered className="w-3.5 h-3.5 text-blue-400" />
-                  <span>2. رابط قائمة قنوات M3U لبرامج البث (IPTV M3U Playlist)</span>
+                  <Radio className="w-3.5 h-3.5 text-blue-400" />
+                  <span>2. رابط ملف القنوات العام (M3U / IPTV Playlist)</span>
                 </span>
-                <span className="text-[10px] text-[#71717A]">متوافق مع VLC, TiviMate, OTT Navigator</span>
+                <span className="text-[10px] text-[#71717A]">متوافق مع مشغلات IPTV و VLC و Kodi و Smart TV</span>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -419,331 +350,46 @@ export default function ApiManagerPage() {
               </div>
             </div>
 
-            {/* 3. Direct Stream URL Pattern */}
+            {/* Masked Stream Security */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-purple-400" />
-                  <span>3. صيغة رابط البث المباشر الثابت للقناة (Persistent Stream URL)</span>
+                  <Lock className="w-3.5 h-3.5 text-purple-400" />
+                  <span>3. نموذج رابط البث المشفر والمخفي بالكامل (Masked Stream Link)</span>
                 </span>
-                <span className="text-[10px] text-[#71717A]">معاد بثه محلياً وسحابياً بدون انقطاع</span>
+                <span className="text-[10px] text-purple-400 font-mono">حماية ضد السرقة وإخفاء اسم القناة ورقم السيرفر</span>
               </div>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   readOnly
-                  value={`${baseUrl}/live/{channel_id}.m3u8`}
-                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-purple-300 select-all focus:outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* 1.5 ALL-IN-ONE UNIFIED VOD API (Movies + Series + Streams + Overviews) */}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-[#141414] via-[#101815] to-[#141414] border-2 border-emerald-500/30 shadow-[0_0_25px_rgba(16,185,129,0.08)] space-y-6">
-            <div className="border-b border-emerald-500/20 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
-                    <Sparkles className="w-5 h-5" />
-                  </span>
-                  <h3 className="text-base font-bold text-white">
-                    الـ API الموحد الشامل للأفلام والمسلسلات (All-In-One Unified VOD API)
-                  </h3>
-                </div>
-                <p className="text-xs text-[#A1A1AA] mt-1.5">
-                  نقطة اتصال واحدة فائقة السرعة تجلب <b>كل شيء دفعة واحدة</b>: الأفلام والمسلسلات مع روابط التشغيل المباشرة (m3u8)، روابط المشغل السحابي، أكواد التضمين (iframe)، ووصف القصة الكامل المنقح <b>بدون أي حقوق أو علامات لقصة عشق</b>.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-950/60 text-emerald-300 border border-emerald-800/60">
-                  1,645 عمل فني متاح
-                </span>
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-950/60 text-blue-300 border border-blue-800/60">
-                  100% بدون حقوق قصة عشق
-                </span>
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-950/60 text-purple-300 border border-purple-800/60">
-                  روابط تشغيل + مشغل مخصص
-                </span>
-              </div>
-            </div>
-
-            {/* Unified API URL Input & Copy */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-white flex items-center gap-1.5">
-                  <Layers className="w-4 h-4 text-emerald-400" />
-                  <span>الرابط الشامل الموحد (Unified Catalog Endpoint):</span>
-                </span>
-                <span className="text-[11px] font-mono text-emerald-400 font-medium">GET JSON</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={unifiedVodApiUrl}
-                  className="flex-1 bg-[#0A0A0A] border border-emerald-500/40 rounded-xl px-4 py-3 text-xs font-mono text-emerald-300 select-all focus:outline-none shadow-inner"
+                  value={sampleMaskedStream}
+                  className="flex-1 bg-[#0A0A0A] border border-purple-500/30 rounded-xl px-4 py-2.5 text-xs font-mono text-purple-300 select-all focus:outline-none"
                 />
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(unifiedVodApiUrl);
-                    setCopiedUnifiedVod(true);
-                    setTimeout(() => setCopiedUnifiedVod(false), 2000);
+                    navigator.clipboard.writeText(sampleMaskedStream);
+                    setCopiedMasked(true);
+                    setTimeout(() => setCopiedMasked(false), 2000);
                   }}
-                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs transition-colors shrink-0 shadow-lg shadow-emerald-500/20"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition-colors shrink-0"
                 >
-                  {copiedUnifiedVod ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  <span>{copiedUnifiedVod ? 'تم النسخ بنجاح!' : 'نسخ الرابط الموحد'}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Query Parameters Guide */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-              <div className="p-3 rounded-xl bg-[#0F0F0F] border border-[#222]">
-                <div className="text-[11px] font-mono text-emerald-400 font-bold">?type=all | series | movies</div>
-                <div className="text-xs text-[#E4E4E7] mt-1 font-semibold">تحديد نوع المحتوى</div>
-                <div className="text-[11px] text-[#71717A] mt-0.5">جلب الكل (افلام ومسلسلات)، أو المسلسلات فقط، أو الأفلام فقط.</div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-[#0F0F0F] border border-[#222]">
-                <div className="text-[11px] font-mono text-blue-400 font-bold">?filter=dubbed | subbed</div>
-                <div className="text-xs text-[#E4E4E7] mt-1 font-semibold">تصفية الترجمة والدبلجة</div>
-                <div className="text-[11px] text-[#71717A] mt-0.5">عرض الأعمال المدبلجة للعربية فقط أو المترجمة فقط.</div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-[#0F0F0F] border border-[#222]">
-                <div className="text-[11px] font-mono text-purple-400 font-bold">?page=1&limit=24</div>
-                <div className="text-xs text-[#E4E4E7] mt-1 font-semibold">الترقيم والتقسيم (Pagination)</div>
-                <div className="text-[11px] text-[#71717A] mt-0.5">التحكم بعدد العناصر في الصفحة وسرعة التصفح (limit حتى 200).</div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-[#0F0F0F] border border-[#222]">
-                <div className="text-[11px] font-mono text-amber-400 font-bold">?search=اسم_العمل</div>
-                <div className="text-xs text-[#E4E4E7] mt-1 font-semibold">محرك البحث الفوري</div>
-                <div className="text-[11px] text-[#71717A] mt-0.5">البحث المباشر باسم الفيلم أو المسلسل بالعربية أو التركية.</div>
-              </div>
-            </div>
-
-            {/* Quick feature summary pills */}
-            <div className="bg-[#0A0A0A] border border-[#222] rounded-xl p-3.5 text-xs text-[#A1A1AA] flex flex-wrap items-center justify-between gap-2">
-              <span className="text-white font-medium flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-emerald-400" />
-                بيانات كل عنصر تشمل:
-              </span>
-              <span className="font-mono text-[11px] text-emerald-300">title (نظيف)</span>
-              <span>•</span>
-              <span className="font-mono text-[11px] text-blue-300">overview (قصة ووصف كامل)</span>
-              <span>•</span>
-              <span className="font-mono text-[11px] text-purple-300">stream_url (.m3u8 مباشر)</span>
-              <span>•</span>
-              <span className="font-mono text-[11px] text-amber-300">player_url (مشغل)</span>
-              <span>•</span>
-              <span className="font-mono text-[11px] text-rose-300">embed_code (iframe)</span>
-              <span>•</span>
-              <span className="font-mono text-[11px] text-cyan-300">seasons & episodes (المواسم والحلقات)</span>
-            </div>
-          </div>
-
-          {/* 2. Turkish Series VOD API Cards */}
-          <div className="p-6 rounded-2xl bg-[#121212] border border-[#262626] space-y-6">
-            <div className="border-b border-[#202020] pb-3">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Video className="w-4 h-4 text-emerald-400" />
-                روابط المسلسلات التركية (Turkish Series VOD API)
-              </h3>
-              <p className="text-xs text-[#71717A] mt-0.5">
-                مكتبة المسلسلات التركية من الألف إلى الياء (1,222 مسلسل تركي كامل مع البوسترات والترقيم والبحث وتفاصيل جميع المواسم والحلقات).
-              </p>
-            </div>
-
-            {/* Series List API */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
-                  <Video className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>1. رابط قائمة المسلسلات التركية (Series Catalog API - JSON)</span>
-                </span>
-                <span className="text-[10px] text-[#71717A]">يدعم الترقيم (page/limit) والبحث (search) والتصنيف (filter)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={seriesApiUrl}
-                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-emerald-300 select-all focus:outline-none"
-                />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(seriesApiUrl);
-                    setCopiedSeries(true);
-                    setTimeout(() => setCopiedSeries(false), 2000);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-[#E4E4E7] text-black font-semibold text-xs transition-colors shrink-0"
-                >
-                  {copiedSeries ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                  <span>{copiedSeries ? 'تم النسخ!' : 'نسخ الرابط'}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Series Detail & Episodes Pattern */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
-                  <FolderTree className="w-3.5 h-3.5 text-blue-400" />
-                  <span>2. صيغة جلب تفاصيل المسلسل والمواسم والحلقات بالترتيب (Series Detail & Seasons)</span>
-                </span>
-                <span className="text-[10px] text-[#71717A]">استبدل {'{series_id}'} بمعرّف المسلسل (مثال: serie-teskilat)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={seriesDetailPattern}
-                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-blue-300 select-all focus:outline-none"
-                />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(seriesDetailPattern);
-                    setCopiedSeriesDetail(true);
-                    setTimeout(() => setCopiedSeriesDetail(false), 2000);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#222222] hover:bg-[#2C2C2C] text-white border border-[#3A3A3A] font-semibold text-xs transition-colors shrink-0"
-                >
-                  {copiedSeriesDetail ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                  <span>{copiedSeriesDetail ? 'تم النسخ!' : 'نسخ الرابط'}</span>
+                  {copiedMasked ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  <span>{copiedMasked ? 'تم النسخ!' : 'نسخ الرابط المشفر'}</span>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* 3. Turkish Movies VOD API Cards */}
-          <div className="p-6 rounded-2xl bg-[#121212] border border-[#262626] space-y-6">
-            <div className="border-b border-[#202020] pb-3">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Film className="w-4 h-4 text-purple-400" />
-                روابط الأفلام التركية (Turkish Movies VOD API)
-              </h3>
-              <p className="text-xs text-[#71717A] mt-0.5">
-                مكتبة الأفلام التركية الشاملة (423 فيلم تركي مترجم ومدبلج مع البوسترات والبحث).
-              </p>
-            </div>
-
-            {/* Movies List API */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
-                  <Film className="w-3.5 h-3.5 text-purple-400" />
-                  <span>1. رابط قائمة الأفلام التركية (Movies Catalog API - JSON)</span>
-                </span>
-                <span className="text-[10px] text-[#71717A]">423 فيلم تركي مجهزة للتطبيقات والمواقع</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={moviesApiUrl}
-                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-purple-300 select-all focus:outline-none"
-                />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(moviesApiUrl);
-                    setCopiedMovies(true);
-                    setTimeout(() => setCopiedMovies(false), 2000);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-[#E4E4E7] text-black font-semibold text-xs transition-colors shrink-0"
-                >
-                  {copiedMovies ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                  <span>{copiedMovies ? 'تم النسخ!' : 'نسخ الرابط'}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* 4. VOD Playback & Resolver API Cards */}
-          <div className="p-6 rounded-2xl bg-[#121212] border border-[#262626] space-y-6">
-            <div className="border-b border-[#202020] pb-3">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <PlaySquare className="w-4 h-4 text-amber-400" />
-                مشغل وتشغيل الحلقات والأفلام في موقعك الآخر (Playback & Resolver API)
-              </h3>
-              <p className="text-xs text-[#71717A] mt-0.5">
-                تخطي حماية السيرفرات واستخراج الروابط المباشرة وتضمين المشغل في موقعك الآخر بكل سهولة.
-              </p>
-            </div>
-
-            {/* Stream Resolver API */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
-                  <RefreshCw className="w-3.5 h-3.5 text-amber-400" />
-                  <span>1. رابط استخراج رابط البث المباشر الفوري لمشغلك (Resolver API)</span>
-                </span>
-                <span className="text-[10px] text-[#71717A]">يعطيك HLS M3U8 مباشر مع تخطي حماية السيرفرات والعداد</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={resolveApiPattern}
-                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-amber-300 select-all focus:outline-none"
-                />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(resolveApiPattern);
-                    setCopiedResolve(true);
-                    setTimeout(() => setCopiedResolve(false), 2000);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#222222] hover:bg-[#2C2C2C] text-white border border-[#3A3A3A] font-semibold text-xs transition-colors shrink-0"
-                >
-                  {copiedResolve ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                  <span>{copiedResolve ? 'تم النسخ!' : 'نسخ الرابط'}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Iframe Embed Code */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-[#EDEDED] flex items-center gap-1.5">
-                  <Code2 className="w-3.5 h-3.5 text-pink-400" />
-                  <span>2. كود تضمين المشغل الجاهز مباشرة في موقعك الآخر (Iframe Player Embed)</span>
-                </span>
-                <span className="text-[10px] text-[#71717A]">مشغل HTML5 سريع وأنيق بدون إعلانات قصة عشق</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={playerEmbedCode}
-                  className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2.5 text-xs font-mono text-pink-300 select-all focus:outline-none"
-                />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(playerEmbedCode);
-                    setCopiedPlayerEmbed(true);
-                    setTimeout(() => setCopiedPlayerEmbed(false), 2000);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-[#E4E4E7] text-black font-semibold text-xs transition-colors shrink-0"
-                >
-                  {copiedPlayerEmbed ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                  <span>{copiedPlayerEmbed ? 'تم النسخ!' : 'نسخ الكود'}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* API Key Management */}
+          {/* API Security & Whitelist Configuration */}
           <div className="p-6 rounded-2xl bg-[#121212] border border-[#262626] space-y-5">
             <div className="border-b border-[#262626] pb-4">
               <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                 <KeyRound className="w-4 h-4 text-amber-400" />
-                التحكم في مفتاح الأمان (API Key Management)
+                التحكم في مفتاح الأمان والتصاريح (Security & Permissions)
               </h3>
               <p className="text-xs text-[#71717A] mt-1">
-                يمكنك تغيير المفتاح في أي وقت لإلغاء صلاحية أي تطبيق أو مستخدم سابق، أو إلغاء المفتاح لفتح الرابط مباشرة دون قيود.
+                الروابط محمية بسيرفر الحماية السحابي، مع تصريح دائم لموقع <b>tvora.site</b> وتطبيق الأندرويد <b>Tvora-Android-App</b>.
               </p>
             </div>
 
@@ -755,7 +401,7 @@ export default function ApiManagerPage() {
                     type="text"
                     value={customKey}
                     onChange={(e) => setCustomKey(e.target.value)}
-                    placeholder="اتركه فارغاً للسماح بالوصول العام بدون مفتاح، أو اكتب مفتاحك المخصص"
+                    placeholder="اتركه فارغاً للسماح بالوصول العام، أو اكتب مفتاحك المخصص"
                     className="flex-1 bg-[#0A0A0A] border border-[#262626] rounded-xl px-4 py-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500"
                   />
                   <button
@@ -819,146 +465,100 @@ export default function ApiManagerPage() {
             </div>
           )}
 
-          {/* Integration Guides */}
+          {/* Integration Guides for Live TV */}
           <div className="p-6 rounded-2xl bg-[#121212] border border-[#262626] space-y-4">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
               <Code2 className="w-4 h-4 text-blue-400" />
-              أمثلة الربط السريع (Integration Guides)
+              أمثلة ربط قنوات البث المباشر (Live TV Integration Examples)
             </h3>
 
             <div className="flex flex-wrap gap-2 border-b border-[#262626] pb-2">
               <button
-                onClick={() => setCodeTab('unified')}
+                onClick={() => setCodeTab('fetch')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  codeTab === 'unified' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'text-[#71717A] hover:text-white'
+                  codeTab === 'fetch' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'text-[#71717A] hover:text-white'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                <span>الـ API الموحد الشامل (Unified VOD)</span>
+                <Globe className="w-3.5 h-3.5 text-emerald-400" />
+                <span>JavaScript / Next.js / Web</span>
               </button>
 
               <button
-                onClick={() => setCodeTab('channels')}
+                onClick={() => setCodeTab('android')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  codeTab === 'channels' ? 'bg-[#222] text-white border border-[#3A3A3A]' : 'text-[#71717A] hover:text-white'
+                  codeTab === 'android' ? 'bg-[#222] text-white border border-[#3A3A3A]' : 'text-[#71717A] hover:text-white'
                 }`}
               >
-                <Tv className="w-3.5 h-3.5 text-blue-400" />
-                <span>1. قنوات البث المباشر (Live TV)</span>
+                <Smartphone className="w-3.5 h-3.5 text-blue-400" />
+                <span>Android (Kotlin / ExoPlayer)</span>
               </button>
 
               <button
-                onClick={() => setCodeTab('series')}
+                onClick={() => setCodeTab('flutter')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  codeTab === 'series' ? 'bg-[#222] text-white border border-[#3A3A3A]' : 'text-[#71717A] hover:text-white'
+                  codeTab === 'flutter' ? 'bg-[#222] text-white border border-[#3A3A3A]' : 'text-[#71717A] hover:text-white'
                 }`}
               >
-                <Video className="w-3.5 h-3.5 text-emerald-400" />
-                <span>2. المسلسلات التركية (Series API)</span>
+                <Smartphone className="w-3.5 h-3.5 text-purple-400" />
+                <span>Flutter (video_player)</span>
               </button>
 
               <button
-                onClick={() => setCodeTab('movies')}
+                onClick={() => setCodeTab('m3u')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  codeTab === 'movies' ? 'bg-[#222] text-white border border-[#3A3A3A]' : 'text-[#71717A] hover:text-white'
+                  codeTab === 'm3u' ? 'bg-[#222] text-white border border-[#3A3A3A]' : 'text-[#71717A] hover:text-white'
                 }`}
               >
-                <Film className="w-3.5 h-3.5 text-purple-400" />
-                <span>3. الأفلام التركية (Movies API)</span>
-              </button>
-
-              <button
-                onClick={() => setCodeTab('player')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  codeTab === 'player' ? 'bg-[#222] text-white border border-[#3A3A3A]' : 'text-[#71717A] hover:text-white'
-                }`}
-              >
-                <PlaySquare className="w-3.5 h-3.5 text-amber-400" />
-                <span>4. تشغيل وتضمين المشغل (Player Embed)</span>
+                <Radio className="w-3.5 h-3.5 text-amber-400" />
+                <span>VLC / IPTV Apps</span>
               </button>
             </div>
 
             <div className="bg-[#0A0A0A] border border-[#262626] rounded-xl p-4 font-mono text-xs text-[#E4E4E7] overflow-x-auto">
-              {codeTab === 'unified' && (
-                <pre>{`// جلب كل شيء (أفلام ومسلسلات ووصف وروابط تشغيل نظيفة بدون قصة عشق)
-fetch("${unifiedVodApiUrl}")
-  .then(res => res.json())
-  .then(response => {
-    console.log("إجمالي الأعمال الفنية:", response.total_items);
-    console.log("المسلسلات:", response.total_series, "الأفلام:", response.total_movies);
-
-    response.data.forEach(item => {
-      console.log("-----------------------------------------");
-      console.log("العنوان النظيف:", item.title);
-      console.log("النوع:", item.type); // 'series' أو 'movie'
-      console.log("الوصف والقصة الكاملة:", item.overview);
-      console.log("البوستر المباشر:", item.poster);
-      console.log("رابط البث المباشر (HLS / m3u8):", item.stream_url);
-      console.log("رابط المشغل السحابي:", item.player_url);
-      console.log("كود التضمين جاهز:", item.embed_code);
-
-      if (item.type === 'series') {
-        console.log("عدد المواسم:", item.seasons_count);
-        console.log("المواسم والحلقات وروابطها:", item.seasons);
-      }
-    });
-  });`}</pre>
-              )}
-
-              {codeTab === 'channels' && (
-                <pre>{`// جلب قنوات البث المباشر في موقعك أو تطبيقك
+              {codeTab === 'fetch' && (
+                <pre>{`// 1. جلب قائمة قنوات البث المباشر
 fetch("${channelsApiUrl}")
   .then(res => res.json())
   .then(data => {
-    console.log("إجمالي القنوات:", data.total_channels);
-    data.channels.forEach(ch => {
-      console.log(ch.name, ch.stream_url, ch.logo, ch.servers);
+    console.log("إجمالي القنوات المباشرة:", data.total_channels);
+    data.channels.forEach(channel => {
+      console.log(channel.name, channel.stream_url, channel.logo);
+      // تشغيل القناة في المشغل Hls.js
     });
   });`}</pre>
               )}
 
-              {codeTab === 'series' && (
-                <pre>{`// 1. جلب قائمة المسلسلات التركية (صفحة 1 - 24 مسلسل)
-fetch("${seriesApiUrl}")
-  .then(res => res.json())
-  .then(data => {
-    console.log("إجمالي المسلسلات:", data.total);
-    console.log("المسلسلات في هذه الصفحة:", data.series);
-  });
+              {codeTab === 'android' && (
+                <pre>{`// تشغيل البث في تطبيق أندرويد باستخدام ExoPlayer
+val defaultHttpDataSourceFactory = DefaultHttpDataSource.Factory()
+    .setUserAgent("Tvora-Android-App") // الهوية المسموح لها بالتشغيل دون حظر
+    .setAllowCrossProtocolRedirects(true)
 
-// 2. جلب مواسم وحلقات مسلسل معين
-fetch("${baseUrl}/api/app/vod/series/serie-teskilat")
-  .then(res => res.json())
-  .then(data => {
-    console.log("المسلسل:", data.series.title);
-    console.log("المواسم والحلقات:", data.series.seasons);
-  });`}</pre>
+val mediaSource = HlsMediaSource.Factory(defaultHttpDataSourceFactory)
+    .createMediaSource(MediaItem.fromUri("${sampleMaskedStream}"))
+
+exoPlayer.setMediaSource(mediaSource)
+exoPlayer.prepare()
+exoPlayer.play()`}</pre>
               )}
 
-              {codeTab === 'movies' && (
-                <pre>{`// جلب قائمة الأفلام التركية (423 فيلم)
-fetch("${moviesApiUrl}")
-  .then(res => res.json())
-  .then(data => {
-    console.log("إجمالي الأفلام:", data.total);
-    console.log("الأفلام:", data.movies);
-  });`}</pre>
+              {codeTab === 'flutter' && (
+                <pre>{`// تشغيل البث في Flutter
+final controller = VideoPlayerController.networkUrl(
+  Uri.parse('${sampleMaskedStream}'),
+  httpHeaders: {
+    'User-Agent': 'Tvora-Android-App',
+  },
+);
+await controller.initialize();
+controller.play();`}</pre>
               )}
 
-              {codeTab === 'player' && (
-                <pre>{`<!-- الخيار 1: تضمين المشغل الجاهز مباشرة في موقعك بـ iframe -->
-<iframe 
-  src="${baseUrl}/api/app/vod/player?url=https://3iskk.xyz/watch/episodes/serie-teskilat-season-1-episode-189/" 
-  width="100%" 
-  height="550" 
-  frameborder="0" 
-  allow="autoplay; fullscreen" 
-  allowfullscreen>
-</iframe>
+              {codeTab === 'm3u' && (
+                <pre>{`# رابط تشغيل ملف القنوات الشامل في أي مشغل IPTV أو VLC:
+${playlistM3uUrl}
 
-<!-- الخيار 2: استخراج رابط HLS المباشر وتشغيله على مشغلك المخصص -->
-// GET ${baseUrl}/api/app/vod/resolve?url=...
-// استجابة الـ API تعطيك رابط hlsUrl أو streamProxyUrl للتشغيل المباشر فوراً`}</pre>
+# يدعم تلقائياً التحديث الفوري للقنوات واللوجوهات والتصنيفات الرياضية والترفيهية`}</pre>
               )}
             </div>
           </div>
