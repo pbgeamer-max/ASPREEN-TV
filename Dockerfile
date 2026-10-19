@@ -34,6 +34,9 @@ ENV NODE_ENV=production
 ENV INTERNAL_API_URL=http://127.0.0.1:3001
 ENV STREAM_PROXY_URL=http://127.0.0.1:8088
 ENV STREAM_STORAGE_PATH=/app/data/hls
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONIOENCODING=utf-8
+ENV LANG=C.UTF-8
 
 COPY package.json ./
 COPY packages/shared/package.json ./packages/shared/

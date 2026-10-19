@@ -22,6 +22,7 @@
 """
 
 import os
+import sys
 import ssl
 import time
 import uuid
@@ -29,6 +30,14 @@ import shutil
 import threading
 import subprocess
 import urllib.request
+
+try:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", line_buffering=True)
+except Exception:
+    pass
 
 SSL_CTX = ssl.create_default_context()
 SSL_CTX.check_hostname = False

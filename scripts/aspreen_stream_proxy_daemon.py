@@ -45,9 +45,14 @@ PROXY_OPENER = urllib.request.build_opener(
     urllib.request.HTTPSHandler(context=SSL_CTX)
 )
 
-# Ensure UTF-8 and line-buffered output on Windows console
-if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
+# Ensure UTF-8 output on all platforms (Windows & Linux/Docker)
+try:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", line_buffering=True)
+except Exception:
+    pass
 
 
 WORKSPACE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -97,23 +102,19 @@ total_refreshes = 0
 # -----------------------------------------------------------------------------
 STREAM_SECURITY_SECRET = os.environ.get("STREAM_SECURITY_SECRET", "aspreen_vault_sec_77a9b0c2").encode("utf-8")
 SEGMENT_TOKEN_TTL = int(os.environ.get("SEGMENT_TOKEN_TTL", "360"))  # 6 minutes
-SECURITY_STRICT_TOKENS = os.environ.get("SECURITY_STRICT_TOKENS", "1") == "1"
+SECURITY_STRICT_TOKENS = os.environ.get("SECURITY_STRICT_TOKENS", "0") == "1"
 
-def make_segment_token(clean_key, session_id, seg_file, client_ip, expires):
-    ip_prefix = ".".join(client_ip.split(".")[:3]) if "." in client_ip else client_ip
-    payload = f"{clean_key}:{session_id}:{seg_file}:{ip_prefix}:{expires}".encode("utf-8")
+def make_segment_token(clean_key, session_id, seg_file, expires):
+    payload = f"{clean_key}:{session_id}:{seg_file}:{expires}".encode("utf-8")
     return hmac.new(STREAM_SECURITY_SECRET, payload, hashlib.sha256).hexdigest()[:16]
 
-def verify_segment_token(clean_key, session_id, seg_file, client_ip, token, expires_str):
+def verify_segment_token(clean_key, session_id, seg_file, token, expires_str):
     try:
         expires = int(expires_str)
         if time.time() > expires:
             return False, "Token Expired"
-        expected = make_segment_token(clean_key, session_id, seg_file, client_ip, expires)
+        expected = make_segment_token(clean_key, session_id, seg_file, expires)
         if hmac.compare_digest(token, expected):
-            return True, "Valid"
-        payload_exact = f"{clean_key}:{session_id}:{seg_file}:{client_ip}:{expires}".encode("utf-8")
-        if hmac.compare_digest(token, hmac.new(STREAM_SECURITY_SECRET, payload_exact, hashlib.sha256).hexdigest()[:16]):
             return True, "Valid"
         return False, "Invalid Signature"
     except Exception:
@@ -366,32 +367,22 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         return self.client_address[0]
 
     def is_allowed_origin(self):
-        origin = self.headers.get("Origin", "").strip().lower()
-        referer = self.headers.get("Referer", "").strip().lower()
-        # Direct non-browser client (VLC, smart TV, curl, mobile app)
-        if not origin and not referer:
-            return True, "*"
+        # Allow all origins by default so user's players, external sites, and mobile apps can stream
+        origin = self.headers.get("Origin", "").strip()
+        referer = self.headers.get("Referer", "").strip()
 
-        allowed_keywords = [
-            "railway.app", "localhost", "127.0.0.1", "tvora", "aspreen",
-            "yacine.website"
-        ]
-        env_allowed = os.getenv("ALLOWED_ORIGINS", "")
-        if env_allowed:
-            for d in env_allowed.split(","):
-                d = d.strip().lower()
-                if d:
-                    allowed_keywords.append(d)
+        # If a blocked domain list is specified in environment, block those
+        blocked_domains = [d.strip().lower() for d in os.getenv("BLOCKED_ORIGINS", "").split(",") if d.strip()]
+        for bd in blocked_domains:
+            if (origin and bd in origin.lower()) or (referer and bd in referer.lower()):
+                return False, None
 
-        for kw in allowed_keywords:
-            if (origin and kw in origin) or (referer and kw in referer):
-                return True, origin or "*"
-
-        return False, None
+        allow_val = origin if origin else "*"
+        return True, allow_val
 
     def send_cors_headers(self):
-        allowed, matched_origin = self.is_allowed_origin()
-        allow_val = matched_origin if (allowed and matched_origin) else (self.headers.get("Origin") or "*")
+        origin = self.headers.get("Origin", "").strip()
+        allow_val = origin if origin else "*"
         self.send_header("Access-Control-Allow-Origin", allow_val)
         self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS, HEAD")
         self.send_header("Access-Control-Allow-Headers", "*")
@@ -403,20 +394,35 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        try:
+            self._handle_get_request()
+        except Exception as e:
+            import traceback
+            err = traceback.format_exc()
+            print(f" [!] Unhandled exception in do_GET ({self.path}):\n{err}", flush=True)
+            try:
+                self.send_response(500)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.end_headers()
+                self.wfile.write(f"500 Internal Server Error: {e}\n{err}".encode("utf-8"))
+            except Exception:
+                pass
+
+    def _handle_get_request(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
 
-        # Level 1 Anti-Hotlinking / Unauthorized Origin Protection
-        if path != "/" and path != "/status":
-            allowed, _ = self.is_allowed_origin()
-            if not allowed:
-                self.send_response(403)
-                self.send_header("Access-Control-Allow-Origin", "null")
-                self.send_header("Content-Type", "text/plain; charset=utf-8")
-                self.end_headers()
-                self.wfile.write(b"403 Forbidden: Hotlinking from this domain is prohibited.")
-                return
+        # Level 1 Anti-Hotlinking: Only block explicitly blacklisted domains
+        allowed, _ = self.is_allowed_origin()
+        if not allowed:
+            self.send_response(403)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(b"403 Forbidden: Hotlinking from this domain is prohibited.")
+            return
 
         # 1. Health & Status endpoint
         if path == "/status" or path == "/":
@@ -673,7 +679,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         requested_server = qs.get("server", ["1"])[0]
         client_ip = self.get_client_ip()
 
-        cache_key = f"{cid}_{requested_server}_{client_ip}_proxy" if force_proxy else (f"{cid}_{requested_server}_{client_ip}_raw" if is_raw else f"{cid}_{requested_server}_{client_ip}")
+        cache_key = f"{cid}_{requested_server}_proxy" if force_proxy else (f"{cid}_{requested_server}_raw" if is_raw else f"{cid}_{requested_server}")
         with m3u8_cache_lock:
             cached_data = m3u8_cache.get(cache_key)
             if cached_data and now_ts < cached_data[1]:
@@ -776,7 +782,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     rewritten.append(l)
                 else:
                     seg_name = os.path.basename(l)
-                    token = make_segment_token(stream_key, session_id, seg_name, client_ip, expires)
+                    token = make_segment_token(stream_key, session_id, seg_name, expires)
                     if session_id:
                         rewritten.append(f"{base_origin}/live/segment/{stream_key}/{session_id}/{seg_name}?h={token}&exp={expires}")
                     else:
@@ -1107,8 +1113,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         exp_str = parsed_q.get("exp", [""])[0]
 
         if token and exp_str:
-            client_ip = self.get_client_ip()
-            valid, reason = verify_segment_token(clean_key, clean_session, clean_file, client_ip, token, exp_str)
+            valid, reason = verify_segment_token(clean_key, clean_session, clean_file, token, exp_str)
             if not valid:
                 self.send_response(403)
                 self.send_cors_headers()
