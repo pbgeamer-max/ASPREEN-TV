@@ -403,6 +403,12 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         if path in ("/status", "/", "/health"):
             return True, "*"
 
+        # 1.5. Signed video segments with HMAC signature are protected by cryptographic token
+        parsed_url = urllib.parse.urlparse(self.path)
+        qs = urllib.parse.parse_qs(parsed_url.query)
+        if path.startswith("/live/segment/") and qs.get("h") and qs.get("exp"):
+            return True, "*"
+
         origin = self.headers.get("Origin", "").strip()
         referer = self.headers.get("Referer", "").strip()
         ua = self.headers.get("User-Agent", "").strip().lower()
@@ -413,8 +419,6 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             return True, "*"
 
         # 3. Secret bypass key or bot parameter in URL (?key=tvora, ?key=discord, ?bot=1)
-        parsed_url = urllib.parse.urlparse(self.path)
-        qs = urllib.parse.parse_qs(parsed_url.query)
         req_key = qs.get("key", [""])[0].lower()
         if req_key in ("tvora", "aspreen", "discord", "admin") or qs.get("bot", [""])[0] == "1":
             return True, "*"
@@ -425,6 +429,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             "tvora" in ua or
             "aspreen" in ua or
             "discord" in ua or
+            "chrome/107.0.0.0" in ua or
+            "safari/537.3" in ua or
             app_key in ("tvora", "aspreen", "discord") or
             self.headers.get("X-Tvora-App") or
             self.headers.get("X-Discord-Bot")
@@ -886,6 +892,12 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             now_t = int(time.time())
             expires = now_t + SEGMENT_TOKEN_TTL
 
+            extra_params = ""
+            if qs.get("key"):
+                extra_params += f"&key={urllib.parse.quote(qs.get('key')[0])}"
+            if qs.get("bot"):
+                extra_params += f"&bot={urllib.parse.quote(qs.get('bot')[0])}"
+
             rewritten = []
             for line in m3u_text.splitlines():
                 l = line.strip()
@@ -897,9 +909,9 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     seg_name = os.path.basename(l)
                     token = make_segment_token(stream_key, session_id, seg_name, expires)
                     if session_id:
-                        rewritten.append(f"{base_origin}/live/segment/{stream_key}/{session_id}/{seg_name}?h={token}&exp={expires}")
+                        rewritten.append(f"{base_origin}/live/segment/{stream_key}/{session_id}/{seg_name}?h={token}&exp={expires}{extra_params}")
                     else:
-                        rewritten.append(f"{base_origin}/live/segment/{stream_key}/{seg_name}?h={token}&exp={expires}")
+                        rewritten.append(f"{base_origin}/live/segment/{stream_key}/{seg_name}?h={token}&exp={expires}{extra_params}")
 
             out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
             with m3u8_cache_lock:
