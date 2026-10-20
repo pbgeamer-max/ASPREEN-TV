@@ -406,12 +406,32 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         origin = self.headers.get("Origin", "").strip()
         referer = self.headers.get("Referer", "").strip()
         ua = self.headers.get("User-Agent", "").strip().lower()
+        client_ip = self.get_client_ip()
 
-        # 2. Authorized Android Mobile App check (User-Agent or App Header)
-        if "tvora" in ua or "aspreen" in ua or self.headers.get("X-App-Key") == "tvora" or self.headers.get("X-Tvora-App"):
+        # 2. Localhost & Loopback whitelist (direct playback on server)
+        if client_ip in ("127.0.0.1", "::1", "localhost", "::ffff:127.0.0.1"):
             return True, "*"
 
-        # 3. Authorized Web Browser Domains (tvora.site, etc.)
+        # 3. Secret bypass key or bot parameter in URL (?key=tvora, ?key=discord, ?bot=1)
+        parsed_url = urllib.parse.urlparse(self.path)
+        qs = urllib.parse.parse_qs(parsed_url.query)
+        req_key = qs.get("key", [""])[0].lower()
+        if req_key in ("tvora", "aspreen", "discord", "admin") or qs.get("bot", [""])[0] == "1":
+            return True, "*"
+
+        # 4. Authorized Android Mobile App & Discord Share Bot (User-Agent or App Header)
+        app_key = (self.headers.get("X-App-Key") or "").lower()
+        if (
+            "tvora" in ua or
+            "aspreen" in ua or
+            "discord" in ua or
+            app_key in ("tvora", "aspreen", "discord") or
+            self.headers.get("X-Tvora-App") or
+            self.headers.get("X-Discord-Bot")
+        ):
+            return True, "*"
+
+        # 5. Authorized Web Browser Domains (tvora.site, etc.)
         if origin or referer:
             origin_lower = origin.lower()
             referer_lower = referer.lower()
@@ -432,7 +452,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             # Unauthorized external website / hotlinking thief!
             return False, None
 
-        # 4. Direct external player (VLC, Curl, Python scraper, ffmpeg) without authorized App UA or Domain -> BLOCK!
+        # 6. Direct external player (VLC, Curl, Python scraper, ffmpeg) without authorized App UA or Domain -> BLOCK!
         return False, None
 
     def send_cors_headers(self):
