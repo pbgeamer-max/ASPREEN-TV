@@ -416,10 +416,19 @@ export function HlsPlayerModal({
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
               networkErrorCount++;
-              if (networkErrorCount >= 4) {
-                // Auto-advance to next server
+              const statusCode = data.response?.code;
+              // If status is 503 (line busy / stream initializing), give it time instead of flipping servers
+              if (statusCode === 503) {
+                console.warn('[HlsPlayer] Upstream 503 (stream initializing or line busy), retrying in 2.5s...');
+                setTimeout(() => {
+                  hls?.startLoad();
+                }, 2500);
+                break;
+              }
+              if (networkErrorCount >= 8) {
+                // Auto-advance to next server only after sustained failures
                 if (effectiveServers.length > activeServerIndex + 1) {
-                  console.log('[HlsPlayer] Fatal network error, auto-advancing to next server...');
+                  console.log('[HlsPlayer] Sustained network errors on current server, advancing to next server...');
                   setActiveServerIndex((prev) => prev + 1);
                   setError(null);
                   setIsLoading(false);
@@ -432,8 +441,10 @@ export function HlsPlayerModal({
                 hls?.destroy();
                 break;
               }
-              console.warn('[HlsPlayer] Network error during segment load, auto-recovering...', data.details);
-              hls?.startLoad();
+              console.warn('[HlsPlayer] Network error during stream load, auto-recovering...', data.details);
+              setTimeout(() => {
+                hls?.startLoad();
+              }, 1000);
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
               console.warn('[HlsPlayer] Media error, attempting auto-recovery...', data.details);

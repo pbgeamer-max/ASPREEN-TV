@@ -173,12 +173,6 @@ def _prune_hot_segment_cache():
             HOT_SEGMENT_CACHE.pop(k, None)
 
 
-# Seamless TS->HLS engine (upstream reconnects never restart FFmpeg, no replayed seconds, unique segment names)
-from ondemand_engine import OnDemandStreamManager
-
-ON_DEMAND_STREAM_MANAGER = OnDemandStreamManager(HLS_ONDEMAND_DIR, maintenance_callback=_prune_hot_segment_cache)
-
-
 def send_telegram_message(text: str):
     """Sends text notification to Telegram admin"""
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_ADMIN_CHAT_ID:
@@ -196,6 +190,16 @@ def send_telegram_message(text: str):
     except Exception as e:
         print(f" [!] خطأ في إرسال إشعار تيليجرام: {e}")
         return False
+
+
+# Seamless TS->HLS engine (upstream reconnects never restart FFmpeg, no replayed seconds, unique segment names)
+from ondemand_engine import OnDemandStreamManager
+
+ON_DEMAND_STREAM_MANAGER = OnDemandStreamManager(
+    HLS_ONDEMAND_DIR,
+    maintenance_callback=_prune_hot_segment_cache,
+    alert_callback=send_telegram_message
+)
 
 
 def load_channels_from_disk():
@@ -400,7 +404,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         path = urllib.parse.urlparse(self.path).path
 
         # 1. Internal health check & status endpoints (always public for Railway / Docker)
-        if path in ("/status", "/", "/health"):
+        if path in ("/status", "/", "/health", "/status/engine", "/api/engine/status"):
             return True, "*"
 
         # 1.5. Signed video segments with HMAC signature are protected by cryptographic token
@@ -517,6 +521,18 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 "total_auto_renews": total_refreshes
             }
             body = json.dumps(resp, ensure_ascii=False, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        # 1.1 Engine Health & Realtime Diagnostics (/status/engine)
+        if path == "/status/engine" or path == "/api/engine/status":
+            stats = ON_DEMAND_STREAM_MANAGER.stats()
+            body = json.dumps(stats, ensure_ascii=False, indent=2).encode("utf-8")
             self.send_response(200)
             self.send_cors_headers()
             self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -865,20 +881,39 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         # If alternative server is a direct continuous TS stream (e.g. VIP OTT), slice on-demand to HLS
         if target_fetch_url and ("extension=ts" in target_fetch_url or target_fetch_url.endswith(".ts")):
             res = ON_DEMAND_STREAM_MANAGER.get_or_start_stream(cid, requested_server, target_fetch_url)
-            if isinstance(res, tuple) and len(res) == 3:
+            status = "ok"
+            if isinstance(res, tuple) and len(res) == 4:
+                stream_key, session_id, m3u_text, status = res
+            elif isinstance(res, tuple) and len(res) == 3:
                 stream_key, session_id, m3u_text = res
+                status = "ok" if m3u_text else "starting"
             elif isinstance(res, tuple) and len(res) == 2:
                 stream_key, m3u_text = res
                 session_id = ""
+                status = "ok" if m3u_text else "starting"
             else:
-                stream_key, session_id, m3u_text = f"{cid}_s{requested_server}", "", None
+                stream_key, session_id, m3u_text, status = f"{cid}_s{requested_server}", "", None, "starting"
 
             if stream_key:
                 ON_DEMAND_STREAM_MANAGER.touch(stream_key)
+
+            if status == "line_full":
+                self.send_response(503)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.send_header("Retry-After", "5")
+                self.end_headers()
+                try:
+                    self.wfile.write("خط الاشتراك مشغول حالياً بحد أقصى للقنوات المتزامنة. يرجى تجربة قناة أخرى أو المحاولة لاحقاً.".encode("utf-8"))
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+                return
+
             if not m3u_text:
                 self.send_response(503)
                 self.send_cors_headers()
                 self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.send_header("Retry-After", "2")
                 self.end_headers()
                 try:
                     self.wfile.write(b"Server Initializing Stream...")
