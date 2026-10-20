@@ -71,14 +71,13 @@ HLS_LIST_SIZE = 8
 
 # ---- Line pool settings
 LINE_MAX_CONNECTIONS = max(1, int(os.environ.get("LINE_MAX_CONNECTIONS", "2")))
-ACTIVE_VIEWER_WINDOW = 20       # بث طُلب خلال هذه المدة = عليه مشاهد، ممنوع إطفاؤه
-STARTUP_GRACE = 20              # بث جديد يُعتبر سليماً خلال هذه المدة حتى لو لم ينتج شرائح بعد
-UNHEALTHY_AFTER = 15            # لا تحديث لقائمة التشغيل لهذه المدة = بث معطل يمكن استبداله
-START_WAIT_SECONDS = 12         # أقصى انتظار لأول قائمة تشغيل داخل طلب HTTP
-SEGMENT_GRACE_SECONDS = 30      # بقاء شرائح الجلسة المنتهية قبل حذفها
-CAP_RESET_SECONDS = 15 * 60     # إعادة سعة الخط للقيمة الافتراضية بعد هذه المدة
-THRASH_RECONNECTS_PER_MIN = 6   # إعادات اتصال/دقيقة تدل على أن المزود يطرد الاتصالات
-REJECT_STREAK_LIMIT = 4         # رفض متتالٍ من المزود لاتصال جديد = الخط لا يقبل المزيد
+ACTIVE_VIEWER_WINDOW = 12       # بث طُلب خلال هذه المدة = عليه مشاهد، ممنوع إطفاؤه
+STARTUP_GRACE = 35              # بث جديد يُعتبر سليماً خلال هذه المدة حتى لو لم ينتج شرائح بعد
+UNHEALTHY_AFTER = 40            # لا تحديث لقائمة التشغيل لهذه المدة = بث معطل يمكن استبداله
+START_WAIT_SECONDS = 18         # أقصى انتظار لأول قائمة تشغيل داخل طلب HTTP
+SEGMENT_GRACE_SECONDS = 45      # بقاء شرائح الجلسة المنتهية قبل حذفها
+IDLE_TIMEOUT = 120              # إيقاف الجلسة إذا لم يطلبها أي مشاهد لمدة دقيقتين
+THRASH_RECONNECTS_PER_MIN = 8   # إعادات اتصال/دقيقة تدل على طرد المزود للاتصال
 REJECT_HTTP_CODES = {401, 403, 429, 458, 509}
 WRITE_BUFFER_MAX = 16 * 1024 * 1024
 ALERT_COOLDOWN = 10 * 60
@@ -438,9 +437,6 @@ class OnDemandStreamManager:
         return [w for w in self.workers.values() if w["line"] == line and not w["stopped"].is_set()]
 
     def _line_cap(self, line, now):
-        entry = self.line_caps.get(line)
-        if entry and now - entry[1] < CAP_RESET_SECONDS:
-            return entry[0]
         return LINE_MAX_CONNECTIONS
 
     def _is_healthy(self, w, now):

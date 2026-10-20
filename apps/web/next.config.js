@@ -25,6 +25,14 @@ const nextConfig = {
         source: '/playlist.m3u',
         destination: `${streamProxyBase}/playlist.m3u`,
       },
+      {
+        source: '/status/:path*',
+        destination: `${streamProxyBase}/status/:path*`,
+      },
+      {
+        source: '/status',
+        destination: `${streamProxyBase}/status`,
+      },
     ];
   },
 };
