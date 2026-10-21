@@ -203,31 +203,36 @@ ON_DEMAND_STREAM_MANAGER = OnDemandStreamManager(
 
 
 def load_channels_from_disk():
-    """Loads existing channels.json into memory"""
+    """Loads existing channels.json and shahid_channels.json into memory"""
     global channels_cache
-    if os.path.exists(CHANNELS_JSON_PATH):
-        try:
-            with open(CHANNELS_JSON_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            now = time.time()
-            with cache_lock:
-                for ch in data:
-                    cid = str(ch.get("id") or ch.get("vid"))
-                    if not ch.get("lastRenewed"):
-                        ch["lastRenewed"] = now
-                    channels_cache[cid] = ch
-            print(f" [✓] تم تحميل {len(channels_cache)} قناة في الذاكرة الحية.")
-        except Exception as e:
-            print(f" [!] خطأ في قراءة ملف channels.json: {e}")
+    shahid_json_path = os.path.join(DATA_DIR, "shahid_channels.json")
+    for file_path in [CHANNELS_JSON_PATH, shahid_json_path]:
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                now = time.time()
+                with cache_lock:
+                    for ch in data:
+                        cid = str(ch.get("id") or ch.get("vid"))
+                        if not ch.get("lastRenewed"):
+                            ch["lastRenewed"] = now
+                        channels_cache[cid] = ch
+            except Exception as e:
+                print(f" [!] خطأ في قراءة ملف {file_path}: {e}")
+    print(f" [✓] تم تحميل {len(channels_cache)} قناة في الذاكرة الحية.")
 
 
 def renew_single_channel_stream(cid):
     """Fetches a fresh stream URL for a single channel from upstream API"""
     with cache_lock:
         ch = channels_cache.get(cid, {})
-        # Never overwrite private VIP OTT satellite channels with Yacine
+        # Never overwrite private VIP OTT satellite channels or Shahid livestream channels with Yacine
         if (
-            ch.get("source") == "private-vip"
+            ch.get("source") in ("private-vip", "shahid-livestream")
+            or cid.startswith("shahid-")
+            or cid.startswith("rotana-")
+            or cid == "alresalah"
             or "mac=" in str(ch.get("directM3u8", ""))
             or "hey-ott.net" in str(ch.get("directM3u8", ""))
             or cid in ("bein-vip-bein-sports-news", "bein-vip-bein-sports-global")

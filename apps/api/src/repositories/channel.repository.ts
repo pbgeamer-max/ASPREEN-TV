@@ -25,6 +25,23 @@ function findChannelsJsonPath(): string | null {
   return null;
 }
 
+function findShahidChannelsJsonPath(): string | null {
+  const candidates = [
+    path.resolve(process.cwd(), 'data/shahid_channels.json'),
+    path.resolve(process.cwd(), 'apps/api/data/shahid_channels.json'),
+    path.resolve(process.cwd(), '../../data/shahid_channels.json'),
+    path.resolve(__dirname, '../../../../data/shahid_channels.json'),
+    path.resolve(__dirname, '../../../data/shahid_channels.json'),
+    path.resolve(__dirname, '../../data/shahid_channels.json'),
+    path.resolve('/app/data/shahid_channels.json'),
+    path.resolve('/app/apps/api/data/shahid_channels.json'),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  return null;
+}
+
 export function isBeinChannel(channel: { id?: string; name?: string; groupTitle?: string; servers?: any[] }): boolean {
   const id = (channel.id || '').toLowerCase();
   const name = (channel.name || '').toLowerCase();
@@ -55,7 +72,7 @@ function getChannelsFromJson(): Channel[] {
 
   try {
     const raw = fs.readFileSync(p, 'utf-8');
-    const list = JSON.parse(raw);
+    const list: any[] = JSON.parse(raw);
 
     // Auto-enforce 2-stream MAC limit for beIN Sports
     const activeBein = list.filter((item: any) => {
@@ -112,13 +129,33 @@ function getChannelsFromJson(): Channel[] {
       }
     }
 
+    // Merge Shahid general channels if available
+    const shahidPath = findShahidChannelsJsonPath();
+    if (shahidPath) {
+      try {
+        const rawShahid = fs.readFileSync(shahidPath, 'utf-8');
+        const shahidList = JSON.parse(rawShahid);
+        if (Array.isArray(shahidList)) {
+          const existingIds = new Set(list.map((item: any) => String(item.id || item.vid)));
+          for (const sItem of shahidList) {
+            const sid = String(sItem.id || sItem.vid);
+            if (!existingIds.has(sid)) {
+              list.push(sItem);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load shahid_channels.json in getChannelsFromJson:', e);
+      }
+    }
+
     cachedJsonChannels = list.map((item: any, idx: number): Channel => {
       const cid = String(item.id || item.vid);
       const stream = item.playUrl || item.streamUrl || item.directM3u8 || '';
       const isOff = item.status === 'event_only' || item.inputStatus === 'OFFLINE' || item.manual_stopped === true;
       const ch: Channel = {
         id: cid,
-        sourceId: item.source || (cid.startsWith('tlfaz-') ? 'tlfaz-arabic' : 'private-vip'),
+        sourceId: item.source || (cid.startsWith('tlfaz-') ? 'tlfaz-arabic' : (cid.startsWith('shahid-') || cid.startsWith('rotana-') || cid === 'alresalah' ? 'shahid-livestream' : 'private-vip')),
         name: item.name || 'قناة غير معنونة',
         normalizedName: (item.name || '').toLowerCase().trim(),
         groupTitle: item.groupTitle || 'عام',
@@ -155,6 +192,12 @@ function updateChannelInJson(cid: string, updates: Record<string, any>) {
     path.resolve(__dirname, '../../../channels.json'),
     path.resolve('/app/channels.json'),
     path.resolve('/app/apps/api/channels.json'),
+    path.resolve(process.cwd(), 'data/shahid_channels.json'),
+    path.resolve(process.cwd(), 'apps/api/data/shahid_channels.json'),
+    path.resolve(process.cwd(), '../../data/shahid_channels.json'),
+    path.resolve(__dirname, '../../../../data/shahid_channels.json'),
+    path.resolve(__dirname, '../../../data/shahid_channels.json'),
+    path.resolve('/app/data/shahid_channels.json'),
   ];
 
   let updatedAny = false;

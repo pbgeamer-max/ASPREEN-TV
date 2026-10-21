@@ -6,6 +6,7 @@ data/*
 !data/channels.json
 !data/channels_multiserver.json
 !data/yacine_channels.json
+!data/shahid_channels.json
 scripts/*.html
 scripts/inspect_*.js
 scripts/test_*.js
