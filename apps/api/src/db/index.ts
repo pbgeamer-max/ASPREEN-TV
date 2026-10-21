@@ -19,6 +19,23 @@ function findChannelsJsonPath(): string | null {
   return null;
 }
 
+function findShahidChannelsJsonPath(): string | null {
+  const candidates = [
+    path.resolve(process.cwd(), 'data/shahid_channels.json'),
+    path.resolve(process.cwd(), 'apps/api/data/shahid_channels.json'),
+    path.resolve(process.cwd(), '../../data/shahid_channels.json'),
+    path.resolve(__dirname, '../../../../data/shahid_channels.json'),
+    path.resolve(__dirname, '../../../data/shahid_channels.json'),
+    path.resolve(__dirname, '../../data/shahid_channels.json'),
+    path.resolve('/app/data/shahid_channels.json'),
+    path.resolve('/app/apps/api/data/shahid_channels.json'),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  return null;
+}
+
 
 let pool: Pool | null = null;
 let isInitialized = false;
@@ -215,37 +232,79 @@ export async function initDatabase(force = false): Promise<boolean> {
         DROP TABLE IF EXISTS movies CASCADE;
       `);
 
-      // Always synchronize channels.json into database on boot to ensure current active verified channels
+      // Always synchronize channels.json and shahid_channels.json into database on boot to ensure current active verified channels
       try {
         const jsonPath = findChannelsJsonPath();
+        const shahidPath = findShahidChannelsJsonPath();
+
+        let list: any[] = [];
         if (jsonPath && fs.existsSync(jsonPath)) {
           const raw = fs.readFileSync(jsonPath, 'utf-8');
-          const list = JSON.parse(raw);
-          console.log(`[PostgreSQL] Syncing ${list.length} channels from ${jsonPath}...`);
+          list = JSON.parse(raw);
+        }
+
+        // Also merge Shahid channels from disk
+        if (shahidPath && fs.existsSync(shahidPath)) {
+          try {
+            const rawShahid = fs.readFileSync(shahidPath, 'utf-8');
+            const shahidList = JSON.parse(rawShahid);
+            if (Array.isArray(shahidList)) {
+              const existingIds = new Set(list.map((c: any) => String(c.id || c.vid)));
+              let addedShahid = 0;
+              for (const sh of shahidList) {
+                const sid = String(sh.id || sh.vid);
+                if (!existingIds.has(sid)) {
+                  list.push(sh);
+                  existingIds.add(sid);
+                  addedShahid++;
+                }
+              }
+              if (addedShahid > 0 && jsonPath && fs.existsSync(jsonPath)) {
+                try {
+                  fs.writeFileSync(jsonPath, JSON.stringify(list, null, 2), 'utf-8');
+                  console.log(`[Auto-Sync] Merged ${addedShahid} Shahid channels directly into ${jsonPath}`);
+                } catch {}
+              }
+            }
+          } catch (e: any) {
+            console.error('[PostgreSQL] Failed to parse shahid_channels.json:', e.message);
+          }
+        }
+
+        if (list.length > 0) {
+          console.log(`[PostgreSQL] Syncing total ${list.length} channels (including Shahid) into database...`);
 
           // 1. Clear obsolete old channels from table
           await client.query('DELETE FROM channels');
           await client.query('DELETE FROM sources');
 
           // 2. Insert sources
-          const vipCount = list.filter((c: any) => c.source === 'private-vip').length;
-          const tlfazCount = list.filter((c: any) => c.source !== 'private-vip').length;
+          const vipCount = list.filter((c: any) => c.source === 'private-vip' || String(c.id || c.vid).startsWith('bein-vip-')).length;
+          const shahidCount = list.filter((c: any) => c.source === 'shahid-livestream' || String(c.id || c.vid).startsWith('shahid-') || String(c.id || c.vid).startsWith('rotana-') || String(c.id || c.vid) === 'alresalah').length;
+          const tlfazCount = list.length - vipCount - shahidCount;
 
           await client.query(`
             INSERT INTO sources (
               id, name, type, sanitized_hostname, encrypted_url, enabled, connection_status, channel_count, created_at, updated_at
             ) VALUES 
               ('private-vip', 'beIN SPORTS VIP (ملفاتك الخاصة)', 'M3U', 'line.hey-ott.net', $1::text, true, 'ONLINE', $2::integer, NOW(), NOW()),
-              ('tlfaz-arabic', 'قنوات تلفاز العرب (tlfaz.com)', 'M3U', 'tlfaz.com', $3::text, true, 'ONLINE', $4::integer, NOW(), NOW())
+              ('shahid-livestream', 'قنوات شاهد المباشرة (shahid.mbc.net)', 'M3U', 'shahid.mbc.net', $3::text, true, 'ONLINE', $4::integer, NOW(), NOW()),
+              ('tlfaz-arabic', 'قنوات تلفاز العرب (tlfaz.com)', 'M3U', 'tlfaz.com', $5::text, true, 'ONLINE', $6::integer, NOW(), NOW())
             ON CONFLICT (id) DO UPDATE SET channel_count = EXCLUDED.channel_count, connection_status = 'ONLINE'
-          `, [encrypt('http://line.hey-ott.net/'), vipCount, encrypt('https://tlfaz.com/'), tlfazCount]);
+          `, [
+            encrypt('http://line.hey-ott.net/'), vipCount,
+            encrypt('https://shahid.mbc.net/ar/livestream'), shahidCount,
+            encrypt('https://tlfaz.com/'), tlfazCount
+          ]);
 
           // 3. Insert channels with servers JSON
           for (let i = 0; i < list.length; i++) {
             const item = list[i];
             const cid = String(item.id || item.vid);
-            const sourceId = item.source === 'private-vip' ? 'private-vip' : 'tlfaz-arabic';
-            const stream = item.streamUrl || item.directM3u8 || '';
+            const isBein = item.source === 'private-vip' || cid.startsWith('bein-vip-');
+            const isShahid = item.source === 'shahid-livestream' || cid.startsWith('shahid-') || cid.startsWith('rotana-') || cid === 'alresalah';
+            const sourceId = isBein ? 'private-vip' : (isShahid ? 'shahid-livestream' : 'tlfaz-arabic');
+            const stream = item.playUrl || item.streamUrl || item.directM3u8 || '';
             const encStream = encrypt(stream);
             const name = item.name || 'قناة غير معنونة';
             const normName = name.toLowerCase().trim();
@@ -253,6 +312,7 @@ export async function initDatabase(force = false): Promise<boolean> {
             const logo = item.logoUrl || null;
             const order = item.orderIndex || (i + 1);
             const serversJson = item.servers ? JSON.stringify(item.servers) : null;
+            const isOff = item.status === 'event_only' || item.inputStatus === 'OFFLINE' || item.manual_stopped === true;
 
             await client.query(`
               INSERT INTO channels (
@@ -261,15 +321,20 @@ export async function initDatabase(force = false): Promise<boolean> {
                 preset, proxy_url, order_index, servers, created_at, updated_at
               ) VALUES (
                 $1::varchar, $2::varchar, $3::text, $4::text, $5::text, $6::text, $7::text,
-                'HLS', $8::text, true, 'ONLINE', 'RUNNING',
-                'COPY', $9::text, $10::integer, $11::jsonb, NOW(), NOW()
+                'HLS', $8::text, true, $9::varchar, $10::varchar,
+                'COPY', $11::text, $12::integer, $13::jsonb, NOW(), NOW()
               )
-            `, [cid, sourceId, cid, name, normName, grp, logo, encStream, `/live/${cid}.m3u8`, order, serversJson]);
+            `, [
+              cid, sourceId, cid, name, normName, grp, logo, encStream,
+              isOff ? 'OFFLINE' : 'ONLINE',
+              isOff ? 'STOPPED' : 'RUNNING',
+              `/live/${cid}.m3u8`, order, serversJson
+            ]);
           }
 
-          console.log(`[PostgreSQL] Successfully synchronized ${list.length} channels into database!`);
+          console.log(`[PostgreSQL] Successfully synchronized all ${list.length} channels (including Shahid) into database!`);
         } else {
-          console.warn('[PostgreSQL] Could not find channels.json for auto-sync.');
+          console.warn('[PostgreSQL] Could not find channels.json or shahid_channels.json for auto-sync.');
         }
       } catch (seedErr: any) {
         console.error('[PostgreSQL] Auto-sync failed:', seedErr.message);

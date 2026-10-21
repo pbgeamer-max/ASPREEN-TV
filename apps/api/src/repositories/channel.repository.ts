@@ -405,12 +405,21 @@ export class ChannelRepository {
     // If database has 0 channels, seamlessly serve from channels.json
     if (channels.length === 0) {
       channels = getChannelsFromJson();
-      if (sourceId) {
-        channels = channels.filter((c) => c.sourceId === sourceId);
+    } else {
+      // Ensure any newly added channels (such as Shahid/MBC/Rotana) are seamlessly included even if DB has legacy channels
+      const jsonChannels = getChannelsFromJson();
+      const existingIds = new Set(channels.map((c) => String(c.id)));
+      const missing = jsonChannels.filter((c) => !existingIds.has(String(c.id)));
+      if (missing.length > 0) {
+        channels = [...channels, ...missing];
       }
-      if (limitCount && limitCount > 0) {
-        channels = channels.slice(0, limitCount);
-      }
+    }
+
+    if (sourceId) {
+      channels = channels.filter((c) => c.sourceId === sourceId);
+    }
+    if (limitCount && limitCount > 0) {
+      channels = channels.slice(0, limitCount);
     }
 
     return channels;
