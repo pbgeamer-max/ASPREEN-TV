@@ -263,6 +263,8 @@ export async function appRoutes(server: FastifyInstance) {
         }
       }
       const order = ch.orderIndex || (idx + 1);
+      const isNoEvent = ch.inputStatus === 'OFFLINE' || (ch as any).status === 'event_only' || (ch as any).manual_stopped === true;
+      const effectiveStatusMessage = isNoEvent ? 'لا يوجد حدث حالياً' : ((ch as any).status_message || 'بث مباشر فائق الدقة');
 
       return {
         id: ch.id,
@@ -273,7 +275,10 @@ export async function appRoutes(server: FastifyInstance) {
         raw_logo: ch.logoUrl || null,
         stream_url: permStreamUrl,
         playback_url: permStreamUrl,
-        status: ch.inputStatus === 'OFFLINE' ? 'OFFLINE' : 'ONLINE',
+        status: isNoEvent ? 'OFFLINE' : 'ONLINE',
+        is_live: !isNoEvent,
+        event_status: isNoEvent ? 'no_event' : 'live',
+        status_message: effectiveStatusMessage,
         order,
         servers: ch.servers && ch.servers.length > 0 ? ch.servers.map((s, sIdx) => {
           let sUrl = s.url || '';
@@ -292,7 +297,8 @@ export async function appRoutes(server: FastifyInstance) {
             quality: s.quality,
             resolution: (s as any).resolution,
             isDefault: s.isDefault,
-            status: s.status,
+            status: isNoEvent ? 'offline' : (s.status || 'live'),
+            status_message: isNoEvent ? 'لا يوجد حدث حالياً' : ((s as any).status_message || 'بث مباشر'),
           };
         }) : [
           {
@@ -301,14 +307,16 @@ export async function appRoutes(server: FastifyInstance) {
             url: `${permStreamUrl}?server=1`,
             quality: '1080p',
             isDefault: true,
-            status: 'live',
+            status: isNoEvent ? 'offline' : 'live',
+            status_message: isNoEvent ? 'لا يوجد حدث حالياً' : 'بث مباشر',
           },
           {
             id: 'server-2',
             name: 'سيرفر 2 (احتياطي)',
             url: `${permStreamUrl}?server=2`,
             quality: 'HD',
-            status: 'live',
+            status: isNoEvent ? 'offline' : 'live',
+            status_message: isNoEvent ? 'لا يوجد حدث حالياً' : 'بث مباشر',
           }
         ],
       };

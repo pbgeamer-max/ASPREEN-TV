@@ -27,6 +27,10 @@ import {
   ChevronRight,
   Trash2,
   Image as ImageIcon,
+  AlertTriangle,
+  Pause,
+  ShieldCheck,
+  Zap,
 } from 'lucide-react';
 
 export default function ChannelsPage() {
@@ -45,6 +49,22 @@ export default function ChannelsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSourceId, setSelectedSourceId] = useState<string>('');
   const [selectedGroup, setSelectedGroup] = useState<string>('');
+  const [channelFilterTab, setChannelFilterTab] = useState<'ALL' | 'BEIN' | 'LIVE' | 'NO_EVENT'>('ALL');
+
+  // beIN Sports VIP controls & limits (Strict 2 Max Channels)
+  const [beinStatus, setBeinStatus] = useState<{
+    activeCount: number;
+    maxLimit: number;
+    activeChannels: { id: string; name: string }[];
+  }>({ activeCount: 2, maxLimit: 2, activeChannels: [] });
+  const [limitWarningModal, setLimitWarningModal] = useState<{
+    open: boolean;
+    channelName: string;
+    activeNames: string[];
+    pendingChannelId?: string;
+  }>({ open: false, channelName: '', activeNames: [] });
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [broadcastTogglingId, setBroadcastTogglingId] = useState<string | null>(null);
 
   // Stream Links & Distribution modal
   const [linksModalOpen, setLinksModalOpen] = useState(false);
@@ -94,6 +114,24 @@ export default function ChannelsPage() {
   const [copiedExport, setCopiedExport] = useState(false);
 
 
+  const isBein = (ch: Channel) => {
+    const id = (ch.id || '').toLowerCase();
+    const name = (ch.name || '').toLowerCase();
+    const grp = (ch.groupTitle || '').toLowerCase();
+    return id.includes('bein') || name.includes('bein') || grp.includes('bein');
+  };
+
+  const activeBeinChannels = useMemo(() => {
+    return channels.filter(
+      (c) =>
+        isBein(c) &&
+        c.inputStatus !== 'OFFLINE' &&
+        (c as any).status !== 'event_only'
+    );
+  }, [channels]);
+
+  const activeBeinCount = activeBeinChannels.length;
+
   const fetchChannels = async () => {
     setLoading(true);
     try {
@@ -106,26 +144,41 @@ export default function ChannelsPage() {
       if (res.ok) {
         const data = await res.json();
         if (data && Array.isArray(data.channels) && data.channels.length > 0) {
-          const mapped: Channel[] = data.channels.map((c: any) => ({
-            id: c.id,
-            sourceId: c.sourceId || (String(c.id).startsWith('tlfaz-') ? 'tlfaz-arabic' : 'private-vip'),
-            name: c.name,
-            normalizedName: (c.name || '').toLowerCase(),
-            groupTitle: c.group || c.category || 'عام',
-            logoUrl: c.raw_logo || (c.logo && !c.logo.includes('/image-proxy') ? c.logo : (c.raw_logo || c.logo || '')),
-            inputType: 'HLS',
-            inputStatus: 'ONLINE',
-            preset: 'COPY',
-            transcodingStatus: 'RUNNING',
-            orderIndex: c.order || 0,
-            enabled: true,
-            servers: c.servers || undefined,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          }));
+          const mapped: Channel[] = data.channels.map((c: any) => {
+            const isNoEvent = c.status === 'OFFLINE' || c.event_status === 'no_event';
+            return {
+              id: c.id,
+              sourceId: c.sourceId || (String(c.id).startsWith('tlfaz-') ? 'tlfaz-arabic' : 'private-vip'),
+              name: c.name,
+              normalizedName: (c.name || '').toLowerCase(),
+              groupTitle: c.group || c.category || 'عام',
+              logoUrl: c.raw_logo || (c.logo && !c.logo.includes('/image-proxy') ? c.logo : (c.raw_logo || c.logo || '')),
+              inputType: 'HLS',
+              inputStatus: isNoEvent ? 'OFFLINE' : 'ONLINE',
+              preset: 'COPY',
+              transcodingStatus: isNoEvent ? 'STOPPED' : 'RUNNING',
+              orderIndex: c.order || 0,
+              enabled: true,
+              servers: c.servers || undefined,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              status: isNoEvent ? 'event_only' : 'live',
+              status_message: c.status_message || (isNoEvent ? 'لا يوجد حدث حالياً' : 'بث مباشر فائق الدقة'),
+              is_live: !isNoEvent,
+            } as any;
+          });
 
           setChannels(mapped);
           setLoading(false);
+
+          fetch(`/api/channels/bein-status?_t=${Date.now()}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((bData) => {
+              if (bData && typeof bData.activeCount === 'number') {
+                setBeinStatus(bData);
+              }
+            })
+            .catch(() => {});
           return;
         }
       }
@@ -141,6 +194,117 @@ export default function ChannelsPage() {
       console.error('Failed to load channels:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleBroadcast = async (ch: Channel, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const isCurrentlyLive = ch.inputStatus !== 'OFFLINE' && (ch as any).status !== 'event_only';
+    const willBeLive = !isCurrentlyLive;
+
+    // Strict Limit Enforcement for beIN Sports (Max 2 channels)
+    if (willBeLive && isBein(ch)) {
+      if (activeBeinCount >= 2 && !activeBeinChannels.some((c) => c.id === ch.id)) {
+        setLimitWarningModal({
+          open: true,
+          channelName: ch.name,
+          activeNames: activeBeinChannels.map((c) => c.name),
+          pendingChannelId: ch.id,
+        });
+        return;
+      }
+    }
+
+    setBroadcastTogglingId(ch.id);
+
+    // Optimistic UI update
+    setChannels((prev) =>
+      prev.map((c) => {
+        if (c.id === ch.id) {
+          return {
+            ...c,
+            inputStatus: willBeLive ? 'ONLINE' : 'OFFLINE',
+            transcodingStatus: willBeLive ? 'RUNNING' : 'STOPPED',
+            status: willBeLive ? 'live' : 'event_only',
+            status_message: willBeLive ? 'بث مباشر فائق الدقة' : 'لا يوجد حدث حالياً',
+            is_live: willBeLive,
+          } as any;
+        }
+        return c;
+      })
+    );
+
+    try {
+      const res = await api.toggleChannelBroadcast(ch.id, willBeLive);
+      if (res && res.activeBeinChannels) {
+        setBeinStatus({
+          activeCount: res.activeBeinCount,
+          maxLimit: 2,
+          activeChannels: res.activeBeinChannels,
+        });
+      }
+      setToastMessage(
+        willBeLive
+          ? `🟢 تم تشغيل بث (${ch.name}) بنجاح. القنوات النشطة: ${willBeLive ? activeBeinCount + 1 : activeBeinCount}/2`
+          : `⏸️ تم إيقاف بث (${ch.name}). يظهر الآن "لا يوجد حدث" في موقع العرض وتطبيق الأندرويد.`
+      );
+      setTimeout(() => setToastMessage(null), 4000);
+    } catch (err: any) {
+      // Revert on error
+      setChannels((prev) =>
+        prev.map((c) => {
+          if (c.id === ch.id) {
+            return {
+              ...c,
+              inputStatus: isCurrentlyLive ? 'ONLINE' : 'OFFLINE',
+              transcodingStatus: isCurrentlyLive ? 'RUNNING' : 'STOPPED',
+              status: isCurrentlyLive ? 'live' : 'event_only',
+              status_message: isCurrentlyLive ? 'بث مباشر فائق الدقة' : 'لا يوجد حدث حالياً',
+              is_live: isCurrentlyLive,
+            } as any;
+          }
+          return c;
+        })
+      );
+      if (err.message && err.message.includes('BEIN_LIMIT_REACHED')) {
+        setLimitWarningModal({
+          open: true,
+          channelName: ch.name,
+          activeNames: activeBeinChannels.map((c) => c.name),
+          pendingChannelId: ch.id,
+        });
+      } else {
+        alert(`فشل تحديث حالة البث: ${err.message}`);
+      }
+    } finally {
+      setBroadcastTogglingId(null);
+    }
+  };
+
+  const handleSwitchBeinChannel = async (channelToStopId: string, channelToStartId: string) => {
+    setLimitWarningModal((prev) => ({ ...prev, open: false }));
+    setBroadcastTogglingId(channelToStartId);
+
+    try {
+      // 1. Stop the active channel
+      await api.toggleChannelBroadcast(channelToStopId, false);
+      // 2. Start the pending channel
+      const res = await api.toggleChannelBroadcast(channelToStartId, true);
+      if (res && res.activeBeinChannels) {
+        setBeinStatus({
+          activeCount: res.activeBeinCount,
+          maxLimit: 2,
+          activeChannels: res.activeBeinChannels,
+        });
+      }
+      await fetchChannels();
+      setToastMessage(`🔄 تم استبدال القناة وتشغيل (${limitWarningModal.channelName}) بنجاح`);
+      setTimeout(() => setToastMessage(null), 4000);
+    } catch (err: any) {
+      alert(`فشل استبدال القناة: ${err.message}`);
+      fetchChannels();
+    } finally {
+      setBroadcastTogglingId(null);
     }
   };
 
@@ -380,6 +544,10 @@ export default function ChannelsPage() {
 
   const filteredChannels = useMemo(() => {
     return channels.filter((c) => {
+      if (channelFilterTab === 'BEIN' && !isBein(c)) return false;
+      if (channelFilterTab === 'LIVE' && (c.inputStatus === 'OFFLINE' || (c as any).status === 'event_only')) return false;
+      if (channelFilterTab === 'NO_EVENT' && c.inputStatus !== 'OFFLINE' && (c as any).status !== 'event_only') return false;
+
       if (selectedSourceId && c.sourceId !== selectedSourceId) return false;
       if (selectedGroup && c.groupTitle?.toLowerCase() !== selectedGroup.toLowerCase()) return false;
       if (searchQuery) {
@@ -391,7 +559,7 @@ export default function ChannelsPage() {
       }
       return true;
     });
-  }, [channels, selectedSourceId, selectedGroup, searchQuery]);
+  }, [channels, channelFilterTab, selectedSourceId, selectedGroup, searchQuery]);
 
   const totalChannels = filteredChannels.length;
   const totalPages = pageSize === 0 ? 1 : Math.max(1, Math.ceil(totalChannels / pageSize));
@@ -462,6 +630,139 @@ export default function ChannelsPage() {
         />
 
         <div className="p-8 space-y-6 flex-1">
+          {/* Toast Notification */}
+          {toastMessage && (
+            <div className="fixed top-6 right-6 z-50 flex items-center gap-2 bg-[#171717] border border-emerald-500/40 text-emerald-300 text-xs py-2.5 px-4 rounded-lg shadow-2xl animate-fade-in backdrop-blur-md">
+              <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>{toastMessage}</span>
+            </div>
+          )}
+
+          {/* beIN Sports VIP Smart Line Manager Banner */}
+          <div className="bg-gradient-to-r from-[#141414] via-[#161616] to-[#121212] border border-[#2A2A2A] rounded-xl p-5 shadow-lg relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-red-600/5 to-transparent pointer-events-none" />
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-red-950/40 border border-red-800/40 flex items-center justify-center">
+                    <Radio className="w-4 h-4 text-red-400 animate-pulse" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>إدارة بث قنوات beIN Sports VIP الفضائية</span>
+                      <span className="text-[10px] font-mono font-normal px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-300 border border-neutral-700">
+                        سعة الاشتراك: قناتان متزامنتان
+                      </span>
+                    </h2>
+                    <p className="text-xs text-[#A1A1AA]">
+                      يمكنك تشغيل قناتين كحد أقصى في نفس الوقت. عند إيقاف أي قناة، يظهر فوراً للمشاهدين وتطبيق الأندرويد{' '}
+                      <span className="text-amber-400 font-medium">"لا يوجد حدث حالياً"</span> لإتاحة الخط لقناة أخرى دون أي تقطيع.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Active Channels Pills */}
+                {activeBeinChannels.length > 0 && (
+                  <div className="flex items-center gap-2 pt-2 flex-wrap">
+                    <span className="text-[11px] text-[#71717A]">القنوات النشطة قيد البث الآن:</span>
+                    {activeBeinChannels.map((c) => (
+                      <span
+                        key={c.id}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-950/50 border border-emerald-800/60 text-emerald-300 text-[11px] font-medium"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>{c.name}</span>
+                        <button
+                          onClick={() => handleToggleBroadcast(c)}
+                          title="إيقاف بث هذه القناة فوراً"
+                          className="mr-1 text-emerald-400 hover:text-rose-400 transition-colors"
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Status Badge & Indicator */}
+              <div className="flex items-center gap-3 shrink-0">
+                <div
+                  className={`px-4 py-2.5 rounded-lg border text-center transition-all ${
+                    activeBeinCount >= 2
+                      ? 'bg-amber-950/20 border-amber-800/60 text-amber-300'
+                      : 'bg-emerald-950/20 border-emerald-800/60 text-emerald-300'
+                  }`}
+                >
+                  <div className="text-[10px] uppercase font-mono tracking-wider opacity-80">
+                    القنوات النشطة
+                  </div>
+                  <div className="text-lg font-bold font-mono">
+                    {activeBeinCount} / 2
+                  </div>
+                  <div className="text-[10px] opacity-75">
+                    {activeBeinCount >= 2 ? 'مكتمل (الحد الأقصى)' : 'متاح تفعيل قناة إضافية'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Filter Tabs */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            <button
+              onClick={() => { setChannelFilterTab('ALL'); setCurrentPage(1); }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                channelFilterTab === 'ALL'
+                  ? 'bg-neutral-800 text-white border border-neutral-700'
+                  : 'bg-neutral-900/60 text-neutral-400 hover:text-white border border-transparent'
+              }`}
+            >
+              الكل ({channels.length})
+            </button>
+            <button
+              onClick={() => { setChannelFilterTab('BEIN'); setCurrentPage(1); }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
+                channelFilterTab === 'BEIN'
+                  ? 'bg-red-950/60 text-red-300 border border-red-800'
+                  : 'bg-neutral-900/60 text-neutral-400 hover:text-red-300 border border-transparent'
+              }`}
+            >
+              <span>🏆 قنوات beIN Sports</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-neutral-800">
+                {channels.filter(isBein).length}
+              </span>
+            </button>
+            <button
+              onClick={() => { setChannelFilterTab('LIVE'); setCurrentPage(1); }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
+                channelFilterTab === 'LIVE'
+                  ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800'
+                  : 'bg-neutral-900/60 text-neutral-400 hover:text-emerald-300 border border-transparent'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span>قيد البث المباشر</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-neutral-800">
+                {channels.filter((c) => c.inputStatus === 'ONLINE' && (c as any).status !== 'event_only').length}
+              </span>
+            </button>
+            <button
+              onClick={() => { setChannelFilterTab('NO_EVENT'); setCurrentPage(1); }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
+                channelFilterTab === 'NO_EVENT'
+                  ? 'bg-neutral-800 text-neutral-300 border border-neutral-600'
+                  : 'bg-neutral-900/60 text-neutral-400 hover:text-neutral-300 border border-transparent'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
+              <span>لا يوجد حدث حالياً</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-neutral-800">
+                {channels.filter((c) => c.inputStatus === 'OFFLINE' || (c as any).status === 'event_only').length}
+              </span>
+            </button>
+          </div>
+
           {/* Controls: Search & Filters */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3 w-full sm:w-auto flex-1 max-w-2xl">
@@ -534,8 +835,8 @@ export default function ChannelsPage() {
                       <th className="py-3 px-4 font-normal">Group</th>
                       <th className="py-3 px-4 font-normal">Format</th>
                       <th className="py-3 px-4 font-normal">Preset</th>
-                      <th className="py-3 px-4 font-normal">Status</th>
-                      <th className="py-3 px-4 font-normal text-right">Actions</th>
+                      <th className="py-3 px-4 font-normal">حالة البث والحدث</th>
+                      <th className="py-3 px-4 font-normal text-right">التحكم والبث</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#1A1A1A]">
@@ -562,17 +863,17 @@ export default function ChannelsPage() {
                                   className="w-full h-full object-contain p-0.5"
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    const isBein = ch.name?.toLowerCase().includes('bein') || ch.groupTitle?.toLowerCase().includes('bein');
+                                    const isBeinChan = ch.name?.toLowerCase().includes('bein') || ch.groupTitle?.toLowerCase().includes('bein');
                                     if (!target.dataset.triedFallback) {
                                       target.dataset.triedFallback = 'true';
-                                      if (isBein) {
+                                      if (isBeinChan) {
                                         target.src = '/logos/bein-sports.png';
                                       } else if (ch.logoUrl && ch.logoUrl.startsWith('http')) {
                                         target.src = ch.logoUrl;
                                       } else {
                                         target.style.display = 'none';
                                       }
-                                    } else if (isBein && !target.src.includes('/logos/bein-sports.png')) {
+                                    } else if (isBeinChan && !target.src.includes('/logos/bein-sports.png')) {
                                       target.src = '/logos/bein-sports.png';
                                     } else {
                                       target.style.display = 'none';
@@ -603,20 +904,50 @@ export default function ChannelsPage() {
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <span
-                            className={
-                              ch.transcodingStatus === 'RUNNING'
-                                ? 'badge-running'
-                                : ch.transcodingStatus === 'FAILED'
-                                ? 'badge-failed'
-                                : 'badge-stopped'
-                            }
-                          >
-                            {ch.transcodingStatus}
-                          </span>
+                          {ch.inputStatus === 'ONLINE' && (ch as any).status !== 'event_only' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/70 text-emerald-400 border border-emerald-800/80">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                              <span>بث مباشر (نشط)</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-neutral-900 text-amber-400/90 border border-amber-900/40">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                              <span>لا يوجد حدث</span>
+                            </span>
+                          )}
                         </td>
                         <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="inline-flex items-center gap-2">
+                            {/* Broadcast On/Off Button (Stop/Start Event) */}
+                            <button
+                              onClick={(e) => handleToggleBroadcast(ch, e)}
+                              disabled={broadcastTogglingId === ch.id}
+                              title={
+                                ch.inputStatus === 'ONLINE' && (ch as any).status !== 'event_only'
+                                  ? 'إيقاف البث فوراً وإظهار (لا يوجد حدث) في تطبيق الأندرويد وموقع العرض'
+                                  : 'تشغيل البث المباشر للقناة'
+                              }
+                              className={`px-3 py-1 rounded flex items-center gap-1.5 font-medium text-xs transition-all shadow-sm ${
+                                ch.inputStatus === 'ONLINE' && (ch as any).status !== 'event_only'
+                                  ? 'bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/60'
+                                  : 'bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-800/60'
+                              } disabled:opacity-50`}
+                            >
+                              {broadcastTogglingId === ch.id ? (
+                                <span className="animate-spin text-xs">⏳</span>
+                              ) : ch.inputStatus === 'ONLINE' && (ch as any).status !== 'event_only' ? (
+                                <>
+                                  <Pause className="w-3.5 h-3.5 text-rose-400" />
+                                  <span>إيقاف البث</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400/20" />
+                                  <span>تشغيل البث</span>
+                                </>
+                              )}
+                            </button>
+
                             {/* Open Stream Links Modal */}
                             <button
                               onClick={() => handleOpenStreamLinks(ch)}
@@ -1225,6 +1556,91 @@ export default function ChannelsPage() {
                     <span>نسخ رابط جميع القنوات (/playlist.m3u)</span>
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* beIN Sports Capacity Limit Warning Modal */}
+        {limitWarningModal.open && (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#121212] border border-[#2A2A2A] rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-fade-in">
+              <div className="flex items-start justify-between border-b border-[#222222] pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-950/40 border border-amber-600/30 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">
+                      تم بلوغ الحد الأقصى (قناتين بي إن سبورت)
+                    </h3>
+                    <p className="text-xs text-[#A1A1AA] mt-0.5">
+                      سيرفر المصدر يسمح بتشغيل <span className="text-amber-400 font-semibold">قناتين فقط</span> في نفس الوقت
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setLimitWarningModal({ open: false, channelName: '', activeNames: [] })}
+                  className="text-[#71717A] hover:text-white transition-colors p-1"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs text-[#D4D4D8]">
+                <p className="leading-relaxed bg-[#181818] p-3.5 rounded-xl border border-[#262626]">
+                  للحفاظ على ثبات البث بدون أي تقطيع أو تجميد، قمنا بحماية اشتراكك من تجاوز الحد.
+                  تريد تشغيل <span className="text-emerald-400 font-bold">"{limitWarningModal.channelName}"</span>؟
+                  اختر إحدى القناتين التاليتين لإيقافها وتشغيل الجديدة مكانها بنقرة واحدة:
+                </p>
+
+                <div className="space-y-2 pt-1">
+                  <div className="text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">
+                    القنوات التي تبث الآن (اختر قناة لاستبدالها):
+                  </div>
+                  {activeBeinChannels.length > 0 ? (
+                    activeBeinChannels.map((activeCh) => (
+                      <div
+                        key={activeCh.id}
+                        className="flex items-center justify-between p-3 rounded-xl bg-[#171717] border border-[#2B2B2B] hover:border-neutral-600 transition-all"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                          <span className="font-semibold text-white text-xs">{activeCh.name}</span>
+                          <span className="text-[10px] text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-800/40">
+                            تبث حالياً
+                          </span>
+                        </div>
+                        {limitWarningModal.pendingChannelId && (
+                          <button
+                            onClick={() =>
+                              handleSwitchBeinChannel(activeCh.id, limitWarningModal.pendingChannelId!)
+                            }
+                            disabled={broadcastTogglingId !== null}
+                            className="px-3 py-1.5 rounded-lg bg-red-950/60 hover:bg-red-900 border border-red-700/60 text-red-200 text-xs font-medium transition-colors flex items-center gap-1.5"
+                          >
+                            <span>إيقاف هذه والتبديل</span>
+                            <span>←</span>
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-3 text-center text-[#71717A] bg-[#161616] rounded-xl border border-[#262626]">
+                      {limitWarningModal.activeNames.join(' ، ')}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#222222]">
+                <button
+                  type="button"
+                  onClick={() => setLimitWarningModal({ open: false, channelName: '', activeNames: [] })}
+                  className="btn-secondary py-2 px-4 text-xs font-medium"
+                >
+                  إلغاء الأمر
+                </button>
               </div>
             </div>
           </div>

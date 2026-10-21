@@ -392,6 +392,21 @@ class OnDemandStreamManager:
             if w:
                 w["last_active"] = time.time()
 
+    def stop_channel_streams(self, cid: str):
+        """Immediately stops all active sessions/workers for the given channel ID and frees upstream connection."""
+        to_stop = []
+        with self.lock:
+            for k, w in list(self.workers.items()):
+                if w.get("cid") == cid or k == cid or k.startswith(f"{cid}_"):
+                    to_stop.append(w)
+        stopped_keys = []
+        for w in to_stop:
+            print(f" [!] إيقاف بث القناة يدوياً بطلب الأدمن: {w['key']} (جلسة {w['session']})")
+            self._signal_stop(w)
+            stopped_keys.append(w["key"])
+            self._event("manual_stop", w["key"], "Stopped by admin request")
+        return stopped_keys
+
     def segment_path(self, stream_key, session, filename):
         with self.lock:
             w = self.workers.get(stream_key)

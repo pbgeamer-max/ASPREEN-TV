@@ -541,6 +541,34 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(body)
             return
 
+        # 1.2 Channel Stop Control endpoint (/api/engine/stop or /live/control/stop)
+        if path == "/api/engine/stop" or path == "/live/control/stop":
+            cid = query.get("id", [""])[0] or query.get("cid", [""])[0]
+            stopped = []
+            if cid:
+                stopped = ON_DEMAND_STREAM_MANAGER.stop_channel_streams(cid)
+            load_channels_from_disk()
+            body = json.dumps({"status": "stopped", "cid": cid, "stopped_streams": stopped}, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        # 1.3 Channels Reload endpoint (/api/engine/reload or /live/control/reload)
+        if path == "/api/engine/reload" or path == "/live/control/reload":
+            load_channels_from_disk()
+            body = json.dumps({"status": "reloaded", "total": len(channels_cache)}, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
         # 2. Master Dynamic Playlist (all channels)
         if path == "/playlist.m3u" or path == "/channels.m3u":
             host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", f"127.0.0.1:{PORT}"))
@@ -755,6 +783,18 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Channel Not Found")
             return
 
+        if ch.get("status") == "event_only" or ch.get("inputStatus") == "OFFLINE":
+            self.send_response(503)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("X-Channel-Status", "NO_EVENT")
+            self.end_headers()
+            try:
+                self.wfile.write("لا يوجد حدث حالياً للقناة".encode("utf-8"))
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+            return
+
         target_fetch_url, req_ua = self.build_target_and_ua(ch, requested_server)
         if not target_fetch_url:
             self.send_response(502)
@@ -845,6 +885,19 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.send_cors_headers()
             self.end_headers()
             self.wfile.write(b"Channel Not Found")
+            return
+
+        if ch.get("status") == "event_only" or ch.get("inputStatus") == "OFFLINE":
+            self.send_response(503)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("X-Channel-Status", "NO_EVENT")
+            self.send_header("Retry-After", "10")
+            self.end_headers()
+            try:
+                self.wfile.write("لا يوجد حدث حالياً للقناة".encode("utf-8"))
+            except (BrokenPipeError, ConnectionResetError):
+                pass
             return
 
         yacine_id = ch.get("yacineId") or cid

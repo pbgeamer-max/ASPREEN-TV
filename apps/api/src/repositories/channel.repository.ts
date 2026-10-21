@@ -25,6 +25,22 @@ function findChannelsJsonPath(): string | null {
   return null;
 }
 
+export function isBeinChannel(channel: { id?: string; name?: string; groupTitle?: string; servers?: any[] }): boolean {
+  const id = (channel.id || '').toLowerCase();
+  const name = (channel.name || '').toLowerCase();
+  const group = (channel.groupTitle || '').toLowerCase();
+  if (id.includes('bein') || name.includes('bein') || group.includes('bein')) {
+    return true;
+  }
+  if (channel.servers && Array.isArray(channel.servers)) {
+    return channel.servers.some((s: any) => {
+      const u = (s.upstreamUrl || s.url || '').toLowerCase();
+      return u.includes('hey-ott.net') || u.includes('mac=') || (s.name && s.name.toLowerCase().includes('bein'));
+    });
+  }
+  return false;
+}
+
 let cachedJsonChannels: Channel[] | null = null;
 let lastJsonLoadTime = 0;
 
@@ -33,28 +49,85 @@ function getChannelsFromJson(): Channel[] {
   if (!p) return [];
 
   const now = Date.now();
-  if (cachedJsonChannels && now - lastJsonLoadTime < 60000) {
+  if (cachedJsonChannels && now - lastJsonLoadTime < 10000) {
     return cachedJsonChannels;
   }
 
   try {
     const raw = fs.readFileSync(p, 'utf-8');
     const list = JSON.parse(raw);
+
+    // Auto-enforce 2-stream MAC limit for beIN Sports
+    const activeBein = list.filter((item: any) => {
+      const isBein = isBeinChannel(item);
+      const isOff = item.status === 'event_only' || item.inputStatus === 'OFFLINE' || item.manual_stopped === true;
+      return isBein && !isOff;
+    });
+
+    let dirty = false;
+    if (activeBein.length > 2) {
+      const preferred = ['bein-vip-bein-sports-1', 'bein-vip-bein-sports-2'];
+      const keepIds = new Set<string>();
+
+      // First check if preferred channels exist in activeBein
+      for (const pref of preferred) {
+        if (activeBein.some((x: any) => String(x.id || x.vid) === pref)) {
+          keepIds.add(pref);
+          if (keepIds.size >= 2) break;
+        }
+      }
+
+      // If less than 2, fill from remaining active beIN
+      if (keepIds.size < 2) {
+        for (const item of activeBein) {
+          const cid = String(item.id || item.vid);
+          keepIds.add(cid);
+          if (keepIds.size >= 2) break;
+        }
+      }
+
+      list.forEach((item: any) => {
+        const cid = String(item.id || item.vid);
+        if (isBeinChannel(item) && !keepIds.has(cid)) {
+          item.status = 'event_only';
+          item.inputStatus = 'OFFLINE';
+          item.status_message = 'لا يوجد حدث حالياً';
+          item.manual_stopped = true;
+          if (item.servers && Array.isArray(item.servers)) {
+            item.servers.forEach((s: any) => {
+              s.status = 'offline';
+              s.status_message = 'لا يوجد حدث حالياً';
+            });
+          }
+          dirty = true;
+        }
+      });
+
+      if (dirty) {
+        try {
+          fs.writeFileSync(p, JSON.stringify(list, null, 2), 'utf-8');
+        } catch (e) {
+          console.error('Failed to write clamped channels.json:', e);
+        }
+      }
+    }
+
     cachedJsonChannels = list.map((item: any, idx: number): Channel => {
       const cid = String(item.id || item.vid);
       const stream = item.playUrl || item.streamUrl || item.directM3u8 || '';
-      return {
+      const isOff = item.status === 'event_only' || item.inputStatus === 'OFFLINE' || item.manual_stopped === true;
+      const ch: Channel = {
         id: cid,
-        sourceId: 'yacine-website',
+        sourceId: item.source || (cid.startsWith('tlfaz-') ? 'tlfaz-arabic' : 'private-vip'),
         name: item.name || 'قناة غير معنونة',
         normalizedName: (item.name || '').toLowerCase().trim(),
         groupTitle: item.groupTitle || 'عام',
         logoUrl: item.logoUrl || undefined,
         inputType: 'HLS',
         encryptedInputUrl: encrypt(stream),
-        enabled: true,
-        inputStatus: item.status === 'event_only' ? 'OFFLINE' : 'ONLINE',
-        transcodingStatus: 'RUNNING',
+        enabled: item.enabled !== false,
+        inputStatus: isOff ? 'OFFLINE' : 'ONLINE',
+        transcodingStatus: isOff ? 'STOPPED' : 'RUNNING',
         proxyUrl: `/live/${cid}.m3u8`,
         preset: 'COPY',
         orderIndex: item.orderIndex || (idx + 1),
@@ -62,12 +135,73 @@ function getChannelsFromJson(): Channel[] {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-
+      (ch as any).status = isOff ? 'event_only' : 'live';
+      (ch as any).status_message = item.status_message || (isOff ? 'لا يوجد حدث حالياً' : 'بث مباشر');
+      return ch;
     });
     lastJsonLoadTime = now;
     return cachedJsonChannels || [];
   } catch {
     return cachedJsonChannels || [];
+  }
+}
+
+function updateChannelInJson(cid: string, updates: Record<string, any>) {
+  const candidates = [
+    path.resolve(process.cwd(), 'channels.json'),
+    path.resolve(process.cwd(), 'apps/api/channels.json'),
+    path.resolve(process.cwd(), '../../channels.json'),
+    path.resolve(__dirname, '../../../../channels.json'),
+    path.resolve(__dirname, '../../../channels.json'),
+    path.resolve('/app/channels.json'),
+    path.resolve('/app/apps/api/channels.json'),
+  ];
+
+  let updatedAny = false;
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      try {
+        const raw = fs.readFileSync(p, 'utf-8');
+        const list = JSON.parse(raw);
+        const target = list.find((item: any) => String(item.id || item.vid) === cid);
+        if (target) {
+          if (updates.name !== undefined) target.name = updates.name;
+          if (updates.groupTitle !== undefined) target.groupTitle = updates.groupTitle;
+          if (updates.inputStatus !== undefined) target.inputStatus = updates.inputStatus;
+          if (updates.status !== undefined) target.status = updates.status;
+          if (updates.status_message !== undefined) target.status_message = updates.status_message;
+          if (updates.manual_stopped !== undefined) target.manual_stopped = updates.manual_stopped;
+          if (updates.enabled !== undefined) target.enabled = updates.enabled;
+
+          // Cascade status to servers array
+          if (updates.status === 'event_only' || updates.inputStatus === 'OFFLINE') {
+            if (target.servers && Array.isArray(target.servers)) {
+              target.servers.forEach((s: any) => {
+                s.status = 'offline';
+                s.status_message = 'لا يوجد حدث حالياً';
+              });
+            }
+          } else if (updates.status === 'live' || updates.inputStatus === 'ONLINE') {
+            if (target.servers && Array.isArray(target.servers)) {
+              target.servers.forEach((s: any) => {
+                s.status = 'live';
+                s.status_message = 'بث مباشر';
+              });
+            }
+          }
+
+          fs.writeFileSync(p, JSON.stringify(list, null, 2), 'utf-8');
+          updatedAny = true;
+        }
+      } catch (err) {
+        console.error(`Failed to update ${p}:`, err);
+      }
+    }
+  }
+
+  if (updatedAny) {
+    cachedJsonChannels = null;
+    lastJsonLoadTime = 0;
   }
 }
 
@@ -250,6 +384,8 @@ export class ChannelRepository {
       updatedAt: new Date().toISOString(),
     };
 
+    updateChannelInJson(id, data);
+
     const pool = getPool();
     if (pool) {
       await pool.query(
@@ -294,9 +430,88 @@ export class ChannelRepository {
       return updated;
     }
 
-    const docRef = await this.db.collection(CHANNELS_COLLECTION).doc(id);
-    await docRef.update(cleanUndefined(updated));
+    try {
+      const docRef = this.db.collection(CHANNELS_COLLECTION).doc(id);
+      await docRef.update(cleanUndefined(updated));
+    } catch {}
     return updated;
+  }
+
+  async getBeinActiveStatus(): Promise<{
+    activeCount: number;
+    maxLimit: number;
+    activeChannels: { id: string; name: string }[];
+  }> {
+    const allChannels = await this.listChannels(undefined, 5000);
+    const activeBein = allChannels.filter(c => 
+      isBeinChannel(c) && 
+      c.inputStatus !== 'OFFLINE' && 
+      (c as any).status !== 'event_only'
+    );
+    return {
+      activeCount: activeBein.length,
+      maxLimit: 2,
+      activeChannels: activeBein.map(c => ({ id: c.id, name: c.name })),
+    };
+  }
+
+  async toggleChannelBroadcast(id: string, isLive: boolean): Promise<{
+    success: boolean;
+    channel: Channel;
+    activeBeinCount: number;
+    activeBeinChannels: { id: string; name: string }[];
+  }> {
+    const channel = await this.getChannel(id);
+    if (!channel) {
+      throw new Error('CHANNEL_NOT_FOUND: القناة غير موجودة');
+    }
+
+    const isBein = isBeinChannel(channel);
+
+    // If activating a beIN channel, enforce the strict max 2 limit!
+    if (isLive && isBein) {
+      const allChannels = await this.listChannels(undefined, 5000);
+      const activeBein = allChannels.filter(c => 
+        c.id !== id && 
+        isBeinChannel(c) && 
+        c.inputStatus !== 'OFFLINE' && 
+        (c as any).status !== 'event_only'
+      );
+
+      if (activeBein.length >= 2) {
+        const names = activeBein.map(c => c.name).join(' و ');
+        throw new Error(`BEIN_LIMIT_REACHED: مسموح بتشغيل قناتين beIN Sports كحد أقصى في نفس الوقت (حسب سعة اشتراك الماك). القنوات النشطة حالياً: (${names}). يرجى إيقاف إحدى القنوات أولاً لتشغيل هذه القناة.`);
+      }
+    }
+
+    // Prepare updates
+    const updates: any = {
+      inputStatus: isLive ? 'ONLINE' : 'OFFLINE',
+      transcodingStatus: isLive ? 'RUNNING' : 'STOPPED',
+      status: isLive ? 'live' : 'event_only',
+      status_message: isLive ? 'بث مباشر فائق الدقة' : 'لا يوجد حدث حالياً',
+      manual_stopped: !isLive,
+      enabled: true,
+    };
+
+    // Update in database and json
+    const updated = await this.updateChannel(id, updates);
+    updateChannelInJson(id, updates);
+
+    // Calculate current active beIN channels
+    const allChannelsAfter = await this.listChannels(undefined, 5000);
+    const activeBeinList = allChannelsAfter.filter(c => 
+      isBeinChannel(c) && 
+      c.inputStatus !== 'OFFLINE' && 
+      (c as any).status !== 'event_only'
+    ).map(c => ({ id: c.id, name: c.name }));
+
+    return {
+      success: true,
+      channel: updated || { ...channel, ...updates },
+      activeBeinCount: activeBeinList.length,
+      activeBeinChannels: activeBeinList,
+    };
   }
 
   async createChannelsBatch(

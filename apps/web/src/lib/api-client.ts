@@ -192,6 +192,26 @@ class ApiClient {
     return this.request(`/channels/${id}/restart`, { method: 'POST' });
   }
 
+  async getBeinStatus(): Promise<{
+    activeCount: number;
+    maxLimit: number;
+    activeChannels: { id: string; name: string }[];
+  }> {
+    return this.request('/channels/bein-status');
+  }
+
+  async toggleChannelBroadcast(id: string, isLive: boolean): Promise<{
+    success: boolean;
+    channel: Channel;
+    activeBeinCount: number;
+    activeBeinChannels: { id: string; name: string }[];
+  }> {
+    return this.request(`/channels/${id}/toggle-broadcast`, {
+      method: 'POST',
+      body: JSON.stringify({ isLive }),
+    });
+  }
+
   async bulkStartChannels(options?: {
     sourceId?: string;
     preset?: string;

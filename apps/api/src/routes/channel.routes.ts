@@ -11,15 +11,79 @@ export async function channelRoutes(server: FastifyInstance) {
 
   function sanitizeChannel(ch: any) {
     const { encryptedInputUrl, ...rest } = ch;
+    const isOff = ch.inputStatus === 'OFFLINE' || ch.status === 'event_only' || ch.manual_stopped === true;
     const isActuallyRunning = transcodingService.isChannelRunning(ch.id);
-    const hasProxy = Boolean(ch.proxyUrl);
     return {
       ...rest,
-      inputStatus: ch.inputStatus || 'ONLINE',
-      transcodingStatus: isActuallyRunning || hasProxy ? 'RUNNING' : (ch.transcodingStatus === 'FAILED' ? 'FAILED' : 'RUNNING'),
+      status: isOff ? 'event_only' : (ch.status || 'live'),
+      inputStatus: isOff ? 'OFFLINE' : 'ONLINE',
+      status_message: isOff ? 'لا يوجد حدث حالياً' : (ch.status_message || 'بث مباشر فائق الدقة'),
+      transcodingStatus: isOff ? 'STOPPED' : (isActuallyRunning ? 'RUNNING' : (ch.transcodingStatus === 'FAILED' ? 'FAILED' : 'RUNNING')),
     };
   }
 
+  /**
+   * GET /api/channels/bein-status
+   * Realtime counter and list of active beIN Sports channels (Limit: 2 max)
+   */
+  server.get('/bein-status', async () => {
+    return channelRepository.getBeinActiveStatus();
+  });
+
+  /**
+   * POST /api/channels/:id/toggle-broadcast
+   * Toggles channel between LIVE and NO-EVENT (event_only).
+   * Enforces max 2 active channels for beIN Sports!
+   */
+  server.post('/:id/toggle-broadcast', async (request: FastifyRequest<{
+    Params: { id: string };
+    Body: { isLive: boolean };
+  }>, reply: FastifyReply) => {
+    const { isLive } = (request.body as any) || {};
+    if (typeof isLive !== 'boolean') {
+      return reply.status(400).send({ error: 'Validation Error', message: 'isLive boolean field is required' });
+    }
+
+    try {
+      const result = await channelRepository.toggleChannelBroadcast(request.params.id, isLive);
+
+      // If channel was stopped, kill active FFmpeg/engine sessions immediately
+      if (!isLive) {
+        await transcodingService.stopChannel(request.params.id).catch(() => {});
+        try {
+          const proxyPort = process.env.STREAM_PROXY_PORT || '8088';
+          await fetch(`http://127.0.0.1:${proxyPort}/live/control/stop?id=${encodeURIComponent(request.params.id)}`, {
+            signal: AbortSignal.timeout(3000),
+          }).catch(() => {});
+        } catch {}
+      } else {
+        try {
+          const proxyPort = process.env.STREAM_PROXY_PORT || '8088';
+          await fetch(`http://127.0.0.1:${proxyPort}/live/control/reload`, {
+            signal: AbortSignal.timeout(3000),
+          }).catch(() => {});
+        } catch {}
+      }
+
+      return {
+        success: true,
+        channel: sanitizeChannel(result.channel),
+        activeBeinCount: result.activeBeinCount,
+        activeBeinChannels: result.activeBeinChannels,
+      };
+    } catch (err: any) {
+      if (err.message && err.message.includes('BEIN_LIMIT_REACHED')) {
+        return reply.status(400).send({
+          error: 'BEIN_LIMIT_REACHED',
+          message: err.message.replace(/^BEIN_LIMIT_REACHED:\s*/, ''),
+        });
+      }
+      return reply.status(400).send({
+        error: 'Failed to update channel broadcast status',
+        message: err.message,
+      });
+    }
+  });
 
   /**
    * GET /api/channels

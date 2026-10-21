@@ -326,6 +326,10 @@ def autonomous_health_check_and_heal():
     offline_count = 0
 
     def check_channel(ch):
+        # Respect admin manual stop
+        if ch.get("manual_stopped") or ch.get("status") == "event_only":
+            return ch, False
+
         servers = ch.get("servers", [])
         has_vip = any("VIP" in s.get("name", "") for s in servers)
         if has_vip:
@@ -343,7 +347,12 @@ def autonomous_health_check_and_heal():
         for fut in futures:
             try:
                 ch, healthy = fut.result()
-                if healthy:
+                if ch.get("manual_stopped") or ch.get("status") == "event_only":
+                    ch["status"] = "event_only"
+                    ch["inputStatus"] = "OFFLINE"
+                    ch["status_message"] = "لا يوجد حدث حالياً"
+                    offline_count += 1
+                elif healthy:
                     ch["status"] = "live"
                     ch["inputStatus"] = "ONLINE"
                     ch["enabled"] = True
