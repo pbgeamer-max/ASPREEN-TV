@@ -47,10 +47,6 @@ function runScript(scriptPath, desc) {
   });
 }
 
-function runPythonHarvest() {
-  return runScript(HARVEST_SCRIPT, 'مزامنة روابط yacine.website');
-}
-
 function runMultiServerSentinel() {
   return runScript(SENTINEL_SCRIPT, 'محرك مراقبة البث الذكي والسيرفرات المتعددة');
 }
@@ -58,8 +54,7 @@ function runMultiServerSentinel() {
 
 async function verifyChannelsHealth() {
   if (!fs.existsSync(CHANNELS_PATH)) {
-    log('⚠️ ملف channels.json غير موجود، سيتم تشغيل المزامنة الأولية...');
-    await runPythonHarvest();
+    log('⚠️ ملف channels.json غير موجود.');
     return;
   }
 
@@ -73,20 +68,19 @@ async function verifyChannelsHealth() {
 }
 
 async function mainLoop() {
-  log('🚀 تم تشغيل محرك المراقبة والمزامنة المستمرة لقنوات yacine.website 24/7');
+  log('🚀 تم تشغيل محرك المراقبة وفحص استقرار سيرفرات البث 24/7');
   
   // Initial check
   await verifyChannelsHealth();
 
-  // Periodic loop every 20 minutes
-  const SYNC_INTERVAL_MS = 20 * 60 * 1000;
+  // Periodic loop every 30 minutes
+  const SYNC_INTERVAL_MS = 30 * 60 * 1000;
   while (true) {
     await sleep(SYNC_INTERVAL_MS);
     try {
-      await runPythonHarvest();
       await runMultiServerSentinel();
     } catch (err) {
-      log(`❌ خطأ غير متوقع أثناء المزامنة الدورية: ${err.message}`);
+      log(`❌ خطأ غير متوقع أثناء المراقبة الدورية: ${err.message}`);
     }
   }
 
@@ -98,4 +92,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { runPythonHarvest, verifyChannelsHealth };
+module.exports = { verifyChannelsHealth };
