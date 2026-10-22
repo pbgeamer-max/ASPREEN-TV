@@ -274,15 +274,15 @@ export async function initDatabase(force = false): Promise<boolean> {
         if (list.length > 0) {
           console.log(`[PostgreSQL] Syncing total ${list.length} channels (including Shahid) into database...`);
 
-          // 1. Clear obsolete old channels from table & purge any tlfaz residues
-          await client.query("DELETE FROM channels WHERE id LIKE 'tlfaz-%' OR source_id = 'tlfaz-arabic'");
+          // 1. Clear obsolete old channels from table & purge any tlfaz or rotana residues
+          await client.query("DELETE FROM channels WHERE id LIKE 'tlfaz-%' OR source_id = 'tlfaz-arabic' OR id LIKE 'rotana-%' OR id = 'alresalah'");
           await client.query("DELETE FROM sources WHERE id = 'tlfaz-arabic'");
           await client.query('DELETE FROM channels');
           await client.query('DELETE FROM sources');
 
           // 2. Insert sources
           const vipCount = list.filter((c: any) => c.source === 'private-vip' || String(c.id || c.vid).startsWith('bein-vip-')).length;
-          const shahidCount = list.filter((c: any) => c.source === 'shahid-livestream' || String(c.id || c.vid).startsWith('shahid-') || String(c.id || c.vid).startsWith('rotana-') || String(c.id || c.vid) === 'alresalah').length;
+          const shahidCount = list.filter((c: any) => c.source === 'shahid-livestream' || String(c.id || c.vid).startsWith('shahid-')).length;
 
           await client.query(`
             INSERT INTO sources (
@@ -300,8 +300,8 @@ export async function initDatabase(force = false): Promise<boolean> {
           for (let i = 0; i < list.length; i++) {
             const item = list[i];
             const cid = String(item.id || item.vid);
-            if (cid.startsWith('tlfaz-') || item.source === 'tlfaz.com') continue;
-            const isShahid = item.source === 'shahid-livestream' || cid.startsWith('shahid-') || cid.startsWith('rotana-') || cid === 'alresalah';
+            if (cid.startsWith('tlfaz-') || item.source === 'tlfaz.com' || cid.startsWith('rotana-') || cid === 'alresalah') continue;
+            const isShahid = item.source === 'shahid-livestream' || cid.startsWith('shahid-');
             const sourceId = isShahid ? 'shahid-livestream' : 'private-vip';
             const stream = item.playUrl || item.streamUrl || item.directM3u8 || '';
             const encStream = encrypt(stream);
