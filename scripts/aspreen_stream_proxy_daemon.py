@@ -432,21 +432,21 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         if req_key in ("tvora", "aspreen", "discord", "admin") or qs.get("bot", [""])[0] == "1":
             return True, "*"
 
-        # 4. Authorized Android Mobile App & Discord Share Bot (User-Agent or App Header)
-        app_key = (self.headers.get("X-App-Key") or "").lower()
+        # 4. Authorized Media Players, Android Apps & Mobile Frameworks (VLC, ExoPlayer, Kodi, Smart TV, etc.)
+        media_player_tokens = [
+            "tvora", "aspreen", "discord", "chrome/107.0.0.0", "safari/537.3",
+            "vlc", "libvlc", "exoplayer", "stagefright", "kodi", "lavf", 
+            "ffmpeg", "applecoremedia", "okhttp", "dalvik", "smarttv", "tizen", "webos", "iptv"
+        ]
         if (
-            "tvora" in ua or
-            "aspreen" in ua or
-            "discord" in ua or
-            "chrome/107.0.0.0" in ua or
-            "safari/537.3" in ua or
+            any(tok in ua for tok in media_player_tokens) or
             app_key in ("tvora", "aspreen", "discord") or
             self.headers.get("X-Tvora-App") or
             self.headers.get("X-Discord-Bot")
         ):
             return True, "*"
 
-        # 5. Authorized Web Browser Domains (tvora.site, etc.)
+        # 5. Authorized Web Browser Domains (tvora.site, railway.app, etc.)
         if origin or referer:
             origin_lower = origin.lower()
             referer_lower = referer.lower()
@@ -467,8 +467,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             # Unauthorized external website / hotlinking thief!
             return False, None
 
-        # 6. Direct external player (VLC, Curl, Python scraper, ffmpeg) without authorized App UA or Domain -> BLOCK!
-        return False, None
+        # 6. Direct external player (VLC, Kodi, Smart TV, direct link in player) without browser Origin/Referer
+        return True, "*"
 
     def send_cors_headers(self):
         allowed, matched_origin = self.is_allowed_origin()
