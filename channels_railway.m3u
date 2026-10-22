@@ -1,113 +1,47 @@
 #EXTM3U
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-news" tvg-name="BEIN SPORTS NEWS" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS NEWS
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-news.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-news.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-global" tvg-name="BEIN SPORTS GLOBAL" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS GLOBAL
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-global.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-global.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-1" tvg-name="BEIN SPORTS 1" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-1.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-1.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-2" tvg-name="BEIN SPORTS 2" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-2.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-2.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-3" tvg-name="BEIN SPORTS 3" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 3
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-3.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-3.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-4" tvg-name="BEIN SPORTS 4" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 4
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-4.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-4.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-5" tvg-name="BEIN SPORTS 5" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 5
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-5.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-5.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-6" tvg-name="BEIN SPORTS 6" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 6
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-6.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-6.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-7" tvg-name="BEIN SPORTS 7" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 7
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-7.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-7.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-8" tvg-name="BEIN SPORTS 8" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 8
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-8.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-8.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-9" tvg-name="BEIN SPORTS 9" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 9
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-9.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-9.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-afc" tvg-name="BEIN SPORTS AFC" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-afc.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-afc.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-afc-1" tvg-name="BEIN SPORTS AFC 1" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC 1
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-afc-1.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-afc-1.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-1-afc" tvg-name="BEIN SPORTS 1 AFC" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1 AFC
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-1-afc.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-1-afc.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-2-afc" tvg-name="BEIN SPORTS 2 AFC" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2 AFC
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-2-afc.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-2-afc.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-3-afc" tvg-name="BEIN SPORTS 3 AFC" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 3 AFC
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-3-afc.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-3-afc.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-afc-4" tvg-name="BEIN SPORTS AFC 4" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC 4
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-afc-4.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-afc-4.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-afc-5" tvg-name="BEIN SPORTS AFC 5" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC 5
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-afc-5.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-afc-5.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-1-english" tvg-name="BEIN SPORTS 1 ENGLISH" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1 ENGLISH
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-1-english.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-1-english.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-2-english" tvg-name="BEIN SPORTS 2 ENGLISH" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2 ENGLISH
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-2-english.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-2-english.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-1-france" tvg-name="BEIN SPORTS 1 FRANCE" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1 FRANCE
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-1-france.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-1-france.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-2-france" tvg-name="BEIN SPORTS 2 FRANCE" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2 FRANCE
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-2-france.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-2-france.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-3-france" tvg-name="BEIN SPORTS 3 FRANCE" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 3 FRANCE
-https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-3-france.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-asharq-documentary" tvg-name="قناة الشرق الوثائقية" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/Asharq-Documentary.png" group-title="قنوات وثائقية",قناة الشرق الوثائقية
-https://aspreen-tv-production.up.railway.app/live/tlfaz-asharq-documentary.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-asharq-discovery" tvg-name="قناة الشرق ديسكفري" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/03/Asharq-Discovery.png" group-title="قنوات وثائقية",قناة الشرق ديسكفري
-https://aspreen-tv-production.up.railway.app/live/tlfaz-asharq-discovery.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-huda-tv" tvg-name="قناة الهدى" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/10/icon_channel.png" group-title="قنوات إسلامية ودينية",قناة الهدى
-https://aspreen-tv-production.up.railway.app/live/tlfaz-huda-tv.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-mbc-masr-2" tvg-name="قناة ام بي سي مصر 2" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/02/mbc-masr-2.png" group-title="باقة قنوات MBC",قناة ام بي سي مصر 2
-https://aspreen-tv-production.up.railway.app/live/tlfaz-mbc-masr-2.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-mbc-iraq" tvg-name="قناة ام بي سي العراق" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/Mbc-IraQ.png" group-title="باقة قنوات MBC",قناة ام بي سي العراق
-https://aspreen-tv-production.up.railway.app/live/tlfaz-mbc-iraq.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-mbc-masr" tvg-name="قناة ام بي سي مصر" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/02/mbc-masr.png" group-title="باقة قنوات MBC",قناة ام بي سي مصر
-https://aspreen-tv-production.up.railway.app/live/tlfaz-mbc-masr.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-mbc5" tvg-name="قناة إم بي سي 5 (Mbc5)" tvg-logo="https://tlfaz.com/wp-content/uploads/2022/02/mbc5-tv.png" group-title="باقة قنوات MBC",قناة إم بي سي 5 (Mbc5)
-https://aspreen-tv-production.up.railway.app/live/tlfaz-mbc5.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-spacetoon" tvg-name="قناة سبيستون" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/02/space-toon.png" group-title="قنوات أطفال",قناة سبيستون
-https://aspreen-tv-production.up.railway.app/live/tlfaz-spacetoon.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-al-aoula" tvg-name="القناة الأولى المغربية" tvg-logo="https://tlfaz.com/wp-content/uploads/2022/02/al-aoula-tv.png" group-title="قنوات عربية منوعة",القناة الأولى المغربية
-https://aspreen-tv-production.up.railway.app/live/tlfaz-al-aoula.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-bahia-tv" tvg-name="قناة الباهية تيفي" tvg-logo="https://tlfaz.com/wp-content/uploads/2022/03/bahia_tv.png" group-title="قنوات عربية منوعة",قناة الباهية تيفي
-https://aspreen-tv-production.up.railway.app/live/tlfaz-bahia-tv.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-oman-tv" tvg-name="قناة عمان تي في" tvg-logo="" group-title="قنوات عربية منوعة",قناة عمان تي في
-https://aspreen-tv-production.up.railway.app/live/tlfaz-oman-tv.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-el-medina-mr-tv" tvg-name="قناة المدينة الموريتانية" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/El-Medina-Tv.png" group-title="قنوات عربية منوعة",قناة المدينة الموريتانية
-https://aspreen-tv-production.up.railway.app/live/tlfaz-el-medina-mr-tv.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-zad-tv" tvg-name="قناة زاد الفضائية" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/zad-tv.png" group-title="قنوات إسلامية ودينية",قناة زاد الفضائية
-https://aspreen-tv-production.up.railway.app/live/tlfaz-zad-tv.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-ktv-arabe" tvg-name="قناة العربي الكويتية الوثائقية" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/06/KTV-Arabe.png" group-title="قنوات وثائقية",قناة العربي الكويتية الوثائقية
-https://aspreen-tv-production.up.railway.app/live/tlfaz-ktv-arabe.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-al-jazeera" tvg-name="قناة الجزيرة الاخبارية" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/05/aljazeera.png" group-title="قنوات إخبارية وسياسية",قناة الجزيرة الاخبارية
-https://aspreen-tv-production.up.railway.app/live/tlfaz-al-jazeera.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-yemen-tv" tvg-name="قناة اليمن الفضائية البث المباشر" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/Yemen-Tv.png" group-title="قنوات إخبارية وسياسية",قناة اليمن الفضائية البث المباشر
-https://aspreen-tv-production.up.railway.app/live/tlfaz-yemen-tv.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-alwasat-wtv" tvg-name="قناة الوسط الليبية wtv" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/Alwasat-TV.png" group-title="قنوات إخبارية وسياسية",قناة الوسط الليبية wtv
-https://aspreen-tv-production.up.railway.app/live/tlfaz-alwasat-wtv.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-elmourabiton-tv" tvg-name="قناة المرابطون الموريتانية" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/elmourabitonTv.png" group-title="قنوات عربية منوعة",قناة المرابطون الموريتانية
-https://aspreen-tv-production.up.railway.app/live/tlfaz-elmourabiton-tv.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-al-fallujah" tvg-name="قناة الفلوجة" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/fallujah-tv.png" group-title="قنوات إخبارية وسياسية",قناة الفلوجة
-https://aspreen-tv-production.up.railway.app/live/tlfaz-al-fallujah.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-al-rassoul" tvg-name="قناة الرسول" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/05/Al-Rassoul-TV.png" group-title="قنوات إسلامية ودينية",قناة الرسول
-https://aspreen-tv-production.up.railway.app/live/tlfaz-al-rassoul.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-bin-othaimeen" tvg-name="قناة ابن عثيمين" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/03/Bin-Othaimeen.png" group-title="قنوات إسلامية ودينية",قناة ابن عثيمين
-https://aspreen-tv-production.up.railway.app/live/tlfaz-bin-othaimeen.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-saudi24" tvg-name="قناة سعودي 24" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/03/s24-sport.png" group-title="قنوات عربية منوعة",قناة سعودي 24
-https://aspreen-tv-production.up.railway.app/live/tlfaz-saudi24.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-mauritanie-2-tv" tvg-name="القناة الموريتانية الثانية" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/Mauritanie-2-Tv.png" group-title="قنوات عربية منوعة",القناة الموريتانية الثانية
-https://aspreen-tv-production.up.railway.app/live/tlfaz-mauritanie-2-tv.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-aden-tv" tvg-name="قناة عدن" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/Aden-TV.png" group-title="قنوات إخبارية وسياسية",قناة عدن
-https://aspreen-tv-production.up.railway.app/live/tlfaz-aden-tv.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-al-magharibia-2" tvg-name="قناة المغاربية 2" tvg-logo="https://tlfaz.com/wp-content/uploads/2022/03/al-magharibia-2-tv.png" group-title="قنوات عربية منوعة",قناة المغاربية 2
-https://aspreen-tv-production.up.railway.app/live/tlfaz-al-magharibia-2.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-halab-today-tv" tvg-name="قناة حلب اليوم" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/halab-today-tv.png" group-title="قنوات إخبارية وسياسية",قناة حلب اليوم
-https://aspreen-tv-production.up.railway.app/live/tlfaz-halab-today-tv.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-pnc-yom" tvg-name="قناة بانوراما يوم" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png" group-title="قنوات أفلام ومسلسلات",قناة بانوراما يوم
-https://aspreen-tv-production.up.railway.app/live/tlfaz-pnc-yom.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-hadhramaut-tv" tvg-name="قناة حضرموت" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/hadhramaut-tv.png" group-title="قنوات عربية منوعة",قناة حضرموت
-https://aspreen-tv-production.up.railway.app/live/tlfaz-hadhramaut-tv.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-pnc-drama" tvg-name="قناة بانوراما دراما" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/09/PNC-Drama.png" group-title="قنوات أفلام ومسلسلات",قناة بانوراما دراما
-https://aspreen-tv-production.up.railway.app/live/tlfaz-pnc-drama.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-pnc-film" tvg-name="قناة بانوراما فيلم" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png" group-title="قنوات أفلام ومسلسلات",قناة بانوراما فيلم
-https://aspreen-tv-production.up.railway.app/live/tlfaz-pnc-film.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-sada-elbalad-drama" tvg-name="قناة صدى البلد دراما" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png" group-title="قنوات أفلام ومسلسلات",قناة صدى البلد دراما
-https://aspreen-tv-production.up.railway.app/live/tlfaz-sada-elbalad-drama.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-sada-elbalad-2" tvg-name="قناة صدى 2 البلد" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png" group-title="قنوات عربية منوعة",قناة صدى 2 البلد
-https://aspreen-tv-production.up.railway.app/live/tlfaz-sada-elbalad-2.m3u8?server=1
-#EXTINF:-1 tvg-id="tlfaz-sada-elbalad" tvg-name="قناة صدى البلد" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png" group-title="قنوات أفلام ومسلسلات",قناة صدى البلد
-https://aspreen-tv-production.up.railway.app/live/tlfaz-sada-elbalad.m3u8?server=1
+https://aspreen-tv-production.up.railway.app/live/bein-vip-bein-sports-3-france.m3u8

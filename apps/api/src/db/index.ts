@@ -274,36 +274,35 @@ export async function initDatabase(force = false): Promise<boolean> {
         if (list.length > 0) {
           console.log(`[PostgreSQL] Syncing total ${list.length} channels (including Shahid) into database...`);
 
-          // 1. Clear obsolete old channels from table
+          // 1. Clear obsolete old channels from table & purge any tlfaz residues
+          await client.query("DELETE FROM channels WHERE id LIKE 'tlfaz-%' OR source_id = 'tlfaz-arabic'");
+          await client.query("DELETE FROM sources WHERE id = 'tlfaz-arabic'");
           await client.query('DELETE FROM channels');
           await client.query('DELETE FROM sources');
 
           // 2. Insert sources
           const vipCount = list.filter((c: any) => c.source === 'private-vip' || String(c.id || c.vid).startsWith('bein-vip-')).length;
           const shahidCount = list.filter((c: any) => c.source === 'shahid-livestream' || String(c.id || c.vid).startsWith('shahid-') || String(c.id || c.vid).startsWith('rotana-') || String(c.id || c.vid) === 'alresalah').length;
-          const tlfazCount = list.length - vipCount - shahidCount;
 
           await client.query(`
             INSERT INTO sources (
               id, name, type, sanitized_hostname, encrypted_url, enabled, connection_status, channel_count, created_at, updated_at
             ) VALUES 
               ('private-vip', 'beIN SPORTS VIP (ملفاتك الخاصة)', 'M3U', 'line.hey-ott.net', $1::text, true, 'ONLINE', $2::integer, NOW(), NOW()),
-              ('shahid-livestream', 'قنوات شاهد المباشرة (shahid.mbc.net)', 'M3U', 'shahid.mbc.net', $3::text, true, 'ONLINE', $4::integer, NOW(), NOW()),
-              ('tlfaz-arabic', 'قنوات تلفاز العرب (tlfaz.com)', 'M3U', 'tlfaz.com', $5::text, true, 'ONLINE', $6::integer, NOW(), NOW())
+              ('shahid-livestream', 'قنوات شاهد المباشرة (shahid.mbc.net)', 'M3U', 'shahid.mbc.net', $3::text, true, 'ONLINE', $4::integer, NOW(), NOW())
             ON CONFLICT (id) DO UPDATE SET channel_count = EXCLUDED.channel_count, connection_status = 'ONLINE'
           `, [
             encrypt('http://line.hey-ott.net/'), vipCount,
-            encrypt('https://shahid.mbc.net/ar/livestream'), shahidCount,
-            encrypt('https://tlfaz.com/'), tlfazCount
+            encrypt('https://shahid.mbc.net/ar/livestream'), shahidCount
           ]);
 
           // 3. Insert channels with servers JSON
           for (let i = 0; i < list.length; i++) {
             const item = list[i];
             const cid = String(item.id || item.vid);
-            const isBein = item.source === 'private-vip' || cid.startsWith('bein-vip-');
+            if (cid.startsWith('tlfaz-') || item.source === 'tlfaz.com') continue;
             const isShahid = item.source === 'shahid-livestream' || cid.startsWith('shahid-') || cid.startsWith('rotana-') || cid === 'alresalah';
-            const sourceId = isBein ? 'private-vip' : (isShahid ? 'shahid-livestream' : 'tlfaz-arabic');
+            const sourceId = isShahid ? 'shahid-livestream' : 'private-vip';
             const stream = item.playUrl || item.streamUrl || item.directM3u8 || '';
             const encStream = encrypt(stream);
             const name = item.name || 'قناة غير معنونة';

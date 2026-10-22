@@ -148,7 +148,7 @@ export default function ChannelsPage() {
             const isNoEvent = c.status === 'OFFLINE' || c.event_status === 'no_event';
             return {
               id: c.id,
-              sourceId: c.sourceId || (String(c.id).startsWith('tlfaz-') ? 'tlfaz-arabic' : 'private-vip'),
+              sourceId: c.sourceId || (String(c.id).startsWith('shahid-') || String(c.id).startsWith('rotana-') || String(c.id) === 'alresalah' ? 'shahid-livestream' : 'private-vip'),
               name: c.name,
               normalizedName: (c.name || '').toLowerCase(),
               groupTitle: c.group || c.category || 'عام',

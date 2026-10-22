@@ -149,13 +149,19 @@ function getChannelsFromJson(): Channel[] {
       }
     }
 
-    cachedJsonChannels = list.map((item: any, idx: number): Channel => {
+    // Strictly exclude any tlfaz channels from memory
+    const cleanList = list.filter((item: any) => {
+      const cid = String(item.id || item.vid || '');
+      return !cid.startsWith('tlfaz-') && item.source !== 'tlfaz.com';
+    });
+
+    cachedJsonChannels = cleanList.map((item: any, idx: number): Channel => {
       const cid = String(item.id || item.vid);
       const stream = item.playUrl || item.streamUrl || item.directM3u8 || '';
       const isOff = item.status === 'event_only' || item.inputStatus === 'OFFLINE' || item.manual_stopped === true;
       const ch: Channel = {
         id: cid,
-        sourceId: item.source || (cid.startsWith('tlfaz-') ? 'tlfaz-arabic' : (cid.startsWith('shahid-') || cid.startsWith('rotana-') || cid === 'alresalah' ? 'shahid-livestream' : 'private-vip')),
+        sourceId: item.source || (cid.startsWith('shahid-') || cid.startsWith('rotana-') || cid === 'alresalah' ? 'shahid-livestream' : 'private-vip'),
         name: item.name || 'قناة غير معنونة',
         normalizedName: (item.name || '').toLowerCase().trim(),
         groupTitle: item.groupTitle || 'عام',

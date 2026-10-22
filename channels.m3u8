@@ -1,113 +1,47 @@
 #EXTM3U
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-news" tvg-name="BEIN SPORTS NEWS" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS NEWS
-http://127.0.0.1:8088/live/bein-vip-bein-sports-news.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-news.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-global" tvg-name="BEIN SPORTS GLOBAL" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS GLOBAL
-http://127.0.0.1:8088/live/bein-vip-bein-sports-global.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-global.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-1" tvg-name="BEIN SPORTS 1" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1
-http://127.0.0.1:8088/live/bein-vip-bein-sports-1.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-1.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-2" tvg-name="BEIN SPORTS 2" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2
-http://127.0.0.1:8088/live/bein-vip-bein-sports-2.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-2.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-3" tvg-name="BEIN SPORTS 3" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 3
-http://127.0.0.1:8088/live/bein-vip-bein-sports-3.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-3.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-4" tvg-name="BEIN SPORTS 4" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 4
-http://127.0.0.1:8088/live/bein-vip-bein-sports-4.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-4.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-5" tvg-name="BEIN SPORTS 5" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 5
-http://127.0.0.1:8088/live/bein-vip-bein-sports-5.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-5.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-6" tvg-name="BEIN SPORTS 6" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 6
-http://127.0.0.1:8088/live/bein-vip-bein-sports-6.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-6.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-7" tvg-name="BEIN SPORTS 7" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 7
-http://127.0.0.1:8088/live/bein-vip-bein-sports-7.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-7.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-8" tvg-name="BEIN SPORTS 8" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 8
-http://127.0.0.1:8088/live/bein-vip-bein-sports-8.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-8.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-9" tvg-name="BEIN SPORTS 9" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 9
-http://127.0.0.1:8088/live/bein-vip-bein-sports-9.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-9.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-afc" tvg-name="BEIN SPORTS AFC" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC
-http://127.0.0.1:8088/live/bein-vip-bein-sports-afc.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-afc.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-afc-1" tvg-name="BEIN SPORTS AFC 1" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC 1
-http://127.0.0.1:8088/live/bein-vip-bein-sports-afc-1.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-afc-1.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-1-afc" tvg-name="BEIN SPORTS 1 AFC" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1 AFC
-http://127.0.0.1:8088/live/bein-vip-bein-sports-1-afc.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-1-afc.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-2-afc" tvg-name="BEIN SPORTS 2 AFC" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2 AFC
-http://127.0.0.1:8088/live/bein-vip-bein-sports-2-afc.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-2-afc.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-3-afc" tvg-name="BEIN SPORTS 3 AFC" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 3 AFC
-http://127.0.0.1:8088/live/bein-vip-bein-sports-3-afc.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-3-afc.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-afc-4" tvg-name="BEIN SPORTS AFC 4" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC 4
-http://127.0.0.1:8088/live/bein-vip-bein-sports-afc-4.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-afc-4.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-afc-5" tvg-name="BEIN SPORTS AFC 5" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS AFC 5
-http://127.0.0.1:8088/live/bein-vip-bein-sports-afc-5.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-afc-5.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-1-english" tvg-name="BEIN SPORTS 1 ENGLISH" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1 ENGLISH
-http://127.0.0.1:8088/live/bein-vip-bein-sports-1-english.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-1-english.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-2-english" tvg-name="BEIN SPORTS 2 ENGLISH" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2 ENGLISH
-http://127.0.0.1:8088/live/bein-vip-bein-sports-2-english.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-2-english.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-1-france" tvg-name="BEIN SPORTS 1 FRANCE" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 1 FRANCE
-http://127.0.0.1:8088/live/bein-vip-bein-sports-1-france.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-1-france.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-2-france" tvg-name="BEIN SPORTS 2 FRANCE" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 2 FRANCE
-http://127.0.0.1:8088/live/bein-vip-bein-sports-2-france.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-2-france.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-3-france" tvg-name="BEIN SPORTS 3 FRANCE" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 3 FRANCE
-http://127.0.0.1:8088/live/bein-vip-bein-sports-3-france.m3u8
-#EXTINF:-1 tvg-id="tlfaz-asharq-documentary" tvg-name="قناة الشرق الوثائقية" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/Asharq-Documentary.png" group-title="قنوات وثائقية",قناة الشرق الوثائقية
-http://127.0.0.1:8088/live/tlfaz-asharq-documentary.m3u8
-#EXTINF:-1 tvg-id="tlfaz-asharq-discovery" tvg-name="قناة الشرق ديسكفري" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/03/Asharq-Discovery.png" group-title="قنوات وثائقية",قناة الشرق ديسكفري
-http://127.0.0.1:8088/live/tlfaz-asharq-discovery.m3u8
-#EXTINF:-1 tvg-id="tlfaz-huda-tv" tvg-name="قناة الهدى" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/10/icon_channel.png" group-title="قنوات إسلامية ودينية",قناة الهدى
-http://127.0.0.1:8088/live/tlfaz-huda-tv.m3u8
-#EXTINF:-1 tvg-id="tlfaz-mbc-masr-2" tvg-name="قناة ام بي سي مصر 2" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/02/mbc-masr-2.png" group-title="باقة قنوات MBC",قناة ام بي سي مصر 2
-http://127.0.0.1:8088/live/tlfaz-mbc-masr-2.m3u8
-#EXTINF:-1 tvg-id="tlfaz-mbc-iraq" tvg-name="قناة ام بي سي العراق" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/Mbc-IraQ.png" group-title="باقة قنوات MBC",قناة ام بي سي العراق
-http://127.0.0.1:8088/live/tlfaz-mbc-iraq.m3u8
-#EXTINF:-1 tvg-id="tlfaz-mbc-masr" tvg-name="قناة ام بي سي مصر" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/02/mbc-masr.png" group-title="باقة قنوات MBC",قناة ام بي سي مصر
-http://127.0.0.1:8088/live/tlfaz-mbc-masr.m3u8
-#EXTINF:-1 tvg-id="tlfaz-mbc5" tvg-name="قناة إم بي سي 5 (Mbc5)" tvg-logo="https://tlfaz.com/wp-content/uploads/2022/02/mbc5-tv.png" group-title="باقة قنوات MBC",قناة إم بي سي 5 (Mbc5)
-http://127.0.0.1:8088/live/tlfaz-mbc5.m3u8
-#EXTINF:-1 tvg-id="tlfaz-spacetoon" tvg-name="قناة سبيستون" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/02/space-toon.png" group-title="قنوات أطفال",قناة سبيستون
-http://127.0.0.1:8088/live/tlfaz-spacetoon.m3u8
-#EXTINF:-1 tvg-id="tlfaz-al-aoula" tvg-name="القناة الأولى المغربية" tvg-logo="https://tlfaz.com/wp-content/uploads/2022/02/al-aoula-tv.png" group-title="قنوات عربية منوعة",القناة الأولى المغربية
-http://127.0.0.1:8088/live/tlfaz-al-aoula.m3u8
-#EXTINF:-1 tvg-id="tlfaz-bahia-tv" tvg-name="قناة الباهية تيفي" tvg-logo="https://tlfaz.com/wp-content/uploads/2022/03/bahia_tv.png" group-title="قنوات عربية منوعة",قناة الباهية تيفي
-http://127.0.0.1:8088/live/tlfaz-bahia-tv.m3u8
-#EXTINF:-1 tvg-id="tlfaz-oman-tv" tvg-name="قناة عمان تي في" tvg-logo="" group-title="قنوات عربية منوعة",قناة عمان تي في
-http://127.0.0.1:8088/live/tlfaz-oman-tv.m3u8
-#EXTINF:-1 tvg-id="tlfaz-el-medina-mr-tv" tvg-name="قناة المدينة الموريتانية" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/El-Medina-Tv.png" group-title="قنوات عربية منوعة",قناة المدينة الموريتانية
-http://127.0.0.1:8088/live/tlfaz-el-medina-mr-tv.m3u8
-#EXTINF:-1 tvg-id="tlfaz-zad-tv" tvg-name="قناة زاد الفضائية" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/zad-tv.png" group-title="قنوات إسلامية ودينية",قناة زاد الفضائية
-http://127.0.0.1:8088/live/tlfaz-zad-tv.m3u8
-#EXTINF:-1 tvg-id="tlfaz-ktv-arabe" tvg-name="قناة العربي الكويتية الوثائقية" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/06/KTV-Arabe.png" group-title="قنوات وثائقية",قناة العربي الكويتية الوثائقية
-http://127.0.0.1:8088/live/tlfaz-ktv-arabe.m3u8
-#EXTINF:-1 tvg-id="tlfaz-al-jazeera" tvg-name="قناة الجزيرة الاخبارية" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/05/aljazeera.png" group-title="قنوات إخبارية وسياسية",قناة الجزيرة الاخبارية
-http://127.0.0.1:8088/live/tlfaz-al-jazeera.m3u8
-#EXTINF:-1 tvg-id="tlfaz-yemen-tv" tvg-name="قناة اليمن الفضائية البث المباشر" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/Yemen-Tv.png" group-title="قنوات إخبارية وسياسية",قناة اليمن الفضائية البث المباشر
-http://127.0.0.1:8088/live/tlfaz-yemen-tv.m3u8
-#EXTINF:-1 tvg-id="tlfaz-alwasat-wtv" tvg-name="قناة الوسط الليبية wtv" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/Alwasat-TV.png" group-title="قنوات إخبارية وسياسية",قناة الوسط الليبية wtv
-http://127.0.0.1:8088/live/tlfaz-alwasat-wtv.m3u8
-#EXTINF:-1 tvg-id="tlfaz-elmourabiton-tv" tvg-name="قناة المرابطون الموريتانية" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/elmourabitonTv.png" group-title="قنوات عربية منوعة",قناة المرابطون الموريتانية
-http://127.0.0.1:8088/live/tlfaz-elmourabiton-tv.m3u8
-#EXTINF:-1 tvg-id="tlfaz-al-fallujah" tvg-name="قناة الفلوجة" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/fallujah-tv.png" group-title="قنوات إخبارية وسياسية",قناة الفلوجة
-http://127.0.0.1:8088/live/tlfaz-al-fallujah.m3u8
-#EXTINF:-1 tvg-id="tlfaz-al-rassoul" tvg-name="قناة الرسول" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/05/Al-Rassoul-TV.png" group-title="قنوات إسلامية ودينية",قناة الرسول
-http://127.0.0.1:8088/live/tlfaz-al-rassoul.m3u8
-#EXTINF:-1 tvg-id="tlfaz-bin-othaimeen" tvg-name="قناة ابن عثيمين" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/03/Bin-Othaimeen.png" group-title="قنوات إسلامية ودينية",قناة ابن عثيمين
-http://127.0.0.1:8088/live/tlfaz-bin-othaimeen.m3u8
-#EXTINF:-1 tvg-id="tlfaz-saudi24" tvg-name="قناة سعودي 24" tvg-logo="https://tlfaz.com/wp-content/uploads/2024/03/s24-sport.png" group-title="قنوات عربية منوعة",قناة سعودي 24
-http://127.0.0.1:8088/live/tlfaz-saudi24.m3u8
-#EXTINF:-1 tvg-id="tlfaz-mauritanie-2-tv" tvg-name="القناة الموريتانية الثانية" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/Mauritanie-2-Tv.png" group-title="قنوات عربية منوعة",القناة الموريتانية الثانية
-http://127.0.0.1:8088/live/tlfaz-mauritanie-2-tv.m3u8
-#EXTINF:-1 tvg-id="tlfaz-aden-tv" tvg-name="قناة عدن" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/Aden-TV.png" group-title="قنوات إخبارية وسياسية",قناة عدن
-http://127.0.0.1:8088/live/tlfaz-aden-tv.m3u8
-#EXTINF:-1 tvg-id="tlfaz-al-magharibia-2" tvg-name="قناة المغاربية 2" tvg-logo="https://tlfaz.com/wp-content/uploads/2022/03/al-magharibia-2-tv.png" group-title="قنوات عربية منوعة",قناة المغاربية 2
-http://127.0.0.1:8088/live/tlfaz-al-magharibia-2.m3u8
-#EXTINF:-1 tvg-id="tlfaz-halab-today-tv" tvg-name="قناة حلب اليوم" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/halab-today-tv.png" group-title="قنوات إخبارية وسياسية",قناة حلب اليوم
-http://127.0.0.1:8088/live/tlfaz-halab-today-tv.m3u8
-#EXTINF:-1 tvg-id="tlfaz-pnc-yom" tvg-name="قناة بانوراما يوم" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png" group-title="قنوات أفلام ومسلسلات",قناة بانوراما يوم
-http://127.0.0.1:8088/live/tlfaz-pnc-yom.m3u8
-#EXTINF:-1 tvg-id="tlfaz-hadhramaut-tv" tvg-name="قناة حضرموت" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/03/hadhramaut-tv.png" group-title="قنوات عربية منوعة",قناة حضرموت
-http://127.0.0.1:8088/live/tlfaz-hadhramaut-tv.m3u8
-#EXTINF:-1 tvg-id="tlfaz-pnc-drama" tvg-name="قناة بانوراما دراما" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/09/PNC-Drama.png" group-title="قنوات أفلام ومسلسلات",قناة بانوراما دراما
-http://127.0.0.1:8088/live/tlfaz-pnc-drama.m3u8
-#EXTINF:-1 tvg-id="tlfaz-pnc-film" tvg-name="قناة بانوراما فيلم" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png" group-title="قنوات أفلام ومسلسلات",قناة بانوراما فيلم
-http://127.0.0.1:8088/live/tlfaz-pnc-film.m3u8
-#EXTINF:-1 tvg-id="tlfaz-sada-elbalad-drama" tvg-name="قناة صدى البلد دراما" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png" group-title="قنوات أفلام ومسلسلات",قناة صدى البلد دراما
-http://127.0.0.1:8088/live/tlfaz-sada-elbalad-drama.m3u8
-#EXTINF:-1 tvg-id="tlfaz-sada-elbalad-2" tvg-name="قناة صدى 2 البلد" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png" group-title="قنوات عربية منوعة",قناة صدى 2 البلد
-http://127.0.0.1:8088/live/tlfaz-sada-elbalad-2.m3u8
-#EXTINF:-1 tvg-id="tlfaz-sada-elbalad" tvg-name="قناة صدى البلد" tvg-logo="https://tlfaz.com/wp-content/uploads/2023/09/Sada-El-Balad.png" group-title="قنوات أفلام ومسلسلات",قناة صدى البلد
-http://127.0.0.1:8088/live/tlfaz-sada-elbalad.m3u8
+http://127.0.0.1:8080/live/bein-vip-bein-sports-3-france.m3u8
