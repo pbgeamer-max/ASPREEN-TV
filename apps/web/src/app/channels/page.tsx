@@ -239,7 +239,7 @@ export default function ChannelsPage() {
       if (res && res.activeBeinChannels) {
         setBeinStatus({
           activeCount: res.activeBeinCount,
-          maxLimit: res.maxLimit || 100,
+          maxLimit: 100,
           activeChannels: res.activeBeinChannels,
         });
       }
@@ -293,7 +293,7 @@ export default function ChannelsPage() {
       if (res && res.activeBeinChannels) {
         setBeinStatus({
           activeCount: res.activeBeinCount,
-          maxLimit: 2,
+          maxLimit: 100,
           activeChannels: res.activeBeinChannels,
         });
       }
