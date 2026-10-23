@@ -137,9 +137,9 @@ http://127.0.0.1:8080/live/shahid-rabeh-saqer.m3u8
 http://127.0.0.1:8080/live/shahid-khuzama-radio.m3u8
 #EXTINF:-1 tvg-id="alrabiaa" tvg-name="قناة الرابعة الفضائية" tvg-logo="https://alrabiaa.tv/images/logo.png" group-title="قنوات إخبارية ووثائقية",قناة الرابعة الفضائية
 http://127.0.0.1:8080/live/alrabiaa.m3u8
-#EXTINF:-1 tvg-id="karbala-quran" tvg-name="قناة القرآن الكريم (كربلاء)" tvg-logo="https://karbala-tv.iq/images/quran_logo.png" group-title="قنوات دينية وإسلامية",قناة القرآن الكريم (كربلاء)
+#EXTINF:-1 tvg-id="karbala-quran" tvg-name="قناة القرآن الكريم (كربلاء)" tvg-logo="https://karbala-tv.iq/images/live_thumbnails/quran_live.jpg" group-title="قنوات دينية وإسلامية",قناة القرآن الكريم (كربلاء)
 http://127.0.0.1:8080/live/karbala-quran.m3u8
-#EXTINF:-1 tvg-id="karbala-documentary" tvg-name="قناة كربلاء الوثائقية" tvg-logo="https://karbala-tv.iq/images/documentary_logo.png" group-title="قنوات إخبارية ووثائقية",قناة كربلاء الوثائقية
+#EXTINF:-1 tvg-id="karbala-documentary" tvg-name="قناة كربلاء الوثائقية" tvg-logo="https://karbala-tv.iq/images/live_thumbnails/documentary_live.png" group-title="قنوات إخبارية ووثائقية",قناة كربلاء الوثائقية
 http://127.0.0.1:8080/live/karbala-documentary.m3u8
-#EXTINF:-1 tvg-id="safeer-tv" tvg-name="قناة السفير الفضائية" tvg-logo="https://karbala-tv.iq/images/safeer_logo.png" group-title="قنوات دينية وإسلامية",قناة السفير الفضائية
+#EXTINF:-1 tvg-id="safeer-tv" tvg-name="قناة السفير الفضائية" tvg-logo="https://karbala-tv.iq/images/live_thumbnails/safeer_live.png" group-title="قنوات دينية وإسلامية",قناة السفير الفضائية
 http://127.0.0.1:8080/live/safeer-tv.m3u8
