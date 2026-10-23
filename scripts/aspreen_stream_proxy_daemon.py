@@ -982,6 +982,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             slug = re.sub(r'[^a-zA-Z0-9]+', '-', ch.get('name', 'live')).strip('-') or 'live'
             channel_referer = f"https://yacine.website/channel/{yacine_id}/{slug}"
 
+        target_fetch_url, req_ua = self.build_target_and_ua(ch, requested_server)
+
         # Al Rabiaa automatic token renewal (Broadpeak Akamai tokens valid for 300s)
         if cid in ("alrabiaa", "alrabiaa-tv"):
             channel_referer = "https://alrabiaa.tv/"
