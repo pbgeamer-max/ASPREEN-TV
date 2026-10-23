@@ -22,6 +22,10 @@ const nextConfig = {
         destination: `${streamProxyBase}/ts`,
       },
       {
+        source: '/ts/:path*',
+        destination: `${streamProxyBase}/ts/:path*`,
+      },
+      {
         source: '/playlist.m3u',
         destination: `${streamProxyBase}/playlist.m3u`,
       },

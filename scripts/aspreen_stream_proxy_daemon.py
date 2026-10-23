@@ -25,6 +25,7 @@ import shutil
 import ssl
 import hmac
 import hashlib
+import secrets
 import urllib.request
 import urllib.parse
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
@@ -149,6 +150,54 @@ def decode_stream_slug(slug):
         return cid, srv
     except Exception:
         return None, None
+
+
+def encrypt_stream_token(url: str, ref: str = "") -> str:
+    """Encrypts upstream chunk URL and referer into an opaque, authenticated token"""
+    raw = f"{url}\x1f{ref}".encode("utf-8")
+    nonce = secrets.token_bytes(8)
+    keystream = bytearray()
+    counter = 0
+    while len(keystream) < len(raw):
+        h = hashlib.sha256(STREAM_SECURITY_SECRET + nonce + counter.to_bytes(4, "big")).digest()
+        keystream.extend(h)
+        counter += 1
+    ciphertext = bytes(a ^ b for a, b in zip(raw, keystream[:len(raw)]))
+    mac = hmac.new(STREAM_SECURITY_SECRET, nonce + ciphertext, hashlib.sha256).digest()[:8]
+    token = base64.urlsafe_b64encode(nonce + mac + ciphertext).decode("ascii").rstrip("=")
+    return token
+
+
+def decrypt_stream_token(token: str) -> tuple[str, str]:
+    """Decrypts opaque chunk token back to upstream URL and referer in constant time"""
+    pad = len(token) % 4
+    if pad:
+        token += "=" * (4 - pad)
+    try:
+        data = base64.urlsafe_b64decode(token)
+        if len(data) < 16:
+            return "", ""
+        nonce = data[:8]
+        mac = data[8:16]
+        ciphertext = data[16:]
+        expected_mac = hmac.new(STREAM_SECURITY_SECRET, nonce + ciphertext, hashlib.sha256).digest()[:8]
+        if not hmac.compare_digest(mac, expected_mac):
+            return "", ""
+        keystream = bytearray()
+        counter = 0
+        while len(keystream) < len(ciphertext):
+            h = hashlib.sha256(STREAM_SECURITY_SECRET + nonce + counter.to_bytes(4, "big")).digest()
+            keystream.extend(h)
+            counter += 1
+        raw = bytes(a ^ b for a, b in zip(ciphertext, keystream[:len(ciphertext)]))
+        decoded = raw.decode("utf-8", errors="ignore")
+        if "\x1f" in decoded:
+            u, r = decoded.split("\x1f", 1)
+            return u, r
+        return decoded, ""
+    except Exception:
+        return "", ""
+
 
 
 # Direct 24/7 Pure Stream Configuration (Zero transcoding / Zero CPU / 100% stable)
@@ -478,10 +527,10 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         if path in ("/status", "/", "/health", "/status/engine", "/api/engine/status"):
             return True, "*"
 
-        # 1.5. Signed video segments with HMAC signature are protected by cryptographic token
+        # 1.5. Signed video segments & encrypted TS chunks are protected by cryptographic token
         parsed_url = urllib.parse.urlparse(self.path)
         qs = urllib.parse.parse_qs(parsed_url.query)
-        if path.startswith("/live/segment/") and qs.get("h") and qs.get("exp"):
+        if (path.startswith("/live/segment/") and qs.get("h") and qs.get("exp")) or path.startswith("/live/ts/") or path.startswith("/ts/"):
             return True, "*"
 
         origin = self.headers.get("Origin", "").strip()
@@ -746,13 +795,41 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        # 6. Proxy Segment Chunk: /ts or /live/ts or /raw/ts
+        # 6. Proxy Segment Chunk: /ts or /live/ts or /raw/ts (Encrypted Token or Legacy URL)
         if self.path.startswith("/ts?") or self.path.startswith("/live/ts?") or self.path.startswith("/raw/ts?") or self.path.startswith("/ts/") or self.path.startswith("/live/ts/") or self.path.startswith("/raw/ts/"):
             parsed_ts = urllib.parse.urlparse(self.path)
             qs_ts = urllib.parse.parse_qs(parsed_ts.query)
             target_url = qs_ts.get("url", [""])[0]
             ua_override = qs_ts.get("ua", [""])[0]
             ref_override = qs_ts.get("ref", [""])[0]
+
+            # Extract encrypted token from query ?token=... or ?t=...
+            enc_token = qs_ts.get("token", [""])[0] or qs_ts.get("t", [""])[0]
+
+            # Extract encrypted token from URL path /live/ts/seg_<token>.ts or /live/ts/<token>.ts
+            if not enc_token and not target_url:
+                m_tok = re.search(r"/(?:live|raw)?/?ts/(?:seg_|key_|chunk_)?([^/?#]+?)(?:\.ts|\.key|\.m4s)?$", parsed_ts.path)
+                if m_tok:
+                    raw_candidate = m_tok.group(1)
+                    if raw_candidate not in ("chunk.ts", "chunk"):
+                        enc_token = raw_candidate
+
+            if enc_token:
+                dec_url, dec_ref = decrypt_stream_token(enc_token)
+                if dec_url:
+                    target_url = dec_url
+                    if not ref_override:
+                        ref_override = dec_ref
+                else:
+                    self.send_response(403)
+                    self.send_cors_headers()
+                    self.end_headers()
+                    try:
+                        self.wfile.write(b"403 Forbidden: Invalid Stream Token")
+                    except (BrokenPipeError, ConnectionResetError):
+                        pass
+                    return
+
             if ua_override and "ua=" not in target_url:
                 sep = "&" if "?" in target_url else "?"
                 target_url += f"{sep}ua={ua_override}"
@@ -1225,20 +1302,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     def replace_uri(m):
                         u = m.group(1)
                         full_u = urllib.parse.urljoin(target_fetch_url, u)
-                        enc_u = urllib.parse.quote(full_u, safe="")
-                        enc_r = urllib.parse.quote(channel_referer or "", safe="")
-                        return f'URI="{base_origin}/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
+                        tok = encrypt_stream_token(full_u, channel_referer or "")
+                        return f'URI="{base_origin}/live/ts/key_{tok}.key"'
                     rewritten.append(re.sub(r'URI="([^"]+)"', replace_uri, l))
                 elif not l.startswith("#EXT-X-ENDLIST"):
                     rewritten.append(l)
             else:
                 seg_full = urllib.parse.urljoin(target_fetch_url, l)
-                if force_proxy:
-                    encoded_seg = urllib.parse.quote(seg_full, safe="")
-                    encoded_ref = urllib.parse.quote(channel_referer or "", safe="")
-                    rewritten.append(f"{base_origin}/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
-                else:
-                    rewritten.append(seg_full)
+                tok = encrypt_stream_token(seg_full, channel_referer or "")
+                rewritten.append(f"{base_origin}/live/ts/seg_{tok}.ts")
 
         # Strip any transient #EXT-X-ENDLIST to prevent players from treating live as finished VOD
         clean_rewritten = [l for l in rewritten if not l.startswith("#EXT-X-ENDLIST")]
@@ -1363,17 +1435,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                                     def replace_sub_uri(m):
                                         u = m.group(1)
                                         full_u = urllib.parse.urljoin(target_url, u)
-                                        enc_u = urllib.parse.quote(full_u, safe="")
-                                        enc_r = urllib.parse.quote(referer or "", safe="")
-                                        return f'URI="{base_origin}/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
+                                        tok = encrypt_stream_token(full_u, referer or "")
+                                        return f'URI="{base_origin}/live/ts/key_{tok}.key"'
                                     rewritten.append(re.sub(r'URI="([^"]+)"', replace_sub_uri, l))
                                 else:
                                     rewritten.append(l)
                             else:
                                 seg_full = urllib.parse.urljoin(target_url, l)
-                                encoded_seg = urllib.parse.quote(seg_full, safe="")
-                                encoded_ref = urllib.parse.quote(referer or "", safe="")
-                                rewritten.append(f"{base_origin}/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
+                                tok = encrypt_stream_token(seg_full, referer or "")
+                                rewritten.append(f"{base_origin}/live/ts/seg_{tok}.ts")
 
                         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
                         self.send_response(200)
