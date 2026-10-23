@@ -2878,5 +2878,32 @@
     "enabled": true,
     "status_message": "بث مباشر فائق الدقة (5 سيرفرات وجودات متاحة)",
     "playUrl": "/live/shahid-khuzama-radio.m3u8?server=1"
+  },
+  {
+    "id": "alrabiaa",
+    "name": "قناة الرابعة الفضائية",
+    "groupTitle": "قنوات إخبارية ووثائقية",
+    "logoUrl": "https://alrabiaa.tv/images/logo.png",
+    "orderIndex": 159,
+    "streamUrl": "/live/alrabiaa.m3u8?server=1",
+    "directM3u8": "https://stream.qi.tv/bpk-tv/alrabiaa_news_web/default/index.m3u8?hdnts=st=1792716468~exp=1792716768~acl=/bpk-tv/alrabiaa_news_web/default/*~hmac=c24d78453b66bb87850a8fe12dd035746553c4d843636c32eadc2894e4f0f6f5",
+    "playUrl": "/live/alrabiaa.m3u8?server=1",
+    "source": "alrabiaa.tv",
+    "referer": "https://alrabiaa.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر (نشط)",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي)",
+        "upstreamUrl": "https://stream.qi.tv/bpk-tv/alrabiaa_news_web/default/index.m3u8?hdnts=st=1792716468~exp=1792716768~acl=/bpk-tv/alrabiaa_news_web/default/*~hmac=c24d78453b66bb87850a8fe12dd035746553c4d843636c32eadc2894e4f0f6f5",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
   }
 ]

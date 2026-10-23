@@ -225,16 +225,62 @@ def load_channels_from_disk():
     print(f" [✓] تم تحميل {len(channels_cache)} قناة في الذاكرة الحية.")
 
 
+def fetch_alrabiaa_stream_url():
+    """Fetches a fresh signed Akamai HLS stream URL for Al Rabiaa TV via Next.js Server Action"""
+    url = "https://alrabiaa.tv/live"
+    action_id = "003546910a271c26b9e431e6adf53deef3a3b39d63"
+    req = urllib.request.Request(
+        url,
+        data=b"[]",
+        headers={
+            "User-Agent": DEFAULT_UA,
+            "Next-Action": action_id,
+            "Accept": "text/x-component",
+            "Content-Type": "text/plain;charset=UTF-8",
+            "Referer": "https://alrabiaa.tv/live"
+        }
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10, context=SSL_CTX) as resp:
+            body = resp.read().decode("utf-8", errors="ignore")
+            m = re.search(r'"hls":"(https://[^"]+)"', body)
+            if m:
+                return m.group(1).replace(r"\u0026", "&")
+    except Exception as e:
+        print(f" [!] خطأ في جلب توكن قناة الرابعة: {e}")
+    return None
+
+
 def renew_single_channel_stream(cid):
     """Fetches a fresh stream URL for a single channel from upstream API"""
+    if cid in ("alrabiaa", "alrabiaa-tv"):
+        fresh = fetch_alrabiaa_stream_url()
+        if fresh:
+            now_ts = time.time()
+            with cache_lock:
+                if cid in channels_cache:
+                    ch = channels_cache[cid]
+                    ch["directM3u8"] = fresh
+                    ch["streamUrl"] = fresh
+                    ch["playUrl"] = fresh
+                    ch["referer"] = "https://alrabiaa.tv/"
+                    ch["status"] = "live"
+                    ch["lastRenewed"] = now_ts
+                    if ch.get("servers"):
+                        for s in ch["servers"]:
+                            s["upstreamUrl"] = fresh
+                            s["status"] = "live"
+            return True
+        return False
+
     with cache_lock:
         ch = channels_cache.get(cid, {})
         # Never overwrite private VIP OTT satellite channels or Shahid livestream channels with Yacine
         if (
-            ch.get("source") in ("private-vip", "shahid-livestream")
+            ch.get("source") in ("private-vip", "shahid-livestream", "alrabiaa.tv")
             or cid.startswith("shahid-")
             or cid.startswith("rotana-")
-            or cid == "alresalah"
+            or cid in ("alresalah", "alrabiaa", "alrabiaa-tv")
             or "mac=" in str(ch.get("directM3u8", ""))
             or "hey-ott.net" in str(ch.get("directM3u8", ""))
             or cid in ("bein-vip-bein-sports-news", "bein-vip-bein-sports-global")
@@ -365,9 +411,9 @@ def save_channels_to_disk():
         channels_list.sort(key=lambda x: x.get("orderIndex", 0))
 
     try:
-        # Separate Shahid channels and VIP OTT channels
-        shahid_channels = [c for c in channels_list if str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") == "shahid-livestream"]
-        vip_channels = [c for c in channels_list if not (str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") == "shahid-livestream")]
+        # Separate Shahid/Public channels and VIP OTT channels
+        shahid_channels = [c for c in channels_list if str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") in ("shahid-livestream", "alrabiaa.tv") or "alrabiaa" in str(c.get("id") or c.get("vid"))]
+        vip_channels = [c for c in channels_list if not (str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") in ("shahid-livestream", "alrabiaa.tv") or "alrabiaa" in str(c.get("id") or c.get("vid")))]
 
         # 1. Update channels.json (beIN & VIP only)
         with open(CHANNELS_JSON_PATH, "w", encoding="utf-8") as f:
@@ -936,7 +982,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             slug = re.sub(r'[^a-zA-Z0-9]+', '-', ch.get('name', 'live')).strip('-') or 'live'
             channel_referer = f"https://yacine.website/channel/{yacine_id}/{slug}"
 
-        target_fetch_url, req_ua = self.build_target_and_ua(ch, requested_server)
+        # Al Rabiaa automatic token renewal (Broadpeak Akamai tokens valid for 300s)
+        if cid in ("alrabiaa", "alrabiaa-tv"):
+            channel_referer = "https://alrabiaa.tv/"
+            now_al = time.time()
+            if not target_fetch_url or now_al - ch.get("lastRenewed", 0) > 180 or "hdnts=" not in str(target_fetch_url):
+                renew_single_channel_stream(cid)
+                with cache_lock:
+                    ch = channels_cache.get(cid, {})
+                    target_fetch_url, req_ua = self.build_target_and_ua(ch, requested_server)
 
         # Only trigger renewal if we have no target stream url at all or if target is local
         if not target_fetch_url or target_fetch_url.startswith("/") or target_fetch_url.startswith("http://127.0.0.1"):
@@ -1199,6 +1253,8 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             ua = "OSCARTV2021"
             referer = "http://speedcdn.me:8080/"
 
+        is_fmp4_seg = ".m4s" in target_url or ".mp4" in target_url
+
         # Check instant in-memory cache first (< 1ms response)
         now = time.time()
         with hot_cache_lock:
@@ -1207,7 +1263,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 data = cached[0]
                 self.send_response(200)
                 self.send_cors_headers()
-                self.send_header("Content-Type", "video/mp2t")
+                self.send_header("Content-Type", "video/iso.segment" if is_fmp4_seg else "video/mp2t")
                 self.send_header("Content-Length", str(len(data)))
                 self.send_header("Cache-Control", "public, max-age=120, immutable")
                 self.end_headers()
@@ -1217,16 +1273,20 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     pass
                 return
 
+        req_origin = "https://alrabiaa.tv" if ("qi.tv" in target_url or "alrabiaa" in referer) else ("https://yacine.website" if "yacine" in referer else (referer.rstrip('/') if referer.startswith('http') else "https://yacine.website"))
         headers = {
             "User-Agent": ua,
             "Referer": referer,
-            "Origin": "https://yacine.website",
+            "Origin": req_origin,
             "Sec-Fetch-Dest": "empty",
             "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-origin",
+            "Sec-Fetch-Site": "cross-site" if ("qi.tv" in target_url or "alrabiaa" in referer) else "same-origin",
             "Accept": "*/*"
         }
-        if "edgenextcdn.net" in target_url:
+        if "qi.tv" in target_url or "alrabiaa" in referer:
+            headers["Referer"] = "https://alrabiaa.tv/"
+            headers["Origin"] = "https://alrabiaa.tv"
+        elif "edgenextcdn.net" in target_url:
             headers.pop("Referer", None)
             headers.pop("Origin", None)
         elif "yacine.website" in target_url or "new-redirect.online" in target_url or ".buzz" in target_url or ".lol" in target_url:
@@ -1293,8 +1353,10 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                             pass
                         return
 
-                    # Strict validation: Every valid MPEG-TS segment MUST begin with 0x47
-                    if not first_chunk or first_chunk[0] != 0x47:
+                    # Strict validation: MPEG-TS (starts with 0x47) or fMP4 (starts with styp, ftyp, moof, mdat, or .m4s/.mp4 in URL)
+                    is_ts = bool(first_chunk and first_chunk[0] == 0x47)
+                    is_fmp4 = bool(first_chunk and (first_chunk[4:8] in (b"styp", b"ftyp", b"moof", b"moov", b"mdat", b"free") or is_fmp4_seg))
+                    if not (is_ts or is_fmp4):
                         self.send_response(503)
                         self.send_cors_headers()
                         self.end_headers()
@@ -1304,7 +1366,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     content_len = upstream.headers.get("Content-Length")
                     self.send_response(status if status else 200)
                     self.send_cors_headers()
-                    self.send_header("Content-Type", "video/mp2t")
+                    self.send_header("Content-Type", "video/iso.segment" if is_fmp4 else "video/mp2t")
                     if content_len:
                         self.send_header("Content-Length", content_len)
                     self.end_headers()

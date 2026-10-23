@@ -277,17 +277,20 @@ export async function initDatabase(force = false): Promise<boolean> {
           // 2. Insert sources
           const vipCount = list.filter((c: any) => c.source === 'private-vip' || String(c.id || c.vid).startsWith('bein-vip-')).length;
           const shahidCount = list.filter((c: any) => c.source === 'shahid-livestream' || String(c.id || c.vid).startsWith('shahid-')).length;
+          const rabiaaCount = list.filter((c: any) => c.source === 'alrabiaa.tv' || String(c.id || c.vid).includes('alrabiaa')).length;
 
           await client.query(`
             INSERT INTO sources (
               id, name, type, sanitized_hostname, encrypted_url, enabled, connection_status, channel_count, created_at, updated_at
             ) VALUES 
               ('private-vip', 'beIN SPORTS VIP (ملفاتك الخاصة)', 'M3U', 'line.hey-ott.net', $1::text, true, 'ONLINE', $2::integer, NOW(), NOW()),
-              ('shahid-livestream', 'قنوات شاهد المباشرة (shahid.mbc.net)', 'M3U', 'shahid.mbc.net', $3::text, true, 'ONLINE', $4::integer, NOW(), NOW())
+              ('shahid-livestream', 'قنوات شاهد المباشرة (shahid.mbc.net)', 'M3U', 'shahid.mbc.net', $3::text, true, 'ONLINE', $4::integer, NOW(), NOW()),
+              ('alrabiaa.tv', 'قناة الرابعة الفضائية (alrabiaa.tv)', 'M3U', 'alrabiaa.tv', $5::text, true, 'ONLINE', $6::integer, NOW(), NOW())
             ON CONFLICT (id) DO UPDATE SET channel_count = EXCLUDED.channel_count, connection_status = 'ONLINE'
           `, [
             encrypt('http://line.hey-ott.net/'), vipCount,
-            encrypt('https://shahid.mbc.net/ar/livestream'), shahidCount
+            encrypt('https://shahid.mbc.net/ar/livestream'), shahidCount,
+            encrypt('https://alrabiaa.tv/live'), rabiaaCount
           ]);
 
           // 3. Insert channels with servers JSON
@@ -296,7 +299,8 @@ export async function initDatabase(force = false): Promise<boolean> {
             const cid = String(item.id || item.vid);
             if (cid.startsWith('tlfaz-') || item.source === 'tlfaz.com' || cid.startsWith('rotana-') || cid === 'alresalah') continue;
             const isShahid = item.source === 'shahid-livestream' || cid.startsWith('shahid-');
-            const sourceId = isShahid ? 'shahid-livestream' : 'private-vip';
+            const isRabiaa = item.source === 'alrabiaa.tv' || cid.includes('alrabiaa');
+            const sourceId = isRabiaa ? 'alrabiaa.tv' : (isShahid ? 'shahid-livestream' : 'private-vip');
             const stream = item.playUrl || item.streamUrl || item.directM3u8 || '';
             const encStream = encrypt(stream);
             const name = item.name || 'قناة غير معنونة';
