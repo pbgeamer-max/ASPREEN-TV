@@ -218,6 +218,8 @@ def load_channels_from_disk():
                         if not ch.get("lastRenewed"):
                             ch["lastRenewed"] = now
                         channels_cache[cid] = ch
+                        channels_cache[urllib.parse.unquote(cid)] = ch
+                        channels_cache[urllib.parse.quote(cid)] = ch
             except Exception as e:
                 print(f" [!] خطأ في قراءة ملف {file_path}: {e}")
     print(f" [✓] تم تحميل {len(channels_cache)} قناة في الذاكرة الحية.")
@@ -664,7 +666,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         # 4. Stream M3U8 Playlist: /live/<channel_id>.m3u8 or /raw/<channel_id>.m3u8 (Direct 100% Pure Stable Stream)
         match_live = re.match(r"^/(?:live|raw)/([^/]+)\.m3u8$", path)
         if match_live:
-            cid = match_live.group(1)
+            cid = urllib.parse.unquote(match_live.group(1))
             # Default force_proxy to True so external websites never encounter CORS or 403 Forbidden errors!
             force_proxy = query.get("proxy", ["1"])[0] not in ("0", "false")
             self.handle_channel_playlist(cid, is_raw=False, force_proxy=force_proxy)
@@ -673,7 +675,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         # 5. Direct Continuous MPEG-TS Stream: Redirect to strictly M3U8 (No TS)
         match_ts = re.match(r"^/(?:live|raw)/([^/]+)\.ts$", path)
         if match_ts:
-            cid = match_ts.group(1)
+            cid = urllib.parse.unquote(match_ts.group(1))
             self.send_response(302)
             self.send_cors_headers()
             self.send_header("Location", f"/live/{cid}.m3u8")
@@ -845,6 +847,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
     def handle_channel_playlist(self, cid, is_raw=False, force_proxy=False, server_override=None):
         """Fetches upstream M3U8, rewrites segment URLs, and returns pure M3U8 to client"""
+        cid = urllib.parse.unquote(cid)
         host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", f"127.0.0.1:{PORT}"))
         proto = self.headers.get("X-Forwarded-Proto", "https" if ("railway" in host or "443" in host) else "http")
         if "railway" in host:
