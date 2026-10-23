@@ -2905,5 +2905,86 @@
         "backupOrder": 1
       }
     ]
+  },
+  {
+    "id": "karbala-quran",
+    "name": "قناة القرآن الكريم (كربلاء)",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://karbala-tv.iq/images/quran_logo.png",
+    "orderIndex": 160,
+    "streamUrl": "/live/karbala-quran.m3u8?server=1",
+    "directM3u8": "https://ktvlive.online/stream/hls/ch1.m3u8",
+    "playUrl": "/live/karbala-quran.m3u8?server=1",
+    "source": "karbala-tv.iq",
+    "referer": "https://karbala-tv.iq/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://ktvlive.online/stream/hls/ch1.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "karbala-documentary",
+    "name": "قناة كربلاء الوثائقية",
+    "groupTitle": "قنوات إخبارية ووثائقية",
+    "logoUrl": "https://karbala-tv.iq/images/documentary_logo.png",
+    "orderIndex": 161,
+    "streamUrl": "/live/karbala-documentary.m3u8?server=1",
+    "directM3u8": "https://ktvlive.online/stream/hls/ch3.m3u8",
+    "playUrl": "/live/karbala-documentary.m3u8?server=1",
+    "source": "karbala-tv.iq",
+    "referer": "https://karbala-tv.iq/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://ktvlive.online/stream/hls/ch3.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "safeer-tv",
+    "name": "قناة السفير الفضائية",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://karbala-tv.iq/images/safeer_logo.png",
+    "orderIndex": 162,
+    "streamUrl": "/live/safeer-tv.m3u8?server=1",
+    "directM3u8": "https://cdn3.wowza.com/1/YStGZlJRdktzZkdK/VXROZWNW/hls/live/playlist.m3u8",
+    "playUrl": "/live/safeer-tv.m3u8?server=1",
+    "source": "karbala-tv.iq",
+    "referer": "https://safeertv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://cdn3.wowza.com/1/YStGZlJRdktzZkdK/VXROZWNW/hls/live/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
   }
 ]

@@ -45,3 +45,101 @@ http://127.0.0.1:8080/live/bein-vip-bein-sports-1-france.m3u8
 http://127.0.0.1:8080/live/bein-vip-bein-sports-2-france.m3u8
 #EXTINF:-1 tvg-id="bein-vip-bein-sports-3-france" tvg-name="BEIN SPORTS 3 FRANCE" tvg-logo="/logos/bein-sports.png" group-title="beIN SPORTS VIP (ملفاتك الخاصة)",BEIN SPORTS 3 FRANCE
 http://127.0.0.1:8080/live/bein-vip-bein-sports-3-france.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc1" tvg-name="MBC1" tvg-logo="https://shahid.mbc.net/mediaObject/cee00d24-d0ee-4382-ac72-b2de5dee0331?height=200&width=200&croppingPoint=&version=1&type=png" group-title="باقة قنوات MBC الترفيهية",MBC1
+http://127.0.0.1:8080/live/shahid-mbc1.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc-iraq" tvg-name="MBC Iraq" tvg-logo="https://shahid.mbc.net/mediaObject/27b098dd-07ae-4264-9ac2-47da7d720740?height=200&width=200&croppingPoint=&version=1&type=png" group-title="باقة قنوات MBC الترفيهية",MBC Iraq
+http://127.0.0.1:8080/live/shahid-mbc-iraq.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc-masr" tvg-name="MBC Masr" tvg-logo="https://shahid.mbc.net/mediaObject/40868a75-2b2c-47af-baf7-9167fce35a1d?height=200&width=200&croppingPoint=&version=1&type=png" group-title="باقة قنوات MBC الترفيهية",MBC Masr
+http://127.0.0.1:8080/live/shahid-mbc-masr.m3u8
+#EXTINF:-1 tvg-id="shahid-boqat-daw" tvg-name="قناة بقعة ضوء" tvg-logo="https://shahid.mbc.net/mediaObject/f1011674-5971-437f-8107-a420b3c90c68?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",قناة بقعة ضوء
+http://127.0.0.1:8080/live/shahid-boqat-daw.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc-mood" tvg-name="MBC Mood" tvg-logo="https://shahid.mbc.net/mediaObject/c2b6a882-458b-446e-b0fe-f97f7992149a?height=200&width=200&croppingPoint=&version=1&type=png" group-title="باقة قنوات MBC الترفيهية",MBC Mood
+http://127.0.0.1:8080/live/shahid-mbc-mood.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc-drama" tvg-name="MBC Drama" tvg-logo="https://shahid.mbc.net/mediaObject/7ccc7980-2151-441f-b862-494961bcf2d9?height=200&width=200&croppingPoint=&version=1&type=png" group-title="باقة قنوات MBC الترفيهية",MBC Drama
+http://127.0.0.1:8080/live/shahid-mbc-drama.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc-masr-drama" tvg-name="مصر دراما" tvg-logo="https://shahid.mbc.net/mediaObject/82976f5e-20dd-4e81-8b4d-ee9bca41ca45?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",مصر دراما
+http://127.0.0.1:8080/live/shahid-mbc-masr-drama.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc-masr2" tvg-name="MBC Masr2" tvg-logo="https://shahid.mbc.net/mediaObject/0da1c6ad-b49e-470d-b1b3-d2f1b0f7226d?height=200&width=200&croppingPoint=&version=1&type=png" group-title="باقة قنوات MBC الترفيهية",MBC Masr2
+http://127.0.0.1:8080/live/shahid-mbc-masr2.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc-plus-drama" tvg-name="MBC Plus Drama" tvg-logo="https://shahid.mbc.net/mediaObject/dd63048e-0b3b-48a2-b55c-77619b4d5cf6?height=200&width=200&croppingPoint=&version=1&type=png" group-title="باقة قنوات MBC الترفيهية",MBC Plus Drama
+http://127.0.0.1:8080/live/shahid-mbc-plus-drama.m3u8
+#EXTINF:-1 tvg-id="shahid-al-arabiya" tvg-name="العربية" tvg-logo="https://shahid.mbc.net/mediaObject/a4c125db-ede8-4970-9eed-963948c78651?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات إخبارية ووثائقية",العربية
+http://127.0.0.1:8080/live/shahid-al-arabiya.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc4" tvg-name="MBC4" tvg-logo="https://shahid.mbc.net/mediaObject/d280bcb0-2135-4919-af1a-f1c8c5fb99e3?height=200&width=200&croppingPoint=&version=1&type=png" group-title="باقة قنوات MBC الترفيهية",MBC4
+http://127.0.0.1:8080/live/shahid-mbc4.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc5" tvg-name="MBC5" tvg-logo="https://shahid.mbc.net/mediaObject/79e74307-193a-4b28-9ccb-b618aae07962?height=200&width=200&croppingPoint=&version=1&type=png" group-title="باقة قنوات MBC الترفيهية",MBC5
+http://127.0.0.1:8080/live/shahid-mbc5.m3u8
+#EXTINF:-1 tvg-id="shahid-quran-kareem" tvg-name="القرآن الكريم" tvg-logo="https://shahid.mbc.net/mediaObject/6f920fed-c054-47b5-b006-eef2f73b4917?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات إسلامية ودينية",القرآن الكريم
+http://127.0.0.1:8080/live/shahid-quran-kareem.m3u8
+#EXTINF:-1 tvg-id="shahid-iqraa" tvg-name="اقرأ" tvg-logo="https://shahid.mbc.net/mediaObject/74bb5ae0-2ae7-41a5-b29d-ece83c3e1bc4?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات إسلامية ودينية",اقرأ
+http://127.0.0.1:8080/live/shahid-iqraa.m3u8
+#EXTINF:-1 tvg-id="shahid-sunnah-nabawiyah" tvg-name="السنة النبوية" tvg-logo="https://shahid.mbc.net/mediaObject/a2180922-6de9-45c4-ae40-0411a5c9666f?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات إسلامية ودينية",السنة النبوية
+http://127.0.0.1:8080/live/shahid-sunnah-nabawiyah.m3u8
+#EXTINF:-1 tvg-id="shahid-quran-sudais" tvg-name="القرآن الكريم بصوت السديس" tvg-logo="https://shahid.mbc.net/mediaObject/a74aaf7f-3548-4e68-8629-baeba4a1911e?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات إسلامية ودينية",القرآن الكريم بصوت السديس
+http://127.0.0.1:8080/live/shahid-quran-sudais.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc3" tvg-name="MBC3" tvg-logo="https://shahid.mbc.net/mediaObject/6bcdb5e5-d974-4feb-97dc-1bad851b0c1d?height=200&width=200&croppingPoint=&version=1&type=png" group-title="باقة قنوات MBC الترفيهية",MBC3
+http://127.0.0.1:8080/live/shahid-mbc3.m3u8
+#EXTINF:-1 tvg-id="shahid-bab-al-hara" tvg-name="قناة باب الحارة" tvg-logo="https://shahid.mbc.net/mediaObject/c70e4088-d219-44c9-a998-0fca701ad0b5?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",قناة باب الحارة
+http://127.0.0.1:8080/live/shahid-bab-al-hara.m3u8
+#EXTINF:-1 tvg-id="shahid-maraya" tvg-name="قناة مرايا" tvg-logo="https://shahid.mbc.net/mediaObject/d089a559-4f41-4def-a786-f98fcfbf0464?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",قناة مرايا
+http://127.0.0.1:8080/live/shahid-maraya.m3u8
+#EXTINF:-1 tvg-id="shahid-el-kabeer-awi" tvg-name="قناة الكبير أوي" tvg-logo="https://shahid.mbc.net/mediaObject/4c6b1637-df6b-44ca-95ea-e922b404a2ef?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",قناة الكبير أوي
+http://127.0.0.1:8080/live/shahid-el-kabeer-awi.m3u8
+#EXTINF:-1 tvg-id="shahid-jak-al-alam" tvg-name="قناة جاك العلم" tvg-logo="https://shahid.mbc.net/mediaObject/4cd869f9-10d9-4d94-bdc3-be2fc096064f?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",قناة جاك العلم
+http://127.0.0.1:8080/live/shahid-jak-al-alam.m3u8
+#EXTINF:-1 tvg-id="shahid-masrah-masr" tvg-name="قناة مسرح مصر" tvg-logo="https://shahid.mbc.net/mediaObject/5022e869-5a09-4066-b7ff-cfb0901f4fa8?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",قناة مسرح مصر
+http://127.0.0.1:8080/live/shahid-masrah-masr.m3u8
+#EXTINF:-1 tvg-id="shahid-el-leba" tvg-name="قناة اللعبة" tvg-logo="https://shahid.mbc.net/mediaObject/6364fbe1-aa81-4d23-8d88-3fbc26c7f8f1?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",قناة اللعبة
+http://127.0.0.1:8080/live/shahid-el-leba.m3u8
+#EXTINF:-1 tvg-id="shahid-tash" tvg-name="قناة طاش" tvg-logo="https://shahid.mbc.net/mediaObject/8732de71-79e9-4915-a4a4-16297f9bd8a5?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",قناة طاش
+http://127.0.0.1:8080/live/shahid-tash.m3u8
+#EXTINF:-1 tvg-id="shahid-al-saudia" tvg-name="السعودية" tvg-logo="https://shahid.mbc.net/mediaObject/35f57bfa-b83c-4727-8fa0-2c66c0051d4f?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",السعودية
+http://127.0.0.1:8080/live/shahid-al-saudia.m3u8
+#EXTINF:-1 tvg-id="shahid-al-thaqafiya" tvg-name="الثقافية" tvg-logo="https://shahid.mbc.net/mediaObject/55f69983-5b4b-47c7-9c25-06ed5ad860a4?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",الثقافية
+http://127.0.0.1:8080/live/shahid-al-thaqafiya.m3u8
+#EXTINF:-1 tvg-id="shahid-al-asoof" tvg-name="قناة العاصوف" tvg-logo="https://shahid.mbc.net/mediaObject/93e4e487-4b68-4525-9513-32165da4866a?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",قناة العاصوف
+http://127.0.0.1:8080/live/shahid-al-asoof.m3u8
+#EXTINF:-1 tvg-id="shahid-nasser-al-qassabi" tvg-name="ناصر القصبي" tvg-logo="https://shahid.mbc.net/mediaObject/10155ab0-81cb-4ee6-a4f7-8c7b8ad11063?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",ناصر القصبي
+http://127.0.0.1:8080/live/shahid-nasser-al-qassabi.m3u8
+#EXTINF:-1 tvg-id="shahid-al-arabiya-business" tvg-name="العربية Business" tvg-logo="https://shahid.mbc.net/mediaObject/73142189-aeca-4f65-8977-d769c91e2573?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات إخبارية ووثائقية",العربية Business
+http://127.0.0.1:8080/live/shahid-al-arabiya-business.m3u8
+#EXTINF:-1 tvg-id="shahid-al-arabiya-programs" tvg-name="العربية برامج" tvg-logo="https://shahid.mbc.net/mediaObject/fbe4877f-fee1-4a31-ae41-31f4116824a1?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات إخبارية ووثائقية",العربية برامج
+http://127.0.0.1:8080/live/shahid-al-arabiya-programs.m3u8
+#EXTINF:-1 tvg-id="shahid-al-hadath" tvg-name="الحدث" tvg-logo="https://shahid.mbc.net/mediaObject/c5bad731-85af-493b-aa4f-f2aa01576376?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات إخبارية ووثائقية",الحدث
+http://127.0.0.1:8080/live/shahid-al-hadath.m3u8
+#EXTINF:-1 tvg-id="shahid-al-ekhbariya" tvg-name="الإخبارية" tvg-logo="https://shahid.mbc.net/mediaObject/80341c5b-6c68-406d-b8a8-673f1481c4e8?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات إخبارية ووثائقية",الإخبارية
+http://127.0.0.1:8080/live/shahid-al-ekhbariya.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc-bollywood" tvg-name="MBC Bollywood" tvg-logo="https://shahid.mbc.net/mediaObject/799fb041-289c-4709-b009-bca666425ec8?height=200&width=200&croppingPoint=&version=1&type=png" group-title="باقة قنوات MBC الترفيهية",MBC Bollywood
+http://127.0.0.1:8080/live/shahid-mbc-bollywood.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc-persia" tvg-name="MBC Persia" tvg-logo="https://shahid.mbc.net/mediaObject/8ed9d5e9-77c8-41d7-9bab-96dbb46ecde4?height=200&width=200&croppingPoint=&version=1&type=png" group-title="باقة قنوات MBC الترفيهية",MBC Persia
+http://127.0.0.1:8080/live/shahid-mbc-persia.m3u8
+#EXTINF:-1 tvg-id="shahid-aflam" tvg-name="أفلام" tvg-logo="https://shahid.mbc.net/mediaObject/06e1a853-795b-4b01-b1fd-baed5df7969c?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",أفلام
+http://127.0.0.1:8080/live/shahid-aflam.m3u8
+#EXTINF:-1 tvg-id="shahid-big-time-plus" tvg-name="Big Time Plus" tvg-logo="https://shahid.mbc.net/mediaObject/4e042cb6-500b-4e4c-a8ca-21a5a7a7a71b?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",Big Time Plus
+http://127.0.0.1:8080/live/shahid-big-time-plus.m3u8
+#EXTINF:-1 tvg-id="shahid-fairuz" tvg-name="فيروز" tvg-logo="https://shahid.mbc.net/mediaObject/b731f966-55cb-4b6d-a326-9521cbea9f93?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",فيروز
+http://127.0.0.1:8080/live/shahid-fairuz.m3u8
+#EXTINF:-1 tvg-id="shahid-tarab" tvg-name="طرب" tvg-logo="https://shahid.mbc.net/mediaObject/36c50d62-e95c-4f85-8d32-8e517f5123fc?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",طرب
+http://127.0.0.1:8080/live/shahid-tarab.m3u8
+#EXTINF:-1 tvg-id="shahid-mbc-fm" tvg-name="MBC FM" tvg-logo="https://shahid.mbc.net/mediaObject/ad2793c4-5722-49e3-a44c-97d5cbd5f042?height=200&width=200&croppingPoint=&version=1&type=png" group-title="باقة قنوات MBC الترفيهية",MBC FM
+http://127.0.0.1:8080/live/shahid-mbc-fm.m3u8
+#EXTINF:-1 tvg-id="shahid-panorama-fm" tvg-name="Panorama FM" tvg-logo="https://shahid.mbc.net/mediaObject/712a2aa8-b5de-4f35-87b7-d0ca9e8cb550?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",Panorama FM
+http://127.0.0.1:8080/live/shahid-panorama-fm.m3u8
+#EXTINF:-1 tvg-id="shahid-mohammed-abdu" tvg-name="محمد عبده" tvg-logo="https://shahid.mbc.net/mediaObject/ecdd8fe3-509a-49a1-82bd-a0ad619093a3?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",محمد عبده
+http://127.0.0.1:8080/live/shahid-mohammed-abdu.m3u8
+#EXTINF:-1 tvg-id="shahid-abdul-majeed-abdullah" tvg-name="عبدالمجيد عبدالله" tvg-logo="https://shahid.mbc.net/mediaObject/e31a074b-051d-48d3-aec1-87f1972c48f1?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",عبدالمجيد عبدالله
+http://127.0.0.1:8080/live/shahid-abdul-majeed-abdullah.m3u8
+#EXTINF:-1 tvg-id="shahid-rashed-al-majed" tvg-name="راشد الماجد" tvg-logo="https://shahid.mbc.net/mediaObject/51da140c-00ea-45b9-a7a9-b9617ca26000?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",راشد الماجد
+http://127.0.0.1:8080/live/shahid-rashed-al-majed.m3u8
+#EXTINF:-1 tvg-id="shahid-rabeh-saqer" tvg-name="رابح صقر" tvg-logo="https://shahid.mbc.net/mediaObject/05c16887-0b0f-4e38-9a46-a32a1ab91cb3?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",رابح صقر
+http://127.0.0.1:8080/live/shahid-rabeh-saqer.m3u8
+#EXTINF:-1 tvg-id="shahid-khuzama-radio" tvg-name="إذاعة خزامى" tvg-logo="https://shahid.mbc.net/mediaObject/c095ee82-2562-47f6-bddb-13f4985bf78c?height=200&width=200&croppingPoint=&version=1&type=png" group-title="قنوات شاهد الحصرية (Shahid FAST)",إذاعة خزامى
+http://127.0.0.1:8080/live/shahid-khuzama-radio.m3u8
+#EXTINF:-1 tvg-id="alrabiaa" tvg-name="قناة الرابعة الفضائية" tvg-logo="https://alrabiaa.tv/images/logo.png" group-title="قنوات إخبارية ووثائقية",قناة الرابعة الفضائية
+http://127.0.0.1:8080/live/alrabiaa.m3u8
+#EXTINF:-1 tvg-id="karbala-quran" tvg-name="قناة القرآن الكريم (كربلاء)" tvg-logo="https://karbala-tv.iq/images/quran_logo.png" group-title="قنوات دينية وإسلامية",قناة القرآن الكريم (كربلاء)
+http://127.0.0.1:8080/live/karbala-quran.m3u8
+#EXTINF:-1 tvg-id="karbala-documentary" tvg-name="قناة كربلاء الوثائقية" tvg-logo="https://karbala-tv.iq/images/documentary_logo.png" group-title="قنوات إخبارية ووثائقية",قناة كربلاء الوثائقية
+http://127.0.0.1:8080/live/karbala-documentary.m3u8
+#EXTINF:-1 tvg-id="safeer-tv" tvg-name="قناة السفير الفضائية" tvg-logo="https://karbala-tv.iq/images/safeer_logo.png" group-title="قنوات دينية وإسلامية",قناة السفير الفضائية
+http://127.0.0.1:8080/live/safeer-tv.m3u8

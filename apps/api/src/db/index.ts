@@ -278,6 +278,7 @@ export async function initDatabase(force = false): Promise<boolean> {
           const vipCount = list.filter((c: any) => c.source === 'private-vip' || String(c.id || c.vid).startsWith('bein-vip-')).length;
           const shahidCount = list.filter((c: any) => c.source === 'shahid-livestream' || String(c.id || c.vid).startsWith('shahid-')).length;
           const rabiaaCount = list.filter((c: any) => c.source === 'alrabiaa.tv' || String(c.id || c.vid).includes('alrabiaa')).length;
+          const karbalaCount = list.filter((c: any) => c.source === 'karbala-tv.iq' || String(c.id || c.vid).includes('karbala') || String(c.id || c.vid) === 'safeer-tv').length;
 
           await client.query(`
             INSERT INTO sources (
@@ -285,12 +286,14 @@ export async function initDatabase(force = false): Promise<boolean> {
             ) VALUES 
               ('private-vip', 'beIN SPORTS VIP (ملفاتك الخاصة)', 'M3U', 'line.hey-ott.net', $1::text, true, 'ONLINE', $2::integer, NOW(), NOW()),
               ('shahid-livestream', 'قنوات شاهد المباشرة (shahid.mbc.net)', 'M3U', 'shahid.mbc.net', $3::text, true, 'ONLINE', $4::integer, NOW(), NOW()),
-              ('alrabiaa.tv', 'قناة الرابعة الفضائية (alrabiaa.tv)', 'M3U', 'alrabiaa.tv', $5::text, true, 'ONLINE', $6::integer, NOW(), NOW())
+              ('alrabiaa.tv', 'قناة الرابعة الفضائية (alrabiaa.tv)', 'M3U', 'alrabiaa.tv', $5::text, true, 'ONLINE', $6::integer, NOW(), NOW()),
+              ('karbala-tv.iq', 'مجموعة قنوات كربلاء الفضائية (karbala-tv.iq)', 'M3U', 'karbala-tv.iq', $7::text, true, 'ONLINE', $8::integer, NOW(), NOW())
             ON CONFLICT (id) DO UPDATE SET channel_count = EXCLUDED.channel_count, connection_status = 'ONLINE'
           `, [
             encrypt('http://line.hey-ott.net/'), vipCount,
             encrypt('https://shahid.mbc.net/ar/livestream'), shahidCount,
-            encrypt('https://alrabiaa.tv/live'), rabiaaCount
+            encrypt('https://alrabiaa.tv/live'), rabiaaCount,
+            encrypt('https://karbala-tv.iq/'), karbalaCount
           ]);
 
           // 3. Insert channels with servers JSON
@@ -298,9 +301,10 @@ export async function initDatabase(force = false): Promise<boolean> {
             const item = list[i];
             const cid = String(item.id || item.vid);
             if (cid.startsWith('tlfaz-') || item.source === 'tlfaz.com' || cid.startsWith('rotana-') || cid === 'alresalah') continue;
+            const isKarbala = item.source === 'karbala-tv.iq' || cid.includes('karbala') || cid === 'safeer-tv';
             const isShahid = item.source === 'shahid-livestream' || cid.startsWith('shahid-');
             const isRabiaa = item.source === 'alrabiaa.tv' || cid.includes('alrabiaa');
-            const sourceId = isRabiaa ? 'alrabiaa.tv' : (isShahid ? 'shahid-livestream' : 'private-vip');
+            const sourceId = isKarbala ? 'karbala-tv.iq' : (isRabiaa ? 'alrabiaa.tv' : (isShahid ? 'shahid-livestream' : 'private-vip'));
             const stream = item.playUrl || item.streamUrl || item.directM3u8 || '';
             const encStream = encrypt(stream);
             const name = item.name || 'قناة غير معنونة';

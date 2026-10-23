@@ -277,10 +277,11 @@ def renew_single_channel_stream(cid):
         ch = channels_cache.get(cid, {})
         # Never overwrite private VIP OTT satellite channels or Shahid livestream channels with Yacine
         if (
-            ch.get("source") in ("private-vip", "shahid-livestream", "alrabiaa.tv")
+            ch.get("source") in ("private-vip", "shahid-livestream", "alrabiaa.tv", "karbala-tv.iq")
             or cid.startswith("shahid-")
             or cid.startswith("rotana-")
-            or cid in ("alresalah", "alrabiaa", "alrabiaa-tv")
+            or cid.startswith("karbala-")
+            or cid in ("alresalah", "alrabiaa", "alrabiaa-tv", "safeer-tv")
             or "mac=" in str(ch.get("directM3u8", ""))
             or "hey-ott.net" in str(ch.get("directM3u8", ""))
             or cid in ("bein-vip-bein-sports-news", "bein-vip-bein-sports-global")
@@ -412,8 +413,8 @@ def save_channels_to_disk():
 
     try:
         # Separate Shahid/Public channels and VIP OTT channels
-        shahid_channels = [c for c in channels_list if str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") in ("shahid-livestream", "alrabiaa.tv") or "alrabiaa" in str(c.get("id") or c.get("vid"))]
-        vip_channels = [c for c in channels_list if not (str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") in ("shahid-livestream", "alrabiaa.tv") or "alrabiaa" in str(c.get("id") or c.get("vid")))]
+        shahid_channels = [c for c in channels_list if str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") in ("shahid-livestream", "alrabiaa.tv", "karbala-tv.iq") or "alrabiaa" in str(c.get("id") or c.get("vid")) or "karbala" in str(c.get("id") or c.get("vid")) or str(c.get("id") or c.get("vid")) == "safeer-tv"]
+        vip_channels = [c for c in channels_list if not (str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") in ("shahid-livestream", "alrabiaa.tv", "karbala-tv.iq") or "alrabiaa" in str(c.get("id") or c.get("vid")) or "karbala" in str(c.get("id") or c.get("vid")) or str(c.get("id") or c.get("vid")) == "safeer-tv")]
 
         # 1. Update channels.json (beIN & VIP only)
         with open(CHANNELS_JSON_PATH, "w", encoding="utf-8") as f:
@@ -1138,6 +1139,24 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         m3u_text = fetch_m3u(target_fetch_url, req_ua, max_retries=2)
 
+        # If upstream returned a Master Playlist with child variant streams, follow the highest bitrate variant
+        if m3u_text and "#EXT-X-STREAM-INF" in m3u_text:
+            lines = [l.strip() for l in m3u_text.splitlines() if l.strip()]
+            best_variant = None
+            best_bw = -1
+            for idx, l in enumerate(lines):
+                if l.startswith("#EXT-X-STREAM-INF") and idx + 1 < len(lines):
+                    cand = lines[idx + 1]
+                    if not cand.startswith("#"):
+                        bw_match = re.search(r"BANDWIDTH=(\d+)", l)
+                        bw = int(bw_match.group(1)) if bw_match else 0
+                        if bw >= best_bw or best_variant is None:
+                            best_bw = bw
+                            best_variant = urllib.parse.urljoin(target_fetch_url, cand)
+            if best_variant:
+                target_fetch_url = best_variant
+                m3u_text = fetch_m3u(target_fetch_url, req_ua, max_retries=2)
+
         # If expired or returned error, auto-renew fresh token if dynamic yacine channel
         if not m3u_text or "#EXTM3U" not in m3u_text or "No URLs available" in m3u_text:
             if renew_single_channel_stream(cid):
@@ -1146,6 +1165,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     target_fetch_url, req_ua = self.build_target_and_ua(ch)
                 if target_fetch_url:
                     m3u_text = fetch_m3u(target_fetch_url, req_ua, max_retries=2)
+                    if m3u_text and "#EXT-X-STREAM-INF" in m3u_text:
+                        lines = [l.strip() for l in m3u_text.splitlines() if l.strip()]
+                        for idx, l in enumerate(lines):
+                            if l.startswith("#EXT-X-STREAM-INF") and idx + 1 < len(lines):
+                                cand = lines[idx + 1]
+                                if not cand.startswith("#"):
+                                    target_fetch_url = urllib.parse.urljoin(target_fetch_url, cand)
+                                    m3u_text = fetch_m3u(target_fetch_url, req_ua, max_retries=2)
+                                    break
 
         if not m3u_text or "#EXTM3U" not in m3u_text:
             err_msg = ch.get("status_message", "القناة غير متوفرة حالياً من المصدر الأصلي")
