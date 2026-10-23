@@ -1098,16 +1098,20 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
 
         def fetch_m3u(url, user_agent, max_retries=2):
+            req_origin = "https://alrabiaa.tv" if ("qi.tv" in url or "alrabiaa" in channel_referer) else ("https://yacine.website" if "yacine" in channel_referer else (channel_referer.rstrip('/') if channel_referer.startswith('http') else "https://yacine.website"))
             headers = {
                 "User-Agent": user_agent or DEFAULT_UA,
                 "Referer": channel_referer,
-                "Origin": "https://yacine.website",
+                "Origin": req_origin,
                 "Sec-Fetch-Dest": "empty",
                 "Sec-Fetch-Mode": "cors",
-                "Sec-Fetch-Site": "same-origin",
+                "Sec-Fetch-Site": "cross-site" if ("qi.tv" in url or "alrabiaa" in channel_referer) else "same-origin",
                 "Accept": "*/*"
             }
-            if "edgenextcdn.net" in url:
+            if "qi.tv" in url or "alrabiaa" in channel_referer:
+                headers["Referer"] = "https://alrabiaa.tv/"
+                headers["Origin"] = "https://alrabiaa.tv"
+            elif "edgenextcdn.net" in url:
                 headers.pop("Referer", None)
                 headers.pop("Origin", None)
             elif "yacine.website" in url or "new-redirect.online" in url or ".buzz" in url or ".lol" in url:
