@@ -508,7 +508,7 @@ export class ChannelRepository {
     );
     return {
       activeCount: activeBein.length,
-      maxLimit: 2,
+      maxLimit: 100,
       activeChannels: activeBein.map(c => ({ id: c.id, name: c.name })),
     };
   }
@@ -525,22 +525,6 @@ export class ChannelRepository {
     }
 
     const isBein = isBeinChannel(channel);
-
-    // If activating a beIN channel, enforce the strict max 2 limit!
-    if (isLive && isBein) {
-      const allChannels = await this.listChannels(undefined, 5000);
-      const activeBein = allChannels.filter(c => 
-        c.id !== id && 
-        isBeinChannel(c) && 
-        c.inputStatus !== 'OFFLINE' && 
-        (c as any).status !== 'event_only'
-      );
-
-      if (activeBein.length >= 2) {
-        const names = activeBein.map(c => c.name).join(' و ');
-        throw new Error(`BEIN_LIMIT_REACHED: مسموح بتشغيل قناتين beIN Sports كحد أقصى في نفس الوقت (حسب سعة اشتراك الماك). القنوات النشطة حالياً: (${names}). يرجى إيقاف إحدى القنوات أولاً لتشغيل هذه القناة.`);
-      }
-    }
 
     // Prepare updates
     const updates: any = {

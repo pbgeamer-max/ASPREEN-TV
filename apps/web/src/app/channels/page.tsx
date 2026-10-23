@@ -51,12 +51,12 @@ export default function ChannelsPage() {
   const [selectedGroup, setSelectedGroup] = useState<string>('');
   const [channelFilterTab, setChannelFilterTab] = useState<'ALL' | 'BEIN' | 'LIVE' | 'NO_EVENT'>('ALL');
 
-  // beIN Sports VIP controls & limits (Strict 2 Max Channels)
+  // beIN Sports VIP controls (Unrestricted Multi-Server Mode)
   const [beinStatus, setBeinStatus] = useState<{
     activeCount: number;
     maxLimit: number;
     activeChannels: { id: string; name: string }[];
-  }>({ activeCount: 2, maxLimit: 2, activeChannels: [] });
+  }>({ activeCount: 2, maxLimit: 100, activeChannels: [] });
   const [limitWarningModal, setLimitWarningModal] = useState<{
     open: boolean;
     channelName: string;
@@ -239,13 +239,13 @@ export default function ChannelsPage() {
       if (res && res.activeBeinChannels) {
         setBeinStatus({
           activeCount: res.activeBeinCount,
-          maxLimit: 2,
+          maxLimit: res.maxLimit || 100,
           activeChannels: res.activeBeinChannels,
         });
       }
       setToastMessage(
         willBeLive
-          ? `🟢 تم تشغيل بث (${ch.name}) بنجاح. القنوات النشطة: ${willBeLive ? activeBeinCount + 1 : activeBeinCount}/2`
+          ? `🟢 تم تشغيل بث (${ch.name}) بنجاح. القنوات النشطة: ${willBeLive ? activeBeinCount + 1 : activeBeinCount}`
           : `⏸️ تم إيقاف بث (${ch.name}). يظهر الآن "لا يوجد حدث" في موقع العرض وتطبيق الأندرويد.`
       );
       setTimeout(() => setToastMessage(null), 4000);
@@ -688,20 +688,16 @@ export default function ChannelsPage() {
               {/* Status Badge & Indicator */}
               <div className="flex items-center gap-3 shrink-0">
                 <div
-                  className={`px-4 py-2.5 rounded-lg border text-center transition-all ${
-                    activeBeinCount >= 2
-                      ? 'bg-amber-950/20 border-amber-800/60 text-amber-300'
-                      : 'bg-emerald-950/20 border-emerald-800/60 text-emerald-300'
-                  }`}
+                  className="px-4 py-2.5 rounded-lg border text-center transition-all bg-emerald-950/20 border-emerald-800/60 text-emerald-300"
                 >
                   <div className="text-[10px] uppercase font-mono tracking-wider opacity-80">
                     القنوات النشطة
                   </div>
                   <div className="text-lg font-bold font-mono">
-                    {activeBeinCount} / 2
+                    {activeBeinCount}
                   </div>
                   <div className="text-[10px] opacity-75">
-                    {activeBeinCount >= 2 ? 'مكتمل (الحد الأقصى)' : 'متاح تفعيل قناة إضافية'}
+                    بث مباشر متاح
                   </div>
                 </div>
               </div>
