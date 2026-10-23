@@ -868,16 +868,20 @@ export default function ChannelsPage() {
                                       target.dataset.triedFallback = 'true';
                                       if (isBeinChan) {
                                         target.src = '/logos/bein-sports.png';
+                                        return;
+                                      } else if (ch.id?.startsWith('iq-')) {
+                                        target.src = `/logos/${ch.id}.png`;
+                                        return;
                                       } else if (ch.logoUrl && ch.logoUrl.startsWith('http')) {
                                         target.src = ch.logoUrl;
-                                      } else {
-                                        target.style.display = 'none';
+                                        return;
                                       }
                                     } else if (isBeinChan && !target.src.includes('/logos/bein-sports.png')) {
                                       target.src = '/logos/bein-sports.png';
-                                    } else {
-                                      target.style.display = 'none';
+                                      return;
                                     }
+                                    // Elegant TV SVG fallback so the cell is never an empty void
+                                    target.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%2371717A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='20' height='15' x='2' y='7' rx='2' ry='2'/><polyline points='17 2 12 7 7 2'/></svg>";
                                   }}
                                 />
                               ) : (
@@ -1424,6 +1428,10 @@ export default function ChannelsPage() {
                         const target = e.target as HTMLImageElement;
                         if (selectedChannelForLinks.name?.toLowerCase().includes('bein') && !target.src.includes('/logos/bein-sports.png')) {
                           target.src = '/logos/bein-sports.png';
+                        } else if (selectedChannelForLinks.id?.startsWith('iq-') && !target.src.includes(`/logos/${selectedChannelForLinks.id}.png`)) {
+                          target.src = `/logos/${selectedChannelForLinks.id}.png`;
+                        } else {
+                          target.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%2371717A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='20' height='15' x='2' y='7' rx='2' ry='2'/><polyline points='17 2 12 7 7 2'/></svg>";
                         }
                       }}
                     />

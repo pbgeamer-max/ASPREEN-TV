@@ -32,7 +32,12 @@ function serveLocalLogo(filename: string, reply: FastifyReply) {
     }
   }
 
-  return reply.status(404).send({ error: 'Logo not found' });
+  // Graceful fallback SVG instead of 404 JSON so image tags never break
+  const fallbackSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#71717A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>`;
+  reply.header('Content-Type', 'image/svg+xml');
+  reply.header('Cache-Control', 'public, max-age=3600');
+  reply.header('Access-Control-Allow-Origin', '*');
+  return reply.status(200).send(fallbackSvg);
 }
 
 export async function appRoutes(server: FastifyInstance) {
@@ -60,89 +65,92 @@ export async function appRoutes(server: FastifyInstance) {
       return serveLocalLogo(clean, reply);
     }
 
-    // Direct resilient bypass for beIN Sports logos (Wikipedia frequently breaks/blocks thumbnail URLs)
+    // Direct resilient bypass for beIN Sports logos
     if (/bein.*logo|BeIN_Sports_logo/i.test(rawUrl)) {
       return serveLocalLogo('bein-sports.png', reply);
     }
 
-    try {
-      const parsed = new URL(rawUrl);
-      const isHttps = parsed.protocol === 'https:';
-      const lib = isHttps ? await import('https') : await import('http');
+    // Direct resilient bypass for dead imgur removed images
+    if (/removed\.png/i.test(rawUrl)) {
+      return serveLocalLogo('bein-sports.png', reply);
+    }
 
-      return new Promise<void>((resolve) => {
-        const req = lib.request(
-          {
-            hostname: parsed.hostname,
-            port: parsed.port || (isHttps ? 443 : 80),
-            path: parsed.pathname + parsed.search,
-            method: 'GET',
-            rejectUnauthorized: false,
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
-              Referer: parsed.origin + '/',
-              Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+    const fetchImageWithRedirects = async (targetUrl: string, hops = 0): Promise<void> => {
+      if (hops > 3 || /removed\.png/i.test(targetUrl)) {
+        return serveLocalLogo('bein-sports.png', reply);
+      }
+
+      try {
+        const parsed = new URL(targetUrl);
+        const isHttps = parsed.protocol === 'https:';
+        const lib = isHttps ? await import('https') : await import('http');
+
+        return new Promise<void>((resolve) => {
+          const req = lib.request(
+            {
+              hostname: parsed.hostname,
+              port: parsed.port || (isHttps ? 443 : 80),
+              path: parsed.pathname + parsed.search,
+              method: 'GET',
+              rejectUnauthorized: false,
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+                Referer: parsed.origin + '/',
+                Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+              },
+              timeout: 8000,
             },
-            timeout: 8000,
-          },
-          (res) => {
-            if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-              reply.redirect(res.headers.location);
-              resolve();
-              return;
-            }
+            (res) => {
+              if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                const nextUrl = new URL(res.headers.location, targetUrl).toString();
+                fetchImageWithRedirects(nextUrl, hops + 1).then(resolve);
+                return;
+              }
 
-            if (res.statusCode && res.statusCode >= 400) {
-              // Resilient fallback for broken upstream logos
-              if (/bein/i.test(rawUrl)) {
+              if (res.statusCode && res.statusCode >= 400) {
                 serveLocalLogo('bein-sports.png', reply);
                 resolve();
                 return;
               }
+
+              const contentType = res.headers['content-type'] || 'image/jpeg';
+              reply.raw.writeHead(res.statusCode || 200, {
+                'Content-Type': contentType,
+                'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+                'Access-Control-Allow-Origin': '*',
+              });
+              res.pipe(reply.raw);
+              res.on('end', () => resolve());
+              res.on('error', () => {
+                if (!reply.raw.writableEnded) {
+                  serveLocalLogo('bein-sports.png', reply);
+                }
+                resolve();
+              });
             }
+          );
 
-            reply.header('Content-Type', res.headers['content-type'] || 'image/jpeg');
-            reply.header('Cache-Control', 'public, max-age=86400, s-maxage=86400');
-            reply.header('Access-Control-Allow-Origin', '*');
-            reply.status(res.statusCode || 200);
-            res.pipe(reply.raw);
-            res.on('end', () => resolve());
-            res.on('error', () => {
-              if (/bein/i.test(rawUrl)) {
-                serveLocalLogo('bein-sports.png', reply);
-              } else if (!reply.raw.writableEnded) {
-                reply.status(502).send({ error: 'Proxy error' });
-              }
-              resolve();
-            });
-          }
-        );
-
-        req.on('timeout', () => {
-          req.destroy();
-          if (/bein/i.test(rawUrl)) {
-            serveLocalLogo('bein-sports.png', reply);
-          } else if (!reply.raw.writableEnded) {
-            reply.status(504).send({ error: 'Image fetch timeout' });
-          }
-          resolve();
+          req.on('timeout', () => {
+            req.destroy();
+            if (!reply.raw.writableEnded) {
+              serveLocalLogo('bein-sports.png', reply);
+            }
+            resolve();
+          });
+          req.on('error', () => {
+            if (!reply.raw.writableEnded) {
+              serveLocalLogo('bein-sports.png', reply);
+            }
+            resolve();
+          });
+          req.end();
         });
-        req.on('error', () => {
-          if (/bein/i.test(rawUrl)) {
-            serveLocalLogo('bein-sports.png', reply);
-          } else if (!reply.raw.writableEnded) {
-            reply.status(502).send({ error: 'Upstream connection failed' });
-          }
-          resolve();
-        });
-        req.end();
-      });
-    } catch (err: any) {
-      if (/bein/i.test(rawUrl)) {
+      } catch {
         return serveLocalLogo('bein-sports.png', reply);
       }
-      return reply.status(500).send({ error: 'Image proxy exception: ' + err.message });
-    }
+    };
+
+    return fetchImageWithRedirects(rawUrl);
   });
 
   /**
