@@ -806,9 +806,9 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             # Extract encrypted token from query ?token=... or ?t=...
             enc_token = qs_ts.get("token", [""])[0] or qs_ts.get("t", [""])[0]
 
-            # Extract encrypted token from URL path /live/ts/seg_<token>.ts or /live/ts/<token>.ts
+            # Extract encrypted token from URL path /live/ts/seg_<token>.ts or /live/ts/<token>.ts or /live/ts/seg_<token>.m3u8
             if not enc_token and not target_url:
-                m_tok = re.search(r"/(?:live|raw)?/?ts/(?:seg_|key_|chunk_)?([^/?#]+?)(?:\.ts|\.key|\.m4s)?$", parsed_ts.path)
+                m_tok = re.search(r"/(?:live|raw)?/?ts/(?:seg_|key_|chunk_)?([^/?#]+?)(?:\.ts|\.key|\.m4s|\.m3u8)?$", parsed_ts.path)
                 if m_tok:
                     raw_candidate = m_tok.group(1)
                     if raw_candidate not in ("chunk.ts", "chunk"):
@@ -1217,8 +1217,10 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         m3u_text = fetch_m3u(target_fetch_url, req_ua, max_retries=2)
 
-        # If upstream returned a Master Playlist with child variant streams, follow the highest bitrate variant
-        if m3u_text and "#EXT-X-STREAM-INF" in m3u_text:
+        # If upstream returned a Master Playlist with child variant streams, follow highest bitrate variant
+        # ONLY IF there are NO separate audio tracks! If #EXT-X-MEDIA:TYPE=AUDIO is present, we MUST preserve
+        # the Master Playlist so the player can load both video and audio streams simultaneously!
+        if m3u_text and "#EXT-X-STREAM-INF" in m3u_text and "#EXT-X-MEDIA:TYPE=AUDIO" not in m3u_text:
             lines = [l.strip() for l in m3u_text.splitlines() if l.strip()]
             best_variant = None
             best_bw = -1
@@ -1243,7 +1245,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     target_fetch_url, req_ua = self.build_target_and_ua(ch)
                 if target_fetch_url:
                     m3u_text = fetch_m3u(target_fetch_url, req_ua, max_retries=2)
-                    if m3u_text and "#EXT-X-STREAM-INF" in m3u_text:
+                    if m3u_text and "#EXT-X-STREAM-INF" in m3u_text and "#EXT-X-MEDIA:TYPE=AUDIO" not in m3u_text:
                         lines = [l.strip() for l in m3u_text.splitlines() if l.strip()]
                         for idx, l in enumerate(lines):
                             if l.startswith("#EXT-X-STREAM-INF") and idx + 1 < len(lines):
@@ -1291,7 +1293,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             else:
                 channel_max_sequence[seq_key] = curr_seq
 
-        # Rewrite segment and key URLs while preserving 100% of upstream headers, timestamps, and sequence order
+        # Rewrite segment, playlist, and key URLs while preserving 100% of upstream headers, timestamps, and sequence order
         rewritten = []
         for line in m3u_text.splitlines():
             l = line.strip()
@@ -1303,14 +1305,22 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                         u = m.group(1)
                         full_u = urllib.parse.urljoin(target_fetch_url, u)
                         tok = encrypt_stream_token(full_u, channel_referer or "")
-                        return f'URI="{base_origin}/live/ts/key_{tok}.key"'
+                        if "EXT-X-KEY" in l:
+                            return f'URI="{base_origin}/live/ts/key_{tok}.key"'
+                        return f'URI="{base_origin}/live/ts/seg_{tok}.m3u8"'
+                    # Make sure DEFAULT=YES is set on audio rendition so Hls.js unconditionally activates audio
+                    if l.startswith("#EXT-X-MEDIA:TYPE=AUDIO"):
+                        l = re.sub(r'DEFAULT=NO', 'DEFAULT=YES', l)
+                        if 'DEFAULT=' not in l:
+                            l = l.replace('#EXT-X-MEDIA:TYPE=AUDIO,', '#EXT-X-MEDIA:TYPE=AUDIO,DEFAULT=YES,')
                     rewritten.append(re.sub(r'URI="([^"]+)"', replace_uri, l))
                 elif not l.startswith("#EXT-X-ENDLIST"):
                     rewritten.append(l)
             else:
                 seg_full = urllib.parse.urljoin(target_fetch_url, l)
                 tok = encrypt_stream_token(seg_full, channel_referer or "")
-                rewritten.append(f"{base_origin}/live/ts/seg_{tok}.ts")
+                ext = ".m3u8" if (l.endswith(".m3u8") or ("?" not in l and not l.endswith(".ts"))) else ".ts"
+                rewritten.append(f"{base_origin}/live/ts/seg_{tok}{ext}")
 
         # Strip any transient #EXT-X-ENDLIST to prevent players from treating live as finished VOD
         clean_rewritten = [l for l in rewritten if not l.startswith("#EXT-X-ENDLIST")]
@@ -1415,7 +1425,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                         return
 
                     # Handle Nested / Variant M3U8 (Adaptive bitrates e.g. MBC, Rotana)
-                    if first_chunk.startswith(b"#EXTM3U"):
+                    if b"#EXTM3U" in first_chunk[:128]:
                         host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", f"127.0.0.1:{PORT}"))
                         proto = self.headers.get("X-Forwarded-Proto", "https" if ("railway" in host or "443" in host) else "http")
                         if "railway" in host:
@@ -1428,7 +1438,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                         rewritten = []
                         for line in lines:
                             l = line.strip()
-                            if not l:
+                            if not l or l.startswith("#EXT-X-ENDLIST"):
                                 continue
                             if l.startswith("#"):
                                 if 'URI="' in l:
@@ -1436,14 +1446,17 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                                         u = m.group(1)
                                         full_u = urllib.parse.urljoin(target_url, u)
                                         tok = encrypt_stream_token(full_u, referer or "")
-                                        return f'URI="{base_origin}/live/ts/key_{tok}.key"'
+                                        if "EXT-X-KEY" in l:
+                                            return f'URI="{base_origin}/live/ts/key_{tok}.key"'
+                                        return f'URI="{base_origin}/live/ts/seg_{tok}.m3u8"'
                                     rewritten.append(re.sub(r'URI="([^"]+)"', replace_sub_uri, l))
                                 else:
                                     rewritten.append(l)
                             else:
                                 seg_full = urllib.parse.urljoin(target_url, l)
                                 tok = encrypt_stream_token(seg_full, referer or "")
-                                rewritten.append(f"{base_origin}/live/ts/seg_{tok}.ts")
+                                ext = ".m3u8" if (l.endswith(".m3u8") or ("?" not in l and not l.endswith(".ts"))) else ".ts"
+                                rewritten.append(f"{base_origin}/live/ts/seg_{tok}{ext}")
 
                         out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
                         self.send_response(200)

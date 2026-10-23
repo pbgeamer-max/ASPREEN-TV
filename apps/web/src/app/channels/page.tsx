@@ -855,7 +855,7 @@ export default function ChannelsPage() {
                                     ch.logoUrl?.startsWith('/') || ch.logoUrl?.startsWith('data:')
                                       ? ch.logoUrl
                                       : ch.logoUrl
-                                      ? `/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}`
+                                      ? `/api/app/image-proxy?t=${typeof btoa !== 'undefined' ? btoa(ch.logoUrl).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') : encodeURIComponent(ch.logoUrl)}`
                                       : '/logos/bein-sports.png'
                                   }
                                   alt=""

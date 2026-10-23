@@ -53,8 +53,20 @@ export async function appRoutes(server: FastifyInstance) {
    * GET /api/app/image-proxy
    * High-speed proxy for channel logos to bypass third-party hotlinking & 403 Forbidden checks
    */
-  server.get('/image-proxy', async (request: FastifyRequest<{ Querystring: { url: string } }>, reply: FastifyReply) => {
-    const rawUrl = request.query.url;
+  server.get('/image-proxy', async (request: FastifyRequest<{ Querystring: { url?: string; t?: string; img?: string; token?: string } }>, reply: FastifyReply) => {
+    let rawUrl = request.query.url || '';
+    const token = request.query.t || request.query.img || request.query.token;
+    if (!rawUrl && token) {
+      try {
+        rawUrl = Buffer.from(token, 'base64url').toString('utf-8');
+      } catch {
+        try {
+          rawUrl = Buffer.from(token, 'base64').toString('utf-8');
+        } catch {
+          rawUrl = '';
+        }
+      }
+    }
     if (!rawUrl) {
       return reply.status(400).send({ error: 'Missing or invalid url query parameter' });
     }
@@ -265,7 +277,8 @@ export async function appRoutes(server: FastifyInstance) {
       let proxiedLogo: string | null = null;
       if (ch.logoUrl) {
         if (ch.logoUrl.startsWith('http://') || ch.logoUrl.startsWith('https://')) {
-          proxiedLogo = `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}`;
+          const tok = Buffer.from(ch.logoUrl).toString('base64url');
+          proxiedLogo = `${effectiveBaseUrl}/api/app/image-proxy?t=${tok}`;
         } else {
           proxiedLogo = `${effectiveBaseUrl}${ch.logoUrl.startsWith('/') ? '' : '/'}${ch.logoUrl}`;
         }
@@ -371,7 +384,8 @@ export async function appRoutes(server: FastifyInstance) {
       let proxiedLogo = '';
       if (ch.logoUrl) {
         if (ch.logoUrl.startsWith('http://') || ch.logoUrl.startsWith('https://')) {
-          proxiedLogo = `${effectiveBaseUrl}/api/app/image-proxy?url=${encodeURIComponent(ch.logoUrl)}`;
+          const tok = Buffer.from(ch.logoUrl).toString('base64url');
+          proxiedLogo = `${effectiveBaseUrl}/api/app/image-proxy?t=${tok}`;
         } else {
           proxiedLogo = `${effectiveBaseUrl}${ch.logoUrl.startsWith('/') ? '' : '/'}${ch.logoUrl}`;
         }
