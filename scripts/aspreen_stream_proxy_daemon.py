@@ -277,10 +277,11 @@ def renew_single_channel_stream(cid):
         ch = channels_cache.get(cid, {})
         # Never overwrite private VIP OTT satellite channels or Shahid livestream channels with Yacine
         if (
-            ch.get("source") in ("private-vip", "shahid-livestream", "alrabiaa.tv", "karbala-tv.iq")
+            ch.get("source") in ("private-vip", "shahid-livestream", "alrabiaa.tv", "karbala-tv.iq", "iptv-org-iq")
             or cid.startswith("shahid-")
             or cid.startswith("rotana-")
             or cid.startswith("karbala-")
+            or cid.startswith("iq-")
             or cid in ("alresalah", "alrabiaa", "alrabiaa-tv", "safeer-tv")
             or "mac=" in str(ch.get("directM3u8", ""))
             or "hey-ott.net" in str(ch.get("directM3u8", ""))
@@ -413,8 +414,8 @@ def save_channels_to_disk():
 
     try:
         # Separate Shahid/Public channels and VIP OTT channels
-        shahid_channels = [c for c in channels_list if str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") in ("shahid-livestream", "alrabiaa.tv", "karbala-tv.iq") or "alrabiaa" in str(c.get("id") or c.get("vid")) or "karbala" in str(c.get("id") or c.get("vid")) or str(c.get("id") or c.get("vid")) == "safeer-tv"]
-        vip_channels = [c for c in channels_list if not (str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") in ("shahid-livestream", "alrabiaa.tv", "karbala-tv.iq") or "alrabiaa" in str(c.get("id") or c.get("vid")) or "karbala" in str(c.get("id") or c.get("vid")) or str(c.get("id") or c.get("vid")) == "safeer-tv")]
+        shahid_channels = [c for c in channels_list if str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") in ("shahid-livestream", "alrabiaa.tv", "karbala-tv.iq", "iptv-org-iq") or "alrabiaa" in str(c.get("id") or c.get("vid")) or "karbala" in str(c.get("id") or c.get("vid")) or str(c.get("id") or c.get("vid")).startswith("iq-") or str(c.get("id") or c.get("vid")) == "safeer-tv"]
+        vip_channels = [c for c in channels_list if not (str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") in ("shahid-livestream", "alrabiaa.tv", "karbala-tv.iq", "iptv-org-iq") or "alrabiaa" in str(c.get("id") or c.get("vid")) or "karbala" in str(c.get("id") or c.get("vid")) or str(c.get("id") or c.get("vid")).startswith("iq-") or str(c.get("id") or c.get("vid")) == "safeer-tv")]
 
         # 1. Update channels.json (beIN & VIP only)
         with open(CHANNELS_JSON_PATH, "w", encoding="utf-8") as f:

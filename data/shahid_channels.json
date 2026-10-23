@@ -2986,5 +2986,1355 @@
         "backupOrder": 1
       }
     ]
+  },
+  {
+    "id": "iq-abnsat",
+    "name": "قناة الآشورية ABN Sat",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/WhPlJzh.jpeg",
+    "orderIndex": 170,
+    "streamUrl": "/live/iq-abnsat.m3u8?server=1",
+    "directM3u8": "https://mediaserver.abnvideos.com/streams/abnsat.m3u8",
+    "playUrl": "/live/iq-abnsat.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://abnvideos.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://mediaserver.abnvideos.com/streams/abnsat.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-afarin-baxcha",
+    "name": "قناة آفرين باخجة (أطفال)",
+    "groupTitle": "قنوات أطفال",
+    "logoUrl": "https://i.postimg.cc/4xRkBDRx/Afarin-Baxcha-7.png",
+    "orderIndex": 171,
+    "streamUrl": "/live/iq-afarin-baxcha.m3u8?server=1",
+    "directM3u8": "https://5dcabf026b188.streamlock.net/afarinTV/livestream/playlist.m3u8",
+    "playUrl": "/live/iq-afarin-baxcha.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://afarintv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://5dcabf026b188.streamlock.net/afarinTV/livestream/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-afarin-tv",
+    "name": "قناة آفرين للأطفال (Afarin TV)",
+    "groupTitle": "قنوات أطفال",
+    "logoUrl": "https://i.imgur.com/6MnXD7g.png",
+    "orderIndex": 172,
+    "streamUrl": "/live/iq-afarin-tv.m3u8?server=1",
+    "directM3u8": "https://65f16f0fdfc51.streamlock.net/afarinTV/livestream/playlist.m3u8",
+    "playUrl": "/live/iq-afarin-tv.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://afarintv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://65f16f0fdfc51.streamlock.net/afarinTV/livestream/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-iraqia-general",
+    "name": "قناة العراقية العامة (IMN)",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/8qQouTW.jpg",
+    "orderIndex": 173,
+    "streamUrl": "/live/iq-iraqia-general.m3u8?server=1",
+    "directM3u8": "https://imn-live.esite-lab.com/hls/iraqia-general.m3u8",
+    "playUrl": "/live/iq-iraqia-general.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://imn.iq/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://imn-live.esite-lab.com/hls/iraqia-general.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-iraqia-kurdish",
+    "name": "قناة العراقية الكردية",
+    "groupTitle": "قنوات كردية",
+    "logoUrl": "https://gateway.esite-lab.com/uploads/iraqia-kurdish.png",
+    "orderIndex": 174,
+    "streamUrl": "/live/iq-iraqia-kurdish.m3u8?server=1",
+    "directM3u8": "https://imn-live.esite-lab.com/hls/iraqia-kurdish.m3u8",
+    "playUrl": "/live/iq-iraqia-kurdish.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://imn.iq/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://imn-live.esite-lab.com/hls/iraqia-kurdish.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-iraqia-news",
+    "name": "قناة العراقية الإخبارية",
+    "groupTitle": "قنوات إخبارية ووثائقية",
+    "logoUrl": "https://i.imgur.com/feQTXeZ.jpg",
+    "orderIndex": 175,
+    "streamUrl": "/live/iq-iraqia-news.m3u8?server=1",
+    "directM3u8": "https://imn-live.esite-lab.com/hls/iraqia-news.m3u8",
+    "playUrl": "/live/iq-iraqia-news.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://imn.iq/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://imn-live.esite-lab.com/hls/iraqia-news.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-iraqia-sport",
+    "name": "قناة العراقية الرياضية",
+    "groupTitle": "قنوات رياضية",
+    "logoUrl": "https://i.imgur.com/DrrlxTO.png",
+    "orderIndex": 176,
+    "streamUrl": "/live/iq-iraqia-sport.m3u8?server=1",
+    "directM3u8": "https://imn-live.esite-lab.com/hls/iraqia-sports-1.m3u8",
+    "playUrl": "/live/iq-iraqia-sport.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://imn.iq/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://imn-live.esite-lab.com/hls/iraqia-sports-1.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-janoub",
+    "name": "قناة الجنوب الفضائية",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/rxDh6W1.png",
+    "orderIndex": 177,
+    "streamUrl": "/live/iq-janoub.m3u8?server=1",
+    "directM3u8": "https://live.alissahost.net/hls/test.m3u8",
+    "playUrl": "/live/iq-janoub.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://aljanoub.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://live.alissahost.net/hls/test.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-rasheed",
+    "name": "قناة الرشيد الفضائية",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/ltyRjPK.png",
+    "orderIndex": 178,
+    "streamUrl": "/live/iq-rasheed.m3u8?server=1",
+    "directM3u8": "https://media1.livaat.com/static/AL-RASHEED-HD/playlist.m3u8",
+    "playUrl": "/live/iq-rasheed.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://alrasheedmedia.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://media1.livaat.com/static/AL-RASHEED-HD/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-sharqiya",
+    "name": "قناة الشرقية الفضائية",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/jU0t4Xo.png",
+    "orderIndex": 179,
+    "streamUrl": "/live/iq-sharqiya.m3u8?server=1",
+    "directM3u8": "http://185.9.2.18/chid_144/index.m3u8",
+    "playUrl": "/live/iq-sharqiya.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://alsharqiya.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "http://185.9.2.18/chid_144/index.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-sharqiya-news",
+    "name": "قناة الشرقية نيوز",
+    "groupTitle": "قنوات إخبارية ووثائقية",
+    "logoUrl": "https://i.imgur.com/tYt3LpS.png",
+    "orderIndex": 180,
+    "streamUrl": "/live/iq-sharqiya-news.m3u8?server=1",
+    "directM3u8": "https://indexforce.com/newshighres/mystream/playlist.m3u8",
+    "playUrl": "/live/iq-sharqiya-news.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://alsharqiya.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://indexforce.com/newshighres/mystream/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-alaimma",
+    "name": "قناة الأئمة البقيع الفضائية",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/7gK5Yh4.png",
+    "orderIndex": 181,
+    "streamUrl": "/live/iq-alaimma.m3u8?server=1",
+    "directM3u8": "https://alaimma.tv/live/index.m3u8",
+    "playUrl": "/live/iq-alaimma.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://alaimma.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://alaimma.tv/live/index.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-aljawadain",
+    "name": "قناة الجوادين الفضائية",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/8Q0a8k2.png",
+    "orderIndex": 182,
+    "streamUrl": "/live/iq-aljawadain.m3u8?server=1",
+    "directM3u8": "https://live.aljawadain.org/live/aljawadaintv/playlist.m3u8",
+    "playUrl": "/live/iq-aljawadain.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://aljawadain.org/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://live.aljawadain.org/live/aljawadaintv/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-alabbassia",
+    "name": "قناة العباسية الفضائية",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/k6lP0a1.png",
+    "orderIndex": 183,
+    "streamUrl": "/live/iq-alabbassia.m3u8?server=1",
+    "directM3u8": "https://stream.alabbassia.com/live/alabbassia/index.m3u8",
+    "playUrl": "/live/iq-alabbassia.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://alabbassia.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://stream.alabbassia.com/live/alabbassia/index.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-alawla",
+    "name": "قناة الأولى العراقية",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/1Gvh92D.png",
+    "orderIndex": 184,
+    "streamUrl": "/live/iq-alawla.m3u8?server=1",
+    "directM3u8": "https://live.alawla.tv/hls/stream.m3u8",
+    "playUrl": "/live/iq-alawla.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://alawla.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://live.alawla.tv/hls/stream.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-ghadeer",
+    "name": "قناة الغدير الفضائية",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/9n9sH9B.png",
+    "orderIndex": 185,
+    "streamUrl": "/live/iq-ghadeer.m3u8?server=1",
+    "directM3u8": "https://sd343444.vodu.store:3356/live/Alghadeer/index.m3u8",
+    "playUrl": "/live/iq-ghadeer.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://alghadeer.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://sd343444.vodu.store:3356/live/Alghadeer/index.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-ava-family",
+    "name": "قناة آفا العائلية (AVA Family)",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://avatv.live/assets/images/logo.png",
+    "orderIndex": 186,
+    "streamUrl": "/live/iq-ava-family.m3u8?server=1",
+    "directM3u8": "https://familyhls.avatv.live/hls/stream.m3u8",
+    "playUrl": "/live/iq-ava-family.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://avatv.live/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://familyhls.avatv.live/hls/stream.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-ava-media",
+    "name": "قناة آفا ميديا (AVA Media)",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/0i1uQ5Z.png",
+    "orderIndex": 187,
+    "streamUrl": "/live/iq-ava-media.m3u8?server=1",
+    "directM3u8": "https://ava002.xyz/upload/images/1080.m3u8",
+    "playUrl": "/live/iq-ava-media.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://avatv.live/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://ava002.xyz/upload/images/1080.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-avar",
+    "name": "قناة أفار الفضائية (Avar TV)",
+    "groupTitle": "قنوات كردية",
+    "logoUrl": "https://i.imgur.com/7vY6zK5.png",
+    "orderIndex": 188,
+    "streamUrl": "/live/iq-avar.m3u8?server=1",
+    "directM3u8": "https://avr.host247.net/live/AvarTv/playlist.m3u8",
+    "playUrl": "/live/iq-avar.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://avartv.net/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://avr.host247.net/live/AvarTv/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-beitolabbas",
+    "name": "قناة بيت العباس الفضائية",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/k6lP0a1.png",
+    "orderIndex": 189,
+    "streamUrl": "/live/iq-beitolabbas.m3u8?server=1",
+    "directM3u8": "https://live.beitolabbas.tv/live/beitolabbastv.m3u8",
+    "playUrl": "/live/iq-beitolabbas.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://beitolabbas.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://live.beitolabbas.tv/live/beitolabbastv.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-channel8",
+    "name": "قناة تشانل 8 (Channel 8)",
+    "groupTitle": "قنوات كردية",
+    "logoUrl": "https://i.imgur.com/1Gvh92D.png",
+    "orderIndex": 190,
+    "streamUrl": "/live/iq-channel8.m3u8?server=1",
+    "directM3u8": "https://live.channel8.com/Channel8-Kurdish/index.fmp4.m3u8",
+    "playUrl": "/live/iq-channel8.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://channel8.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://live.channel8.com/Channel8-Kurdish/index.fmp4.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-dijlah",
+    "name": "قناة دجلة الفضائية",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/5lVwYh1.png",
+    "orderIndex": 191,
+    "streamUrl": "/live/iq-dijlah.m3u8?server=1",
+    "directM3u8": "https://ghaasiflu.online/Dijlah/index.m3u8",
+    "playUrl": "/live/iq-dijlah.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://dijlah.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://ghaasiflu.online/Dijlah/index.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-eman",
+    "name": "قناة إيمان الفضائية (Eman TV)",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/8Q0a8k2.png",
+    "orderIndex": 192,
+    "streamUrl": "/live/iq-eman.m3u8?server=1",
+    "directM3u8": "https://avr.host247.net/live/emantv/playlist.m3u8",
+    "playUrl": "/live/iq-eman.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://emantv.net/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://avr.host247.net/live/emantv/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-farmoda",
+    "name": "قناة فارمودا (Farmoda TV)",
+    "groupTitle": "قنوات كردية",
+    "logoUrl": "https://i.imgur.com/rP4K4B0.png",
+    "orderIndex": 193,
+    "streamUrl": "/live/iq-farmoda.m3u8?server=1",
+    "directM3u8": "https://avr.host247.net/live/FarmodaTV/playlist.m3u8",
+    "playUrl": "/live/iq-farmoda.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://farmodatv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://avr.host247.net/live/FarmodaTV/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-inews",
+    "name": "قناة آي نيوز (iNews)",
+    "groupTitle": "قنوات إخبارية ووثائقية",
+    "logoUrl": "https://i.imgur.com/2P3b77f.png",
+    "orderIndex": 194,
+    "streamUrl": "/live/iq-inews.m3u8?server=1",
+    "directM3u8": "https://live.i-news.tv/hls/stream.m3u8",
+    "playUrl": "/live/iq-inews.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://i-news.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://live.i-news.tv/hls/stream.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-imam-hussein-1",
+    "name": "قناة الإمام الحسين 1 (فارسي)",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/5lVwYh1.png",
+    "orderIndex": 195,
+    "streamUrl": "/live/iq-imam-hussein-1.m3u8?server=1",
+    "directM3u8": "http://fa.imamhossaintv.com/live/ih1.m3u8",
+    "playUrl": "/live/iq-imam-hussein-1.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "http://imamhossaintv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "http://fa.imamhossaintv.com/live/ih1.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-imam-hussein-2",
+    "name": "قناة الإمام الحسين 2 (عربي)",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/5lVwYh1.png",
+    "orderIndex": 196,
+    "streamUrl": "/live/iq-imam-hussein-2.m3u8?server=1",
+    "directM3u8": "http://ar.imamhossaintv.com/live/ih2.m3u8",
+    "playUrl": "/live/iq-imam-hussein-2.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "http://imamhossaintv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "http://ar.imamhossaintv.com/live/ih2.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-imam-hussein-3",
+    "name": "قناة الإمام الحسين 3 (إنجليزي)",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/5lVwYh1.png",
+    "orderIndex": 197,
+    "streamUrl": "/live/iq-imam-hussein-3.m3u8?server=1",
+    "directM3u8": "http://en.imamhossaintv.com/live/ih3.m3u8",
+    "playUrl": "/live/iq-imam-hussein-3.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "http://imamhossaintv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "http://en.imamhossaintv.com/live/ih3.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-imam-hussein-4",
+    "name": "قناة الإمام الحسين 4 (أوردو)",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/5lVwYh1.png",
+    "orderIndex": 198,
+    "streamUrl": "/live/iq-imam-hussein-4.m3u8?server=1",
+    "directM3u8": "http://ur.imamhossaintv.com/live/ih4.m3u8",
+    "playUrl": "/live/iq-imam-hussein-4.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "http://imamhossaintv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "http://ur.imamhossaintv.com/live/ih4.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-imam-hussein-5",
+    "name": "قناة الزهراء الفضائية (الحسين 5)",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/5lVwYh1.png",
+    "orderIndex": 199,
+    "streamUrl": "/live/iq-imam-hussein-5.m3u8?server=1",
+    "directM3u8": "http://live.al-zahratv.com/live/playlist.m3u8",
+    "playUrl": "/live/iq-imam-hussein-5.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "http://imamhossaintv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "http://live.al-zahratv.com/live/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-imam-hussein-6",
+    "name": "قناة الإمام الحسين 6",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/5lVwYh1.png",
+    "orderIndex": 200,
+    "streamUrl": "/live/iq-imam-hussein-6.m3u8?server=1",
+    "directM3u8": "http://live.imamhossaintv.com/live/ih6.m3u8",
+    "playUrl": "/live/iq-imam-hussein-6.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "http://imamhossaintv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "http://live.imamhossaintv.com/live/ih6.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-iraq-future",
+    "name": "قناة مستقبل العراق (Iraq Future)",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/1Gvh92D.png",
+    "orderIndex": 201,
+    "streamUrl": "/live/iq-iraq-future.m3u8?server=1",
+    "directM3u8": "https://viewmedia7219.bozztv.com/wmedia/viewmedia100/web_040/Stream/playlist.m3u8",
+    "playUrl": "/live/iq-iraq-future.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://bozztv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://viewmedia7219.bozztv.com/wmedia/viewmedia100/web_040/Stream/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-ishtar",
+    "name": "قناة عشتار الفضائية",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/a4E8zK0.png",
+    "orderIndex": 202,
+    "streamUrl": "/live/iq-ishtar.m3u8?server=1",
+    "directM3u8": "https://stream.ishtartv.com/live/iShtarHD/playlist.m3u8",
+    "playUrl": "/live/iq-ishtar.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://ishtartv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://stream.ishtartv.com/live/iShtarHD/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-kurd-channel",
+    "name": "قناة كورد الفضائية (Kurd Channel)",
+    "groupTitle": "قنوات كردية",
+    "logoUrl": "https://i.imgur.com/rP4K4B0.png",
+    "orderIndex": 203,
+    "streamUrl": "/live/iq-kurd-channel.m3u8?server=1",
+    "directM3u8": "https://kurdchhls.wns.live/hls/stream.m3u8",
+    "playUrl": "/live/iq-kurd-channel.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://kurdchannel.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://kurdchhls.wns.live/hls/stream.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-kurdistan24",
+    "name": "قناة كردستان 24 (Kurdistan 24)",
+    "groupTitle": "قنوات إخبارية ووثائقية",
+    "logoUrl": "https://i.imgur.com/0i1uQ5Z.png",
+    "orderIndex": 204,
+    "streamUrl": "/live/iq-kurdistan24.m3u8?server=1",
+    "directM3u8": "https://hlspackager.akamaized.net/live/DB/K24/HLS/K24.m3u8",
+    "playUrl": "/live/iq-kurdistan24.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://kurdistan24.net/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://hlspackager.akamaized.net/live/DB/K24/HLS/K24.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-kurdistan-tv",
+    "name": "قناة كردستان الفضائية",
+    "groupTitle": "قنوات كردية",
+    "logoUrl": "https://i.imgur.com/rP4K4B0.png",
+    "orderIndex": 205,
+    "streamUrl": "/live/iq-kurdistan-tv.m3u8?server=1",
+    "directM3u8": "https://5a3ed7a72ed4b.streamlock.net/live/SMIL:myStream.smil/playlist.m3u8",
+    "playUrl": "/live/iq-kurdistan-tv.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://kurdistantv.net/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://5a3ed7a72ed4b.streamlock.net/live/SMIL:myStream.smil/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-kurdsat",
+    "name": "قناة كوردسات (Kurdsat)",
+    "groupTitle": "قنوات كردية",
+    "logoUrl": "https://i.imgur.com/5J3l7j7.png",
+    "orderIndex": 206,
+    "streamUrl": "/live/iq-kurdsat.m3u8?server=1",
+    "directM3u8": "https://hlspackager.akamaized.net/live/DB/KURDSAT_HD/HLS/KURDSAT_HD.m3u8",
+    "playUrl": "/live/iq-kurdsat.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://kurdsat.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://hlspackager.akamaized.net/live/DB/KURDSAT_HD/HLS/KURDSAT_HD.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-kurdsat-news",
+    "name": "قناة كوردسات نيوز",
+    "groupTitle": "قنوات إخبارية ووثائقية",
+    "logoUrl": "https://i.imgur.com/vH5t5tS.png",
+    "orderIndex": 207,
+    "streamUrl": "/live/iq-kurdsat-news.m3u8?server=1",
+    "directM3u8": "https://hlspackager.akamaized.net/live/DB/KURDSAT_NEWS/HLS/KURDSAT_NEWS.m3u8",
+    "playUrl": "/live/iq-kurdsat-news.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://kurdsat.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://hlspackager.akamaized.net/live/DB/KURDSAT_NEWS/HLS/KURDSAT_NEWS.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-manu-chat",
+    "name": "قناة مانو شات (Manu Chat)",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/WhPlJzh.jpeg",
+    "orderIndex": 208,
+    "streamUrl": "/live/iq-manu-chat.m3u8?server=1",
+    "directM3u8": "https://vmi747311.contaboserver.net/hls/livetv.m3u8",
+    "playUrl": "/live/iq-manu-chat.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://manuchat.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://vmi747311.contaboserver.net/hls/livetv.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-marjaeyat-ar",
+    "name": "قناة المرجعية الفضائية (العربية)",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/8Q0a8k2.png",
+    "orderIndex": 209,
+    "streamUrl": "/live/iq-marjaeyat-ar.m3u8?server=1",
+    "directM3u8": "https://livefa.marjaeyattv.com/mtv_ar/playlist.m3u8",
+    "playUrl": "/live/iq-marjaeyat-ar.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://marjaeyattv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://livefa.marjaeyattv.com/mtv_ar/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-marjaeyat-en",
+    "name": "قناة المرجعية (الإنجليزية)",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/8Q0a8k2.png",
+    "orderIndex": 210,
+    "streamUrl": "/live/iq-marjaeyat-en.m3u8?server=1",
+    "directM3u8": "https://livefa.marjaeyattv.com/mtv_en/playlist.m3u8",
+    "playUrl": "/live/iq-marjaeyat-en.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://marjaeyattv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://livefa.marjaeyattv.com/mtv_en/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-marjaeyat-fa",
+    "name": "قناة المرجعية (الفارسية)",
+    "groupTitle": "قنوات دينية وإسلامية",
+    "logoUrl": "https://i.imgur.com/8Q0a8k2.png",
+    "orderIndex": 211,
+    "streamUrl": "/live/iq-marjaeyat-fa.m3u8?server=1",
+    "directM3u8": "https://livefa.marjaeyattv.com/mtv_fa/playlist.m3u8",
+    "playUrl": "/live/iq-marjaeyat-fa.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://marjaeyattv.com/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://livefa.marjaeyattv.com/mtv_fa/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-mixkurdy",
+    "name": "قناة ميكس كوردي (Mix Kurdy)",
+    "groupTitle": "قنوات كردية",
+    "logoUrl": "https://i.imgur.com/7vY6zK5.png",
+    "orderIndex": 212,
+    "streamUrl": "/live/iq-mixkurdy.m3u8?server=1",
+    "directM3u8": "https://avr.host247.net/live/Mix-kurdy/playlist.m3u8",
+    "playUrl": "/live/iq-mixkurdy.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://mixkurdy.net/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://avr.host247.net/live/Mix-kurdy/playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-payam",
+    "name": "قناة بيام الفضائية (Payam TV)",
+    "groupTitle": "قنوات كردية",
+    "logoUrl": "https://i.imgur.com/a4E8zK0.png",
+    "orderIndex": 213,
+    "streamUrl": "/live/iq-payam.m3u8?server=1",
+    "directM3u8": "https://hlspackager.akamaized.net/live/DB/PAYAM_TV/HLS/PAYAM_TV.m3u8",
+    "playUrl": "/live/iq-payam.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://payam.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://hlspackager.akamaized.net/live/DB/PAYAM_TV/HLS/PAYAM_TV.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-rudaw",
+    "name": "قناة رووداو الفضائية (Rudaw TV)",
+    "groupTitle": "قنوات إخبارية ووثائقية",
+    "logoUrl": "https://i.imgur.com/U8hW2qX.png",
+    "orderIndex": 214,
+    "streamUrl": "/live/iq-rudaw.m3u8?server=1",
+    "directM3u8": "https://hlspackager.akamaized.net/live/DB/RUDAW/HLS/RUDAW.m3u8",
+    "playUrl": "/live/iq-rudaw.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://rudaw.net/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://hlspackager.akamaized.net/live/DB/RUDAW/HLS/RUDAW.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-samarra",
+    "name": "قناة سامراء الفضائية",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/h5Tq5kS.png",
+    "orderIndex": 215,
+    "streamUrl": "/live/iq-samarra.m3u8?server=1",
+    "directM3u8": "https://live.bradosti.net/live/samaraweb_playlist.m3u8",
+    "playUrl": "/live/iq-samarra.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://samarra.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://live.bradosti.net/live/samaraweb_playlist.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-shams",
+    "name": "قناة شمس الفضائية",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/9v8N9oQ.png",
+    "orderIndex": 216,
+    "streamUrl": "/live/iq-shams.m3u8?server=1",
+    "directM3u8": "https://stream.shams.tv/hls/stream.m3u8",
+    "playUrl": "/live/iq-shams.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://shams.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://stream.shams.tv/hls/stream.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-utv",
+    "name": "قناة يو تي في (UTV العراق)",
+    "groupTitle": "قنوات عراقية عامة",
+    "logoUrl": "https://i.imgur.com/G5y7s8Z.png",
+    "orderIndex": 217,
+    "streamUrl": "/live/iq-utv.m3u8?server=1",
+    "directM3u8": "https://utviraqi-live.lg.mncdn.com/utviraqi-live/64c80359/index.m3u8",
+    "playUrl": "/live/iq-utv.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://utv.iq/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://utviraqi-live.lg.mncdn.com/utviraqi-live/64c80359/index.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-waar",
+    "name": "قناة وار الفضائية (Waar TV)",
+    "groupTitle": "قنوات كردية",
+    "logoUrl": "https://i.imgur.com/h5Tq5kS.png",
+    "orderIndex": 218,
+    "streamUrl": "/live/iq-waar.m3u8?server=1",
+    "directM3u8": "https://hlspackager.akamaized.net/live/DB/WAAR_HD/HLS/WAAR_HD.m3u8",
+    "playUrl": "/live/iq-waar.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://waar.media/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://hlspackager.akamaized.net/live/DB/WAAR_HD/HLS/WAAR_HD.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "iq-zagros",
+    "name": "قناة زاكروس الفضائية (Zagros TV)",
+    "groupTitle": "قنوات كردية",
+    "logoUrl": "https://i.imgur.com/7vY6zK5.png",
+    "orderIndex": 219,
+    "streamUrl": "/live/iq-zagros.m3u8?server=1",
+    "directM3u8": "https://hlspackager.akamaized.net/live/DB/ZAGROS_TV/HLS/ZAGROS_TV.m3u8",
+    "playUrl": "/live/iq-zagros.m3u8?server=1",
+    "source": "iptv-org-iq",
+    "referer": "https://zagros.tv/",
+    "enabled": true,
+    "status": "live",
+    "status_message": "بث مباشر عالي الوضوح 1080p FHD",
+    "inputStatus": "ONLINE",
+    "transcodingStatus": "RUNNING",
+    "servers": [
+      {
+        "id": "server-1",
+        "name": "سيرفر البث المباشر (HLS الأصلي 1080p FHD)",
+        "upstreamUrl": "https://hlspackager.akamaized.net/live/DB/ZAGROS_TV/HLS/ZAGROS_TV.m3u8",
+        "status": "live",
+        "weight": 100,
+        "backupOrder": 1
+      }
+    ]
   }
 ]

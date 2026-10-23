@@ -143,3 +143,103 @@ http://127.0.0.1:8080/live/karbala-quran.m3u8
 http://127.0.0.1:8080/live/karbala-documentary.m3u8
 #EXTINF:-1 tvg-id="safeer-tv" tvg-name="قناة السفير الفضائية" tvg-logo="https://karbala-tv.iq/images/live_thumbnails/safeer_live.png" group-title="قنوات دينية وإسلامية",قناة السفير الفضائية
 http://127.0.0.1:8080/live/safeer-tv.m3u8
+#EXTINF:-1 tvg-id="iq-abnsat" tvg-name="قناة الآشورية ABN Sat" tvg-logo="https://i.imgur.com/WhPlJzh.jpeg" group-title="قنوات عراقية عامة",قناة الآشورية ABN Sat
+http://127.0.0.1:8080/live/iq-abnsat.m3u8
+#EXTINF:-1 tvg-id="iq-afarin-baxcha" tvg-name="قناة آفرين باخجة (أطفال)" tvg-logo="https://i.postimg.cc/4xRkBDRx/Afarin-Baxcha-7.png" group-title="قنوات أطفال",قناة آفرين باخجة (أطفال)
+http://127.0.0.1:8080/live/iq-afarin-baxcha.m3u8
+#EXTINF:-1 tvg-id="iq-afarin-tv" tvg-name="قناة آفرين للأطفال (Afarin TV)" tvg-logo="https://i.imgur.com/6MnXD7g.png" group-title="قنوات أطفال",قناة آفرين للأطفال (Afarin TV)
+http://127.0.0.1:8080/live/iq-afarin-tv.m3u8
+#EXTINF:-1 tvg-id="iq-iraqia-general" tvg-name="قناة العراقية العامة (IMN)" tvg-logo="https://i.imgur.com/8qQouTW.jpg" group-title="قنوات عراقية عامة",قناة العراقية العامة (IMN)
+http://127.0.0.1:8080/live/iq-iraqia-general.m3u8
+#EXTINF:-1 tvg-id="iq-iraqia-kurdish" tvg-name="قناة العراقية الكردية" tvg-logo="https://gateway.esite-lab.com/uploads/iraqia-kurdish.png" group-title="قنوات كردية",قناة العراقية الكردية
+http://127.0.0.1:8080/live/iq-iraqia-kurdish.m3u8
+#EXTINF:-1 tvg-id="iq-iraqia-news" tvg-name="قناة العراقية الإخبارية" tvg-logo="https://i.imgur.com/feQTXeZ.jpg" group-title="قنوات إخبارية ووثائقية",قناة العراقية الإخبارية
+http://127.0.0.1:8080/live/iq-iraqia-news.m3u8
+#EXTINF:-1 tvg-id="iq-iraqia-sport" tvg-name="قناة العراقية الرياضية" tvg-logo="https://i.imgur.com/DrrlxTO.png" group-title="قنوات رياضية",قناة العراقية الرياضية
+http://127.0.0.1:8080/live/iq-iraqia-sport.m3u8
+#EXTINF:-1 tvg-id="iq-janoub" tvg-name="قناة الجنوب الفضائية" tvg-logo="https://i.imgur.com/rxDh6W1.png" group-title="قنوات عراقية عامة",قناة الجنوب الفضائية
+http://127.0.0.1:8080/live/iq-janoub.m3u8
+#EXTINF:-1 tvg-id="iq-rasheed" tvg-name="قناة الرشيد الفضائية" tvg-logo="https://i.imgur.com/ltyRjPK.png" group-title="قنوات عراقية عامة",قناة الرشيد الفضائية
+http://127.0.0.1:8080/live/iq-rasheed.m3u8
+#EXTINF:-1 tvg-id="iq-sharqiya" tvg-name="قناة الشرقية الفضائية" tvg-logo="https://i.imgur.com/jU0t4Xo.png" group-title="قنوات عراقية عامة",قناة الشرقية الفضائية
+http://127.0.0.1:8080/live/iq-sharqiya.m3u8
+#EXTINF:-1 tvg-id="iq-sharqiya-news" tvg-name="قناة الشرقية نيوز" tvg-logo="https://i.imgur.com/tYt3LpS.png" group-title="قنوات إخبارية ووثائقية",قناة الشرقية نيوز
+http://127.0.0.1:8080/live/iq-sharqiya-news.m3u8
+#EXTINF:-1 tvg-id="iq-alaimma" tvg-name="قناة الأئمة البقيع الفضائية" tvg-logo="https://i.imgur.com/7gK5Yh4.png" group-title="قنوات دينية وإسلامية",قناة الأئمة البقيع الفضائية
+http://127.0.0.1:8080/live/iq-alaimma.m3u8
+#EXTINF:-1 tvg-id="iq-aljawadain" tvg-name="قناة الجوادين الفضائية" tvg-logo="https://i.imgur.com/8Q0a8k2.png" group-title="قنوات دينية وإسلامية",قناة الجوادين الفضائية
+http://127.0.0.1:8080/live/iq-aljawadain.m3u8
+#EXTINF:-1 tvg-id="iq-alabbassia" tvg-name="قناة العباسية الفضائية" tvg-logo="https://i.imgur.com/k6lP0a1.png" group-title="قنوات دينية وإسلامية",قناة العباسية الفضائية
+http://127.0.0.1:8080/live/iq-alabbassia.m3u8
+#EXTINF:-1 tvg-id="iq-alawla" tvg-name="قناة الأولى العراقية" tvg-logo="https://i.imgur.com/1Gvh92D.png" group-title="قنوات عراقية عامة",قناة الأولى العراقية
+http://127.0.0.1:8080/live/iq-alawla.m3u8
+#EXTINF:-1 tvg-id="iq-ghadeer" tvg-name="قناة الغدير الفضائية" tvg-logo="https://i.imgur.com/9n9sH9B.png" group-title="قنوات عراقية عامة",قناة الغدير الفضائية
+http://127.0.0.1:8080/live/iq-ghadeer.m3u8
+#EXTINF:-1 tvg-id="iq-ava-family" tvg-name="قناة آفا العائلية (AVA Family)" tvg-logo="https://avatv.live/assets/images/logo.png" group-title="قنوات عراقية عامة",قناة آفا العائلية (AVA Family)
+http://127.0.0.1:8080/live/iq-ava-family.m3u8
+#EXTINF:-1 tvg-id="iq-ava-media" tvg-name="قناة آفا ميديا (AVA Media)" tvg-logo="https://i.imgur.com/0i1uQ5Z.png" group-title="قنوات عراقية عامة",قناة آفا ميديا (AVA Media)
+http://127.0.0.1:8080/live/iq-ava-media.m3u8
+#EXTINF:-1 tvg-id="iq-avar" tvg-name="قناة أفار الفضائية (Avar TV)" tvg-logo="https://i.imgur.com/7vY6zK5.png" group-title="قنوات كردية",قناة أفار الفضائية (Avar TV)
+http://127.0.0.1:8080/live/iq-avar.m3u8
+#EXTINF:-1 tvg-id="iq-beitolabbas" tvg-name="قناة بيت العباس الفضائية" tvg-logo="https://i.imgur.com/k6lP0a1.png" group-title="قنوات دينية وإسلامية",قناة بيت العباس الفضائية
+http://127.0.0.1:8080/live/iq-beitolabbas.m3u8
+#EXTINF:-1 tvg-id="iq-channel8" tvg-name="قناة تشانل 8 (Channel 8)" tvg-logo="https://i.imgur.com/1Gvh92D.png" group-title="قنوات كردية",قناة تشانل 8 (Channel 8)
+http://127.0.0.1:8080/live/iq-channel8.m3u8
+#EXTINF:-1 tvg-id="iq-dijlah" tvg-name="قناة دجلة الفضائية" tvg-logo="https://i.imgur.com/5lVwYh1.png" group-title="قنوات عراقية عامة",قناة دجلة الفضائية
+http://127.0.0.1:8080/live/iq-dijlah.m3u8
+#EXTINF:-1 tvg-id="iq-eman" tvg-name="قناة إيمان الفضائية (Eman TV)" tvg-logo="https://i.imgur.com/8Q0a8k2.png" group-title="قنوات دينية وإسلامية",قناة إيمان الفضائية (Eman TV)
+http://127.0.0.1:8080/live/iq-eman.m3u8
+#EXTINF:-1 tvg-id="iq-farmoda" tvg-name="قناة فارمودا (Farmoda TV)" tvg-logo="https://i.imgur.com/rP4K4B0.png" group-title="قنوات كردية",قناة فارمودا (Farmoda TV)
+http://127.0.0.1:8080/live/iq-farmoda.m3u8
+#EXTINF:-1 tvg-id="iq-inews" tvg-name="قناة آي نيوز (iNews)" tvg-logo="https://i.imgur.com/2P3b77f.png" group-title="قنوات إخبارية ووثائقية",قناة آي نيوز (iNews)
+http://127.0.0.1:8080/live/iq-inews.m3u8
+#EXTINF:-1 tvg-id="iq-imam-hussein-1" tvg-name="قناة الإمام الحسين 1 (فارسي)" tvg-logo="https://i.imgur.com/5lVwYh1.png" group-title="قنوات دينية وإسلامية",قناة الإمام الحسين 1 (فارسي)
+http://127.0.0.1:8080/live/iq-imam-hussein-1.m3u8
+#EXTINF:-1 tvg-id="iq-imam-hussein-2" tvg-name="قناة الإمام الحسين 2 (عربي)" tvg-logo="https://i.imgur.com/5lVwYh1.png" group-title="قنوات دينية وإسلامية",قناة الإمام الحسين 2 (عربي)
+http://127.0.0.1:8080/live/iq-imam-hussein-2.m3u8
+#EXTINF:-1 tvg-id="iq-imam-hussein-3" tvg-name="قناة الإمام الحسين 3 (إنجليزي)" tvg-logo="https://i.imgur.com/5lVwYh1.png" group-title="قنوات دينية وإسلامية",قناة الإمام الحسين 3 (إنجليزي)
+http://127.0.0.1:8080/live/iq-imam-hussein-3.m3u8
+#EXTINF:-1 tvg-id="iq-imam-hussein-4" tvg-name="قناة الإمام الحسين 4 (أوردو)" tvg-logo="https://i.imgur.com/5lVwYh1.png" group-title="قنوات دينية وإسلامية",قناة الإمام الحسين 4 (أوردو)
+http://127.0.0.1:8080/live/iq-imam-hussein-4.m3u8
+#EXTINF:-1 tvg-id="iq-imam-hussein-5" tvg-name="قناة الزهراء الفضائية (الحسين 5)" tvg-logo="https://i.imgur.com/5lVwYh1.png" group-title="قنوات دينية وإسلامية",قناة الزهراء الفضائية (الحسين 5)
+http://127.0.0.1:8080/live/iq-imam-hussein-5.m3u8
+#EXTINF:-1 tvg-id="iq-imam-hussein-6" tvg-name="قناة الإمام الحسين 6" tvg-logo="https://i.imgur.com/5lVwYh1.png" group-title="قنوات دينية وإسلامية",قناة الإمام الحسين 6
+http://127.0.0.1:8080/live/iq-imam-hussein-6.m3u8
+#EXTINF:-1 tvg-id="iq-iraq-future" tvg-name="قناة مستقبل العراق (Iraq Future)" tvg-logo="https://i.imgur.com/1Gvh92D.png" group-title="قنوات عراقية عامة",قناة مستقبل العراق (Iraq Future)
+http://127.0.0.1:8080/live/iq-iraq-future.m3u8
+#EXTINF:-1 tvg-id="iq-ishtar" tvg-name="قناة عشتار الفضائية" tvg-logo="https://i.imgur.com/a4E8zK0.png" group-title="قنوات عراقية عامة",قناة عشتار الفضائية
+http://127.0.0.1:8080/live/iq-ishtar.m3u8
+#EXTINF:-1 tvg-id="iq-kurd-channel" tvg-name="قناة كورد الفضائية (Kurd Channel)" tvg-logo="https://i.imgur.com/rP4K4B0.png" group-title="قنوات كردية",قناة كورد الفضائية (Kurd Channel)
+http://127.0.0.1:8080/live/iq-kurd-channel.m3u8
+#EXTINF:-1 tvg-id="iq-kurdistan24" tvg-name="قناة كردستان 24 (Kurdistan 24)" tvg-logo="https://i.imgur.com/0i1uQ5Z.png" group-title="قنوات إخبارية ووثائقية",قناة كردستان 24 (Kurdistan 24)
+http://127.0.0.1:8080/live/iq-kurdistan24.m3u8
+#EXTINF:-1 tvg-id="iq-kurdistan-tv" tvg-name="قناة كردستان الفضائية" tvg-logo="https://i.imgur.com/rP4K4B0.png" group-title="قنوات كردية",قناة كردستان الفضائية
+http://127.0.0.1:8080/live/iq-kurdistan-tv.m3u8
+#EXTINF:-1 tvg-id="iq-kurdsat" tvg-name="قناة كوردسات (Kurdsat)" tvg-logo="https://i.imgur.com/5J3l7j7.png" group-title="قنوات كردية",قناة كوردسات (Kurdsat)
+http://127.0.0.1:8080/live/iq-kurdsat.m3u8
+#EXTINF:-1 tvg-id="iq-kurdsat-news" tvg-name="قناة كوردسات نيوز" tvg-logo="https://i.imgur.com/vH5t5tS.png" group-title="قنوات إخبارية ووثائقية",قناة كوردسات نيوز
+http://127.0.0.1:8080/live/iq-kurdsat-news.m3u8
+#EXTINF:-1 tvg-id="iq-manu-chat" tvg-name="قناة مانو شات (Manu Chat)" tvg-logo="https://i.imgur.com/WhPlJzh.jpeg" group-title="قنوات عراقية عامة",قناة مانو شات (Manu Chat)
+http://127.0.0.1:8080/live/iq-manu-chat.m3u8
+#EXTINF:-1 tvg-id="iq-marjaeyat-ar" tvg-name="قناة المرجعية الفضائية (العربية)" tvg-logo="https://i.imgur.com/8Q0a8k2.png" group-title="قنوات دينية وإسلامية",قناة المرجعية الفضائية (العربية)
+http://127.0.0.1:8080/live/iq-marjaeyat-ar.m3u8
+#EXTINF:-1 tvg-id="iq-marjaeyat-en" tvg-name="قناة المرجعية (الإنجليزية)" tvg-logo="https://i.imgur.com/8Q0a8k2.png" group-title="قنوات دينية وإسلامية",قناة المرجعية (الإنجليزية)
+http://127.0.0.1:8080/live/iq-marjaeyat-en.m3u8
+#EXTINF:-1 tvg-id="iq-marjaeyat-fa" tvg-name="قناة المرجعية (الفارسية)" tvg-logo="https://i.imgur.com/8Q0a8k2.png" group-title="قنوات دينية وإسلامية",قناة المرجعية (الفارسية)
+http://127.0.0.1:8080/live/iq-marjaeyat-fa.m3u8
+#EXTINF:-1 tvg-id="iq-mixkurdy" tvg-name="قناة ميكس كوردي (Mix Kurdy)" tvg-logo="https://i.imgur.com/7vY6zK5.png" group-title="قنوات كردية",قناة ميكس كوردي (Mix Kurdy)
+http://127.0.0.1:8080/live/iq-mixkurdy.m3u8
+#EXTINF:-1 tvg-id="iq-payam" tvg-name="قناة بيام الفضائية (Payam TV)" tvg-logo="https://i.imgur.com/a4E8zK0.png" group-title="قنوات كردية",قناة بيام الفضائية (Payam TV)
+http://127.0.0.1:8080/live/iq-payam.m3u8
+#EXTINF:-1 tvg-id="iq-rudaw" tvg-name="قناة رووداو الفضائية (Rudaw TV)" tvg-logo="https://i.imgur.com/U8hW2qX.png" group-title="قنوات إخبارية ووثائقية",قناة رووداو الفضائية (Rudaw TV)
+http://127.0.0.1:8080/live/iq-rudaw.m3u8
+#EXTINF:-1 tvg-id="iq-samarra" tvg-name="قناة سامراء الفضائية" tvg-logo="https://i.imgur.com/h5Tq5kS.png" group-title="قنوات عراقية عامة",قناة سامراء الفضائية
+http://127.0.0.1:8080/live/iq-samarra.m3u8
+#EXTINF:-1 tvg-id="iq-shams" tvg-name="قناة شمس الفضائية" tvg-logo="https://i.imgur.com/9v8N9oQ.png" group-title="قنوات عراقية عامة",قناة شمس الفضائية
+http://127.0.0.1:8080/live/iq-shams.m3u8
+#EXTINF:-1 tvg-id="iq-utv" tvg-name="قناة يو تي في (UTV العراق)" tvg-logo="https://i.imgur.com/G5y7s8Z.png" group-title="قنوات عراقية عامة",قناة يو تي في (UTV العراق)
+http://127.0.0.1:8080/live/iq-utv.m3u8
+#EXTINF:-1 tvg-id="iq-waar" tvg-name="قناة وار الفضائية (Waar TV)" tvg-logo="https://i.imgur.com/h5Tq5kS.png" group-title="قنوات كردية",قناة وار الفضائية (Waar TV)
+http://127.0.0.1:8080/live/iq-waar.m3u8
+#EXTINF:-1 tvg-id="iq-zagros" tvg-name="قناة زاكروس الفضائية (Zagros TV)" tvg-logo="https://i.imgur.com/7vY6zK5.png" group-title="قنوات كردية",قناة زاكروس الفضائية (Zagros TV)
+http://127.0.0.1:8080/live/iq-zagros.m3u8
