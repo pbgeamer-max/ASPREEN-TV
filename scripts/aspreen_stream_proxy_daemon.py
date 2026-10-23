@@ -353,17 +353,33 @@ def telegram_heartbeat_loop():
 
 
 def save_channels_to_disk():
-    """Exports updated in-memory channels to channels.json and channels.m3u"""
+    """Exports updated in-memory channels to channels.json, shahid_channels.json, and channels.m3u"""
     with cache_lock:
-        channels_list = list(channels_cache.values())
+        unique_channels = {}
+        for ch in channels_cache.values():
+            cid = str(ch.get("id") or ch.get("vid"))
+            if cid and cid not in unique_channels:
+                unique_channels[cid] = ch
+
+        channels_list = list(unique_channels.values())
         channels_list.sort(key=lambda x: x.get("orderIndex", 0))
 
     try:
-        # 1. Update channels.json
-        with open(CHANNELS_JSON_PATH, "w", encoding="utf-8") as f:
-            json.dump(channels_list, f, ensure_ascii=False, indent=2)
+        # Separate Shahid channels and VIP OTT channels
+        shahid_channels = [c for c in channels_list if str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") == "shahid-livestream"]
+        vip_channels = [c for c in channels_list if not (str(c.get("id") or c.get("vid")).startswith("shahid-") or c.get("source") == "shahid-livestream")]
 
-        # 2. Update channels.m3u pointing to local persistent proxy
+        # 1. Update channels.json (beIN & VIP only)
+        with open(CHANNELS_JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump(vip_channels, f, ensure_ascii=False, indent=2)
+
+        # 2. Update shahid_channels.json (Shahid only)
+        shahid_json_path = os.path.join(DATA_DIR, "shahid_channels.json")
+        if os.path.exists(DATA_DIR):
+            with open(shahid_json_path, "w", encoding="utf-8") as f:
+                json.dump(shahid_channels, f, ensure_ascii=False, indent=2)
+
+        # 3. Update channels.m3u pointing to local persistent proxy
         m3u_lines = ["#EXTM3U"]
         for ch in channels_list:
             cid = ch.get("id") or ch.get("vid")

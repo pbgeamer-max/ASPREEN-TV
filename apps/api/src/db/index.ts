@@ -259,12 +259,6 @@ export async function initDatabase(force = false): Promise<boolean> {
                   addedShahid++;
                 }
               }
-              if (addedShahid > 0 && jsonPath && fs.existsSync(jsonPath)) {
-                try {
-                  fs.writeFileSync(jsonPath, JSON.stringify(list, null, 2), 'utf-8');
-                  console.log(`[Auto-Sync] Merged ${addedShahid} Shahid channels directly into ${jsonPath}`);
-                } catch {}
-              }
             }
           } catch (e: any) {
             console.error('[PostgreSQL] Failed to parse shahid_channels.json:', e.message);
