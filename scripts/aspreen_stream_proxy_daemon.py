@@ -28,16 +28,6 @@ import hashlib
 import urllib.request
 import urllib.parse
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
-import requests
-from requests.adapters import HTTPAdapter
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-# High-speed connection-pooled session for sub-second segment delivery
-SHARED_HTTP_SESSION = requests.Session()
-_adapter = HTTPAdapter(pool_connections=50, pool_maxsize=100, max_retries=1)
-SHARED_HTTP_SESSION.mount("https://", _adapter)
-SHARED_HTTP_SESSION.mount("http://", _adapter)
 
 # Unverified SSL context for upstream IPTV streams with self-signed or expired certs
 SSL_CTX = ssl.create_default_context()
@@ -506,15 +496,15 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         if req_key in ("tvora", "aspreen", "discord", "admin") or qs.get("bot", [""])[0] == "1":
             return True, "*"
 
-        # 4. Authorized Media Players, Android Apps & Web Browsers (VLC, ExoPlayer, Chrome, Safari, etc.)
+        # 4. Authorized Media Players, Android Apps & Mobile Frameworks (VLC, ExoPlayer, Kodi, Smart TV, etc.)
         media_player_tokens = [
-            "tvora", "aspreen", "discord", "chrome", "safari", "mozilla", "firefox", "edge",
+            "tvora", "aspreen", "discord", "chrome/107.0.0.0", "safari/537.3",
             "vlc", "libvlc", "exoplayer", "stagefright", "kodi", "lavf", 
             "ffmpeg", "applecoremedia", "okhttp", "dalvik", "smarttv", "tizen", "webos", "iptv"
         ]
         if (
             any(tok in ua for tok in media_player_tokens) or
-            req_key in ("tvora", "aspreen", "discord") or
+            app_key in ("tvora", "aspreen", "discord") or
             self.headers.get("X-Tvora-App") or
             self.headers.get("X-Discord-Bot")
         ):
@@ -659,7 +649,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             base_origin = f"{proto}://{host}"
             with cache_lock:
                 channels_list = list(channels_cache.values())
-                channels_list.sort(key=lambda x: (x.get("orderIndex") if isinstance(x.get("orderIndex"), int) else 9999))
+                channels_list.sort(key=lambda x: x.get("orderIndex", 0))
 
             m3u_lines = ["#EXTM3U"]
             for ch in channels_list:
@@ -1131,26 +1121,18 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
             for attempt in range(max_retries):
                 try:
-                    resp = SHARED_HTTP_SESSION.get(url, headers=headers, timeout=8, verify=False)
-                    content = resp.text
-                    if "#EXTM3U" in content:
+                    r = urllib.request.Request(url, headers=headers)
+                    with PROXY_OPENER.open(r, timeout=12) as resp:
+                        content = resp.read().decode("utf-8", errors="ignore")
+                        if "#EXTM3U" in content:
+                            return content
+                        if ("No URLs available" in content or not content) and attempt < max_retries - 1:
+                            time.sleep(0.3)
+                            continue
                         return content
-                    if ("No URLs available" in content or not content) and attempt < max_retries - 1:
-                        time.sleep(0.2)
-                        continue
-                    return content
                 except Exception:
-                    # Fallback to PROXY_OPENER
-                    try:
-                        r = urllib.request.Request(url, headers=headers)
-                        with PROXY_OPENER.open(r, timeout=10) as f_resp:
-                            content = f_resp.read().decode("utf-8", errors="ignore")
-                            if "#EXTM3U" in content:
-                                return content
-                    except Exception:
-                        pass
                     if attempt < max_retries - 1:
-                        time.sleep(0.2)
+                        time.sleep(0.3)
                         continue
             return ""
 
@@ -1231,14 +1213,9 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         # Strip any transient #EXT-X-ENDLIST to prevent players from treating live as finished VOD
         clean_rewritten = [l for l in rewritten if not l.startswith("#EXT-X-ENDLIST")]
-        # Fast startup hint for live streams: advise player to buffer only -6s instead of -15s
-        if not any(l.startswith("#EXT-X-START:") for l in clean_rewritten) and any(l.startswith("#EXTINF:") for l in clean_rewritten):
-            clean_rewritten.insert(1, "#EXT-X-START:TIME-OFFSET=-6.0,PRECISE=YES")
-
         out_body = ("\n".join(clean_rewritten) + "\n").encode("utf-8")
-        cache_ttl = 10.0 if ("#EXT-X-STREAM-INF:" in m3u_text) else 1.2
         with m3u8_cache_lock:
-            m3u8_cache[cache_key] = (out_body, time.time() + cache_ttl)
+            m3u8_cache[cache_key] = (out_body, time.time() + 0.8)
         self.send_response(200)
         self.send_cors_headers()
         self.send_header("Content-Type", "application/vnd.apple.mpegurl")
@@ -1253,7 +1230,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
             return
 
     def handle_ts_segment(self, target_url, ref_override=""):
-        """Pipes upstream TS/fMP4 segment chunks to client seamlessly with keep-alive connection pooling"""
+        """Pipes upstream TS segment chunks to client seamlessly with exact headers"""
         # If target is raw new-redirect.online without play.php, wrap it in play.php
         if "new-redirect.online" in target_url and "play.php" not in target_url:
             b64_t = base64.b64encode(target_url.encode()).decode()
@@ -1284,7 +1261,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
 
         is_fmp4_seg = ".m4s" in target_url or ".mp4" in target_url
 
-        # Check instant in-memory cache first (< 0.1ms response)
+        # Check instant in-memory cache first (< 1ms response)
         now = time.time()
         with hot_cache_lock:
             cached = HOT_SEGMENT_CACHE.get(target_url)
@@ -1292,10 +1269,7 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                 data = cached[0]
                 self.send_response(200)
                 self.send_cors_headers()
-                if data.startswith(b"#EXTM3U"):
-                    self.send_header("Content-Type", "application/vnd.apple.mpegurl")
-                else:
-                    self.send_header("Content-Type", "video/iso.segment" if is_fmp4_seg else "video/mp2t")
+                self.send_header("Content-Type", "video/iso.segment" if is_fmp4_seg else "video/mp2t")
                 self.send_header("Content-Length", str(len(data)))
                 self.send_header("Cache-Control", "public, max-age=120, immutable")
                 self.end_headers()
@@ -1324,125 +1298,107 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
         elif "yacine.website" in target_url or "new-redirect.online" in target_url or ".buzz" in target_url or ".lol" in target_url:
             headers["X-Forwarded-For"] = "156.200.1.1"
 
-        for attempt in range(2):
+        for attempt in range(4):
             try:
-                resp = SHARED_HTTP_SESSION.get(target_url, headers=headers, stream=True, timeout=12, verify=False)
-                if resp.status_code != 200:
-                    if attempt < 1:
-                        headers["Referer"] = "https://yacine.website/"
-                        time.sleep(0.3)
-                        continue
-                    self.send_response(resp.status_code)
-                    self.send_cors_headers()
-                    self.end_headers()
-                    return
-
-                # Read first chunk to inspect headers / content
-                first_chunk = b""
-                stream_iter = resp.iter_content(chunk_size=64 * 1024)
-                for c in stream_iter:
-                    first_chunk = c
-                    break
-
-                if not first_chunk or first_chunk.startswith(b"No URLs available") or first_chunk.startswith(b"<html>") or first_chunk.startswith(b"<html") or first_chunk.startswith(b"<!DOCTYPE"):
-                    if attempt < 1:
-                        headers["Referer"] = "https://yacine.website/"
-                        time.sleep(0.3)
-                        continue
-                    self.send_response(404)
-                    self.send_cors_headers()
-                    self.end_headers()
-                    return
-
-                # Handle Nested / Variant M3U8 (Adaptive bitrates e.g. MBC, Rotana, Al Rabiaa sub-playlist)
-                if first_chunk.startswith(b"#EXTM3U"):
-                    host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", f"127.0.0.1:{PORT}"))
-                    proto = self.headers.get("X-Forwarded-Proto", "https" if ("railway" in host or "443" in host) else "http")
-                    if "railway" in host:
-                        proto = "https"
-                    base_origin = f"{proto}://{host}"
-
-                    chunks_rest = [first_chunk]
-                    for c in stream_iter:
-                        chunks_rest.append(c)
-                    full_m3u = b"".join(chunks_rest).decode("utf-8", errors="ignore")
-                    lines = full_m3u.splitlines()
-                    rewritten = []
-                    for line in lines:
-                        l = line.strip()
-                        if not l:
+                req = urllib.request.Request(target_url, headers=headers)
+                with PROXY_OPENER.open(req, timeout=25) as upstream:
+                    first_chunk = upstream.read(64 * 1024)
+                    if not first_chunk or first_chunk.startswith(b"No URLs available") or first_chunk.startswith(b"<html>") or first_chunk.startswith(b"<html") or first_chunk.startswith(b"<!DOCTYPE"):
+                        if attempt < 3:
+                            headers["Referer"] = "https://yacine.website/"
+                            time.sleep(0.8)
                             continue
-                        if l.startswith("#"):
-                            if 'URI="' in l:
-                                def replace_sub_uri(m):
-                                    u = m.group(1)
-                                    full_u = urllib.parse.urljoin(target_url, u)
-                                    enc_u = urllib.parse.quote(full_u, safe="")
-                                    enc_r = urllib.parse.quote(referer or "", safe="")
-                                    return f'URI="{base_origin}/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
-                                rewritten.append(re.sub(r'URI="([^"]+)"', replace_sub_uri, l))
+                        self.send_response(404)
+                        self.send_cors_headers()
+                        self.end_headers()
+                        return
+
+                    # Handle Nested / Variant M3U8 (Adaptive bitrates e.g. MBC, Rotana)
+                    if first_chunk.startswith(b"#EXTM3U"):
+                        host = self.headers.get("X-Forwarded-Host", self.headers.get("Host", f"127.0.0.1:{PORT}"))
+                        proto = self.headers.get("X-Forwarded-Proto", "https" if ("railway" in host or "443" in host) else "http")
+                        if "railway" in host:
+                            proto = "https"
+                        base_origin = f"{proto}://{host}"
+
+                        rest = upstream.read()
+                        full_m3u = (first_chunk + rest).decode("utf-8", errors="ignore")
+                        lines = full_m3u.splitlines()
+                        rewritten = []
+                        for line in lines:
+                            l = line.strip()
+                            if not l:
+                                continue
+                            if l.startswith("#"):
+                                if 'URI="' in l:
+                                    def replace_sub_uri(m):
+                                        u = m.group(1)
+                                        full_u = urllib.parse.urljoin(target_url, u)
+                                        enc_u = urllib.parse.quote(full_u, safe="")
+                                        enc_r = urllib.parse.quote(referer or "", safe="")
+                                        return f'URI="{base_origin}/live/ts/chunk.ts?url={enc_u}&ref={enc_r}"'
+                                    rewritten.append(re.sub(r'URI="([^"]+)"', replace_sub_uri, l))
+                                else:
+                                    rewritten.append(l)
                             else:
-                                rewritten.append(l)
-                        else:
-                            seg_full = urllib.parse.urljoin(target_url, l)
-                            encoded_seg = urllib.parse.quote(seg_full, safe="")
-                            encoded_ref = urllib.parse.quote(referer or "", safe="")
-                            rewritten.append(f"{base_origin}/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
+                                seg_full = urllib.parse.urljoin(target_url, l)
+                                encoded_seg = urllib.parse.quote(seg_full, safe="")
+                                encoded_ref = urllib.parse.quote(referer or "", safe="")
+                                rewritten.append(f"{base_origin}/live/ts/chunk.ts?url={encoded_seg}&ref={encoded_ref}")
 
-                    out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
-                    with hot_cache_lock:
-                        HOT_SEGMENT_CACHE[target_url] = (out_body, time.time() + 1.5)
+                        out_body = ("\n".join(rewritten) + "\n").encode("utf-8")
+                        self.send_response(200)
+                        self.send_cors_headers()
+                        self.send_header("Content-Type", "application/vnd.apple.mpegurl")
+                        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                        self.send_header("Content-Length", str(len(out_body)))
+                        self.end_headers()
+                        try:
+                            self.wfile.write(out_body)
+                        except (BrokenPipeError, ConnectionResetError):
+                            pass
+                        return
 
-                    self.send_response(200)
+                    # Strict validation: MPEG-TS (starts with 0x47) or fMP4 (starts with styp, ftyp, moof, mdat, or .m4s/.mp4 in URL)
+                    is_ts = bool(first_chunk and first_chunk[0] == 0x47)
+                    is_fmp4 = bool(first_chunk and (first_chunk[4:8] in (b"styp", b"ftyp", b"moof", b"moov", b"mdat", b"free") or is_fmp4_seg))
+                    if not (is_ts or is_fmp4):
+                        self.send_response(503)
+                        self.send_cors_headers()
+                        self.end_headers()
+                        return
+
+                    status = upstream.getcode()
+                    content_len = upstream.headers.get("Content-Length")
+                    self.send_response(status if status else 200)
                     self.send_cors_headers()
-                    self.send_header("Content-Type", "application/vnd.apple.mpegurl")
-                    self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-                    self.send_header("Content-Length", str(len(out_body)))
+                    self.send_header("Content-Type", "video/iso.segment" if is_fmp4 else "video/mp2t")
+                    if content_len:
+                        self.send_header("Content-Length", content_len)
                     self.end_headers()
+
                     try:
-                        self.wfile.write(out_body)
+                        self.wfile.write(first_chunk)
+                        chunks_acc = [first_chunk]
+                        while True:
+                            chunk = upstream.read(64 * 1024)
+                            if not chunk:
+                                break
+                            self.wfile.write(chunk)
+                            chunks_acc.append(chunk)
+
+                        full_seg = b"".join(chunks_acc)
+                        with hot_cache_lock:
+                            HOT_SEGMENT_CACHE[target_url] = (full_seg, time.time() + 45.0)
                     except (BrokenPipeError, ConnectionResetError):
-                        pass
+                        return
                     return
-
-                # Strict validation: MPEG-TS (starts with 0x47) or fMP4 (starts with styp, ftyp, moof, mdat, or .m4s/.mp4 in URL)
-                is_ts = bool(first_chunk and first_chunk[0] == 0x47)
-                is_fmp4 = bool(first_chunk and (first_chunk[4:8] in (b"styp", b"ftyp", b"moof", b"moov", b"mdat", b"free") or is_fmp4_seg))
-                if not (is_ts or is_fmp4):
-                    self.send_response(503)
-                    self.send_cors_headers()
-                    self.end_headers()
-                    return
-
-                is_init_segment = bool(first_chunk and first_chunk[4:8] in (b"ftyp", b"moov"))
-                content_len = resp.headers.get("Content-Length")
-                self.send_response(200)
-                self.send_cors_headers()
-                self.send_header("Content-Type", "video/iso.segment" if is_fmp4 else "video/mp2t")
-                if content_len:
-                    self.send_header("Content-Length", content_len)
-                self.end_headers()
-
-                try:
-                    self.wfile.write(first_chunk)
-                    chunks_acc = [first_chunk]
-                    for chunk in stream_iter:
-                        self.wfile.write(chunk)
-                        chunks_acc.append(chunk)
-
-                    full_seg = b"".join(chunks_acc)
-                    # Cache init segments for 3600s (1h) and media segments for 45s
-                    ttl = 3600.0 if is_init_segment else 45.0
-                    with hot_cache_lock:
-                        HOT_SEGMENT_CACHE[target_url] = (full_seg, time.time() + ttl)
-                except (BrokenPipeError, ConnectionResetError):
-                    return
-                return
             except (BrokenPipeError, ConnectionResetError):
+                # Client disconnected or seeked in player - normal in live streaming
                 return
             except Exception as e:
                 if attempt < 1:
-                    time.sleep(0.2)
+                    time.sleep(0.3)
                     continue
                 try:
                     self.send_response(404)
@@ -1450,7 +1406,6 @@ class StreamProxyHTTPHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                 except (BrokenPipeError, ConnectionResetError):
                     pass
-
     def handle_ondemand_segment(self, stream_key, seg_file, session_id=""):
         """Serves on-demand HLS sliced TS segment directly with Level 2 HMAC verification and RAM cache"""
         clean_key = re.sub(r"[^a-zA-Z0-9_\-]", "", stream_key)
